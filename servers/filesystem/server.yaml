@@ -1,0 +1,35 @@
+name: filesystem
+image: mcp/filesystem
+type: server
+meta:
+  category: devops
+  tags:
+    - filesystem
+    - devops
+about:
+  title: Filesystem (Reference)
+  description: Local filesystem access with configurable allowed paths
+  icon: https://avatars.githubusercontent.com/u/182288589?s=200&v=4
+source:
+  project: https://github.com/modelcontextprotocol/servers
+  branch: 2025.4.24
+  dockerfile: src/filesystem/Dockerfile
+run:
+  command:
+    - '{{filesystem.paths|volume-target|into}}'
+  volumes:
+    - '{{filesystem.paths|volume|into}}'
+  disableNetwork: true
+config:
+  description: The MCP server is allowed to access these paths
+  parameters:
+    type: object
+    properties:
+      paths:
+        type: array
+        items:
+          type: string
+        default:
+          - /Users/local-test
+    required:
+      - paths
