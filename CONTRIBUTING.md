@@ -1,28 +1,43 @@
-# Contributing to Docker MCP Registry
-
+# 🤝 Contributing to Docker MCP Registry
 Thank you for your interest in contributing to the official Docker MCP Registry.
 This document outlines how to contribute to this project.
 
-## Pull request process
-
-- All commits must include a Signed-off-by trailer at the end of each commit message to indicate that the contributor agrees to the Developer Certificate of Origin.
+## 🔄 Pull request process overview
 - Fork the repository to your own GitHub account and clone it locally.
-- Make your changes. To add a new MCP Server, create a new folder under `servers` with the name of your server and add a `server.yaml` inside.
-- Correctly format your commit messages, see Commit message guidelines below.
+- Repository includes a `servers` folder where you should add a new folder with a `server.yaml` inside.
+- Repository includes a `scripts` folder with bash scripts to automate some of the steps.
+- Correctly format your commit messages, see Commit message guidelines below. _Note: All commits must include a Signed-off-by trailer at the end of each commit message to indicate that the contributor agrees to the Developer Certificate of Origin._
 - Open a PR by ensuring the title and its description reflect the content of the PR.
 - Ensure that CI passes, if it fails, fix the failures.
 - Every pull request requires a review from the Docker team before merging.
 - Once approved, all of your commits will be squashed into a single commit with your PR title.
 
-## Getting Started
+## 📋 Step-by-Step Guide
+### 1️⃣ Fork this repository
+Fork the repository to your own GitHub account and clone it locally.
 
-You will need to provide:
-
+### 2️⃣ Add your entry locally
+Add your entry by creating a new folder following the `owner@name` template, and create a `server.yaml` inside describing your MCP server. You will need to provide:
 - A valid name for your MCP
 - The GitHub URL of your project. The project needs to have a valid Dockerfile.
 - A brief description of your MCP Server.
+- A category for the MCP server, one of:
+* 'ai'
+* 'data-visualization'
+* 'database'
+* 'devops'
+* 'ecommerce'
+* 'finance'
+* 'games'
+* 'communication'
+* 'monitoring'
+* 'productivity'
+* 'search'
 
-Let's assume we have a new MCP Server to access my org's database. The MCP is called `My-ORGDB-MCP` and the GitHub repo is located at: https://github.com/myorg/my-orgdb-mcp We have created a bash script to simplify the creation process.
+#### 🚀 Generate folder and `server.yaml` using `new-server.sh` script
+You can use our script to automate the creation of the files. Let's assume we have a new MCP Server to access my org's database. The MCP is called `My-ORGDB-MCP` and the GitHub repo is located at: `https://github.com/myorg/my-orgdb-mcp`
+
+You can call the tool passing the MCP server name, category, and github url. 
 
 ```
 ./scripts/new-server.sh My-ORGDB-MCP databases https://github.com/myorg/my-orgdb-mcp
@@ -65,26 +80,38 @@ source:
 #       - param_name
 ```
 
-If you want to use a Docker image built by your organisation, you can pass it to the script as follows:
+If you want to provide a specific Docker image built by your organisation, you can pass it to the script as follows:
 
 ```
 IMAGE_NAME=myorg/myimage ./scripts/new-server.sh My-ORGDB-MCP databases https://github.com/myorg/my-orgdb-mcp
 ```
 
-As you can see, the configuration block has been commented out. If you need to pass environmental variables or secrets, please uncomment the
-necessary lines.
+As you can see, the configuration block has been commented out. If you need to pass environmental variables or secrets, please uncomment the necessary lines.
 
-## Testing your MCP Server
+🔒 If you don't provide a Docker image, we will build the image for you and host it in [Docker Hub's `mcp` namespace](https://hub.docker.com/u/mcp), the benefits are: image will include cryptographic signatures, provenance tracking, SBOMs, and automatic security updates. Otherwise, self-built images still benefit from container isolation but won't include the enhanced security features of Docker-built images.
 
-## Code of Conduct
+### 3️⃣ Run & Test your MCP Server locally
+🚧 tbd
+
+### 4️⃣ Create `commit` and raise the Pull Request
+🚧 tbd
+
+### 5️⃣ Wait for review and approval
+Upon approval your entry will be processed and it will be available in 24 hours at: 
+- [MCP catalog](https://hub.docker.com/mcp) 
+- [Docker Desktop's MCP Toolkit](https://www.docker.com/products/docker-desktop/) 
+- [Docker Hub `mcp` namespace](https://hub.docker.com/u/mcp) (for MCP servers built by Docker)
+
+
+## 📜 Code of Conduct
 
 This project follows a Code of Conduct. Please review it in
 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
-## Questions
+## ❓ Questions
 
 If you have questions, please create an issue in the repository.
 
-## License
+## 📄 License
 
 By contributing, you agree that your contributions will be licensed under the MIT License.
