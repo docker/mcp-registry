@@ -22,7 +22,7 @@ We welcome contributions to the Official Docker MCP Registry! If you'd like to c
 
 To add your MCP server to the registry, please review the [CONTRIBUTING](CONTRIBUTING.md) guide for detailed instructions. We support two types of submissions:
 
-### 🏗️ Option A: Docker-Built Official Image (Recommended)
+### 🏗️ Option A: Docker-Built Image (Recommended)
 Have Docker build and maintain your server image with enhanced security features. You'll submit the required information via pull request and upon approval Docker will build, sign, and publish your image to mcp/your-server-name on Docker Hub and the catalog entry will be available in the catalog in 24 hours.
 
 _**Benefits: Your image will include cryptographic signatures, provenance tracking, SBOMs, and automatic security updates**_
