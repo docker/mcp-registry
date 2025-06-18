@@ -1,0 +1,40 @@
+name: resend
+image: mcp/resend
+type: server
+meta:
+  category: communication
+  tags:
+    - resend
+    - email
+about:
+  title: Send emails
+  icon: https://avatars.githubusercontent.com/u/109384852?s=200&v=4
+source:
+  project: https://github.com/slimslenderslacks/mcp-send-email
+  upstream: https://github.com/resend/mcp-send-email
+  branch: slim/docker
+config:
+  description: Configure sender and reply email addresses
+  secrets:
+    - name: resend.api_key
+      env: RESEND_API_KEY
+      example: YOUR_RESEND_API_KEY
+  env:
+    - name: REPLY_TO_EMAIL_ADDRESSES
+      example: YOUR_REPLY_TO_EMAIL_ADDRESSES
+      value: '{{resend.reply_to}}'
+    - name: SENDER_EMAIL_ADDRESS
+      example: YOUR_SENDER_EMAIL_ADDRESS
+      value: '{{resend.sender}}'
+  parameters:
+    type: object
+    properties:
+      reply_to:
+        type: string
+        description: comma separated list of reply to email addresses
+      sender:
+        type: string
+        description: sender email address
+    required:
+      - reply_to
+      - sender

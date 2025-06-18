@@ -1,0 +1,66 @@
+name: ffmpeg
+type: poci
+meta:
+  category: video
+  tags:
+    - ffmpeg
+    - video
+about:
+  title: FFmpeg
+  description: Use ffmpeg to process video files.
+  icon: https://cdn.jsdelivr.net/npm/simple-icons@v7/icons/ffmpeg.svg
+tools:
+  - name: imagemagick
+    description: Run a imagemagick command
+    parameters:
+      type: object
+      properties:
+        args:
+          type: string
+          description: The arguments to pass to imagemagick
+      required:
+        - args
+    container:
+      image: vonwig/imagemagick
+      command:
+        - '{{args|into}}'
+  - name: file-exists
+    description: check if a file exists
+    parameters:
+      type: object
+      properties:
+        path:
+          type: string
+          description: ""
+      required:
+        - path
+    container:
+      image: busybox
+      command:
+        - test
+        - -f
+        - '{{path}}'
+      volumes:
+        - '{{path}}:{{path}}'
+  - name: ffmpeg
+    description: run the ffmpeg command
+    parameters:
+      type: object
+      properties:
+        args:
+          type: array
+          description: arguments to pass to ffmpeg
+          items:
+            type: string
+        basedir:
+          type: string
+          description: base directory
+      required:
+        - basedir
+        - args
+    container:
+      image: linuxserver/ffmpeg:version-7.1-cli
+      command:
+        - '{{args|into}}'
+      volumes:
+        - '{{basedir}}:{{basedir}}'

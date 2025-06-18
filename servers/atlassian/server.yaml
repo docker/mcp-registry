@@ -1,0 +1,71 @@
+name: atlassian
+image: mcp/atlassian
+type: server
+meta:
+  category: productivity
+  tags:
+    - atlassian
+    - confluence
+    - jira
+  highlighted: true
+about:
+  title: Atlassian
+  description: Tools for Atlassian products (Confluence and Jira). This integration supports both Atlassian Cloud and Jira Server/Data Center deployments.
+  icon: https://avatars.githubusercontent.com/u/43281909?s=200&v=4
+source:
+  project: https://github.com/sooperset/mcp-atlassian
+  branch: v0.11.2
+config:
+  description: The MCP server is allowed to access these paths
+  secrets:
+    - name: atlassian.confluence.api_token
+      env: CONFLUENCE_API_TOKEN
+      example: your_api_token
+    - name: atlassian.confluence.personal_token
+      env: CONFLUENCE_PERSONAL_TOKEN
+      example: your_api_token
+    - name: atlassian.jira.api_token
+      env: JIRA_API_TOKEN
+      example: your_api_token
+    - name: atlassian.jira.personal_token
+      env: JIRA_PERSONAL_TOKEN
+      example: your_api_token
+  env:
+    - name: CONFLUENCE_URL
+      example: https://your-company.atlassian.net/wiki
+      value: '{{atlassian.confluence.url}}'
+    - name: CONFLUENCE_USERNAME
+      example: your.email@company.com
+      value: '{{atlassian.confluence.username}}'
+    - name: JIRA_URL
+      example: https://your-company.atlassian.net
+      value: '{{atlassian.jira.url}}'
+    - name: JIRA_USERNAME
+      example: your.email@company.com
+      value: '{{atlassian.jira.username}}'
+  parameters:
+    type: object
+    properties:
+      confluence:
+        type: object
+        properties:
+          url:
+            type: string
+          username:
+            type: string
+        required:
+          - url
+      jira:
+        type: object
+        properties:
+          url:
+            type: string
+          username:
+            type: string
+        required:
+          - url
+    anyOf:
+      - required:
+          - confluence
+      - required:
+          - jira
