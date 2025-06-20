@@ -17,7 +17,6 @@ import (
 
 	"github.com/docker/mcp-registry/internal/licenses"
 	"github.com/docker/mcp-registry/internal/mcp"
-	"github.com/docker/mcp-registry/pkg/catalog"
 	"github.com/docker/mcp-registry/pkg/github"
 	"github.com/docker/mcp-registry/pkg/servers"
 )
@@ -247,15 +246,21 @@ func run(ctx context.Context, buildURL, name, category, userProvidedImage string
 
 What to do next?
 
-  1. Review %[3]s and make sure no TODO remains.
+  1. Review %[2]s and make sure no TODO remains.
 
-  2. Test out your server in Docker Desktop by generating a catalog and importing it. After doing so, you should be able to test it in the MCP Toolkit:
+  2. Test out your server in Docker Desktop by generating a catalog and importing it:
 
      task catalog -- %[1]s
-     docker mcp catalog import $PWD/catalog/v%[2]d/catalog.yaml
+     docker mcp catalog import $PWD/catalogs/%[1]s/catalog.yaml
 
-  3. Open a Pull Request with the %[3]s file.
-`, name, catalog.Version, serverFile)
+  3. After doing so, you should be able to test it with the MCP Toolkit.
+
+  4. Reset your catalog after testing:
+
+     docker mcp catalog reset
+
+  5. Open a Pull Request with the %[2]s file.
+`, name, serverFile)
 	}
 
 	return nil
