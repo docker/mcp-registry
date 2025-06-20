@@ -33,9 +33,7 @@ In this option, you'll provide an already built image which will be used directl
 _**Note: Self-built images still benefit from container isolation but won't include the enhanced security features of Docker-built images.**_
 
 ## ✏️ Modifying or Removing Servers
-To request modifications or removal of an existing MCP Server:
-1. For modifications: Submit a Pull Request with your proposed changes
-2. For removal requests: Open an issue explaining the reason for removal
+To request modifications or removal of an existing MCP Server please open an issue explaining the reason for the edit/removal.
 
 ## ✅ Compliance and Quality Standards
 All MCP servers in this registry must:
