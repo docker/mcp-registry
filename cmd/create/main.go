@@ -132,7 +132,7 @@ func run(ctx context.Context, buildURL, name, category, userProvidedImage string
 		return fmt.Errorf("getting working directory: %w\n%s", err, out)
 	}
 
-	if listTools {
+	
 		var (
 			secrets []servers.Secret
 			env     []servers.Env
@@ -201,7 +201,7 @@ func run(ctx context.Context, buildURL, name, category, userProvidedImage string
 				Parameters:  schema,
 			},
 		}
-
+		if listTools {
 		tools, err := mcp.Tools(ctx, server, false, false, false)
 		if err != nil {
 			return err
@@ -216,7 +216,7 @@ func run(ctx context.Context, buildURL, name, category, userProvidedImage string
 		}
 
 		fmt.Printf("\n-----------------------------------------\n\n")
-
+	}
 		if exists, err := checkLocalServerExists(name); err != nil {
 			return err
 		} else if exists {
@@ -261,7 +261,7 @@ What to do next?
 
   5. Open a Pull Request with the %[2]s file.
 `, name, serverFile)
-	}
+	
 
 	return nil
 }
