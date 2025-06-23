@@ -70,7 +70,7 @@ func CreateSchema(server string, env []Env) ([]Env, Schema) {
 		schema.Properties = append(schema.Properties, SchemaEntry{
 			Name: name,
 			Schema: Schema{
-				Type: "string (TODO)",
+				Type: "string",
 			},
 		})
 
