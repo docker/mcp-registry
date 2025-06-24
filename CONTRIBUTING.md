@@ -1,4 +1,5 @@
 # 🤝 Contributing to Docker MCP Registry
+
 Thank you for your interest in contributing to the official Docker MCP Registry.
 This document outlines how to contribute to this project.
 
@@ -8,8 +9,8 @@ This document outlines how to contribute to this project.
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [Task](https://taskfile.dev/)
 
-
 ## 🔄 Pull request process overview
+
 - Fork the repository to your own GitHub account and clone it locally.
 - Repository includes a `servers` folder where you should add a new folder with a `server.yaml` inside.
 - Repository includes a `scripts` folder with bash scripts and Go code to automate some of the steps.
@@ -20,28 +21,33 @@ This document outlines how to contribute to this project.
 - Once approved, all of your commits will be squashed into a single commit with your PR title.
 
 ## 📋 Step-by-Step Guide
+
 ### 1️⃣ Fork this repository
+
 Fork the repository to your own GitHub account and clone it locally.
 
 ### 2️⃣ Add your entry locally
+
 Add your entry by creating a new folder following the `owner@name` template, and create a `server.yaml` inside describing your MCP server. You will need to provide:
+
 - A valid name for your MCP
 - The GitHub URL of your project. The project needs to have a valid Dockerfile.
 - A brief description of your MCP Server.
 - A category for the MCP server, one of:
-  * 'ai'
-  * 'data-visualization'
-  * 'database'
-  * 'devops'
-  * 'ecommerce'
-  * 'finance'
-  * 'games'
-  * 'communication'
-  * 'monitoring'
-  * 'productivity'
-  * 'search'
+  - 'ai'
+  - 'data-visualization'
+  - 'database'
+  - 'devops'
+  - 'ecommerce'
+  - 'finance'
+  - 'games'
+  - 'communication'
+  - 'monitoring'
+  - 'productivity'
+  - 'search'
 
 #### 🚀 Generate folder and `server.yaml` using `task create`
+
 You can use our command to automate the creation of the files. Let's assume we have a new MCP Server to access my org's database. My server's GitHub repo is located at: `https://github.com/myorg/my-orgdb-mcp`
 
 You can call the creation tool passing the category (required), and github url. If your server requires any environment variables, pass them at the end with `-e KEY=value`.
@@ -83,6 +89,7 @@ task create -- --category database --image myorg/my-mcp https://github.com/myorg
 🔒 If you don't provide a Docker image, we will build the image for you and host it in [Docker Hub's `mcp` namespace](https://hub.docker.com/u/mcp), the benefits are: image will include cryptographic signatures, provenance tracking, SBOMs, and automatic security updates. Otherwise, self-built images still benefit from container isolation but won't include the enhanced security features of Docker-built images.
 
 ### 3️⃣ Run & Test your MCP Server locally
+
 After creating your server file with `task create`, you will be given instructions for running it locally. In the case of my-orgdb-mcp, we would run the following commands next.
 
 ```
@@ -96,15 +103,13 @@ Now, if we go into the MCP Toolkit on Docker Desktop, we'll see our new MCP serv
 docker mcp catalog reset
 ```
 
-### 4️⃣ Create `commit` and raise the Pull Request
-🚧 tbd
-
 ### 5️⃣ Wait for review and approval
-Upon approval your entry will be processed and it will be available in 24 hours at: 
-- [MCP catalog](https://hub.docker.com/mcp) 
-- [Docker Desktop's MCP Toolkit](https://www.docker.com/products/docker-desktop/) 
-- [Docker Hub `mcp` namespace](https://hub.docker.com/u/mcp) (for MCP servers built by Docker)
 
+Upon approval your entry will be processed and it will be available in 24 hours at:
+
+- [MCP catalog](https://hub.docker.com/mcp)
+- [Docker Desktop's MCP Toolkit](https://www.docker.com/products/docker-desktop/)
+- [Docker Hub `mcp` namespace](https://hub.docker.com/u/mcp) (for MCP servers built by Docker)
 
 ## 📜 Code of Conduct
 
