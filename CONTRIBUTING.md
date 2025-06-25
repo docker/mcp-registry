@@ -14,7 +14,6 @@ This document outlines how to contribute to this project.
 - Fork the repository to your own GitHub account and clone it locally.
 - Repository includes a `servers` folder where you should add a new folder with a `server.yaml` inside.
 - Repository includes a `scripts` folder with bash scripts and Go code to automate some of the steps.
-- Correctly format your commit messages, see Commit message guidelines below. _Note: All commits must include a Signed-off-by trailer at the end of each commit message to indicate that the contributor agrees to the Developer Certificate of Origin._
 - Open a PR by ensuring the title and its description reflect the content of the PR.
 - Ensure that CI passes, if it fails, fix the failures.
 - Every pull request requires a review from the Docker team before merging.
@@ -80,6 +79,44 @@ config:
       example: <API_TOKEN>
 ```
 
+Remember that you need to specify all the env vars that you want to use in your server:
+
+```
+task create -- --category database https://github.com/myorg/my-orgdb-mcp -e API_TOKEN=test -e MY_ORG=my-org
+```
+
+If you don't specify all the environment variables, users will not be able to configure them properly in the UI.
+
+Also, it's important to notice that env vars and secrets are handled differently. This is how a config block looks:
+
+```
+config:
+  description: Configure the connection to AWS
+  secrets:
+    - name: tigris.aws_secret_access_key
+      env: AWS_SECRET_ACCESS_KEY
+      example: YOUR_SECRET_ACCESS_KEY_HERE
+  env:
+    - name: AWS_ACCESS_KEY_ID
+      example: YOUR_ACCESS_KEY_HERE
+      value: '{{tigris.aws_access_key_id}}'
+    - name: AWS_ENDPOINT_URL_S3
+      example: https://fly.storage.tigris.dev
+      value: '{{tigris.aws_endpoint_url_s3}}'
+  parameters:
+    type: object
+    properties:
+      aws_access_key_id:
+        type: string
+    required:
+      - aws_access_key_id
+
+```
+
+This configuration will provide the following UI:
+
+![UI Config Block](assets/img/config-ui.png)
+
 If you want to provide a specific Docker image built by your organisation instead of having Docker build the image, you can specify it with the `--image` flag:
 
 ```
@@ -103,7 +140,7 @@ Now, if we go into the MCP Toolkit on Docker Desktop, we'll see our new MCP serv
 docker mcp catalog reset
 ```
 
-### 5️⃣ Wait for review and approval
+### 4️⃣ Wait for review and approval
 
 Upon approval your entry will be processed and it will be available in 24 hours at:
 
