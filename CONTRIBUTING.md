@@ -79,7 +79,7 @@ config:
       example: <API_TOKEN>
 ```
 
-Remember that you need to specify all the Env Vars that you want to use in your server:
+Remember that you need to specify all the env vars that you want to use in your server:
 
 ```
 task create -- --category database https://github.com/myorg/my-orgdb-mcp -e API_TOKEN=test -e MY_ORG=my-org
