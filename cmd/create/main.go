@@ -165,7 +165,7 @@ func run(ctx context.Context, buildURL, name, category, userProvidedImage string
 				kv := args[i+1]
 				parts := strings.SplitN(kv, "=", 2)
 
-				if strings.HasSuffix(parts[0], "_TOKEN") || strings.HasSuffix(parts[0], "_KEY") {
+				if strings.HasSuffix(parts[0], "_TOKEN") || strings.HasSuffix(parts[0], "_KEY") || strings.HasSuffix(parts[0], "_PASSWORD"){
 					secrets = append(secrets, servers.Secret{
 						Name:    secretName(name, parts[0]),
 						Env:     parts[0],
