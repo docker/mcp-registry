@@ -13,7 +13,7 @@ This document outlines how to contribute to this project.
 
 - Fork the repository to your own GitHub account and clone it locally.
 - Repository includes a `servers` folder where you should add a new folder with a `server.yaml` inside.
-- Repository includes a `scripts` folder with bash scripts and Go code to automate some of the steps.
+- Repository includes a `cmd` folder with Go code to automate some of the steps.
 - Open a PR by ensuring the title and its description reflect the content of the PR.
 - Ensure that CI passes, if it fails, fix the failures.
 - Every pull request requires a review from the Docker team before merging.
