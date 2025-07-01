@@ -30,6 +30,7 @@ type Server struct {
 	Name        string          `yaml:"name" json:"name"`
 	Image       string          `yaml:"image,omitempty" json:"image,omitempty"`
 	Type        string          `yaml:"type" json:"type"`
+	LongLived   bool            `yaml:"longLived,omitempty" json:"longLived,omitempty"`
 	Meta        Meta            `yaml:"meta,omitempty" json:"meta,omitempty"`
 	About       About           `yaml:"about,omitempty" json:"about,omitempty"`
 	Source      Source          `yaml:"source,omitempty" json:"source,omitempty"`
