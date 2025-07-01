@@ -10,11 +10,14 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/docker/mcp-registry/internal/mcp"
 	"github.com/docker/mcp-registry/pkg/github"
 	"github.com/docker/mcp-registry/pkg/servers"
 )
 
 func main() {
+	listTools := flag.Bool("tools", false, "List the tools")
+
 	flag.Parse()
 	args := flag.Args()
 
@@ -23,12 +26,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := run(context.Background(), args[0]); err != nil {
+	if err := run(context.Background(), args[0], *listTools); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func run(ctx context.Context, name string) error {
+func run(ctx context.Context, name string, listTools bool) error {
 	server, err := servers.Read(filepath.Join("servers", name, "server.yaml"))
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -87,6 +90,22 @@ func run(ctx context.Context, name string) error {
 	if err := cmd.Run(); err != nil {
 		return err
 	}
+
+	if listTools {
+		tools, err := mcp.Tools(ctx, server, false, false, false)
+		if err != nil {
+			return err
+		}
+
+		if len(tools) == 0 {
+			fmt.Println()
+			fmt.Println("No tools found.")
+		} else {
+			fmt.Println()
+			fmt.Println(len(tools), "tools found.")
+		}
+	}
+	fmt.Printf("\n-----------------------------------------\n\n")
 
 	fmt.Println("✅ Image built as", server.Image)
 
