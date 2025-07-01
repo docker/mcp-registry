@@ -271,26 +271,39 @@ func run(ctx context.Context, buildURL, name, category, userProvidedImage string
 
 	fmt.Printf("Server definition written to %s.\n", serverFile)
 
+	// Default to mcp build instructions
+	step2 := fmt.Sprintf(`
+  2. Test out your server in Docker Desktop building the image, generating a catalog, and importing it:
+
+     task build -- %[1]s
+     task catalog -- %[1]s
+     docker mcp catalog import $PWD/catalogs/%[1]s/catalog.yaml
+`, name)
+
+	if userProvidedImage != "" {
+		step2 = fmt.Sprintf(`
+  2. Test out your server in Docker Desktop by generating a catalog and importing it:
+
+     task catalog -- %[1]s
+     docker mcp catalog import $PWD/catalogs/%[1]s/catalog.yaml
+`, name)
+	}
+
 	fmt.Printf(`
 -----------------------------------------
 
 What to do next?
 
   1. Review %[2]s and make sure no TODO remains.
-
-  2. Test out your server in Docker Desktop by generating a catalog and importing it:
-
-     task catalog -- %[1]s
-     docker mcp catalog import $PWD/catalogs/%[1]s/catalog.yaml
-
-  3. After doing so, you should be able to test it with the MCP Toolkit.
+%[3]s
+  3. After doing so, you should be able to test it with the MCP Toolkit. Repeat step 2 as needed while making changes.
 
   4. Reset your catalog after testing:
 
      docker mcp catalog reset
 
   5. Open a Pull Request with the %[2]s file.
-`, name, serverFile)
+`, name, serverFile, step2)
 
 	return nil
 }
