@@ -180,7 +180,7 @@ func main() {
 				Description("Enter the name for your MCP server (e.g., 'my-awesome-server')").
 				Value(&data.ServerName).
 				Validate(func(s string) error {
-					if s == "" {
+					if strings.TrimSpace(s) == "" {
 						return fmt.Errorf("server name is required")
 					}
 					if strings.Contains(s, " ") {
