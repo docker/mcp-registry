@@ -413,7 +413,7 @@ func collectSecrets(data *WizardData) error {
 					Description("Enter an example value (for documentation)").
 					Value(&secret.Example).
 					Validate(func(s string) error {
-						if s == "" {
+						if strings.TrimSpace(s) == "" {
 							return fmt.Errorf("example value is required")
 						}
 						return nil
