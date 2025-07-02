@@ -402,7 +402,7 @@ func collectSecrets(data *WizardData) error {
 					Description("Enter the environment variable name (e.g., 'API_KEY', 'PASSWORD')").
 					Value(&secret.EnvName).
 					Validate(func(s string) error {
-						if s == "" {
+						if strings.TrimSpace(s) == "" {
 							return fmt.Errorf("environment variable name is required")
 						}
 						return nil
