@@ -37,7 +37,7 @@ task wizard
 Using the wizard it's the easiest way to create your `server.yaml`, you first need to provide a valid github repo, which the wizard will analyse
 to populate the server default values (you can overwrite them directly in the wizard if you need to).
 
-The wizard allows you to add EnvVars, Secrets and Volumes.
+The wizard allows you to add environment variables, secrets and volumes.
 
 #### 🚀 Generate folder and `server.yaml` using `task create`
 
