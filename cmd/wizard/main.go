@@ -455,7 +455,7 @@ func collectEnvVars(data *WizardData) error {
 					Description("Enter the environment variable name (e.g., 'HOST', 'PORT')").
 					Value(&envVar.Name).
 					Validate(func(s string) error {
-						if s == "" {
+						if strings.TrimSpace(s) == "" {
 							return fmt.Errorf("environment variable name is required")
 						}
 						return nil
