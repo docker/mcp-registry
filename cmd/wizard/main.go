@@ -294,8 +294,8 @@ func main() {
 	fmt.Println("1. Review the generated server.yaml file")
 	fmt.Println("2. Build your server locally with: task build -- " + data.ServerName)
 	fmt.Println("3. Generate the catalog with: task catalog -- " + data.ServerName)
-	fmt.Println("4. Test your server locally with: task import -- " + data.ServerName)
-	fmt.Println("5. Reset your catalog with: task reset")
+	fmt.Println("4. Test your server locally in Docker Desktop with: task import -- " + data.ServerName)
+	fmt.Println("5. Reset your catalog in Docker Desktop with: task reset")
 	fmt.Println("6. Create a pull request to add it to the registry")
 
 }
