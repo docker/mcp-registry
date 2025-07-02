@@ -232,7 +232,7 @@ func main() {
 				Description("Enter a detailed description of what your MCP server does").
 				Value(&data.Description).
 				Validate(func(s string) error {
-					if s == "" {
+					if strings.TrimSpace(s) == "" {
 						return fmt.Errorf("description is required")
 					}
 					return nil
