@@ -245,7 +245,7 @@ func main() {
 
 			huh.NewInput().
 				Title("Docker Image (optional)").
-				Description("Enter custom Docker image (leave empty for default mcp/NAME)").
+				Description("Enter custom Docker image (or leave the default mcp/NAME)").
 				Value(&data.Image),
 		).Title("📝 Server Details"),
 	).WithTheme(huh.ThemeCharm())
