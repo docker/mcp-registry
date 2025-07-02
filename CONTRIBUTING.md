@@ -38,7 +38,7 @@ Using the wizard it's the easiest way to create your `server.yaml`, you first ne
 
 The wizard allows you to add environment variables, secrets and volumes.
 
-#### 🚀 Generate folder and `server.yaml` using `task create`
+#### 🚀 Alternatively: Generate your server configuration using `task create`
 
 You can use our command to automate the creation of the files. Let's assume we have a new MCP Server to access my org's database. My server's GitHub repo is located at: `https://github.com/myorg/my-orgdb-mcp`
 
