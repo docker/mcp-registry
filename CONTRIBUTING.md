@@ -130,6 +130,7 @@ task create -- --category database --image myorg/my-mcp https://github.com/myorg
 After creating your server file with `task create`, you will be given instructions for running it locally. In the case of my-orgdb-mcp, we would run the following commands next.
 
 ```
+task build -- my-orgdb-mcp # Not needed if providing your own image
 task catalog -- my-orgdb-mcp
 docker mcp catalog import $PWD/catalogs/my-orgdb-mcp/catalog.yaml
 ```
