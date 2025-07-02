@@ -12,6 +12,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/docker/mcp-registry/internal/licenses"
 	"github.com/docker/mcp-registry/pkg/github"
+	"github.com/docker/mcp-registry/pkg/servers"
 	"gopkg.in/yaml.v3"
 )
 
@@ -31,42 +32,16 @@ var (
 	}
 
 	titleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF6B6B")).
+			Foreground(lipgloss.Color("#4ECDC4")).
 			Bold(true).
 			Padding(1, 2)
 
 	headerStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#4ECDC4")).
 			Bold(true).
-			Margin(1, 0)
+			Margin(1, 0).
+			Padding(1, 4)
 )
-
-type ServerConfig struct {
-	Name   string  `yaml:"name"`
-	Image  string  `yaml:"image"`
-	Type   string  `yaml:"type"`
-	Meta   Meta    `yaml:"meta"`
-	About  About   `yaml:"about"`
-	Source Source  `yaml:"source"`
-	Config *Config `yaml:"config,omitempty"`
-	Run    *Run    `yaml:"run,omitempty"`
-}
-
-type Meta struct {
-	Category string   `yaml:"category"`
-	Tags     []string `yaml:"tags"`
-}
-
-type About struct {
-	Title       string `yaml:"title"`
-	Description string `yaml:"description"`
-	Icon        string `yaml:"icon"`
-}
-
-type Source struct {
-	Project string `yaml:"project"`
-	Branch  string `yaml:"branch,omitempty"`
-}
 
 type Config struct {
 	Description string      `yaml:"description"`
@@ -140,8 +115,8 @@ type EnvInput struct {
 
 func main() {
 	fmt.Print(titleStyle.Render("🐳 MCP Server Registry Wizard"))
-	fmt.Println()
 	fmt.Print(headerStyle.Render("Welcome! Let's add your MCP server to the registry."))
+	fmt.Println()
 	fmt.Println()
 
 	var data WizardData
@@ -151,7 +126,7 @@ func main() {
 		huh.NewGroup(
 
 			huh.NewInput().
-				Description("Enter the GitHub repository URL (e.g., 'https://github.com/user/repo')").
+				Description("Enter the GitHub repository URL (e.g., 'https://github.com/user/repo').\n\t\t⚠️ Remember that your repository needs to have a Dockerfile.").
 				Value(&data.GitHubRepo).
 				Validate(func(s string) error {
 					s = strings.TrimSpace(s)
@@ -317,8 +292,12 @@ func main() {
 	fmt.Println()
 	fmt.Println("🚀 Next steps:")
 	fmt.Println("1. Review the generated server.yaml file")
-	fmt.Println("2. Test your server locally with: task catalog -- " + data.ServerName)
-	fmt.Println("3. Create a pull request to add it to the registry")
+	fmt.Println("2. Build your server locally with: task build -- " + data.ServerName)
+	fmt.Println("3. Generate the catalog with: task catalog -- " + data.ServerName)
+	fmt.Println("4. Test your server locally with: task import -- " + data.ServerName)
+	fmt.Println("5. Reset your catalog with: task reset")
+	fmt.Println("6. Create a pull request to add it to the registry")
+
 }
 
 func collectVolumes(data *WizardData) error {
@@ -512,20 +491,20 @@ func generateAndSave(data *WizardData) error {
 	}
 
 	// Build the server configuration
-	config := ServerConfig{
+	config := servers.Server{
 		Name:  data.ServerName,
 		Image: data.Image,
 		Type:  "server",
-		Meta: Meta{
+		Meta: servers.Meta{
 			Category: data.Category,
 			Tags:     []string{data.Category},
 		},
-		About: About{
+		About: servers.About{
 			Title:       data.Title,
 			Description: data.Description,
 			Icon:        data.Icon,
 		},
-		Source: Source{
+		Source: servers.Source{
 			Project: data.GitHubRepo,
 		},
 	}
@@ -536,13 +515,13 @@ func generateAndSave(data *WizardData) error {
 
 	// Add configuration if needed
 	if len(data.Secrets) > 0 || len(data.EnvVars) > 0 {
-		config.Config = &Config{
+		config.Config = servers.Config{
 			Description: fmt.Sprintf("Configure the connection to %s", data.Title),
 		}
 
 		// Add secrets
 		for _, secret := range data.Secrets {
-			config.Config.Secrets = append(config.Config.Secrets, SecretVar{
+			config.Config.Secrets = append(config.Config.Secrets, servers.Secret{
 				Name:    fmt.Sprintf("%s.%s", data.ServerName, secret.Name),
 				Env:     secret.EnvName,
 				Example: secret.Example,
@@ -551,7 +530,7 @@ func generateAndSave(data *WizardData) error {
 
 		// Add environment variables
 		for _, envVar := range data.EnvVars {
-			config.Config.Env = append(config.Config.Env, EnvVar{
+			config.Config.Env = append(config.Config.Env, servers.Env{
 				Name:    envVar.Name,
 				Example: envVar.Example,
 				Value:   envVar.Value,
@@ -560,22 +539,25 @@ func generateAndSave(data *WizardData) error {
 
 		// Add parameters if we have env vars
 		if len(data.EnvVars) > 0 {
-			config.Config.Parameters = &Parameters{
+			config.Config.Parameters = servers.Schema{
 				Type:       "object",
-				Properties: make(map[string]interface{}),
+				Properties: make(servers.SchemaList, 0),
 			}
 
 			for _, envVar := range data.EnvVars {
 				paramName := strings.ToLower(strings.ReplaceAll(envVar.Name, "_", ""))
-				config.Config.Parameters.Properties[paramName] = map[string]string{
-					"type": "string",
-				}
+				config.Config.Parameters.Properties = append(config.Config.Parameters.Properties, servers.SchemaEntry{
+					Schema: servers.Schema{
+						Type: "string",
+					},
+					Name: paramName,
+				})
 			}
 		}
 	}
 
 	if len(data.Volumes) > 0 {
-		config.Run = &Run{
+		config.Run = servers.Run{
 			Volumes: make([]string, 0),
 		}
 		for _, vol := range data.Volumes {
@@ -641,7 +623,14 @@ func validateGithubRepo(data *WizardData) error {
 
 	data.ServerName = name
 	data.Image = "mcp/" + name
-	data.Branch = detectedInfo.Branch
+
+	data.Title = strings.ToUpper(name[0:1]) + strings.ReplaceAll(name[1:], "-", " ")
+
+	if detectedInfo.Branch == repository.GetDefaultBranch() {
+		data.Branch = ""
+	} else {
+		data.Branch = detectedInfo.Branch
+	}
 
 	refProjectURL := detectedInfo.ProjectURL
 	if repository.GetParent() != nil {
