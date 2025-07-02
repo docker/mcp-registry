@@ -221,7 +221,7 @@ func main() {
 				Description("Enter a descriptive title for your MCP server").
 				Value(&data.Title).
 				Validate(func(s string) error {
-					if s == "" {
+					if strings.TrimSpace(s) == "" {
 						return fmt.Errorf("title is required")
 					}
 					return nil
