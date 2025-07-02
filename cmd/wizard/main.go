@@ -240,7 +240,7 @@ func main() {
 
 			huh.NewInput().
 				Title("Icon URL (optional)").
-				Description("Enter an icon URL (leave empty to use default)").
+				Description("Enter an icon URL (or leave the default)").
 				Value(&data.Icon),
 
 			huh.NewInput().
