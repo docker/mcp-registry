@@ -34,8 +34,7 @@ Fork the repository to your own GitHub account and clone it locally.
 task wizard
 ```
 
-Using the wizard it's the easiest way to create your `server.yaml`, you first need to provide a valid github repo, which the wizard will analyse
-to populate the server default values (you can overwrite them directly in the wizard if you need to).
+Using the wizard it's the easiest way to create your `server.yaml`, you first need to provide a valid github repo with a Dockerfile, which the wizard will analyze to populate the server default values (you can overwrite them directly in the wizard if you need to).
 
 The wizard allows you to add environment variables, secrets and volumes.
 
