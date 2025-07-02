@@ -391,7 +391,7 @@ func collectSecrets(data *WizardData) error {
 					Description("Enter the secret name (e.g., 'api_key', 'password')").
 					Value(&secret.Name).
 					Validate(func(s string) error {
-						if s == "" {
+						if strings.TrimSpace(s) == "" {
 							return fmt.Errorf("secret name is required")
 						}
 						return nil
