@@ -22,7 +22,9 @@ THE SOFTWARE.
 
 package servers
 
-import "strings"
+import (
+	"strings"
+)
 
 func (s *Server) GetContext() string {
 	base := s.Source.Project + ".git"
@@ -87,10 +89,10 @@ func CreateSchema(server string, env []Env) ([]Env, Schema) {
 	schema.Type = "object"
 	for _, e := range env {
 
-		name := strings.TrimPrefix(strings.ToLower(e.Name), strings.ToLower(server)+"_")
+		propertyName := strings.ToLower(e.Name)
 
 		schema.Properties = append(schema.Properties, SchemaEntry{
-			Name: name,
+			Name: propertyName,
 			Schema: Schema{
 				Type: "string",
 			},
@@ -98,7 +100,7 @@ func CreateSchema(server string, env []Env) ([]Env, Schema) {
 
 		updatedEnv = append(updatedEnv, Env{
 			Name:    e.Name,
-			Value:   "{{" + name + "}}",
+			Value:   "{{" + server + "." + propertyName + "}}",
 			Example: e.Example,
 		})
 	}
