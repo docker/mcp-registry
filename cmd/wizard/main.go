@@ -466,7 +466,7 @@ func collectEnvVars(data *WizardData) error {
 					Description("Enter an example value").
 					Value(&envVar.Example).
 					Validate(func(s string) error {
-						if s == "" {
+						if strings.TrimSpace(s) == "" {
 							return fmt.Errorf("example value is required")
 						}
 						return nil
