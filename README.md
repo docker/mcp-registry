@@ -1,5 +1,14 @@
 # 🐳 Official Docker MCP Registry
 
+## TLDR
+1) add the ./quickstart/.gemini repository you wish to use the mcp-registry with 
+2) install / run gemini
+    cd your_repo
+    npx https://github.com/google-gemini/gemini-cli
+    nvm use 20 && gemini
+3) ask gemini to "Review the docker mcps available and create a docker-mcp-integration.md file detailing which mcps we should use with this project and why"
+
+
 Welcome to the Official Docker MCP (Model Context Protocol) Registry! This repository serves as a curated catalog of MCP servers that can be easily discovered, deployed, and integrated with any MCP Client and compatible with Docker tooling. 
 
 Entries in this catalog will be available at: 
