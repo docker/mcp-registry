@@ -1,0 +1,27 @@
+on:
+  pull_request:
+
+jobs:
+  validate-servers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Needed for diffing
+      
+      - name: Get changed servers
+        shell: bash
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+          git diff --name-only --diff-filter=AM origin/${{ github.event.pull_request.base.ref }} HEAD | grep "^servers/" > changed-servers.txt || true
+
+      - name: Build and catalogchanged servers
+        shell: bash
+        run: |
+          set -eo pipefail
+          while IFS= read -r file; do
+            dir=$(dirname "$file")
+            name=$(basename "$dir")
+            task build -- --tools $name
+            task catalog -- $name
+          done < changed-servers.txt
