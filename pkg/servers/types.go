@@ -130,9 +130,8 @@ type Container struct {
 }
 
 type Meta struct {
-	Category    string   `yaml:"category,omitempty" json:"category,omitempty"`
-	Tags        []string `yaml:"tags,omitempty" json:"tags,omitempty"`
-	Highlighted bool     `yaml:"highlighted,omitempty" json:"highlighted,omitempty"`
+	Category string   `yaml:"category,omitempty" json:"category,omitempty"`
+	Tags     []string `yaml:"tags,omitempty" json:"tags,omitempty"`
 }
 
 type OAuthProvider struct {
