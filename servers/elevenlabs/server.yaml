@@ -2,18 +2,32 @@ name: elevenlabs
 image: mcp/elevenlabs
 type: server
 meta:
-  category: devops
+  category: ai
   tags:
     - elevenlabs
-    - devops
+    - elevenlabs-api
 about:
-  title: ElevenLabs
-  icon: https://avatars.githubusercontent.com/u/94471909?s=200&v=4
+  title: Elevenlabs MCP
+  description: Official ElevenLabs Model Context Protocol (MCP) server that enables interaction with powerful Text to Speech and audio processing APIs.
+  icon: https://avatars.githubusercontent.com/u/94471909?v=4
 source:
   project: https://github.com/elevenlabs/elevenlabs-mcp
-  branch: refs/pull/17/merge
+run:
+  volumes:
+    - '{{elevenlabs.data}}:/root/Desktop'
 config:
+  description: Configure the connection to ElevenLabs. Elevenlabs.data is the path to the data directory where the audio files will be stored.
   secrets:
     - name: elevenlabs.api_key
       env: ELEVENLABS_API_KEY
-      example: <insert-your-api-key-here>
+      example: <ELEVENLABS_API_KEY>
+  parameters:
+    type: object
+    properties:
+      data:
+        type: string
+        default:
+          $HOME/data/elevenlabs
+    required:
+      - data
+
