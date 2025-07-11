@@ -58,7 +58,7 @@ config:
 
 ## Volumes
 
-To define a `volume` you need to add a `run` attribute instead of a `config` attribute. If you need teh user to define the host directory, the container directory or both, you will need to create first the appropriate parameter and then add the `run` block to the server.
+To define a `volume` you need to add a `run` attribute. If you need the user to define the host directory, the container directory or both, you will need to create first the appropriate parameter and then add the `run` block to the server.
 
 ```
 run:
