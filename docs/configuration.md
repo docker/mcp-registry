@@ -42,7 +42,7 @@ config:
       - parameter_name
 ```
 
-Remember that paremeters are used to create the appropriate input field in Docker Desktop.
+Remember that paremeters are used to create the appropriate input field in Docker Desktop. Also, it's important to notice that we use the `server name` as prefix for your parameters, so make sure that the `name` attribute matches the parameters prefix.
 
 ## Secrets
 
@@ -75,6 +75,16 @@ config:
       - volume_path
 ```
 
+## Command
+
+If you need to overwrite the command, you can do it in the `run` block:
+
+```
+run:
+  command:
+    - --transport=stdio
+```
+
 ## Full Example
 
 Here you can see a full example:
@@ -94,6 +104,8 @@ about:
 source:
   project: https://github.com/my-org/my-mcp-server
 run:
+  command:
+  - --transport=stdio
   volumes:
     - '{{server_name.path}}:/data'
   disableNetwork: true
