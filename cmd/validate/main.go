@@ -4,11 +4,16 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"image"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	_ "image/jpeg"
+	_ "image/png"
 
 	"github.com/docker/mcp-registry/internal/licenses"
 	"github.com/docker/mcp-registry/pkg/github"
@@ -39,6 +44,9 @@ func run(name string) error {
 	}
 
 	if err := IsLicenseValid(name); err != nil {
+		return err
+	}
+	if err := isIconValid(name); err != nil {
 		return err
 	}
 
@@ -118,6 +126,43 @@ func IsLicenseValid(name string) error {
 	}
 	fmt.Println("✅ License is valid")
 
+	return nil
+}
+
+func isIconValid(name string) error {
+	server, err := readServerYaml(name)
+	if err != nil {
+		return err
+	}
+
+	if server.Image == "" {
+		return fmt.Errorf("image is not valid. It must be a valid image")
+	}
+	// fetch the image and check the size
+	resp, err := http.Get(server.About.Icon)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("image is not valid. It must be a valid image")
+	}
+	if resp.ContentLength > 2*1024*1024 {
+		return fmt.Errorf("image is too large. It must be less than 2MB")
+	}
+	img, format, err := image.DecodeConfig(resp.Body)
+	if err != nil {
+		return err
+	}
+	if format != "png" {
+		return fmt.Errorf("image is not a png. It must be a png")
+	}
+
+	if img.Width > 512 || img.Height > 512 {
+		return fmt.Errorf("image is too large. It must be less than 512x512")
+	}
+
+	fmt.Println("✅ Icon is valid")
 	return nil
 }
 
