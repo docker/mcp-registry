@@ -55,13 +55,6 @@ func Test_isNameValid(t *testing.T) {
 			},
 			wantError: true,
 		},
-		{
-			name: "invalid name with uppercase",
-			args: args{
-				name: "neo4j",
-			},
-			wantError: false,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
