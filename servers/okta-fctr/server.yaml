@@ -1,33 +1,43 @@
 name: okta-mcp-server
-version: "1.0.0"
-description: "Secure Okta identity and access management via Model Context Protocol (MCP). Access Okta users, groups, applications, logs, and policies through AI assistants with enterprise-grade security."
-license: "Apache-2.0"
-repository: "https://github.com/fctr-id/okta-mcp-server"
-homepage: "https://github.com/fctr-id/okta-mcp-server"
-authors:
-  - name: "Fctr"
-    email: "dan@fctr.io"
-
-# Configuration for the MCP Registry
+image: mcp/okta-mcp-server
+type: server
+meta:
+  category: ai
+  tags:
+    - ai
+    - okta
+    - identity
+    - access-management
+    - security
+    - authentication
+    - audit
+    - compliance
+    - enterprise
+about:
+  title: Okta MCP Server
+  description: "Secure Okta identity and access management via Model Context Protocol (MCP). Access Okta users, groups, applications, logs, and policies through AI assistants with enterprise-grade security."
+  icon: https://avatars.githubusercontent.com/u/198773578?v=4
+source:
+  project: https://github.com/fctr-id/okta-mcp-server
 config:
   description: Configure the connection to Okta
   secrets:
-    - name: okta.api_token
+    - name: okta-mcp-server.api_token
       env: OKTA_API_TOKEN
       example: 00aBcDeFGhIjkLmNoPqRsTuVwxYz
       description: "Okta API token with read permissions for users, groups, apps, logs, and policies"
   env:
     - name: OKTA_CLIENT_ORGURL
       example: https://dev-123456.okta.com
-      value: '{{okta.client_orgurl}}'
+      value: '{{okta-mcp-server.client_orgurl}}'
       description: "Okta organization URL"
     - name: LOG_LEVEL
       example: INFO
-      value: '{{okta.log_level}}'
+      value: '{{okta-mcp-server.log_level}}'
       description: "Logging level for server output"
     - name: OKTA_CONCURRENT_LIMIT
       example: "15"
-      value: '{{okta.concurrent_limit}}'
+      value: '{{okta-mcp-server.concurrent_limit}}'
       description: "Maximum concurrent requests to Okta API"
   parameters:
     type: object
@@ -47,85 +57,3 @@ config:
     required:
       - client_orgurl
 
-# Docker configuration
-docker:
-  image: "fctrid/okta-mcp-server"
-  tag: "latest"
-  # Default target for STDIO transport (recommended for Claude Desktop)
-  target: stdio
-  
-  # Alternative targets available:
-  # - stdio: Secure STDIO transport (default, recommended)
-  # - http: HTTP transport for web applications (requires --iunderstandtherisks)
-  # - sse: SSE transport (deprecated)
-
-# Documentation
-documentation:
-  setup: |
-    1. Generate an Okta API token:
-       - Log into Okta Admin Console
-       - Navigate to Security > API > Tokens
-       - Create token with read permissions for:
-         * Users, Groups, Applications
-         * System Log, Policies, Network Zones
-    
-    2. Configure via MCP Registry UI:
-       - Set Okta Client Org URL: Your full Okta organization URL
-       - Set API Token: Paste your generated API token (stored as secret)
-       - Optional: Adjust log level and concurrent request limit
-    
-    3. For Claude Desktop (manual setup):
-       ```json
-       {
-         "mcpServers": {
-           "okta": {
-             "command": "docker",
-             "args": ["run", "-i", "--rm", 
-                     "-e", "OKTA_CLIENT_ORGURL={{okta.client_orgurl}}",
-                     "-e", "OKTA_API_TOKEN={{okta.api_token}}",
-                     "-e", "LOG_LEVEL={{okta.log_level}}",
-                     "fctrid/okta-mcp-server:stdio"]
-           }
-         }
-       }
-       ```
-
-  capabilities: |
-    The Okta MCP Server provides comprehensive Okta administration capabilities:
-    
-    **User Management:**
-    - List, search, and get detailed user information
-    - View user group memberships and application assignments
-    - Access user authentication factors and security settings
-    
-    **Group Operations:**
-    - List and search Okta groups with advanced filtering
-    - Get group details and membership information
-    - View group-to-application assignments
-    
-    **Application Management:**
-    - List applications with filtering (SAML, OIDC, etc.)
-    - Get detailed application configurations
-    - View user and group assignments to applications
-    
-    **Security & Compliance:**
-    - Access comprehensive system logs with filtering
-    - Review authentication events and security incidents
-    - Audit policy rules and network zone configurations
-    
-    **Advanced Features:**
-    - Full pagination support for large datasets
-    - Smart rate limiting and error handling
-    - Time-based filtering with natural language support
-    - SCIM-compliant search and filtering
-
-# Tags for discovery
-tags:
-  - okta
-  - identity
-  - access-management
-  - security
-  - authentication
-  - audit
-  - compliance
-  - enterprise
