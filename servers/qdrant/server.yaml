@@ -1,0 +1,116 @@
+name: qdrant
+image: mcp/qdrant
+type: server
+meta:
+  category: database
+  tags:
+    - qdrant
+    - database
+about:
+  title: Qdrant
+  description: High-performance, massive-scale Vector Database and Vector Search Engine for the next generation of AI. Also available in the cloud
+  icon: https://avatars.githubusercontent.com/u/73504361?s=200&v=4
+source:
+  project: https://github.com/qdrant/mcp-server-qdrant
+  branch: v0.8.0
+config:
+  description: Configure the connection to Qdrant, Note: You cannot provide both QDRANT_URL and QDRANT_LOCAL_PATH at the same time.
+  secrets:
+    - name: qdrant.api_key
+      env: QDRANT_API_KEY
+      example: your-api-key
+  env:
+    - name: QDRANT_URL
+      example: http://localhost:6333
+      value: '{{qdrant.qdrant_url}}'
+    - name: COLLECTION_NAME
+      example: my-collection
+      value: '{{qdrant.collection_name}}'
+    - name: QDRANT_LOCAL_PATH
+      example: /path/to/qdrant/database
+      value: '{{qdrant.qdrant_local_path}}'
+    - name: EMBEDDING_PROVIDER
+      example: fastembed
+      value: '{{qdrant.embedding_provider}}'
+    - name: EMBEDDING_MODEL
+      example: sentence-transformers/all-MiniLM-L6-v2
+      value: '{{qdrant.embedding_model}}'
+    - name: FASTMCP_DEBUG
+      example: true
+      value: '{{qdrant.fastmcp_debug}}'
+    - name: FASTMCP_LOG_LEVEL
+      example: INFO
+      value: '{{qdrant.fastmcp_log_level}}'
+    - name: FASTMCP_HOST
+      example: 127.0.0.1
+      value: '{{qdrant.fastmcp_host}}'
+    - name: FASTMCP_PORT
+      example: 8000
+      value: '{{qdrant.fastmcp_port}}'
+    - name: FASTMCP_WARN_ON_DUPLICATE_RESOURCES
+      example: true
+      value: '{{qdrant.fastmcp_warn_on_duplicate_resources}}'
+    - name: FASTMCP_WARN_ON_DUPLICATE_TOOLS
+      example: true
+      value: '{{qdrant.fastmcp_warn_on_duplicate_tools}}'
+    - name: FASTMCP_WARN_ON_DUPLICATE_PROMPTS
+      example: true
+      value: '{{qdrant.fastmcp_warn_on_duplicate_prompts}}'
+    - name: FASTMCP_DEPENDENCIES
+      example: []
+      value: '{{qdrant.fastmcp_dependencies}}'
+  parameters:
+    type: object
+    properties:
+      qdrant_url:
+        type: string
+        description: URL of the Qdrant server (e.g. https://xyz-example.eu-central.aws.cloud.qdrant.io:6333 for cloud and http://localhost:6333 for self-hosted)
+      collection_name:
+        type: string
+        description: Name of the default collection to use.
+      qdrant_local_path:
+        type: string
+        description: Path to the local Qdrant database (alternative to QDRANT_URL)
+      embedding_provider:
+        type: string
+        description: Embedding provider to use (currently only "fastembed" is supported)
+        default: fastembed
+      embedding_model:
+        type: string
+        description: Name of the embedding model to use
+        default: sentence-transformers/all-MiniLM-L6-v2
+      fastmcp_debug:
+        type: boolean
+        description: Enable debug mode
+        default: false
+      fastmcp_log_level:
+        type: string
+        description: Set logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+        default: INFO
+      fastmcp_host:
+        type: string
+        description: Host address to bind the server to
+        default: 127.0.0.1
+      fastmcp_port:
+        type: integer
+        description: Port to run the server on
+        default: 8000
+      fastmcp_warn_on_duplicate_resources:
+        type: boolean
+        description: Show warnings for duplicate resources
+        default: true
+      fastmcp_warn_on_duplicate_tools:
+        type: boolean
+        description: Show warnings for duplicate tools
+        default: true
+      fastmcp_warn_on_duplicate_prompts:
+        type: boolean
+        description: Show warnings for duplicate prompts
+        default: true
+      fastmcp_dependencies:
+        type: array
+        description: List of dependencies to install in the server environment
+        items:
+          type: string
+    required:
+      - collection_name
