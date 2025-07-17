@@ -45,8 +45,13 @@ func NewFromServer(server servers.Server) *Client {
 }
 
 func New() *Client {
+	token := os.Getenv("GITHUB_TOKEN")
+	if token == "" {
+		return NewUnauthenticated()
+	}
+
 	return &Client{
-		gh: github.NewClient(nil).WithAuthToken(os.Getenv("GITHUB_TOKEN")),
+		gh: github.NewClient(nil).WithAuthToken(token),
 	}
 }
 

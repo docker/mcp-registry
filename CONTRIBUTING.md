@@ -11,9 +11,10 @@ This document outlines how to contribute to this project.
 
 ## 🔄 Pull request process overview
 
+- Make sure that the license of your MCP Server allows people to consume it. (MIT or Apache 2 are great, GPL is not).
 - Fork the repository to your own GitHub account and clone it locally.
 - Repository includes a `servers` folder where you should add a new folder with a `server.yaml` inside.
-- Repository includes a `scripts` folder with bash scripts and Go code to automate some of the steps.
+- Repository includes a `cmd` folder with Go code to automate some of the steps.
 - Open a PR by ensuring the title and its description reflect the content of the PR.
 - Ensure that CI passes, if it fails, fix the failures.
 - Every pull request requires a review from the Docker team before merging.
@@ -27,25 +28,17 @@ Fork the repository to your own GitHub account and clone it locally.
 
 ### 2️⃣ Add your entry locally
 
-Add your entry by creating a new folder following the `owner@name` template, and create a `server.yaml` inside describing your MCP server. You will need to provide:
+#### 🚀 Generate your server configuration using `task wizard`
 
-- A valid name for your MCP
-- The GitHub URL of your project. The project needs to have a valid Dockerfile.
-- A brief description of your MCP Server.
-- A category for the MCP server, one of:
-  - 'ai'
-  - 'data-visualization'
-  - 'database'
-  - 'devops'
-  - 'ecommerce'
-  - 'finance'
-  - 'games'
-  - 'communication'
-  - 'monitoring'
-  - 'productivity'
-  - 'search'
+```
+task wizard
+```
 
-#### 🚀 Generate folder and `server.yaml` using `task create`
+Using the wizard it's the easiest way to create your `server.yaml`, you first need to provide a valid github repo with a Dockerfile, which the wizard will analyze to populate the server default values (you can overwrite them directly in the wizard if you need to).
+
+The wizard allows you to add environment variables, secrets and volumes.
+
+#### 🚀 Alternatively: Generate your server configuration using `task create`
 
 You can use our command to automate the creation of the files. Let's assume we have a new MCP Server to access my org's database. My server's GitHub repo is located at: `https://github.com/myorg/my-orgdb-mcp`
 
@@ -130,6 +123,7 @@ task create -- --category database --image myorg/my-mcp https://github.com/myorg
 After creating your server file with `task create`, you will be given instructions for running it locally. In the case of my-orgdb-mcp, we would run the following commands next.
 
 ```
+task build -- my-orgdb-mcp # Not needed if providing your own image
 task catalog -- my-orgdb-mcp
 docker mcp catalog import $PWD/catalogs/my-orgdb-mcp/catalog.yaml
 ```

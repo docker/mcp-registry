@@ -30,6 +30,7 @@ type Server struct {
 	Name        string          `yaml:"name" json:"name"`
 	Image       string          `yaml:"image,omitempty" json:"image,omitempty"`
 	Type        string          `yaml:"type" json:"type"`
+	LongLived   bool            `yaml:"longLived,omitempty" json:"longLived,omitempty"`
 	Meta        Meta            `yaml:"meta,omitempty" json:"meta,omitempty"`
 	About       About           `yaml:"about,omitempty" json:"about,omitempty"`
 	Source      Source          `yaml:"source,omitempty" json:"source,omitempty"`
@@ -129,9 +130,8 @@ type Container struct {
 }
 
 type Meta struct {
-	Category    string   `yaml:"category,omitempty" json:"category,omitempty"`
-	Tags        []string `yaml:"tags,omitempty" json:"tags,omitempty"`
-	Highlighted bool     `yaml:"highlighted,omitempty" json:"highlighted,omitempty"`
+	Category string   `yaml:"category,omitempty" json:"category,omitempty"`
+	Tags     []string `yaml:"tags,omitempty" json:"tags,omitempty"`
 }
 
 type OAuthProvider struct {
