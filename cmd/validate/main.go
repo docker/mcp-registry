@@ -135,27 +135,29 @@ func isIconValid(name string) error {
 		return err
 	}
 
-	if server.Image == "" {
-		return fmt.Errorf("image is not valid. It must be a valid image")
+	if server.About.Icon == "" {
+		fmt.Println("🛑 No icon found")
+		return nil
 	}
 	// fetch the image and check the size
 	resp, err := http.Get(server.About.Icon)
 	if err != nil {
-		return err
+		fmt.Println("🛑 Icon could not be fetched")
+		return nil
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("image is not valid. It must be a valid image")
+		return fmt.Errorf("icon is not valid. It must be a valid image")
 	}
 	if resp.ContentLength > 2*1024*1024 {
-		return fmt.Errorf("image is too large. It must be less than 2MB")
+		return fmt.Errorf("icon is too large. It must be less than 2MB")
 	}
 	img, format, err := image.DecodeConfig(resp.Body)
 	if err != nil {
 		return err
 	}
 	if format != "png" {
-		return fmt.Errorf("image is not a png. It must be a png")
+		return fmt.Errorf("icon is not a png. It must be a png")
 	}
 
 	if img.Width > 512 || img.Height > 512 {
