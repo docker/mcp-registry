@@ -114,10 +114,10 @@ func buildMcpImage(ctx context.Context, server servers.Server) error {
 	token := os.Getenv("GITHUB_TOKEN")
 
 	if token != "" {
-		cmd = exec.CommandContext(ctx, "docker", "buildx", "build", "--secret", "id=GIT_AUTH_TOKEN", "-t", "check", "-t", server.Image, "--label", "org.opencontainers.image.revision="+sha, gitURL)
+		cmd = exec.CommandContext(ctx, "docker", "buildx", "build", "--secret", "id=GIT_AUTH_TOKEN", "-f", server.GetDockerfile(), "-t", "check", "-t", server.Image, "--label", "org.opencontainers.image.revision="+sha, gitURL)
 		cmd.Env = []string{"GIT_AUTH_TOKEN=" + token, "PATH=" + os.Getenv("PATH")}
 	} else {
-		cmd = exec.CommandContext(ctx, "docker", "buildx", "build", "-t", "check", "-t", server.Image, "--label", "org.opencontainers.image.revision="+sha, gitURL)
+		cmd = exec.CommandContext(ctx, "docker", "buildx", "build", "-f", server.GetDockerfile(), "-t", "check", "-t", server.Image, "--label", "org.opencontainers.image.revision="+sha, gitURL)
 		cmd.Env = []string{"PATH=" + os.Getenv("PATH")}
 	}
 
