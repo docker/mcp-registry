@@ -25,4 +25,5 @@ assignees: ""
 
 - [ ] This server meets the basic requirements listed above
 - [ ] I understand this will undergo automated and manual review.
-- [ ] I have tested the MCP Server in Docker Desktop
+- [ ] I have tested the MCP Server using `task validate -- --name SERVER_NAME`
+- [ ] I have built the MCP Server using `task build -- --tools SERVER_NAME`
