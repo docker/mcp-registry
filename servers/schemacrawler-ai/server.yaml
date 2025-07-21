@@ -1,0 +1,109 @@
+name: schemacrawler-ai
+image: schemacrawler/schemacrawler-ai
+type: server
+longLived: true
+meta:
+  category: database
+  tags:
+    - ai
+    - database
+about:
+  title: SchemaCrawler AI
+  description: >-
+    The SchemaCrawler AI MCP Server enables natural language interaction with
+    your database schema using an MCP client in "Agent" mode. It allows users
+    to explore tables, columns, foreign keys, triggers, stored procedures and
+    more simply by asking questions like "Explain the code for the interest
+    calculation stored procedure". You can also ask it to help with SQL,
+    since it knows your schema. This is ideal for developers, DBAs, and data
+    analysts who want to streamline schema comprehension and query
+    development without diving into dense documentation.
+  icon: https://avatars.githubusercontent.com/u/58572?v=4
+source:
+  project: 'https://github.com/schemacrawler/SchemaCrawler-AI'
+run:
+  volumes:
+    - '{{schemacrawler-ai.volume.host_share}}:/share'
+config:
+  description: Configure SchemaCrawler AI and its connection to the database
+  secrets:
+    - name: schemacrawler-ai.database_user
+      env: SCHCRWLR_DATABASE_USER
+      example: SA
+      description: '--user Database user name'
+    - name: schemacrawler-ai.database_password
+      env: SCHCRWLR_DATABASE_PASSWORD
+      example: super_S3cret
+      description: '--password Database user password'
+  env:
+    - name: SCHCRWLR_JDBC_URL
+      example: 12.12.12.12
+      value: '{{schemacrawler-ai.url_connection.jdbc_url}}'
+    - name: SCHCRWLR_SERVER
+      example: 12.12.12.12
+      value: '{{schemacrawler-ai.server_connection.server}}'
+    - name: SCHCRWLR_HOST
+      example: 12.12.12.12
+      value: '{{schemacrawler-ai.server_connection.host}}'
+    - name: SCHCRWLR_PORT
+      example: 9999
+      value: '{{schemacrawler-ai.server_connection.port}}'
+    - name: SCHCRWLR_DATABASE
+      example: public
+      value: '{{schemacrawler-ai.server_connection.database}}'
+    - name: SCHCRWLR_INFO_LEVEL
+      example: standard
+      value: '{{schemacrawler-ai.general.info_level}}'
+    - name: SCHCRWLR_LOG_LEVEL
+      example: ALL
+      value: '{{schemacrawler-ai.general.log_level}}'
+  parameters:
+    type: object
+    properties:
+      url_connection:
+        type: object
+        properties:
+          jdbc_url:
+            type: string
+            description: '--url JDBC URL for database connection'
+        required:
+          - jdbc_url
+      server_connection:
+        type: object
+        properties:
+          server:
+            type: string
+            description: '--server SchemaCrawler database plugin'
+          host:
+            type: string
+            description: '--host Database host (optional)'
+          port:
+            type: integer
+            description: '--port Database port (optional)'
+          database:
+            type: string
+            description: '--database Database to connect to (optional)'
+        required:
+          - server
+      general:
+        type: object
+        properties:
+          info_level:
+            type: string
+            description: '--info-level How much database metadata to retrieve'
+            default: standard
+        required:
+          - info_level
+      volume:
+        type: object
+        properties:
+          host_share:
+            type: string
+            description: Host volume to map within the Docker container
+        required:
+          - host_share
+    anyOf:
+      - required:
+          - url_connection
+      - required:
+          - server_connection
