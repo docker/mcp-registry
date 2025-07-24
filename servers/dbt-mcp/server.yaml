@@ -1,0 +1,31 @@
+name: dbt-mcp
+image: laderalibre/dbt-mcp:v2.0.0
+type: server
+meta:
+    category: database
+    tags:
+        - database
+about:
+    title: dbt mcp server
+    description: A Model Context Protocol server for dbt (data build tool) that enables AI assistants to interact with dbt projects, run models, execute queries, and manage data transformations. Supports BigQuery and other data warehouses through dbt's ecosystem. Perfect for data analysts and engineers who want to use AI to build, test, and document data models.
+    icon: https://seeklogo.com/images/D/dbt-logo-500AB0BAA7-seeklogo.com.png
+source:
+    project: https://github.com/dbt-labs/dbt-mcp
+run:
+    volumes:
+        - '{{dbt-mcp.dbt_models}}:/dbt'
+config:
+    description: Configure the connection to dbt mcp server
+    secrets:
+        - name: dbt-mcp.github_token
+          env: GITHUB_TOKEN
+          example: ghp_xxxxxxxxxxxxxxxxxxxx
+    env:
+        - name: DBT_PROJECT_PATH
+          example: /dbt
+          value: '{{dbt-mcp.project_path}}'
+    parameters:
+        type: object
+        properties:
+            dbtprojectpath:
+                type: string
