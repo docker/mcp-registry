@@ -11,6 +11,7 @@ This document outlines how to contribute to this project.
 
 ## 🔄 Pull request process overview
 
+- Make sure that the license of your MCP Server allows people to consume it. (MIT or Apache 2 are great, GPL is not).
 - Fork the repository to your own GitHub account and clone it locally.
 - Repository includes a `servers` folder where you should add a new folder with a `server.yaml` inside.
 - Repository includes a `cmd` folder with Go code to automate some of the steps.
@@ -27,25 +28,17 @@ Fork the repository to your own GitHub account and clone it locally.
 
 ### 2️⃣ Add your entry locally
 
-Add your entry by creating a new folder following the `owner@name` template, and create a `server.yaml` inside describing your MCP server. You will need to provide:
+#### 🚀 Generate your server configuration using `task wizard`
 
-- A valid name for your MCP
-- The GitHub URL of your project. The project needs to have a valid Dockerfile.
-- A brief description of your MCP Server.
-- A category for the MCP server, one of:
-  - 'ai'
-  - 'data-visualization'
-  - 'database'
-  - 'devops'
-  - 'ecommerce'
-  - 'finance'
-  - 'games'
-  - 'communication'
-  - 'monitoring'
-  - 'productivity'
-  - 'search'
+```
+task wizard
+```
 
-#### 🚀 Generate folder and `server.yaml` using `task create`
+Using the wizard it's the easiest way to create your `server.yaml`, you first need to provide a valid github repo with a Dockerfile, which the wizard will analyze to populate the server default values (you can overwrite them directly in the wizard if you need to).
+
+The wizard allows you to add environment variables, secrets and volumes.
+
+#### 🚀 Alternatively: Generate your server configuration using `task create`
 
 You can use our command to automate the creation of the files. Let's assume we have a new MCP Server to access my org's database. My server's GitHub repo is located at: `https://github.com/myorg/my-orgdb-mcp`
 
