@@ -43,6 +43,10 @@ func run(name string) error {
 		return err
 	}
 
+	if err := isConfigEnvValid(name); err != nil {
+		return err
+	}
+
 	if err := IsLicenseValid(name); err != nil {
 		return err
 	}
@@ -104,6 +108,26 @@ func areSecretsValid(name string) error {
 	}
 
 	fmt.Println("✅ Secrets are valid")
+	return nil
+}
+
+// Check parameter usage is valid
+func isConfigEnvValid(name string) error {
+	server, err := readServerYaml(name)
+	if err != nil {
+		return err
+	}
+
+	for _, e := range server.Config.Env {
+		if !strings.HasPrefix(e.Value, "{{") {
+			continue
+		}
+		if !strings.HasPrefix(e.Value, "{{"+server.Name+".") {
+			return fmt.Errorf("server uses unknown parameter %q: %q", server.Name, e.Value)
+		}
+	}
+
+	fmt.Println("✅ Config env is valid")
 	return nil
 }
 
