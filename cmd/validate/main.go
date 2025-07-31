@@ -54,6 +54,10 @@ func run(name string) error {
 		return err
 	}
 
+	if err := isDockerfileValid(name); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -134,12 +138,19 @@ func isConfigEnvValid(name string) error {
 // check if the license is valid
 // the license must be valid
 func IsLicenseValid(name string) error {
-	ctx := context.Background()
-	client := github.New()
 	server, err := readServerYaml(name)
 	if err != nil {
 		return err
 	}
+
+	// Skip validation for servers without source project
+	if server.Source.Project == "" {
+		fmt.Println("✅ License validation skipped (no source project)")
+		return nil
+	}
+
+	ctx := context.Background()
+	client := github.New()
 	repository, err := client.GetProjectRepository(ctx, server.Source.Project)
 	if err != nil {
 		return err
@@ -194,6 +205,133 @@ func isIconValid(name string) error {
 	}
 
 	fmt.Println("✅ Icon is valid")
+	return nil
+}
+
+func isDockerfileValid(name string) error {
+	server, err := readServerYaml(name)
+	if err != nil {
+		return err
+	}
+
+	// Skip validation for servers without source project
+	if server.Source.Project == "" {
+		fmt.Println("✅ Dockerfile validation skipped (no source project)")
+		return nil
+	}
+
+	// Determine Dockerfile path - default to "Dockerfile" if not specified
+	dockerfilePath := server.Source.Dockerfile
+	if dockerfilePath == "" {
+		dockerfilePath = "Dockerfile"
+	}
+
+	// Validate Dockerfile path format
+	if err := validateDockerfilePath(dockerfilePath); err != nil {
+		return fmt.Errorf("invalid Dockerfile path: %w", err)
+	}
+
+	// Skip GitHub API validation for local development or if GITHUB_TOKEN is not set
+	if os.Getenv("GITHUB_TOKEN") == "" {
+		fmt.Println("🛑 Dockerfile content validation skipped (no GITHUB_TOKEN)")
+		return nil
+	}
+
+	// Fetch and validate Dockerfile content from GitHub
+	ctx := context.Background()
+	client := github.NewFromServer(server)
+
+	// Construct full path including directory if specified
+	fullPath := dockerfilePath
+	if server.Source.Directory != "" {
+		fullPath = filepath.Join(server.Source.Directory, dockerfilePath)
+	}
+
+	content, err := client.GetFileContent(ctx, server.Source.Project, server.Source.Branch, fullPath)
+	if err != nil {
+		return fmt.Errorf("failed to fetch Dockerfile: %w", err)
+	}
+
+	// Validate Dockerfile content
+	if err := validateDockerfileContent(content); err != nil {
+		return fmt.Errorf("invalid Dockerfile content: %w", err)
+	}
+
+	fmt.Println("✅ Dockerfile is valid")
+	return nil
+}
+
+func validateDockerfilePath(path string) error {
+	// Must be relative path
+	if strings.HasPrefix(path, "/") {
+		return fmt.Errorf("Dockerfile path must be relative, not absolute")
+	}
+
+	// Should not contain directory traversal
+	if strings.Contains(path, "..") {
+		return fmt.Errorf("Dockerfile path should not contain directory traversal (..) components")
+	}
+
+	// Should be a valid filename
+	if strings.Contains(path, "\x00") {
+		return fmt.Errorf("Dockerfile path contains invalid characters")
+	}
+
+	return nil
+}
+
+func validateDockerfileContent(content string) error {
+	lines := strings.Split(content, "\n")
+	
+	// Remove empty lines and comments for validation
+	var validLines []string
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed != "" && !strings.HasPrefix(trimmed, "#") {
+			validLines = append(validLines, trimmed)
+		}
+	}
+
+	if len(validLines) == 0 {
+		return fmt.Errorf("Dockerfile is empty or contains only comments")
+	}
+
+	// First instruction must be FROM
+	firstLine := strings.ToUpper(strings.TrimSpace(validLines[0]))
+	if !strings.HasPrefix(firstLine, "FROM ") {
+		return fmt.Errorf("Dockerfile must start with FROM instruction")
+	}
+
+	// Check for basic security issues
+	for _, line := range validLines {
+		upperLine := strings.ToUpper(line)
+		
+		// Check for potential security issues
+		if strings.Contains(upperLine, "PASSWORD=") || 
+		   strings.Contains(upperLine, "SECRET=") ||
+		   strings.Contains(upperLine, "API_KEY=") ||
+		   strings.Contains(upperLine, "TOKEN=") {
+			return fmt.Errorf("Dockerfile should not contain hardcoded credentials")
+		}
+	}
+
+	// Should have an ENTRYPOINT or CMD instruction
+	hasEntrypoint := false
+	hasCmd := false
+	for _, line := range validLines {
+		upperLine := strings.ToUpper(strings.TrimSpace(line))
+		if strings.HasPrefix(upperLine, "ENTRYPOINT ") {
+			hasEntrypoint = true
+		}
+		if strings.HasPrefix(upperLine, "CMD ") {
+			hasCmd = true
+		}
+	}
+
+	if !hasEntrypoint && !hasCmd {
+		return fmt.Errorf("Dockerfile must contain either ENTRYPOINT or CMD instruction")
+	}
+
 	return nil
 }
 
