@@ -79,11 +79,12 @@ type About struct {
 }
 
 type Source struct {
-	Project    string `yaml:"project,omitempty" json:"project,omitempty"`
-	Upstream   string `yaml:"upstream,omitempty" json:"upstream,omitempty"`
-	Branch     string `yaml:"branch,omitempty" json:"branch,omitempty"`
-	Directory  string `yaml:"directory,omitempty" json:"directory,omitempty"`
-	Dockerfile string `yaml:"dockerfile,omitempty" json:"dockerfile,omitempty"`
+	Project     string `yaml:"project,omitempty" json:"project,omitempty"`
+	Upstream    string `yaml:"upstream,omitempty" json:"upstream,omitempty"`
+	Branch      string `yaml:"branch,omitempty" json:"branch,omitempty"`
+	Directory   string `yaml:"directory,omitempty" json:"directory,omitempty"`
+	Dockerfile  string `yaml:"dockerfile,omitempty" json:"dockerfile,omitempty"`
+	BuildTarget string `yaml:"buildTarget,omitempty" json:"buildTarget,omitempty"`
 }
 
 type Run struct {
