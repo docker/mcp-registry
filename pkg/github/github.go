@@ -106,6 +106,45 @@ func (c *Client) FindIcon(ctx context.Context, projectURL string) (string, error
 	return repository.Owner.GetAvatarURL(), nil
 }
 
+func (c *Client) GetFileContent(ctx context.Context, projectURL, branch, filePath string) (string, error) {
+	owner, repo, err := extractOrgAndProject(projectURL)
+	if err != nil {
+		return "", err
+	}
+
+	if branch == "" {
+		repository, err := c.GetProjectRepository(ctx, projectURL)
+		if err != nil {
+			return "", err
+		}
+		branch = repository.GetDefaultBranch()
+	}
+
+	for {
+		fileContent, _, _, err := c.gh.Repositories.GetContents(ctx, owner, repo, filePath, &github.RepositoryContentGetOptions{
+			Ref: branch,
+		})
+		if sleepOnRateLimitError(ctx, err) {
+			continue
+		}
+
+		if err != nil {
+			return "", err
+		}
+
+		if fileContent == nil {
+			return "", fmt.Errorf("file not found: %s", filePath)
+		}
+
+		content, err := fileContent.GetContent()
+		if err != nil {
+			return "", err
+		}
+
+		return content, nil
+	}
+}
+
 func sleepOnRateLimitError(ctx context.Context, err error) bool {
 	var rateLimitErr *github.RateLimitError
 	if !errors.As(err, &rateLimitErr) {
