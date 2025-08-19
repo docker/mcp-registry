@@ -1,0 +1,51 @@
+name: aks
+image: mcp/aks
+type: server
+meta:
+  category: devops
+  tags:
+    - devops
+    - azure
+    - kubernetes
+    - aks
+about:
+  title: Azure Kubernetes Service (AKS)
+  description: Azure Kubernetes Service (AKS) official MCP server
+  icon: https://raw.githubusercontent.com/Azure/AKS/master/blog/assets/images/400x400.png
+source:
+  project: https://github.com/Azure/aks-mcp
+run:
+  command:
+    - --transport=stdio
+    - --access-level={{aks.access_level}}
+    - --allow-namespaces={{aks.allow_namespaces}}
+    - --additional-tools={{aks.additional_tools}}
+  volumes:
+    - '{{aks.azure_dir}}:/home/mcp/.azure'
+    - '{{aks.kubeconfig}}:/home/mcp/.kube/config'
+config:
+  description: Configuration for AKS-MCP server
+  parameters:
+    type: object
+    properties:
+      azure_dir:
+        type: string
+        description: Path to the Azure configuration directory (e.g. /home/azureuser/.azure). Used for Azure CLI authentication, you should be logged in (e.g. run `az login`) on the host before starting the MCP server.
+      kubeconfig:
+        type: string
+        description: Path to the kubeconfig file for the AKS cluster (e.g. /home/azureuser/.kube/config). Used to connect to the AKS cluster.
+      access_level:
+        type: string
+        description: Access level for the MCP server, One of [ readonly, readwrite, admin ]
+        default: readonly
+      allow_namespaces:
+        type: string
+        description: Comma-separated list of namespaces to allow access to. If not specified, all namespaces are allowed.
+      additional_tools:
+        type: string
+        description: Comma-separated list of additional tools, One of [ helm, cilium ]
+    required:
+      - azure_dir
+      - kubeconfig
+      - access_level
+
