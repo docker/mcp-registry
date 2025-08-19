@@ -1,0 +1,59 @@
+name: okta-mcp-fctr
+image: mcp/okta-mcp-fctr
+type: server
+meta:
+  category: ai
+  tags:
+    - ai
+    - okta
+    - identity
+    - access-management
+    - security
+    - authentication
+    - audit
+    - compliance
+    - enterprise
+about:
+  title: Okta MCP Server
+  description: "Secure Okta identity and access management via Model Context Protocol (MCP). Access Okta users, groups, applications, logs, and policies through AI assistants with enterprise-grade security."
+  icon: https://avatars.githubusercontent.com/u/198773578?v=4
+source:
+  project: https://github.com/fctr-id/okta-mcp-server
+config:
+  description: Configure the connection to Okta
+  secrets:
+    - name: okta-mcp-fctr.api_token
+      env: OKTA_API_TOKEN
+      example: 00aBcDeFGhIjkLmNoPqRsTuVwxYz
+      description: "Okta API token with read permissions for users, groups, apps, logs, and policies"
+  env:
+    - name: OKTA_CLIENT_ORGURL
+      example: https://dev-123456.okta.com
+      value: '{{okta-mcp-fctr.client_orgurl}}'
+      description: "Okta organization URL"
+    - name: LOG_LEVEL
+      example: INFO
+      value: '{{okta-mcp-fctr.log_level}}'
+      description: "Logging level for server output"
+    - name: OKTA_CONCURRENT_LIMIT
+      example: "15"
+      value: '{{okta-mcp-fctr.concurrent_limit}}'
+      description: "Maximum concurrent requests to Okta API"
+  parameters:
+    type: object
+    properties:
+      client_orgurl:
+        type: string
+        description: "Okta organization URL (e.g., https://dev-123456.okta.com)"
+      log_level:
+        type: string
+        description: "Logging level for server output"
+        default: "INFO"
+        enum: ["DEBUG", "INFO", "WARNING", "ERROR"]
+      concurrent_limit:
+        type: string
+        description: "Maximum concurrent requests to Okta API"
+        default: "15"
+    required:
+      - client_orgurl
+
