@@ -140,10 +140,10 @@ func run(ctx context.Context, buildURL, name, category, userProvidedImage string
 		token := os.Getenv("GITHUB_TOKEN")
 
 		if token != "" {
-			cmd = exec.CommandContext(ctx, "docker", "buildx", "build", "--secret", "id=GIT_AUTH_TOKEN", "-t", "check", "-t", tag, "--label", "org.opencontainers.image.revision="+sha, gitURL)
+			cmd = exec.CommandContext(ctx, "docker", "buildx", "build", "--secret", "id=GIT_AUTH_TOKEN", "-t", "check", "-t", tag, "--label", "org.opencontainers.image.revision="+sha, "--load", gitURL)
 			cmd.Env = []string{"GIT_AUTH_TOKEN=" + token, "PATH=" + os.Getenv("PATH")}
 		} else {
-			cmd = exec.CommandContext(ctx, "docker", "buildx", "build", "-t", "check", "-t", tag, "--label", "org.opencontainers.image.revision="+sha, gitURL)
+			cmd = exec.CommandContext(ctx, "docker", "buildx", "build", "-t", "check", "-t", tag, "--label", "org.opencontainers.image.revision="+sha, "--load", gitURL)
 			cmd.Env = []string{"PATH=" + os.Getenv("PATH")}
 		}
 
@@ -177,7 +177,7 @@ func run(ctx context.Context, buildURL, name, category, userProvidedImage string
 				secrets = append(secrets, servers.Secret{
 					Name:    secretName(name, parts[0]),
 					Env:     parts[0],
-					Example: "<" + parts[0] + ">",
+					Example: parts[1],
 				})
 			} else {
 				env = append(env, servers.Env{
