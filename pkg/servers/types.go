@@ -107,6 +107,7 @@ type Source struct {
 type Run struct {
 	Command        []string          `yaml:"command,omitempty" json:"command,omitempty"`
 	Volumes        []string          `yaml:"volumes,omitempty" json:"volumes,omitempty"`
+	User           string            `yaml:"user,omitempty" json:"user,omitempty"`
 	Env            map[string]string `yaml:"env,omitempty" json:"env,omitempty"`
 	AllowHosts     []string          `yaml:"allowHosts,omitempty" json:"allowHosts,omitempty"`
 	DisableNetwork bool              `yaml:"disableNetwork,omitempty" json:"disableNetwork,omitempty"`

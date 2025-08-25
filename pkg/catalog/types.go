@@ -147,6 +147,7 @@ type Tile struct {
 	Env            []Env          `json:"env,omitempty" yaml:"env,omitempty"`
 	Command        []string       `json:"command,omitempty" yaml:"command,omitempty"`
 	Volumes        []string       `json:"volumes,omitempty" yaml:"volumes,omitempty"`
+	User           string         `json:"user,omitempty" yaml:"user,omitempty"`
 	DisableNetwork bool           `json:"disableNetwork,omitempty" yaml:"disableNetwork,omitempty"`
 	AllowHosts     []string       `json:"allowHosts,omitempty" yaml:"allowHosts,omitempty"`
 	Prompts        int            `json:"prompts" yaml:"prompts"`

@@ -23,6 +23,7 @@ run:
   volumes:
     - '{{aks.azure_dir}}:/home/mcp/.azure'
     - '{{aks.kubeconfig}}:/home/mcp/.kube/config'
+  user: '{{aks.container_user}}'
 config:
   description: Configuration for AKS-MCP server
   parameters:
@@ -44,6 +45,9 @@ config:
       additional_tools:
         type: string
         description: Comma-separated list of additional tools, One of [ helm, cilium ]
+      container_user:
+        type: string
+        description: Username or UID of the container user (format <name|uid>[:<group|gid>] e.g. 10000), ensuring correct permissions to access the Azure and kubeconfig files. Leave empty to use default user in the container.
     required:
       - azure_dir
       - kubeconfig
