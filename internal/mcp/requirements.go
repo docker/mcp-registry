@@ -85,7 +85,7 @@ waitStarted:
 		return nil, "", nil, fmt.Errorf("failed to start Neo4j: [%s]", stdout.String())
 	}
 
-	return cancel, containerName, []string{"NEO4J_URL=bolt://localhost:7687"}, nil
+	return cancel, containerName, []string{"NEO4J_URL=bolt://localhost:7687", "NEO4J_TRANSPORT=stdio"}, nil
 }
 
 func randString(n int) string {
