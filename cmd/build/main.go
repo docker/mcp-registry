@@ -128,7 +128,7 @@ func buildMcpImage(ctx context.Context, server servers.Server) error {
 	token := os.Getenv("GITHUB_TOKEN")
 
 	buildArgs := []string{
-		"-f", server.GetDockerfile(), "-t", "check", "-t", server.Image, "--label", "org.opencontainers.image.revision=" + sha,
+		"-f", server.GetDockerfile(), "-t", "check", "-t", server.Image, "--label", "org.opencontainers.image.revision=" + sha, "--load",
 	}
 
 	if server.Source.BuildTarget != "" {

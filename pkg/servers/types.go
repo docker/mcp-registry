@@ -23,6 +23,8 @@ THE SOFTWARE.
 package servers
 
 import (
+	"encoding/json"
+
 	"gopkg.in/yaml.v3"
 )
 
@@ -46,6 +48,21 @@ type Secret struct {
 	Env      string `yaml:"env" json:"env"`
 	Example  string `yaml:"example,omitempty" json:"example,omitempty"`
 	Required *bool  `yaml:"required,omitempty" json:"required,omitempty"`
+}
+
+// secret is an alias used to drop encoding methods to avoid infinite recursion.
+type secret Secret
+
+func (s Secret) MarshalYAML() (any, error) {
+	a := secret(s)
+	a.Example = "<" + s.Env + ">"
+	return a, nil
+}
+
+func (s Secret) MarshalJSON() ([]byte, error) {
+	a := secret(s)
+	a.Example = "<" + s.Env + ">"
+	return json.Marshal(a)
 }
 
 type Env struct {
