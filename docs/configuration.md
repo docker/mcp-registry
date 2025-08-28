@@ -85,6 +85,22 @@ run:
     - --transport=stdio
 ```
 
+## User
+
+If you need to run the container with a specific user, you can do it in the `run` block. If you want the user to be able to define the container user, you will need to create a parameter first and then add the `run` block to the server.
+
+```
+run:
+  user: '{{server_name.container_user}}'
+config:
+  description: example of a user
+  parameters:
+    type: object
+    properties:
+      container_user:
+        type: string
+```
+
 ## Full Example
 
 Here you can see a full example:

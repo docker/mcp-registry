@@ -183,6 +183,7 @@ func ToTile(ctx context.Context, server servers.Server) (Tile, error) {
 		Env:            env,
 		Command:        server.Run.Command,
 		Volumes:        server.Run.Volumes,
+		User:           server.Run.User,
 		DisableNetwork: server.Run.DisableNetwork,
 		AllowHosts:     server.Run.AllowHosts,
 		Config:         config,
