@@ -140,6 +140,13 @@ func IsLicenseValid(name string) error {
 	if err != nil {
 		return err
 	}
+	
+	// Skip license validation for remote servers without source
+	if server.Source.Project == "" {
+		fmt.Println("✅ License validation skipped (remote server)")
+		return nil
+	}
+	
 	repository, err := client.GetProjectRepository(ctx, server.Source.Project)
 	if err != nil {
 		return err
@@ -179,12 +186,20 @@ func isIconValid(name string) error {
 		fmt.Println("🛑 Icon is too large. It must be less than 2MB")
 		return nil
 	}
+	
+	// Check content type for SVG support
+	contentType := resp.Header.Get("Content-Type")
+	if contentType == "image/svg+xml" {
+		fmt.Println("✅ Icon is valid (SVG)")
+		return nil
+	}
+	
 	img, format, err := image.DecodeConfig(resp.Body)
 	if err != nil {
 		return err
 	}
 	if format != "png" {
-		fmt.Println("🛑 Icon is not a png. It must be a png")
+		fmt.Println("🛑 Icon is not a png or svg. It must be a png or svg")
 		return nil
 	}
 
