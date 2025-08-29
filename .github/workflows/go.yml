@@ -1,0 +1,49 @@
+name: Go CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout source code
+      - uses: actions/checkout@v4
+
+      # 2. Setup Go (latest stable 1.24.x)
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.x'
+          cache: true  # เปิด cache modules อัตโนมัติ
+
+      # 3. Verify Go version
+      - name: Go version
+        run: go version
+
+      # 4. Download dependencies (go.sum/go.mod)
+      - name: Download dependencies
+        run: go mod download
+
+      # 5. Static analysis (lint & vet)
+      - name: Run go vet
+        run: go vet ./...
+
+      # 6. Build
+      - name: Build
+        run: go build -v ./...
+
+      # 7. Run tests with coverage
+      - name: Test with coverage
+        run: go test -v -coverprofile=coverage.out ./...
+
+      # 8. Upload coverage report (optional)
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.out
+          fail_ci_if_error: true
