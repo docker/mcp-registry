@@ -141,6 +141,7 @@ type Tile struct {
 	// Source         string         `json:"source,omitempty" yaml:"source,omitempty"`
 	Source         string         `json:"source" yaml:"source"`
 	Upstream       string         `json:"upstream,omitempty" yaml:"upstream,omitempty"`
+	Remote         Remote         `json:"remote,omitempty" yaml:"remote,omitempty"`
 	Icon           string         `json:"icon" yaml:"icon"`
 	Tools          []servers.Tool `json:"tools" yaml:"tools"`
 	Secrets        []Secret       `json:"secrets,omitempty" yaml:"secrets,omitempty"`
@@ -196,4 +197,48 @@ type Secret struct {
 type Env struct {
 	Name  string `json:"name" yaml:"name"`
 	Value string `json:"value" yaml:"value"`
+}
+
+type Remote struct {
+	TransportType string            `json:"transport_type,omitempty" yaml:"transport_type,omitempty"`
+	URL           string            `json:"url,omitempty" yaml:"url,omitempty"`
+	Headers       map[string]string `json:"headers,omitempty" yaml:"headers,omitempty"`
+}
+
+func (r Remote) MarshalYAML() (interface{}, error) {
+	mapNode := &yaml.Node{
+		Kind: yaml.MappingNode,
+		Content: []*yaml.Node{},
+	}
+	
+	if r.TransportType != "" {
+		mapNode.Content = append(mapNode.Content,
+			&yaml.Node{Kind: yaml.ScalarNode, Value: "transport_type"},
+			&yaml.Node{Kind: yaml.ScalarNode, Value: r.TransportType})
+	}
+	
+	if r.URL != "" {
+		mapNode.Content = append(mapNode.Content,
+			&yaml.Node{Kind: yaml.ScalarNode, Value: "url"},
+			&yaml.Node{Kind: yaml.ScalarNode, Value: r.URL})
+	}
+	
+	if len(r.Headers) > 0 {
+		headersNode := &yaml.Node{
+			Kind: yaml.MappingNode,
+			Content: []*yaml.Node{},
+		}
+		
+		for k, v := range r.Headers {
+			headersNode.Content = append(headersNode.Content,
+				&yaml.Node{Kind: yaml.ScalarNode, Value: k},
+				&yaml.Node{Kind: yaml.ScalarNode, Value: v, Style: yaml.DoubleQuotedStyle})
+		}
+		
+		mapNode.Content = append(mapNode.Content,
+			&yaml.Node{Kind: yaml.ScalarNode, Value: "headers"},
+			headersNode)
+	}
+	
+	return mapNode, nil
 }
