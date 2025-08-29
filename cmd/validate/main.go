@@ -53,6 +53,9 @@ func run(name string) error {
 	if err := isIconValid(name); err != nil {
 		return err
 	}
+	if err := isRemoteValid(name); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -209,6 +212,28 @@ func isIconValid(name string) error {
 	}
 
 	fmt.Println("✅ Icon is valid")
+	return nil
+}
+
+// check if the remote configuration is valid
+func isRemoteValid(name string) error {
+	server, err := readServerYaml(name)
+	if err != nil {
+		return err
+	}
+
+	// Skip validation for non-remote servers
+	if server.Remote.URL == "" {
+		fmt.Println("✅ Remote validation skipped (not a remote server)")
+		return nil
+	}
+
+	// Check that transport_type is not empty for remote servers
+	if server.Remote.TransportType == "" {
+		return fmt.Errorf("remote server must have a transport_type specified")
+	}
+
+	fmt.Println("✅ Remote is valid")
 	return nil
 }
 
