@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go-version: [ '1.22.x', '1.23.x', '1.24.x' ]
+        go-version: [ '1.22.x', '1.23.x' ]   # ❌ ตัด 1.24.x ออก
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -47,7 +47,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24.x'
+          go-version: '1.23.x'   # ใช้เวอร์ชันที่เสถียร
           cache: true
 
       - name: Download dependencies
@@ -55,10 +55,3 @@ jobs:
 
       - name: Run tests with coverage
         run: go test -v -coverprofile=coverage.out ./...
-
-      - name: Upload coverage to Codecov
-        if: env.CODECOV_TOKEN != ''
-        uses: codecov/codecov-action@v4
-        with:
-          files: coverage.out
-          fail_ci_if_error: true
