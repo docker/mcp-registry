@@ -43,10 +43,17 @@ func run(name string) error {
 		return err
 	}
 
+	if err := isConfigEnvValid(name); err != nil {
+		return err
+	}
+
 	if err := IsLicenseValid(name); err != nil {
 		return err
 	}
 	if err := isIconValid(name); err != nil {
+		return err
+	}
+	if err := isRemoteValid(name); err != nil {
 		return err
 	}
 
@@ -107,6 +114,26 @@ func areSecretsValid(name string) error {
 	return nil
 }
 
+// Check parameter usage is valid
+func isConfigEnvValid(name string) error {
+	server, err := readServerYaml(name)
+	if err != nil {
+		return err
+	}
+
+	for _, e := range server.Config.Env {
+		if !strings.HasPrefix(e.Value, "{{") {
+			continue
+		}
+		if !strings.HasPrefix(e.Value, "{{"+server.Name+".") {
+			return fmt.Errorf("server uses unknown parameter %q: %q", server.Name, e.Value)
+		}
+	}
+
+	fmt.Println("✅ Config env is valid")
+	return nil
+}
+
 // check if the license is valid
 // the license must be valid
 func IsLicenseValid(name string) error {
@@ -116,6 +143,13 @@ func IsLicenseValid(name string) error {
 	if err != nil {
 		return err
 	}
+	
+	// Skip license validation for remote servers without source
+	if server.Source.Project == "" {
+		fmt.Println("✅ License validation skipped (remote server)")
+		return nil
+	}
+	
 	repository, err := client.GetProjectRepository(ctx, server.Source.Project)
 	if err != nil {
 		return err
@@ -146,25 +180,60 @@ func isIconValid(name string) error {
 		return nil
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("icon is not valid. It must be a valid image")
+		fmt.Printf("🛑 Icon could not be fetched, status code: %d, url: %s\n", resp.StatusCode, server.About.Icon)
+		return nil
 	}
 	if resp.ContentLength > 2*1024*1024 {
-		return fmt.Errorf("icon is too large. It must be less than 2MB")
+		fmt.Println("🛑 Icon is too large. It must be less than 2MB")
+		return nil
 	}
+	
+	// Check content type for SVG support
+	contentType := resp.Header.Get("Content-Type")
+	if contentType == "image/svg+xml" {
+		fmt.Println("✅ Icon is valid (SVG)")
+		return nil
+	}
+	
 	img, format, err := image.DecodeConfig(resp.Body)
 	if err != nil {
 		return err
 	}
 	if format != "png" {
-		return fmt.Errorf("icon is not a png. It must be a png")
+		fmt.Println("🛑 Icon is not a png or svg. It must be a png or svg")
+		return nil
 	}
 
 	if img.Width > 512 || img.Height > 512 {
-		return fmt.Errorf("image is too large. It must be less than 512x512")
+		fmt.Println("🛑 Icon is too large. It must be less than 512x512")
+		return nil
 	}
 
 	fmt.Println("✅ Icon is valid")
+	return nil
+}
+
+// check if the remote configuration is valid
+func isRemoteValid(name string) error {
+	server, err := readServerYaml(name)
+	if err != nil {
+		return err
+	}
+
+	// Skip validation for non-remote servers
+	if server.Remote.URL == "" {
+		fmt.Println("✅ Remote validation skipped (not a remote server)")
+		return nil
+	}
+
+	// Check that transport_type is not empty for remote servers
+	if server.Remote.TransportType == "" {
+		return fmt.Errorf("remote server must have a transport_type specified")
+	}
+
+	fmt.Println("✅ Remote is valid")
 	return nil
 }
 

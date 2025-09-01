@@ -23,6 +23,8 @@ THE SOFTWARE.
 package servers
 
 import (
+	"encoding/json"
+
 	"gopkg.in/yaml.v3"
 )
 
@@ -34,6 +36,7 @@ type Server struct {
 	Meta        Meta            `yaml:"meta,omitempty" json:"meta,omitempty"`
 	About       About           `yaml:"about,omitempty" json:"about,omitempty"`
 	Source      Source          `yaml:"source,omitempty" json:"source,omitempty"`
+	Remote      Remote          `yaml:"remote,omitempty" json:"remote,omitempty"`
 	Run         Run             `yaml:"run,omitempty" json:"run,omitempty"`
 	Config      Config          `yaml:"config,omitempty" json:"config,omitempty"`
 	OAuth       []OAuthProvider `yaml:"oauth,omitempty" json:"oauth,omitempty"`
@@ -46,6 +49,21 @@ type Secret struct {
 	Env      string `yaml:"env" json:"env"`
 	Example  string `yaml:"example,omitempty" json:"example,omitempty"`
 	Required *bool  `yaml:"required,omitempty" json:"required,omitempty"`
+}
+
+// secret is an alias used to drop encoding methods to avoid infinite recursion.
+type secret Secret
+
+func (s Secret) MarshalYAML() (any, error) {
+	a := secret(s)
+	a.Example = "<" + s.Env + ">"
+	return a, nil
+}
+
+func (s Secret) MarshalJSON() ([]byte, error) {
+	a := secret(s)
+	a.Example = "<" + s.Env + ">"
+	return json.Marshal(a)
 }
 
 type Env struct {
@@ -79,16 +97,24 @@ type About struct {
 }
 
 type Source struct {
-	Project    string `yaml:"project,omitempty" json:"project,omitempty"`
-	Upstream   string `yaml:"upstream,omitempty" json:"upstream,omitempty"`
-	Branch     string `yaml:"branch,omitempty" json:"branch,omitempty"`
-	Directory  string `yaml:"directory,omitempty" json:"directory,omitempty"`
-	Dockerfile string `yaml:"dockerfile,omitempty" json:"dockerfile,omitempty"`
+	Project     string `yaml:"project,omitempty" json:"project,omitempty"`
+	Upstream    string `yaml:"upstream,omitempty" json:"upstream,omitempty"`
+	Branch      string `yaml:"branch,omitempty" json:"branch,omitempty"`
+	Directory   string `yaml:"directory,omitempty" json:"directory,omitempty"`
+	Dockerfile  string `yaml:"dockerfile,omitempty" json:"dockerfile,omitempty"`
+	BuildTarget string `yaml:"buildTarget,omitempty" json:"buildTarget,omitempty"`
+}
+
+type Remote struct {
+	TransportType string            `yaml:"transport_type,omitempty" json:"transport_type,omitempty"`
+	URL           string            `yaml:"url,omitempty" json:"url,omitempty"`
+	Headers       map[string]string `yaml:"headers,omitempty" json:"headers,omitempty"`
 }
 
 type Run struct {
 	Command        []string          `yaml:"command,omitempty" json:"command,omitempty"`
 	Volumes        []string          `yaml:"volumes,omitempty" json:"volumes,omitempty"`
+	User           string            `yaml:"user,omitempty" json:"user,omitempty"`
 	Env            map[string]string `yaml:"env,omitempty" json:"env,omitempty"`
 	AllowHosts     []string          `yaml:"allowHosts,omitempty" json:"allowHosts,omitempty"`
 	DisableNetwork bool              `yaml:"disableNetwork,omitempty" json:"disableNetwork,omitempty"`

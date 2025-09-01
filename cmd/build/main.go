@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/docker/mcp-registry/internal/mcp"
@@ -39,6 +40,12 @@ func run(ctx context.Context, name string, listTools bool, pullCommunity bool) e
 			return fmt.Errorf("server %s not found (did you already create it with `task create`?)", name)
 		}
 		return err
+	}
+
+	// Skip build for remote servers - they don't need Docker images
+	if server.Remote.URL != "" {
+		fmt.Printf("✅ Build skipped for remote server %s\n", name)
+		return nil
 	}
 
 	isMcpImage := strings.HasPrefix(server.Image, "mcp/")
@@ -81,6 +88,19 @@ func run(ctx context.Context, name string, listTools bool, pullCommunity bool) e
 	return nil
 }
 
+func buildDockerEnv(additionalEnv ...string) []string {
+	env := []string{"PATH=" + os.Getenv("PATH")}
+
+	// On Windows, Docker also needs ProgramW6432
+	// See https://github.com/docker/mcp-registry/issues/79 for more details
+	programW6432 := os.Getenv("ProgramW6432")
+	if runtime.GOOS == "windows" && programW6432 != "" {
+		env = append(env, "ProgramW6432="+programW6432)
+	}
+
+	return append(env, additionalEnv...)
+}
+
 func buildMcpImage(ctx context.Context, server servers.Server) error {
 	projectURL := server.Source.Project
 	branch := server.Source.Branch
@@ -113,12 +133,22 @@ func buildMcpImage(ctx context.Context, server servers.Server) error {
 	var cmd *exec.Cmd
 	token := os.Getenv("GITHUB_TOKEN")
 
+	buildArgs := []string{
+		"-f", server.GetDockerfile(), "-t", "check", "-t", server.Image, "--label", "org.opencontainers.image.revision=" + sha, "--load",
+	}
+
+	if server.Source.BuildTarget != "" {
+		buildArgs = append(buildArgs, "--target", server.Source.BuildTarget)
+	}
+
+	buildArgs = append(buildArgs, gitURL)
+
 	if token != "" {
-		cmd = exec.CommandContext(ctx, "docker", "buildx", "build", "--secret", "id=GIT_AUTH_TOKEN", "-f", server.GetDockerfile(), "-t", "check", "-t", server.Image, "--label", "org.opencontainers.image.revision="+sha, gitURL)
-		cmd.Env = []string{"GIT_AUTH_TOKEN=" + token, "PATH=" + os.Getenv("PATH")}
+		cmd = exec.CommandContext(ctx, "docker", append([]string{"buildx", "build", "--secret", "id=GIT_AUTH_TOKEN"}, buildArgs...)...)
+		cmd.Env = buildDockerEnv("GIT_AUTH_TOKEN=" + token)
 	} else {
-		cmd = exec.CommandContext(ctx, "docker", "buildx", "build", "-f", server.GetDockerfile(), "-t", "check", "-t", server.Image, "--label", "org.opencontainers.image.revision="+sha, gitURL)
-		cmd.Env = []string{"PATH=" + os.Getenv("PATH")}
+		cmd = exec.CommandContext(ctx, "docker", append([]string{"buildx", "build"}, buildArgs...)...)
+		cmd.Env = buildDockerEnv()
 	}
 
 	cmd.Dir = os.TempDir()
