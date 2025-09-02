@@ -53,6 +53,9 @@ func run(name string) error {
 	if err := isIconValid(name); err != nil {
 		return err
 	}
+	if err := isRemoteValid(name); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -140,6 +143,13 @@ func IsLicenseValid(name string) error {
 	if err != nil {
 		return err
 	}
+	
+	// Skip license validation for remote servers without source
+	if server.Source.Project == "" {
+		fmt.Println("✅ License validation skipped (remote server)")
+		return nil
+	}
+	
 	repository, err := client.GetProjectRepository(ctx, server.Source.Project)
 	if err != nil {
 		return err
@@ -179,12 +189,20 @@ func isIconValid(name string) error {
 		fmt.Println("🛑 Icon is too large. It must be less than 2MB")
 		return nil
 	}
+	
+	// Check content type for SVG support
+	contentType := resp.Header.Get("Content-Type")
+	if contentType == "image/svg+xml" {
+		fmt.Println("✅ Icon is valid (SVG)")
+		return nil
+	}
+	
 	img, format, err := image.DecodeConfig(resp.Body)
 	if err != nil {
 		return err
 	}
 	if format != "png" {
-		fmt.Println("🛑 Icon is not a png. It must be a png")
+		fmt.Println("🛑 Icon is not a png or svg. It must be a png or svg")
 		return nil
 	}
 
@@ -194,6 +212,28 @@ func isIconValid(name string) error {
 	}
 
 	fmt.Println("✅ Icon is valid")
+	return nil
+}
+
+// check if the remote configuration is valid
+func isRemoteValid(name string) error {
+	server, err := readServerYaml(name)
+	if err != nil {
+		return err
+	}
+
+	// Skip validation for non-remote servers
+	if server.Remote.URL == "" {
+		fmt.Println("✅ Remote validation skipped (not a remote server)")
+		return nil
+	}
+
+	// Check that transport_type is not empty for remote servers
+	if server.Remote.TransportType == "" {
+		return fmt.Errorf("remote server must have a transport_type specified")
+	}
+
+	fmt.Println("✅ Remote is valid")
 	return nil
 }
 

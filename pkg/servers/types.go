@@ -36,6 +36,7 @@ type Server struct {
 	Meta        Meta            `yaml:"meta,omitempty" json:"meta,omitempty"`
 	About       About           `yaml:"about,omitempty" json:"about,omitempty"`
 	Source      Source          `yaml:"source,omitempty" json:"source,omitempty"`
+	Remote      Remote          `yaml:"remote,omitempty" json:"remote,omitempty"`
 	Run         Run             `yaml:"run,omitempty" json:"run,omitempty"`
 	Config      Config          `yaml:"config,omitempty" json:"config,omitempty"`
 	OAuth       []OAuthProvider `yaml:"oauth,omitempty" json:"oauth,omitempty"`
@@ -102,6 +103,12 @@ type Source struct {
 	Directory   string `yaml:"directory,omitempty" json:"directory,omitempty"`
 	Dockerfile  string `yaml:"dockerfile,omitempty" json:"dockerfile,omitempty"`
 	BuildTarget string `yaml:"buildTarget,omitempty" json:"buildTarget,omitempty"`
+}
+
+type Remote struct {
+	TransportType string            `yaml:"transport_type,omitempty" json:"transport_type,omitempty"`
+	URL           string            `yaml:"url,omitempty" json:"url,omitempty"`
+	Headers       map[string]string `yaml:"headers,omitempty" json:"headers,omitempty"`
 }
 
 type Run struct {

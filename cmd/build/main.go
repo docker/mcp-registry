@@ -42,6 +42,12 @@ func run(ctx context.Context, name string, listTools bool, pullCommunity bool) e
 		return err
 	}
 
+	// Skip build for remote servers - they don't need Docker images
+	if server.Remote.URL != "" {
+		fmt.Printf("✅ Build skipped for remote server %s\n", name)
+		return nil
+	}
+
 	isMcpImage := strings.HasPrefix(server.Image, "mcp/")
 
 	if isMcpImage {
