@@ -1,16 +1,76 @@
- name: pomodash
-  displayName: "PomoDash"
-  description: "Connect your AI assistant to PomoDash for seamless task and project management"
-  category: "productivity"
-  repository: "https://github.com/DannyyTv/pomodash-mcp-server"
-  dockerfile: "Dockerfile"
-  license: "MIT"
-  environment:
-    - name: "POMODASH_API_KEY"
-      description: "Your PomoDash API key"
-      required: true
-      secret: true
-    - name: "POMODASH_API_URL"
-      description: "PomoDash API URL"
-      required: false
-      default: "https://mcp.pomodash.mindsnapz.de"
+name: pomodash
+displayName: "PomoDash"
+description: "Connect your AI assistant to PomoDash for seamless task and project management"
+category: "productivity"
+icon: "./icon-512.png"
+repository: "https://github.com/DannyyTv/pomodash-mcp-server"
+dockerfile: "Dockerfile"
+license: "MIT"
+tags: ["tasks", "productivity", "pomodoro", "notes", "projects", "planning"]
+
+author:
+  name: "Mindsnapz"
+  email: "support@mindsnapz.de"
+  url: "https://mindsnapz.de"
+
+environment:
+  - name: "pomodash.POMODASH_API_KEY"
+    description: "Your PomoDash API key (generate in Settings → API Keys)"
+    required: true
+    secret: true
+    format: "pmk_*"
+  - name: "pomodash.POMODASH_API_URL"
+    description: "PomoDash API base URL"
+    required: false
+    default: "https://mcp.pomodash.mindsnapz.de"
+
+capabilities:
+  tools:
+    - name: "create_task"
+      description: "Create a new task in PomoDash"
+    - name: "list_tasks"
+      description: "List all tasks from PomoDash"
+    - name: "update_task"
+      description: "Update an existing task"
+    - name: "delete_task"
+      description: "Delete a task"
+    - name: "create_task_for_project"
+      description: "Create a task linked to a specific project"
+    - name: "create_note"
+      description: "Create a new note in PomoDash"
+    - name: "list_notes"
+      description: "List all notes from PomoDash"
+    - name: "update_note"
+      description: "Update an existing note"
+    - name: "delete_note"
+      description: "Delete a note"
+    - name: "list_categories"
+      description: "List all categories and projects"
+    - name: "create_category"
+      description: "Create a new category or project"
+
+requirements:
+  premium_account: true
+  api_authentication: true
+
+security:
+  user: "mcp:1001"
+  capabilities_drop: ["ALL"]
+  no_new_privileges: true
+  read_only_root_filesystem: false
+
+resources:
+  cpu_limit: "1"
+  memory_limit: "2Gi"
+  memory_reservation: "256Mi"
+
+health_check:
+  test: ["CMD", "node", "--version"]
+  interval: "30s"
+  timeout: "3s"
+  retries: 3
+
+documentation:
+  setup_url: "https://github.com/DannyyTv/pomodash-mcp-server#quick-start"
+  api_docs_url: "https://pomodash.mindsnapz.de/docs"
+  support_url: "https://github.com/DannyyTv/pomodash-mcp-server/issues"
