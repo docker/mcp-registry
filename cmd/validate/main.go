@@ -56,6 +56,10 @@ func run(name string) error {
 	if err := isRemoteValid(name); err != nil {
 		return err
 	}
+	
+	if err := isOAuthDynamicValid(name); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -247,6 +251,24 @@ func isRemoteValid(name string) error {
 	}
 
 	fmt.Println("✅ Remote is valid")
+	return nil
+}
+
+// check if servers with OAuth have dynamic tools enabled
+func isOAuthDynamicValid(name string) error {
+	server, err := readServerYaml(name)
+	if err != nil {
+		return err
+	}
+
+	// If server has OAuth configuration, it must have dynamic tools enabled
+	if len(server.OAuth) > 0 {
+		if server.Dynamic == nil || !server.Dynamic.Tools {
+			return fmt.Errorf("server with OAuth must have 'dynamic: tools: true' configuration")
+		}
+	}
+
+	fmt.Println("✅ OAuth dynamic configuration is valid")
 	return nil
 }
 
