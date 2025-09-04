@@ -233,6 +233,19 @@ func isRemoteValid(name string) error {
 		return fmt.Errorf("remote server must have a transport_type specified")
 	}
 
+	// Validate transport_type is one of the allowed values
+	validTransports := []string{"stdio", "sse", "streamable-http"}
+	isValid := false
+	for _, valid := range validTransports {
+		if server.Remote.TransportType == valid {
+			isValid = true
+			break
+		}
+	}
+	if !isValid {
+		return fmt.Errorf("remote server transport_type must be one of: stdio, sse, streamable-http (got: %s)", server.Remote.TransportType)
+	}
+
 	fmt.Println("✅ Remote is valid")
 	return nil
 }
