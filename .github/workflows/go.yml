@@ -1,0 +1,57 @@
+name: Go CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    name: Build (Matrix Go Versions)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go-version: [ '1.22.x', '1.23.x' ]   # ❌ ตัด 1.24.x ออก
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcp-registry-${{ matrix.go-version }}
+          path: ./mcp-registry
+
+  test:
+    name: Test with Coverage
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'   # ใช้เวอร์ชันที่เสถียร
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run tests with coverage
+        run: go test -v -coverprofile=coverage.out ./...
