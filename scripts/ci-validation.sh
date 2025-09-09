@@ -2,8 +2,9 @@
 
 set -o pipefail
 
-# Track overall success/failure
+# Track overall success/failure and processed servers
 overall_success=true
+processed_servers=""
 
 # Function to process a single server
 process_server() {
@@ -43,8 +44,20 @@ process_server() {
   return 0
 }
 
-# Main loop
+# Main loop - process each file but skip duplicate servers
 while IFS= read -r file; do
+  dir=$(dirname "$file")
+  name=$(basename "$dir")
+
+  # Skip if we've already processed this server (can happen when more than one file is changed for the same server)
+  if [[ "$processed_servers" == *"|$name|"* ]]; then
+    echo "Skipping already processed server: $name (from file: $file)"
+    continue
+  fi
+  
+  # Mark this server as processed
+  processed_servers="${processed_servers}|$name|"
+  
   if ! process_server "$file"; then
     echo "FAILED: Processing server from file: $file"
     overall_success=false
