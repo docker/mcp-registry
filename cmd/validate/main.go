@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"image"
@@ -11,11 +12,13 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	_ "image/jpeg"
 	_ "image/png"
 
 	"github.com/docker/mcp-registry/internal/licenses"
+	"github.com/docker/mcp-registry/internal/mcp"
 	"github.com/docker/mcp-registry/pkg/github"
 	"github.com/docker/mcp-registry/pkg/servers"
 	"gopkg.in/yaml.v3"
@@ -56,7 +59,7 @@ func run(name string) error {
 	if err := isRemoteValid(name); err != nil {
 		return err
 	}
-	
+
 	if err := isOAuthDynamicValid(name); err != nil {
 		return err
 	}
@@ -147,13 +150,13 @@ func IsLicenseValid(name string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// Skip license validation for remote servers without source
 	if server.Source.Project == "" {
 		fmt.Println("✅ License validation skipped (remote server)")
 		return nil
 	}
-	
+
 	repository, err := client.GetProjectRepository(ctx, server.Source.Project)
 	if err != nil {
 		return err
@@ -193,14 +196,14 @@ func isIconValid(name string) error {
 		fmt.Println("🛑 Icon is too large. It must be less than 2MB")
 		return nil
 	}
-	
+
 	// Check content type for SVG support
 	contentType := resp.Header.Get("Content-Type")
 	if contentType == "image/svg+xml" {
 		fmt.Println("✅ Icon is valid (SVG)")
 		return nil
 	}
-	
+
 	img, format, err := image.DecodeConfig(resp.Body)
 	if err != nil {
 		return err
@@ -250,7 +253,49 @@ func isRemoteValid(name string) error {
 		return fmt.Errorf("remote server transport_type must be one of: stdio, sse, streamable-http (got: %s)", server.Remote.TransportType)
 	}
 
+	if err := hasValidTools(server); err != nil {
+		return err
+	}
+
 	fmt.Println("✅ Remote is valid")
+	return nil
+}
+
+// Check that there is either a tools.json, dynamic tools, or can fetch remote tools
+func hasValidTools(server servers.Server) error {
+	defaultErr := fmt.Errorf("server must have either a tools.json, dynamic tools, or can fetch remote tools")
+
+	// Dynamic tools are valid
+	if server.Dynamic != nil && server.Dynamic.Tools {
+		fmt.Println("✅ Dynamic tools are valid")
+		return nil
+	}
+
+	// Tools.json is valid
+	tools, err := readToolsJson(server.Name)
+	if err == nil {
+		toolCount := len(tools)
+		fmt.Printf("✅ tools.json is valid. Found %d tools.\n", toolCount)
+		return nil
+	}
+	if !os.IsNotExist(err) {
+		fmt.Printf("🛑 Tools.json could not be read: %v\n", err)
+		return defaultErr
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	// Remote tools are valid
+	remoteTools, err := mcp.RemoteTools(ctx, server)
+	if err != nil {
+		fmt.Printf("🛑 Remote tools could not be fetched (if auth is required, specify \ndynamic:\n  tools: true\n): %v\n", err)
+		return defaultErr
+	}
+
+	toolCount := len(remoteTools)
+
+	fmt.Printf("✅ Remote tools are valid. Found %d tools.\n", toolCount)
 	return nil
 }
 
@@ -283,4 +328,19 @@ func readServerYaml(name string) (servers.Server, error) {
 		return servers.Server{}, err
 	}
 	return server, nil
+}
+
+func readToolsJson(name string) ([]mcp.Tool, error) {
+	path := filepath.Join("servers", name, "tools.json")
+	buf, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var tools []mcp.Tool
+	if err := json.Unmarshal(buf, &tools); err != nil {
+		return nil, err
+	}
+
+	return tools, nil
 }
