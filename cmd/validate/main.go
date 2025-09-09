@@ -56,6 +56,10 @@ func run(name string) error {
 	if err := isRemoteValid(name); err != nil {
 		return err
 	}
+	
+	if err := isOAuthDynamicValid(name); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -233,7 +237,38 @@ func isRemoteValid(name string) error {
 		return fmt.Errorf("remote server must have a transport_type specified")
 	}
 
+	// Validate transport_type is one of the allowed values
+	validTransports := []string{"stdio", "sse", "streamable-http"}
+	isValid := false
+	for _, valid := range validTransports {
+		if server.Remote.TransportType == valid {
+			isValid = true
+			break
+		}
+	}
+	if !isValid {
+		return fmt.Errorf("remote server transport_type must be one of: stdio, sse, streamable-http (got: %s)", server.Remote.TransportType)
+	}
+
 	fmt.Println("✅ Remote is valid")
+	return nil
+}
+
+// check if servers with OAuth have dynamic tools enabled
+func isOAuthDynamicValid(name string) error {
+	server, err := readServerYaml(name)
+	if err != nil {
+		return err
+	}
+
+	// If server has OAuth configuration, it must have dynamic tools enabled
+	if len(server.OAuth) > 0 {
+		if server.Dynamic == nil || !server.Dynamic.Tools {
+			return fmt.Errorf("server with OAuth must have 'dynamic: tools: true' configuration")
+		}
+	}
+
+	fmt.Println("✅ OAuth dynamic configuration is valid")
 	return nil
 }
 

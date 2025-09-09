@@ -28,10 +28,15 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type Dynamic struct {
+	Tools bool `yaml:"tools,omitempty" json:"tools,omitempty"`
+}
+
 type Server struct {
 	Name        string          `yaml:"name" json:"name"`
 	Image       string          `yaml:"image,omitempty" json:"image,omitempty"`
 	Type        string          `yaml:"type" json:"type"`
+	Dynamic     *Dynamic        `yaml:"dynamic,omitempty" json:"dynamic,omitempty"`
 	LongLived   bool            `yaml:"longLived,omitempty" json:"longLived,omitempty"`
 	Meta        Meta            `yaml:"meta,omitempty" json:"meta,omitempty"`
 	About       About           `yaml:"about,omitempty" json:"about,omitempty"`
