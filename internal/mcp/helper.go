@@ -24,7 +24,9 @@ package mcp
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"slices"
 	"sort"
 	"strings"
@@ -342,4 +344,18 @@ func extractDescription(input string, name string) string {
 	}
 
 	return ""
+}
+
+func ReadToolsFromFile(path string) ([]mcp.Tool, error) {
+	buf, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var tools []mcp.Tool
+	if err := json.Unmarshal(buf, &tools); err != nil {
+		return nil, err
+	}
+
+	return tools, nil
 }
