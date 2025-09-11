@@ -123,7 +123,7 @@ task create -- --category database --image myorg/my-mcp https://github.com/myorg
 After creating your server file with `task create`, you will be given instructions for running it locally. In the case of my-orgdb-mcp, we would run the following commands next.
 
 ```
-task build -- my-orgdb-mcp # Not needed if providing your own image
+task build -- --tools my-orgdb-mcp # Not needed if providing your own image
 task catalog -- my-orgdb-mcp
 docker mcp catalog import $PWD/catalogs/my-orgdb-mcp/catalog.yaml
 ```
@@ -133,6 +133,43 @@ Now, if we go into the MCP Toolkit on Docker Desktop, we'll see our new MCP serv
 ```
 docker mcp catalog reset
 ```
+
+### Avoiding `build --tools` failures
+
+If your MCP server needs to be configured before listing tools, you can now provide a `tools.json` file and the build process will not try to run
+the server and list the tools. This is one of the most common issues that blocks your PR.
+
+This is an example of a `tools.json` file:
+
+```
+[
+  {
+    "name": "tools_name",
+    "description": "description of what you tool does"
+    "arguments": [
+      {
+        "name": "name_of_the_argument",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "another_tool",
+    "description": "description of what another tool"
+    "arguments": [
+      {
+        "name": "name_of_the_argument",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  }
+]
+```
+
+When this file is found next to your `server.yaml`, the `task build -- --tools your-server-name` list the tools by reading the file instead of
+running the server.
 
 ### 4️⃣ Wait for review and approval
 
