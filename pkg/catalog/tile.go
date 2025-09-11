@@ -44,7 +44,7 @@ func ToTile(ctx context.Context, server servers.Server) (Tile, error) {
 	license := "Apache License 2.0"
 	githubStars := 0
 
-	if server.Type == "server" {
+	if server.Type == "server" && server.Remote.URL == "" {
 		client := github.NewFromServer(server)
 		repository, err := client.GetProjectRepository(ctx, upstream)
 		if err != nil {
@@ -127,7 +127,7 @@ func ToTile(ctx context.Context, server servers.Server) (Tile, error) {
 
 	image := server.Image
 
-	if server.Type == "server" && image == "" {
+	if server.Type == "server" && image == "" && server.Remote.URL == "" {
 		return Tile{}, fmt.Errorf("no image for server: %s", server.Name)
 	}
 	if server.Type == "poci" && image != "" {
@@ -168,6 +168,15 @@ func ToTile(ctx context.Context, server servers.Server) (Tile, error) {
 
 	dateAdded := time.Now().Format(time.RFC3339)
 
+	var remote Remote
+	if server.Remote.URL != "" {
+		remote = Remote{
+			TransportType: server.Remote.TransportType,
+			URL:           server.Remote.URL,
+			Headers:       server.Remote.Headers,
+		}
+	}
+
 	return Tile{
 		Description:    addDot(strings.TrimSpace(strings.ReplaceAll(description, "\n", " "))),
 		Title:          server.About.Title,
@@ -178,6 +187,7 @@ func ToTile(ctx context.Context, server servers.Server) (Tile, error) {
 		ToolsURL:       "http://desktop.docker.com/mcp/catalog/v" + strconv.Itoa(Version) + "/tools/" + server.Name + ".json",
 		Source:         source,
 		Upstream:       upstream,
+		Remote:         remote,
 		Icon:           server.About.Icon,
 		Secrets:        secrets,
 		Env:            env,
