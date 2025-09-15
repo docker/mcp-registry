@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -61,6 +62,10 @@ func run(name string) error {
 	}
 
 	if err := isOAuthDynamicValid(name); err != nil {
+		return err
+	}
+
+	if err := isPociValid(name); err != nil {
 		return err
 	}
 
@@ -343,4 +348,34 @@ func readToolsJson(name string) ([]mcp.Tool, error) {
 	}
 
 	return tools, nil
+}
+
+func isPociValid(name string) error {
+	server, err := readServerYaml(name)
+	if err != nil {
+		return err
+	}
+
+	if server.Type != "poci" {
+		return nil
+	}
+
+	for _, tool := range server.Tools {
+		if tool.Container.Image != "" {
+			if err := pullPociImage(tool.Container.Image); err != nil {
+				fmt.Printf("🛑 Could not pull poci image %s: %v\n", tool.Container.Image, err)
+				return err
+			}
+		}
+	}
+
+	fmt.Println("✅ Poci image is valid")
+	return nil
+}
+
+func pullPociImage(image string) error {
+	cmd := exec.Command("docker", "pull", image)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
