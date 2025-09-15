@@ -1,0 +1,28 @@
+name: cloud-run-mcp
+image: mcp/cloud-run-mcp
+type: server
+meta:
+    category: devops
+    tags:
+        - devops
+about:
+    title: Cloud Run MCP
+    description: MCP server to deploy apps to Cloud Run
+    icon: https://avatars.githubusercontent.com/u/2810941?v=4
+source:
+    project: https://github.com/GoogleCloudPlatform/cloud-run-mcp
+config:
+  description: Configure the connection to Google Cloud Run
+  env:
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: '/app/.config/gcloud/application_default_credentials.json'
+      example: '/Users/slim/.config/gcloud/application_default-credentials.json'
+  parameters:
+    type: object
+    properties:
+      credentials_path:
+        type: string
+        description: path to application-default credentials (eg $HOME/.config/gcloud/application_default_credentials.json )
+run:
+    volumes:
+      - '{{cloud-run-mcp.credentials_path}}:/app/.config/gcloud/application_default_credentials.json'

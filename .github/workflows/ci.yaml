@@ -8,36 +8,25 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Needed for diffing
-      
+
       - name: Install Go
         uses: actions/setup-go@v5
         with:
           cache-dependency-path: go.sum
           go-version-file: go.mod
-      
+
       - name: Install Task
         uses: arduino/setup-task@v2
         with:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Get changed servers
         shell: bash
         run: |
           git fetch origin ${{ github.event.pull_request.base.ref }}
-          git diff --name-only --diff-filter=AM origin/${{ github.event.pull_request.base.ref }} HEAD | grep "^servers/" > changed-servers.txt || true
+          git diff --name-only --diff-filter=AM origin/${{ github.event.pull_request.base.ref }}...HEAD | grep "^servers/" > changed-servers.txt || true
 
       - name: Build and catalog changed servers
         shell: bash
-        run: |
-          set -eo pipefail
-          while IFS= read -r file; do
-            dir=$(dirname "$file")
-            name=$(basename "$dir")
-            task build -- --tools --pull-community $name
-            echo "--------------------------------"
-            task catalog -- $name
-            echo "--------------------------------"
-            cat catalogs/$name/catalog.yaml
-            echo "--------------------------------"
-          done < changed-servers.txt
+        run: ./scripts/ci-validation.sh

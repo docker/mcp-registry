@@ -1,0 +1,38 @@
+name: inspektor-gadget
+image: mcp/inspektor-gadget
+type: server
+longLived: true
+meta:
+  category: monitoring
+  tags:
+    - inspektor-gadget
+    - kubernetes
+    - monitoring
+    - ebpf
+about:
+  title: Inspektor Gadget
+  description: AI interface to troubleshoot and observe Kubernetes/Container workloads
+  icon: https://avatars.githubusercontent.com/u/111520143?s=200&v=4
+source:
+  project: https://github.com/inspektor-gadget/ig-mcp-server
+run:
+  command:
+    - -gadget-discoverer=artifacthub
+    - -gadget-images={{inspektor-gadget.gadget-images}}
+  volumes:
+    - '{{inspektor-gadget.kubeconfig}}:/kubeconfig'
+config:
+  description: Configuration for the Inspektor Gadget MCP Server
+  parameters:
+    type: object
+    properties:
+      kubeconfig:
+        type: string
+        description: Path to the kubeconfig file for accessing Kubernetes clusters
+        default: $HOME/.kube/config
+      gadget-images:
+        type: string
+        description: Comma-separated list of gadget images (trace_dns, trace_tcp, etc) to use, allowing control over which gadgets are available as MCP tools
+        default: ""
+    required:
+      - kubeconfig
