@@ -1,0 +1,674 @@
+[
+  {
+    "name": "add_config_row",
+    "description": "Creates a component configuration row in the specified configuration_id, using the specified name,\ncomponent ID, configuration JSON, and description.\n\nCONSIDERATIONS:\n- The configuration JSON object must follow the row_configuration_schema of the specified component.\n- Make sure the configuration parameters always adhere to the row_configuration_schema,\n  which is available via the component_detail tool.\n- The configuration JSON object should adhere to the component's configuration examples if found.\n\nUSAGE:\n- Use when you want to create a new row configuration for a specific component configuration.\n\nEXAMPLES:\n- user_input: `Create a new configuration row for component X with these settings`\n    - set the component_id, configuration_id and configuration parameters accordingly\n    - returns the created component configuration if successful.",
+    "arguments": [
+      {
+        "name": "component_id",
+        "type": "string",
+        "desc": "The ID of the component for which to create the configuration."
+      },
+      {
+        "name": "configuration_id",
+        "type": "string",
+        "desc": "The ID of the configuration for which to create the configuration row."
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "The detailed description of the component configuration explaining its purpose and functionality."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "A short, descriptive name summarizing the purpose of the component configuration."
+      },
+      {
+        "name": "parameters",
+        "type": "object",
+        "desc": "The component row configuration parameters, adhering to the row_configuration_schema"
+      },
+      {
+        "name": "storage",
+        "type": "object",
+        "desc": "The table and/or file input / output mapping of the component configuration. It is present only for components that have tables or file input mapping defined",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "create_config",
+    "description": "Creates a root component configuration using the specified name, component ID, configuration JSON, and description.\n\nCONSIDERATIONS:\n- The configuration JSON object must follow the root_configuration_schema of the specified component.\n- Make sure the configuration parameters always adhere to the root_configuration_schema,\n  which is available via the component_detail tool.\n- The configuration JSON object should adhere to the component's configuration examples if found.\n\nUSAGE:\n- Use when you want to create a new root configuration for a specific component.\n\nEXAMPLES:\n- user_input: `Create a new configuration for component X with these settings`\n    - set the component_id and configuration parameters accordingly\n    - returns the created component configuration if successful.",
+    "arguments": [
+      {
+        "name": "component_id",
+        "type": "string",
+        "desc": "The ID of the component for which to create the configuration."
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "The detailed description of the component configuration explaining its purpose and functionality."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "A short, descriptive name summarizing the purpose of the component configuration."
+      },
+      {
+        "name": "parameters",
+        "type": "object",
+        "desc": "The component configuration parameters, adhering to the root_configuration_schema"
+      },
+      {
+        "name": "storage",
+        "type": "object",
+        "desc": "The table and/or file input / output mapping of the component configuration. It is present only for components that have tables or file input mapping defined",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "create_flow",
+    "description": "Creates a new flow configuration in Keboola.\nA flow is a special type of Keboola component that orchestrates the execution of other components. It defines\nhow tasks are grouped and ordered — enabling control over parallelization** and sequential execution.\nEach flow is composed of:\n- Tasks: individual component configurations (e.g., extractors, writers, transformations).\n- Phases: groups of tasks that run in parallel. Phases themselves run in order, based on dependencies.\n\nCONSIDERATIONS:\n- The `phases` and `tasks` parameters must conform to the Keboola Flow JSON schema.\n- Each task and phase must include at least: `id` and `name`.\n- Each task must reference an existing component configuration in the project.\n- Items in the `dependsOn` phase field reference ids of other phases.\n- Links contained in the response should ALWAYS be presented to the user\n\nUSAGE:\nUse this tool to automate multi-step data workflows. This is ideal for:\n- Creating ETL/ELT orchestration.\n- Coordinating dependencies between components.\n- Structuring parallel and sequential task execution.\n\nEXAMPLES:\n- user_input: Orchestrate all my JIRA extractors.\n    - fill `tasks` parameter with the tasks for the JIRA extractors\n    - determine dependencies between the JIRA extractors\n    - fill `phases` parameter by grouping tasks into phases",
+    "arguments": [
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Detailed description of the flow purpose."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "A short, descriptive name for the flow."
+      },
+      {
+        "name": "phases",
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "desc": "List of phase definitions."
+      },
+      {
+        "name": "tasks",
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "desc": "List of task definitions."
+      }
+    ]
+  },
+  {
+    "name": "create_oauth_url",
+    "description": "Generates an OAuth authorization URL for a Keboola component configuration.\n\nWhen using this tool, be very concise in your response. Just guide the user to click the\nauthorization link.\n\nNote that this tool should be called specifically for the OAuth-requiring components after their\nconfiguration is created e.g. keboola.ex-google-analytics-v4 and keboola.ex-gmail.",
+    "arguments": [
+      {
+        "name": "component_id",
+        "type": "string",
+        "desc": "The component ID to grant access to (e.g., \"keboola.ex-google-analytics-v4\")."
+      },
+      {
+        "name": "config_id",
+        "type": "string",
+        "desc": "The configuration ID for the component."
+      }
+    ]
+  },
+  {
+    "name": "create_sql_transformation",
+    "description": "Creates an SQL transformation using the specified name, SQL query following the current SQL dialect, a detailed\ndescription, and a list of created table names.\n\nCONSIDERATIONS:\n- By default, SQL transformation must create at least one table to produce a result; omit only if the user\n  explicitly indicates that no table creation is needed.\n- Each SQL code block must include descriptive name that reflects its purpose and group one or more executable\n  semantically related SQL statements.\n- Each SQL query statement within a code block must be executable and follow the current SQL dialect, which can be\n  retrieved using appropriate tool.\n- When referring to the input tables within the SQL query, use fully qualified table names, which can be\n  retrieved using appropriate tools.\n- When creating a new table within the SQL query (e.g. CREATE TABLE ...), use only the quoted table name without\n  fully qualified table name, and add the plain table name without quotes to the `created_table_names` list.\n- Unless otherwise specified by user, transformation name and description are generated based on the SQL query\n  and user intent.\n\nUSAGE:\n- Use when you want to create a new SQL transformation.\n\nEXAMPLES:\n- user_input: `Can you create a new transformation out of this sql query?`\n    - set the sql_code_blocks to the query, and set other parameters accordingly.\n    - returns the created SQL transformation configuration if successful.\n- user_input: `Generate me an SQL transformation which [USER INTENT]`\n    - set the sql_code_blocks to the query based on the [USER INTENT], and set other parameters accordingly.\n    - returns the created SQL transformation configuration if successful.",
+    "arguments": [
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "The detailed description of the SQL transformation capturing the user intent, explaining the SQL query, and the expected output."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "A short, descriptive name summarizing the purpose of the SQL transformation."
+      },
+      {
+        "name": "sql_code_blocks",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "The SQL query code blocks, each containing a descriptive name and a sequence of semantically related independently executable sql_statements written in the current SQL dialect."
+      },
+      {
+        "name": "created_table_names",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "A list of created table names if they are generated within the SQL query statements (e.g., using `CREATE TABLE ...`).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "docs_query",
+    "description": "Answers a question using the Keboola documentation as a source.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Natural language query to search for in the documentation."
+      }
+    ]
+  },
+  {
+    "name": "find_component_id",
+    "description": "Returns list of component IDs that match the given query.\n\nUSAGE:\n- Use when you want to find the component for a specific purpose.\n\nEXAMPLES:\n- user_input: `I am looking for a salesforce extractor component`\n    - returns a list of component IDs that match the query, ordered by relevance/best match.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Natural language query to find the requested component."
+      }
+    ]
+  },
+  {
+    "name": "get_bucket",
+    "description": "Gets detailed information about a specific bucket.",
+    "arguments": [
+      {
+        "name": "bucket_id",
+        "type": "string",
+        "desc": "Unique ID of the bucket."
+      }
+    ]
+  },
+  {
+    "name": "get_component",
+    "description": "Gets information about a specific component given its ID.\n\nUSAGE:\n- Use when you want to see the details of a specific component to get its documentation, configuration schemas,\n  etc. Especially in situation when the users asks to create or update a component configuration.\n  This tool is mainly for internal use by the agent.\n\nEXAMPLES:\n- user_input: `Create a generic extractor configuration for x`\n    - Set the component_id if you know it or find the component_id by find_component_id\n      or docs use tool and set it\n    - returns the component",
+    "arguments": [
+      {
+        "name": "component_id",
+        "type": "string",
+        "desc": "ID of the component/transformation"
+      }
+    ]
+  },
+  {
+    "name": "get_config",
+    "description": "Gets information about a specific component/transformation configuration.\n\nUSAGE:\n- Use when you want to see the configuration of a specific component/transformation.\n\nEXAMPLES:\n- user_input: `give me details about this configuration`\n    - set component_id and configuration_id to the specific component/transformation ID and configuration ID\n      if you know it\n    - returns the component/transformation configuration pair",
+    "arguments": [
+      {
+        "name": "component_id",
+        "type": "string",
+        "desc": "ID of the component/transformation"
+      },
+      {
+        "name": "configuration_id",
+        "type": "string",
+        "desc": "ID of the component/transformation configuration"
+      }
+    ]
+  },
+  {
+    "name": "get_config_examples",
+    "description": "Retrieves sample configuration examples for a specific component.\n\nUSAGE:\n- Use when you want to see example configurations for a specific component.\n\nEXAMPLES:\n- user_input: `Show me example configurations for component X`\n    - set the component_id parameter accordingly\n    - returns a markdown formatted string with configuration examples",
+    "arguments": [
+      {
+        "name": "component_id",
+        "type": "string",
+        "desc": "The ID of the component to get configuration examples for."
+      }
+    ]
+  },
+  {
+    "name": "get_flow",
+    "description": "Gets detailed information about a specific flow configuration.",
+    "arguments": [
+      {
+        "name": "configuration_id",
+        "type": "string",
+        "desc": "ID of the flow configuration to retrieve."
+      }
+    ]
+  },
+  {
+    "name": "get_flow_schema",
+    "description": "Returns the JSON schema that defines the structure of Flow configurations."
+  },
+  {
+    "name": "get_job",
+    "description": "Retrieves detailed information about a specific job, identified by the job_id, including its status, parameters,\nresults, and any relevant metadata.\n\nEXAMPLES:\n- If job_id = \"123\", then the details of the job with id \"123\" will be retrieved.",
+    "arguments": [
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "The unique identifier of the job whose details should be retrieved."
+      }
+    ]
+  },
+  {
+    "name": "get_project_info",
+    "description": "Return structured project information pulled from multiple endpoints."
+  },
+  {
+    "name": "get_sql_dialect",
+    "description": "Gets the name of the SQL dialect used by Keboola project's underlying database."
+  },
+  {
+    "name": "get_table",
+    "description": "Gets detailed information about a specific table including its DB identifier and column information.",
+    "arguments": [
+      {
+        "name": "table_id",
+        "type": "string",
+        "desc": "Unique ID of the table."
+      }
+    ]
+  },
+  {
+    "name": "list_buckets",
+    "description": "Retrieves information about all buckets in the project."
+  },
+  {
+    "name": "list_configs",
+    "description": "Retrieves configurations of components present in the project,\noptionally filtered by component types or specific component IDs.\nIf component_ids are supplied, only those components identified by the IDs are retrieved, disregarding\ncomponent_types.\n\nUSAGE:\n- Use when you want to see components configurations in the project for given component_types.\n- Use when you want to see components configurations in the project for given component_ids.\n\nEXAMPLES:\n- user_input: `give me all components (in the project)`\n    - returns all components configurations in the project\n- user_input: `list me all extractor components (in the project)`\n    - set types to [\"extractor\"]\n    - returns all extractor components configurations in the project\n- user_input: `give me configurations for following component/s` | `give me configurations for this component`\n    - set component_ids to list of identifiers accordingly if you know them\n    - returns all configurations for the given components in the project\n- user_input: `give me configurations for 'specified-id'`\n    - set component_ids to ['specified-id']\n    - returns the configurations of the component with ID 'specified-id'",
+    "arguments": [
+      {
+        "name": "component_ids",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "List of component IDs to retrieve configurations for. If none, return all components.",
+        "optional": true
+      },
+      {
+        "name": "component_types",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "List of component types to filter by. If none, return all components.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "list_flows",
+    "description": "Retrieves flow configurations from the project.",
+    "arguments": [
+      {
+        "name": "flow_ids",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "The configuration IDs of the flows to retrieve.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "list_jobs",
+    "description": "Retrieves all jobs in the project, or filter jobs by a specific component_id or config_id, with optional status\nfiltering. Additional parameters support pagination (limit, offset) and sorting (sort_by, sort_order).\n\nUSAGE:\n- Use when you want to list jobs for a given component_id and optionally for given config_id.\n- Use when you want to list all jobs in the project or filter them by status.\n\nEXAMPLES:\n- If status = \"error\", only jobs with status \"error\" will be listed.\n- If status = None, then all jobs with arbitrary status will be listed.\n- If component_id = \"123\" and config_id = \"456\", then the jobs for the component with id \"123\" and configuration\n  with id \"456\" will be listed.\n- If limit = 100 and offset = 0, the first 100 jobs will be listed.\n- If limit = 100 and offset = 100, the second 100 jobs will be listed.\n- If sort_by = \"endTime\" and sort_order = \"asc\", the jobs will be sorted by the end time in ascending order.",
+    "arguments": [
+      {
+        "name": "component_id",
+        "type": "string",
+        "desc": "The optional ID of the component whose jobs you want to list, default = None.",
+        "optional": true
+      },
+      {
+        "name": "config_id",
+        "type": "string",
+        "desc": "The optional ID of the component configuration whose jobs you want to list, default = None.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "The number of jobs to list, default = 100, max = 500.",
+        "optional": true
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "The offset of the jobs to list, default = 0.",
+        "optional": true
+      },
+      {
+        "name": "sort_by",
+        "type": "string",
+        "desc": "The field to sort the jobs by, default = \"startTime\".",
+        "optional": true
+      },
+      {
+        "name": "sort_order",
+        "type": "string",
+        "desc": "The order to sort the jobs by, default = \"desc\".",
+        "optional": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "The optional status of the jobs to filter by, if None then default all.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "list_tables",
+    "description": "Retrieves all tables in a specific bucket with their basic information.",
+    "arguments": [
+      {
+        "name": "bucket_id",
+        "type": "string",
+        "desc": "Unique ID of the bucket."
+      }
+    ]
+  },
+  {
+    "name": "list_transformations",
+    "description": "Retrieves transformation configurations in the project, optionally filtered by specific transformation IDs.\n\nUSAGE:\n- Use when you want to see transformation configurations in the project for given transformation_ids.\n- Use when you want to retrieve all transformation configurations, then set transformation_ids to an empty list.\n\nEXAMPLES:\n- user_input: `give me all transformations`\n    - returns all transformation configurations in the project\n- user_input: `give me configurations for following transformation/s` | `give me configurations for\n  this transformation`\n- set transformation_ids to list of identifiers accordingly if you know the IDs\n    - returns all transformation configurations for the given transformations IDs\n- user_input: `list me transformations for this transformation component 'specified-id'`\n    - set transformation_ids to ['specified-id']\n    - returns the transformation configurations with ID 'specified-id'",
+    "arguments": [
+      {
+        "name": "transformation_ids",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "List of transformation component IDs to retrieve configurations for.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "query_data",
+    "description": "Executes an SQL SELECT query to get the data from the underlying database.\n* When constructing the SQL SELECT query make sure to check the SQL dialect\n  used by the Keboola project's underlying database.\n* When referring to tables always use fully qualified table names that include the database name,\n  schema name and the table name.\n* The fully qualified table name can be found in the table information, use a tool to get the information\n  about tables. The fully qualified table name can be found in the response from that tool.\n* Always use quoted column names when referring to table columns. The quoted column names can also be found\n  in the response from the table information tool.",
+    "arguments": [
+      {
+        "name": "query_name",
+        "type": "string",
+        "desc": "A concise, human-readable name for this query based on its purpose and what data it retrieves. Use normal words with spaces (e.g., \"Customer Orders Last Month\", \"Top Selling Products\", \"User Activity Summary\")."
+      },
+      {
+        "name": "sql_query",
+        "type": "string",
+        "desc": "SQL SELECT query to run."
+      }
+    ]
+  },
+  {
+    "name": "run_job",
+    "description": "Starts a new job for a given component or transformation.",
+    "arguments": [
+      {
+        "name": "component_id",
+        "type": "string",
+        "desc": "The ID of the component or transformation for which to start a job."
+      },
+      {
+        "name": "configuration_id",
+        "type": "string",
+        "desc": "The ID of the configuration for which to start a job."
+      }
+    ]
+  },
+  {
+    "name": "search",
+    "description": "Searches for Keboola items in the production branch of the current project whose names match the given prefixes,\npotentially narrowed down by item type, limited and paginated. Results are ordered by relevance, then creation time.\n\nConsiderations:\n- The search is purely name-based, and an item is returned when its name or any word in the name starts with any\n  of the \"name_prefixes\" parameter.",
+    "arguments": [
+      {
+        "name": "name_prefixes",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Name prefixes to match against item names."
+      },
+      {
+        "name": "item_types",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Optional list of keboola item types to filter by.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of items to return (default: 50, max: 100).",
+        "optional": true
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Number of matching items to skip, pagination.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "update_bucket_description",
+    "description": "Updates the description for a given Keboola bucket.",
+    "arguments": [
+      {
+        "name": "bucket_id",
+        "type": "string",
+        "desc": "The ID of the bucket to update."
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "The new description for the bucket."
+      }
+    ]
+  },
+  {
+    "name": "update_column_description",
+    "description": "Updates the description for a given column in a Keboola table.",
+    "arguments": [
+      {
+        "name": "column_name",
+        "type": "string",
+        "desc": "The name of the column to update."
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "The new description for the column."
+      },
+      {
+        "name": "table_id",
+        "type": "string",
+        "desc": "The ID of the table that contains the column."
+      }
+    ]
+  },
+  {
+    "name": "update_config",
+    "description": "Updates a specific root component configuration using given by component ID, and configuration ID.\n\nCONSIDERATIONS:\n- The configuration JSON object must follow the root_configuration_schema of the specified component.\n- Make sure the configuration parameters always adhere to the root_configuration_schema,\n  which is available via the component_detail tool.\n- The configuration JSON object should adhere to the component's configuration examples if found\n\nUSAGE:\n- Use when you want to update a root configuration of a specific component.\n\nEXAMPLES:\n- user_input: `Update a configuration for component X and configuration ID 1234 with these settings`\n    - set the component_id, configuration_id and configuration parameters accordingly.\n    - set the change_description to the description of the change made to the component configuration.\n    - returns the updated component configuration if successful.",
+    "arguments": [
+      {
+        "name": "change_description",
+        "type": "string",
+        "desc": "Description of the change made to the component configuration."
+      },
+      {
+        "name": "component_id",
+        "type": "string",
+        "desc": "The ID of the component the configuration belongs to."
+      },
+      {
+        "name": "configuration_id",
+        "type": "string",
+        "desc": "The ID of the configuration to update."
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "The detailed description of the component configuration explaining its purpose and functionality."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "A short, descriptive name summarizing the purpose of the component configuration."
+      },
+      {
+        "name": "parameters",
+        "type": "object",
+        "desc": "The component configuration parameters, adhering to the root_configuration_schema schema"
+      },
+      {
+        "name": "storage",
+        "type": "object",
+        "desc": "The table and/or file input / output mapping of the component configuration. It is present only for components that are not row-based and have tables or file input mapping defined",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "update_config_row",
+    "description": "Updates a specific component configuration row in the specified configuration_id, using the specified name,\ncomponent ID, configuration JSON, and description.\n\nCONSIDERATIONS:\n- The configuration JSON object must follow the row_configuration_schema of the specified component.\n- Make sure the configuration parameters always adhere to the row_configuration_schema,\n  which is available via the component_detail tool.\n\nUSAGE:\n- Use when you want to update a row configuration for a specific component and configuration.\n\nEXAMPLES:\n- user_input: `Update a configuration row of configuration ID 123 for component X with these settings`\n    - set the component_id, configuration_id, configuration_row_id and configuration parameters accordingly\n    - returns the updated component configuration if successful.",
+    "arguments": [
+      {
+        "name": "change_description",
+        "type": "string",
+        "desc": "Description of the change made to the component configuration."
+      },
+      {
+        "name": "component_id",
+        "type": "string",
+        "desc": "The ID of the component to update."
+      },
+      {
+        "name": "configuration_id",
+        "type": "string",
+        "desc": "The ID of the configuration to update."
+      },
+      {
+        "name": "configuration_row_id",
+        "type": "string",
+        "desc": "The ID of the configuration row to update."
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "The detailed description of the component configuration explaining its purpose and functionality."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "A short, descriptive name summarizing the purpose of the component configuration."
+      },
+      {
+        "name": "parameters",
+        "type": "object",
+        "desc": "The component row configuration parameters, adhering to the row_configuration_schema"
+      },
+      {
+        "name": "storage",
+        "type": "object",
+        "desc": "The table and/or file input / output mapping of the component configuration. It is present only for components that have tables or file input mapping defined",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "update_flow",
+    "description": "Updates an existing flow configuration in Keboola.\nA flow is a special type of Keboola component that orchestrates the execution of other components. It defines\nhow tasks are grouped and ordered — enabling control over parallelization** and sequential execution.\nEach flow is composed of:\n- Tasks: individual component configurations (e.g., extractors, writers, transformations).\n- Phases: groups of tasks that run in parallel. Phases themselves run in order, based on dependencies.\n\nCONSIDERATIONS:\n- The `phases` and `tasks` parameters must conform to the Keboola Flow JSON schema.\n- Each task and phase must include at least: `id` and `name`.\n- Each task must reference an existing component configuration in the project.\n- Items in the `dependsOn` phase field reference ids of other phases.\n- The flow specified by `configuration_id` must already exist in the project.\n- Links contained in the response should ALWAYS be presented to the user\n\nUSAGE:\nUse this tool to update an existing flow.",
+    "arguments": [
+      {
+        "name": "change_description",
+        "type": "string",
+        "desc": "Description of changes made."
+      },
+      {
+        "name": "configuration_id",
+        "type": "string",
+        "desc": "ID of the flow configuration to update."
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Updated flow description."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Updated flow name."
+      },
+      {
+        "name": "phases",
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "desc": "Updated list of phase definitions."
+      },
+      {
+        "name": "tasks",
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "desc": "Updated list of task definitions."
+      }
+    ]
+  },
+  {
+    "name": "update_sql_transformation",
+    "description": "Updates an existing SQL transformation configuration, optionally updating the description and disabling the\nconfiguration.\n\nCONSIDERATIONS:\n- The parameters configuration must include blocks with codes of SQL statements. Using one block with many codes of\n  SQL statements is preferred and commonly used unless specified otherwise by the user.\n- Each code contains SQL statements that are semantically related and have a descriptive name.\n- Each SQL statement must be executable and follow the current SQL dialect, which can be retrieved using\n  appropriate tool.\n- The storage configuration must not be empty, and it should include input or output tables with correct mappings\n  for the transformation.\n- When the behavior of the transformation is not changed, the updated_description can be empty string.\n\nEXAMPLES:\n- user_input: `Can you edit this transformation configuration that [USER INTENT]?`\n    - set the transformation configuration_id accordingly and update parameters and storage tool arguments based on\n      the [USER INTENT]\n    - returns the updated transformation configuration if successful.",
+    "arguments": [
+      {
+        "name": "change_description",
+        "type": "string",
+        "desc": "Description of the changes made to the transformation configuration."
+      },
+      {
+        "name": "configuration_id",
+        "type": "string",
+        "desc": "ID of the transformation configuration to update"
+      },
+      {
+        "name": "parameters",
+        "type": "string",
+        "desc": "The updated \"parameters\" part of the transformation configuration that contains the newly applied settings and preserves all other existing settings."
+      },
+      {
+        "name": "storage",
+        "type": "object",
+        "desc": "The updated \"storage\" part of the transformation configuration that contains the newly applied settings and preserves all other existing settings."
+      },
+      {
+        "name": "is_disabled",
+        "type": "boolean",
+        "desc": "Whether to disable the transformation configuration. Default is False.",
+        "optional": true
+      },
+      {
+        "name": "updated_description",
+        "type": "string",
+        "desc": "Updated transformation description reflecting the changes made in the behavior of the transformation. If no behavior changes are made, empty string preserves the original description.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "update_table_description",
+    "description": "Updates the description for a given Keboola table.",
+    "arguments": [
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "The new description for the table."
+      },
+      {
+        "name": "table_id",
+        "type": "string",
+        "desc": "The ID of the table to update."
+      }
+    ]
+  }
+]

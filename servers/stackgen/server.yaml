@@ -1,0 +1,39 @@
+name: stackgen
+image: ghcr.io/stackgenhq/stackgen
+type: server
+meta:
+  category: devops
+  tags:
+    - stackgen
+    - opentofu
+about:
+  title: StackGen
+  description: AI-powered DevOps assistant for managing cloud infrastructure and applications.
+  icon: https://docs.stackgen.com/img/logo.svg
+run:
+  command:
+    - mcp
+source:
+  project: https://github.com/stackgenhq/homebrew-stackgen
+  dockerfile: stackgen/Dockerfile
+config:
+    description: Configure the connection to StackGen server
+    secrets:
+        - name: stackgen.api_key
+          env: STACKGEN_TOKEN
+          example: stackgen_abc123def456ghi789jkl012mno345pqr678stu901vwx
+    env:
+        - name: STACKGEN_URL
+          example: https://cloud.stackgen.com
+          default: "https://cloud.stackgen.com"
+          value: "{{stackgen.url}}"
+    parameters:
+      type: object
+      required:
+      - url
+      properties:
+        url:
+          type: string
+          description: URL of your StackGen instance
+          example: https://cloud.stackgen.com
+          default: https://cloud.stackgen.com

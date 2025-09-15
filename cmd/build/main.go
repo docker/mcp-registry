@@ -48,6 +48,11 @@ func run(ctx context.Context, name string, listTools bool, pullCommunity bool) e
 		return nil
 	}
 
+	if server.Type == "poci" {
+		fmt.Printf("✅ Build skipped for poci server %s\n", name)
+		return nil
+	}
+
 	isMcpImage := strings.HasPrefix(server.Image, "mcp/")
 
 	if isMcpImage {
@@ -61,6 +66,16 @@ func run(ctx context.Context, name string, listTools bool, pullCommunity bool) e
 		if err := pullCommunityImage(ctx, server); err != nil {
 			return err
 		}
+	}
+	// check if the server has a tools.json file
+	if _, err := os.Stat(filepath.Join("servers", name, "tools.json")); err == nil {
+		listTools = false
+		tools, err := mcp.ReadToolsFromFile(filepath.Join("servers", name, "tools.json"))
+		if err != nil {
+			return err
+		}
+		fmt.Println()
+		fmt.Println(len(tools), "tools found.")
 	}
 
 	if listTools {
