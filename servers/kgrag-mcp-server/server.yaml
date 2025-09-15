@@ -22,11 +22,38 @@ config:
   description: Configure the connection to the Knowledge Graph MCP Server
   env:
     - name: LLM_MODEL_TYPE
-      example: openai
+      example: ollama
       value: '{{kgrag-mcp-server.llm_model_type}}'
-    - name: OPENAI_API_KEY
-      example: sk_....
-      value: '{{kgrag-mcp-server.openai_api_key}}'
+    - name: LLM_MODEL_NAME
+      example: llama3.2
+      value: '{{kgrag-mcp-server.llm_model_name}}'
+    - name: API_KEY
+      example: sk-...
+      value: '{{kgrag-mcp-server.api_key}}'
+    - name: LLM_URL
+      example: http://localhost:11434
+      value: '{{kgrag-mcp-server.llm_url}}'
+    - name: TEMPERATURE
+      example: "0.5"
+      value: '{{kgrag-mcp-server.temperature}}'
+
+    # Vectors & Collections
+    - name: VECTORDB_SENTENCE_MODEL
+      example: BAAI/bge-small-en-v1.5
+      value: '{{kgrag-mcp-server.vectordb_sentence_model}}'
+    - name: COLLECTION_NAME
+      example: kgrag_data
+      value: '{{kgrag-mcp-server.collection_name}}'
+
+    # Model embedding
+    - name: MODEL_EMBEDDING
+      example: nomic-embed-text
+      value: '{{kgrag-mcp-server.model_embedding}}'
+    - name: LLM_EMBEDDING_URL
+      example: http://localhost:11434
+      value: '{{kgrag-mcp-server.llm_embedding_url}}'
+
+    # AWS
     - name: AWS_ACCESS_KEY_ID
       example: AK...
       value: '{{kgrag-mcp-server.aws_access_key_id}}'
@@ -39,50 +66,65 @@ config:
     - name: AWS_BUCKET_NAME
       example: my_bucket
       value: '{{kgrag-mcp-server.aws_bucket_name}}'
-    - name: COLLECTION_NAME
-      example: kgrag_data
-      value: '{{kgrag-mcp-server.collection_name}}'
-    - name: VECTORDB_SENTENCE_MODEL
-      example: BAAI/bge-small-en-v1.5
-      value: '{{kgrag-mcp-server.vectordb_sentence_model}}'
-    - name: LLM_MODEL_NAME
-      example: gpt-4.1-mini
-      value: '{{kgrag-mcp-server.llm_model_name}}'
-    - name: MODEL_EMBEDDING
-      example: text-embedding-3-small
-      value: '{{kgrag-mcp-server.model_embedding}}'
 
   parameters:
-    type: object
-    properties:
-      llm_model_type:
-        type: string
-        default: openai
-        description: LLM provider
-      openai_api_key:
-        type: string
-        description: OpenAI API key
-      aws_access_key_id:
-        type: string
-      aws_secret_access_key:
-        type: string
-      aws_region:
-        type: string
-        default: eu-central-1
-      aws_bucket_name:
-        type: string
-      collection_name:
-        type: string
-        default: kgrag_data
-      vectordb_sentence_model:
-        type: string
-        default: BAAI/bge-small-en-v1.5
-      llm_model_name:
-        type: string
-        default: gpt-4.1-mini
-      model_embedding:
-        type: string
-        default: text-embedding-3-small
-    required:
-      - llm_model_type
-      - collection_name
+  type: object
+  properties:
+    llm_model_type:
+      type: string
+      default: ollama
+      description: LLM provider (e.g., ollama, openai)
+    llm_model_name:
+      type: string
+      default: llama3.2
+      description: Name of the LLM model to use
+    api_key:
+      type: string
+      description: API key for the LLM provider (not required for local Ollama)
+    llm_url:
+      type: string
+      default: http://localhost:11434
+      description: Base URL of the LLM provider or gateway (e.g., Ollama/OpenAI proxy)
+    temperature:
+      type: number
+      default: 0.5
+      description: Sampling temperature (range 0–2)
+
+    # Vectors & Collections
+    vectordb_sentence_model:
+      type: string
+      default: BAAI/bge-small-en-v1.5
+      description: Sentence embedding model for the vector database
+    collection_name:
+      type: string
+      default: kgrag_data
+      description: Name of the collection/index in the vector database
+
+    # Model embedding
+    model_embedding:
+      type: string
+      default: nomic-embed-text
+      description: Model used for generating embeddings
+    llm_embedding_url:
+      type: string
+      default: http://localhost:11434
+      description: Endpoint for generating embeddings
+
+    # AWS (optional)
+    aws_access_key_id:
+      type: string
+      description: AWS Access Key ID
+    aws_secret_access_key:
+      type: string
+      description: AWS Secret Access Key
+    aws_region:
+      type: string
+      default: eu-central-1
+      description: AWS region
+    aws_bucket_name:
+      type: string
+      description: AWS S3 bucket name
+  required:
+    - llm_model_type
+    - llm_model_name
+
