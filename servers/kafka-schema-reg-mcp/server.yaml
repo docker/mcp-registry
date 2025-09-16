@@ -1,0 +1,64 @@
+name: kafka-schema-reg-mcp
+image: aywengo/kafka-schema-reg-mcp:stable
+type: server
+meta:
+  category: database
+  tags:
+    - kafka
+    - schema-registry
+    - database
+    - devops
+    - streaming
+about:
+  title: Kafka Schema Registry MCP
+  description: Comprehensive MCP server for Kafka Schema Registry operations. Features multi-registry support, schema contexts, migration tools, OAuth authentication, and 57+ tools for complete schema management. Supports SLIM_MODE for optimal performance.
+  icon: https://avatars.githubusercontent.com/u/47359?s=200&v=4
+source:
+  project: https://github.com/aywengo/kafka-schema-reg-mcp
+run:
+  allowHosts:
+    - "*:8081"
+    - "*:443"
+config:
+  description: Configure connection to Kafka Schema Registry
+  env:
+    - name: SCHEMA_REGISTRY_URL
+      example: http://localhost:8081
+      value: '{{kafka-schema-reg-mcp.registry_url}}'
+      description: "URL of your Kafka Schema Registry"
+    - name: SLIM_MODE
+      example: "true"
+      value: '{{kafka-schema-reg-mcp.slim_mode}}'
+      description: "Enable SLIM_MODE to reduce tools from 57+ to ~9 essential tools (recommended)"
+    - name: VIEWONLY
+      example: "false"
+      value: '{{kafka-schema-reg-mcp.viewonly}}'
+      description: "Enable read-only mode for production safety"
+  secrets:
+    - name: kafka-schema-reg-mcp.registry_user
+      env: SCHEMA_REGISTRY_USER
+      example: <REGISTRY_USERNAME>
+      description: "Optional: Schema Registry username for authentication"
+    - name: kafka-schema-reg-mcp.registry_password
+      env: SCHEMA_REGISTRY_PASSWORD
+      example: <REGISTRY_PASSWORD>
+      description: "Optional: Schema Registry password for authentication"
+  parameters:
+    type: object
+    properties:
+      registry_url:
+        type: string
+        description: "Schema Registry URL"
+        default: "http://localhost:8081"
+      slim_mode:
+        type: string
+        description: "Enable SLIM_MODE for better performance"
+        default: "true"
+        enum: ["true", "false"]
+      viewonly:
+        type: string
+        description: "Enable read-only mode"
+        default: "false"
+        enum: ["true", "false"]
+    required:
+      - registry_url

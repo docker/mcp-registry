@@ -29,16 +29,4 @@ jobs:
 
       - name: Build and catalog changed servers
         shell: bash
-        run: |
-          set -eo pipefail
-          while IFS= read -r file; do
-            dir=$(dirname "$file")
-            name=$(basename "$dir")
-            task validate -- --name $name
-            task build -- --tools --pull-community $name
-            echo "--------------------------------"
-            task catalog -- $name
-            echo "--------------------------------"
-            cat catalogs/$name/catalog.yaml
-            echo "--------------------------------"
-          done < changed-servers.txt
+        run: ./scripts/ci-validation.sh
