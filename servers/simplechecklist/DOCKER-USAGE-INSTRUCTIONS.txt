@@ -1,0 +1,265 @@
+SIMPLECHECKLIST MCP SERVER - DOCKER DEPLOYMENT GUIDE
+=====================================================
+
+🚀 QUICK START
+===============
+
+The SimpleCheckList MCP Server v1.0.1 provides stable Docker deployment with improved container lifecycle management.
+
+BASIC DEPLOYMENT:
+docker run -d -p 8355:8355 mayurkakade/mcp-server:latest
+
+The container will start in 'backend' mode by default, providing a stable HTTP API for MCP communication.
+
+📋 DEPLOYMENT MODES
+===================
+
+The server supports three deployment modes:
+
+1. BACKEND MODE (Default - Recommended for Docker):
+   docker run -d -p 8355:8355 mayurkakade/mcp-server:latest
+   
+   - Runs HTTP API server on port 8355
+   - Stable container lifecycle
+   - No immediate exit issues
+   - Perfect for Docker deployment
+   - Health check endpoint: http://localhost:8355/api/health
+
+2. MCP MODE (For direct MCP client connections):
+   docker run -i mayurkakade/mcp-server:latest --mode=mcp
+   
+   - Uses STDIO transport for MCP protocol
+   - For direct integration with MCP clients
+   - Interactive mode required (-i flag)
+
+3. BOTH MODE (HTTP API + MCP server):
+   docker run -d -p 8355:8355 mayurkakade/mcp-server:latest --mode=both
+   
+   - Runs both HTTP API and MCP server
+   - More resource intensive
+   - Use only if you need both interfaces
+
+🔧 CONFIGURATION OPTIONS
+========================
+
+ENVIRONMENT VARIABLES:
+- MODE: Set deployment mode (backend|mcp|both) - default: backend
+- PORT: HTTP API port - default: 8355
+- DB_PATH: SQLite database path - default: /app/data/tasks.db
+- LOG_LEVEL: Logging level (debug|info|warn|error) - default: info
+
+EXAMPLE WITH ENVIRONMENT VARIABLES:
+docker run -d \
+  -p 8355:8355 \
+  -e MODE=backend \
+  -e PORT=8355 \
+  -e LOG_LEVEL=info \
+  mayurkakade/mcp-server:latest
+
+PERSISTENT DATA STORAGE:
+docker run -d \
+  -p 8355:8355 \
+  -v /host/path/to/data:/app/data \
+  mayurkakade/mcp-server:latest
+
+This mounts a host directory to persist your SQLite database and task data.
+
+🏥 HEALTH CHECKS & MONITORING
+=============================
+
+HEALTH CHECK ENDPOINT:
+curl http://localhost:8355/api/health
+
+Expected Response:
+{
+  "status": "OK",
+  "timestamp": "2025-09-17T12:00:00Z",
+  "version": "v1.0.1",
+  "mode": "backend"
+}
+
+CONTAINER STATUS:
+docker ps --filter "ancestor=mayurkakade/mcp-server:latest"
+
+CONTAINER LOGS:
+docker logs <container-id>
+
+Expected startup messages:
+- "Starting SimpleCheckList MCP Server v1.0.1"
+- "Mode: backend"
+- "HTTP API server starting on port 8355"
+- "Server ready and accepting connections"
+
+📊 API ENDPOINTS
+================
+
+Once running, the HTTP API provides these endpoints:
+
+HEALTH & STATUS:
+- GET /api/health - Health check
+- GET /api/version - Version information
+
+PROJECT MANAGEMENT:
+- GET /api/projects - List all projects
+- POST /api/projects - Create new project
+- GET /api/projects/{id} - Get specific project
+- PUT /api/projects/{id} - Update project
+- DELETE /api/projects/{id} - Delete project
+
+TASK MANAGEMENT:
+- GET /api/projects/{id}/groups - List project groups
+- POST /api/groups - Create new group
+- GET /api/groups/{id}/task-lists - List task lists
+- POST /api/task-lists - Create task list
+- GET /api/task-lists/{id}/tasks - List tasks
+- POST /api/tasks - Create task
+- PUT /api/tasks/{id} - Update task
+- DELETE /api/tasks/{id} - Delete task
+
+🔍 TROUBLESHOOTING
+==================
+
+CONTAINER EXITS IMMEDIATELY:
+- This was fixed in v1.0.1
+- Ensure you're using the latest image: mayurkakade/mcp-server:latest
+- Check mode configuration (default 'backend' should work)
+
+CANNOT CONNECT TO API:
+- Verify port mapping: -p 8355:8355
+- Check if container is running: docker ps
+- Test health endpoint: curl http://localhost:8355/api/health
+
+PERMISSION ISSUES:
+- Ensure data volume has correct permissions
+- Use docker user mapping if needed: --user $(id -u):$(id -g)
+
+DATABASE ISSUES:
+- Check data volume mounting
+- Verify SQLite file permissions
+- Review container logs for database errors
+
+CONNECTION REFUSED:
+- Container may still be starting (wait 5-10 seconds)
+- Check if port is already in use: netstat -tulpn | grep 8355
+- Verify firewall settings
+
+🎯 MCP CLIENT INTEGRATION
+=========================
+
+FOR CLAUDE DESKTOP:
+Configure in your Claude Desktop settings:
+
+{
+  "mcpServers": {
+    "simplechecklist": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "mayurkakade/mcp-server:latest",
+        "--mode=mcp"
+      ]
+    }
+  }
+}
+
+FOR HTTP-BASED MCP CLIENTS:
+Point your MCP client to: http://localhost:8355/mcp
+
+🚀 PRODUCTION DEPLOYMENT
+========================
+
+DOCKER COMPOSE EXAMPLE:
+version: '3.8'
+services:
+  simplechecklist:
+    image: mayurkakade/mcp-server:latest
+    ports:
+      - "8355:8355"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - MODE=backend
+      - LOG_LEVEL=info
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8355/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+KUBERNETES DEPLOYMENT:
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simplechecklist-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: simplechecklist-mcp
+  template:
+    metadata:
+      labels:
+        app: simplechecklist-mcp
+    spec:
+      containers:
+      - name: simplechecklist
+        image: mayurkakade/mcp-server:latest
+        ports:
+        - containerPort: 8355
+        env:
+        - name: MODE
+          value: "backend"
+        volumeMounts:
+        - name: data-storage
+          mountPath: /app/data
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 8355
+          initialDelaySeconds: 10
+          periodSeconds: 30
+      volumes:
+      - name: data-storage
+        persistentVolumeClaim:
+          claimName: simplechecklist-data
+
+📈 VERSION HISTORY
+==================
+
+v1.0.1 (Latest):
+- Fixed Docker container exit issue
+- Changed default mode to 'backend' for stability
+- Improved startup messaging
+- Enhanced error handling
+- Better container lifecycle management
+
+v1.0.0:
+- Initial Docker release
+- Basic MCP server functionality
+- SQLite database integration
+
+🤝 SUPPORT
+==========
+
+- GitHub Issues: https://github.com/DevMayur/SimpleCheckList/issues
+- Docker Hub: https://hub.docker.com/r/mayurkakade/mcp-server
+- Documentation: https://github.com/DevMayur/SimpleCheckList#readme
+
+For Docker-specific issues, please include:
+- Docker version: docker --version
+- Container logs: docker logs <container-id>
+- Host system information
+- Deployment configuration used
+
+🎉 SUCCESS INDICATORS
+=====================
+
+Your deployment is successful when you see:
+✅ Container stays running (doesn't exit immediately)
+✅ Health check returns HTTP 200
+✅ API endpoints respond correctly
+✅ MCP client can connect and communicate
+✅ Data persists across container restarts
+
+The v1.0.1 Docker stability improvements ensure a reliable deployment experience!
