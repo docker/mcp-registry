@@ -12,3 +12,23 @@ about:
   icon: https://avatars.githubusercontent.com/u/13629408?s=200&v=4
 source:
   project: https://github.com/Flux159/mcp-server-kubernetes
+run:
+  volumes:
+    - '{{kubernetes.kubeconfig}}:/kubeconfig'
+  user: '{{kubernetes.container_user}}'
+config:
+  description: Configuration for Kubernetes MCP server
+  env:
+    - name: KUBECONFIG_PATH
+      value: /kubeconfig
+  parameters:
+    type: object
+    properties:
+      kubeconfig:
+        type: string
+        description: Path to the kubeconfig file for the Kubernetes cluster (e.g. /home/user/.kube/config). Used to connect to the Kubernetes cluster.
+      container_user:
+        type: string
+        description: Username or UID of the container user (format <name|uid>[:<group|gid>] e.g. 1000), ensuring correct permissions to access the kubeconfig file. Leave empty to use default user in the container.
+    required:
+      - kubeconfig
