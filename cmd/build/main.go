@@ -48,6 +48,11 @@ func run(ctx context.Context, name string, listTools bool, pullCommunity bool) e
 		return nil
 	}
 
+	if server.Type == "poci" {
+		fmt.Printf("✅ Build skipped for poci server %s\n", name)
+		return nil
+	}
+
 	isMcpImage := strings.HasPrefix(server.Image, "mcp/")
 
 	if isMcpImage {

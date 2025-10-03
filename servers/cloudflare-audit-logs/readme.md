@@ -1,0 +1,1 @@
+Docs: https://github.com/cloudflare/mcp-server-cloudflare/tree/main/apps/auditlogs
