@@ -156,13 +156,18 @@ The server provides 60+ tools across categories:
 
 Full tool documentation available in [tools.json](tools.json).
 
-## Documentation
+## Links
 
-For more information about ClickZetta Lakehouse and MCP server configuration:
-
+- **Official MCP Server Guide**: [Lakehouse MCP Server Documentation](https://www.yunqi.tech/documents/LakehouseMCPServer_intro)
 - **Docker Image**: [czqiliang/mcp-clickzetta-server](https://hub.docker.com/r/czqiliang/mcp-clickzetta-server)
 - **ClickZetta Platform**: [yunqi.tech/documents](https://www.yunqi.tech/documents)
-- **License**: Apache-2.0
+- **MCP Protocol**: [Model Context Protocol](https://modelcontextprotocol.io)
+
+## License
+
+Apache-2.0
+
+## Configuration Reference
 
 ### Key Configuration Parameters
 
@@ -195,19 +200,9 @@ For more information about ClickZetta Lakehouse and MCP server configuration:
 - Use `exclude_tools` in system_config to disable specific tools
 - Check logs with `log_level: DEBUG` for detailed information
 
-## Support
-- **Issues**: [GitHub Issues](ClickZetta Support via yunqi.tech)
-- **ClickZetta Documentation**: [yunqi.tech/documents](https://www.yunqi.tech/documents)
-- **License**: Apache-2.0
+---
 
-## Version
-
-Latest version: 3.3+
-
-Key updates:
-- v3.3: Intelligent session recovery + standard MCP endpoints
-- v2.0: Unified configuration system + simplified Docker deployment
-- Multi-connection management and environment support
+**Ready to start?** Create your configuration file and add the server to your MCP client!
 
 ---
 
