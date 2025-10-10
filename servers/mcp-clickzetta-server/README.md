@@ -25,20 +25,39 @@ This server enables AI assistants to interact with ClickZetta Lakehouse through 
 
 ### Configuration Template
 
-Download and edit the configuration file:
+Create the configuration file manually:
 
 ```bash
 # Create config directory
 mkdir -p ~/.clickzetta
 
-# Download template
-curl -o ~/.clickzetta/connections.json \
-  https://raw.githubusercontent.com/yunqiqiliang/mcp-clickzetta-server/main/config/connections-template.json
+# Create configuration file
+cat > ~/.clickzetta/connections.json << 'EOF'
+{
+  "connections": [
+    {
+      "is_default": true,
+      "connection_name": "my_clickzetta",
+      "service": "cn-shanghai-alicloud.api.clickzetta.com",
+      "username": "YOUR_USERNAME",
+      "password": "YOUR_PASSWORD",
+      "instance": "YOUR_INSTANCE",
+      "workspace": "quick_start",
+      "schema": "public",
+      "vcluster": "default_ap"
+    }
+  ],
+  "system_config": {
+    "allow_write": false,
+    "prefetch": true,
+    "log_level": "INFO"
+  }
+}
+EOF
 
-# Edit with your credentials
+# Edit with your actual credentials
 nano ~/.clickzetta/connections.json
 ```
-
 Required fields in `connections.json`:
 - `username`: Your ClickZetta username
 - `password`: Your ClickZetta password
