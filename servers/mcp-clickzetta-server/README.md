@@ -174,6 +174,8 @@ Apache-2.0
 | Parameter | Description | Example |
 |-----------|-------------|---------|
 | `service` | API endpoint based on your region | `cn-shanghai-alicloud.api.clickzetta.com` |
+| `username` | ClickZetta account username | `user@example.com` |
+| `password` | ClickZetta account password | `your_password` |
 | `instance` | Your instance name from console URL | `19d58db8` |
 | `workspace` | Workspace name | `quick_start` |
 | `schema` | Schema name | `public` |
