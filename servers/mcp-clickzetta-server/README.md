@@ -158,14 +158,45 @@ Full tool documentation available in [tools.json](tools.json).
 
 ## Documentation
 
-- **GitHub Repository**: [yunqiqiliang/mcp-clickzetta-server](https://github.com/yunqiqiliang/mcp-clickzetta-server)
-- **Configuration Guide**: [Lakehouse MCP Configuration Guide](https://github.com/yunqiqiliang/mcp-clickzetta-server/blob/main/docs/user_guide/Lakehouse_MCP_CONFIGURATION_GUIDE.md)
-- **User Guide**: [Complete User Guide](https://github.com/yunqiqiliang/mcp-clickzetta-server/blob/main/docs/user_guide/Lakehouse_MCP_USER_GUIDE.md)
-- **Release Notes**: [v2.0.0 Release Notes](https://github.com/yunqiqiliang/mcp-clickzetta-server/blob/main/docs/RELEASE_NOTES_v2.0.0.md)
+For more information about ClickZetta Lakehouse and MCP server configuration:
+
+- **Docker Image**: [czqiliang/mcp-clickzetta-server](https://hub.docker.com/r/czqiliang/mcp-clickzetta-server)
+- **ClickZetta Platform**: [yunqi.tech/documents](https://www.yunqi.tech/documents)
+- **License**: Apache-2.0
+
+### Key Configuration Parameters
+
+| Parameter | Description | Example |
+|-----------|-------------|---------|
+| `service` | API endpoint based on your region | `cn-shanghai-alicloud.api.clickzetta.com` |
+| `instance` | Your instance name from console URL | `19d58db8` |
+| `workspace` | Workspace name | `quick_start` |
+| `schema` | Schema name | `public` |
+| `vcluster` | Virtual cluster name | `default_ap` |
+
+### Common Service Endpoints
+
+- **China (Shanghai, Aliyun)**: `cn-shanghai-alicloud.api.clickzetta.com`
+- **China (Beijing, Tencent)**: `ap-beijing-tencentcloud.api.clickzetta.com`
+- **Singapore (AWS)**: `ap-southeast-1-aws.api.singdata.com`
+
+### Troubleshooting
+
+**Connection Issues**:
+- Verify credentials at [accounts.clickzetta.com](https://accounts.clickzetta.com)
+- Check service endpoint matches your region
+- Ensure instance name is correct (from browser URL)
+
+**Permission Issues**:
+- Set `allow_write: false` for read-only access (recommended)
+- Set `allow_write: true` only if you need data modification capabilities
+
+**Tool Issues**:
+- Use `exclude_tools` in system_config to disable specific tools
+- Check logs with `log_level: DEBUG` for detailed information
 
 ## Support
-
-- **Issues**: [GitHub Issues](https://github.com/yunqiqiliang/mcp-clickzetta-server/issues)
+- **Issues**: [GitHub Issues](ClickZetta Support via yunqi.tech)
 - **ClickZetta Documentation**: [yunqi.tech/documents](https://www.yunqi.tech/documents)
 - **License**: Apache-2.0
 
