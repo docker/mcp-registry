@@ -1,0 +1,78 @@
+name: mcp-clickzetta-server-stdio
+image: czqiliang/mcp-clickzetta-server:latest
+type: server
+
+meta:
+  category: database
+  tags:
+    - database
+    - lakehouse
+    - sql
+    - data-engineering
+    - clickzetta
+
+about:
+  title: ClickZetta Lakehouse MCP Server
+  description: |
+    A Model Context Protocol (MCP) server for interacting with ClickZetta Lakehouse.
+    Provides 60+ tools for SQL query execution, table management, data operations,
+    vector search, knowledge retrieval, and advanced analytics.
+    
+    Key features:
+    - Execute SQL queries (SELECT, INSERT, UPDATE, DELETE, DDL)
+    - Vector/semantic search for knowledge retrieval
+    - Table and schema management
+    - Data import/export with multiple formats
+    - Advanced analytics and insights
+    - Multi-connection support with context switching
+  icon: https://raw.githubusercontent.com/yunqiqiliang/mcp-clickzetta-server/main/image/logo.png
+  homepage: https://github.com/yunqiqiliang/mcp-clickzetta-server
+  license: Apache-2.0
+
+source:
+  project: https://github.com/yunqiqiliang/mcp-clickzetta-server
+
+config:
+  description: |
+    Configure ClickZetta Lakehouse connection via mounted configuration file.
+    
+    Before starting, create a configuration file at ~/.clickzetta/connections.json
+    based on the template from:
+    https://raw.githubusercontent.com/yunqiqiliang/mcp-clickzetta-server/main/config/connections-template.json
+    
+    The configuration file should contain your ClickZetta credentials:
+    - service: API endpoint (e.g., api.clickzetta.com)
+    - username: Your ClickZetta username
+    - password: Your ClickZetta password
+    - instance: Instance name
+    - workspace: Workspace name
+    - schema: Schema name
+    - vcluster: Virtual cluster name (default: default_ap)
+    
+    The server supports stdio transport for Claude Desktop integration.
+    Port 8502:8501 is mapped for optional web UI access.
+
+  volumes:
+    - name: clickzetta-config
+      path: /app/.clickzetta
+      description: Mount directory containing connections.json configuration file
+
+  # No secrets section - all config via mounted file
+  # No env section - config file takes precedence
+
+run:
+  command: docker
+  args:
+    - run
+    - -i
+    - --rm
+    - --stop-timeout
+    - "60"
+    - -p
+    - "8502:8501"
+    - -v
+    - ${HOME}/.clickzetta:/app/.clickzetta
+    - czqiliang/mcp-clickzetta-server:latest
+
+# Note: tools.json file should be placed alongside this server.yaml
+# to avoid runtime tool discovery during registry build process

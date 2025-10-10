@@ -1,0 +1,1188 @@
+[
+  {
+    "name": "get_product_knowledge",
+    "description": "从向量数据库中搜索ClickZetta产品知识，使用语义相似性搜索。",
+    "arguments": [
+      {
+        "name": "question",
+        "type": "string",
+        "desc": "User question to search, such as 自定义函数, 常用DDL语句, 数据导入导出. The question or topic y"
+      },
+      {
+        "name": "vector_search_limit_n",
+        "type": "integer",
+        "desc": "Limit the return results, default value is 3. Number of most relevant results to"
+      },
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "table name, default is knowledge_base"
+      }
+    ]
+  },
+  {
+    "name": "read_query",
+    "description": "执行只读SQL查询并返回结果，支持自动结果限制。",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "只读SQL查询语句，如SELECT、DESCRIBE、SHOW、EXPLAIN等。使用LIMIT控制结果行数（最大100行）。"
+      },
+      {
+        "name": "verbose",
+        "type": "boolean",
+        "desc": "If true, returns detailed SQL execution information including the query and meta"
+      }
+    ]
+  },
+  {
+    "name": "vector_search",
+    "description": "对表执行向量搜索/知识检索/文档检索。",
+    "arguments": [
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "table name"
+      },
+      {
+        "name": "content_column_name",
+        "type": "string",
+        "desc": "可选，存储内容的列名。如不指定会智能推断，优先顺序：text, content, document, body, description 等"
+      },
+      {
+        "name": "embedding_column_name",
+        "type": "string",
+        "desc": "可选，存储向量的列名。如不指定会智能推断，优先顺序：embeddings, embedding, semantic_vector, vector 等"
+      }
+    ]
+  },
+  {
+    "name": "match_all",
+    "description": "使用MATCH_ALL函数对表进行全文搜索。",
+    "arguments": [
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "Table name to search in"
+      },
+      {
+        "name": "content_column_name",
+        "type": "string",
+        "desc": "Column containing searchable content (optional - will auto-detect if not provide"
+      },
+      {
+        "name": "question",
+        "type": "string",
+        "desc": "Search query/question"
+      }
+    ]
+  },
+  {
+    "name": "write_query",
+    "description": "执行写操作SQL语句（INSERT/UPDATE/DELETE/CREATE/DROP等）。",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "SQL query to execute (INSERT/UPDATE/DELETE/CREATE/DROP etc.)"
+      },
+      {
+        "name": "verbose",
+        "type": "boolean",
+        "desc": "If true, returns detailed execution information. If false, returns minimal succe"
+      }
+    ]
+  },
+  {
+    "name": "switch_context",
+    "description": "在当前连接内切换上下文（SCHEMA和VCLUSTER），或智能路由到workspace切换。",
+    "arguments": [
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Schema name to switch to (optional)"
+      },
+      {
+        "name": "vcluster",
+        "type": "string",
+        "desc": "VCluster name to switch to (optional)"
+      },
+      {
+        "name": "workspace",
+        "type": "string",
+        "desc": "Workspace name - if provided, will route to switch_workspace tool instead"
+      }
+    ]
+  },
+  {
+    "name": "desc_object_history",
+    "description": "查看对象的历史版本和变更记录。",
+    "arguments": [
+      {
+        "name": "object_type",
+        "type": "string",
+        "desc": "Object type (TABLE/VIEW/FUNCTION/PIPE etc.)"
+      },
+      {
+        "name": "object_name",
+        "type": "string",
+        "desc": "Object name to describe history for"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of history records to return (default: 10)"
+      }
+    ]
+  },
+  {
+    "name": "get_current_context",
+    "description": "获取当前连接的上下文信息。",
+    "arguments": []
+  },
+  {
+    "name": "show_table_load_history",
+    "description": "查询表的COPY操作加载历史记录。",
+    "arguments": [
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "Table name to query load history for (required)"
+      }
+    ]
+  },
+  {
+    "name": "show_job_history",
+    "description": "查询系统级作业执行历史记录。",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of history records to return (default: 20)"
+      },
+      {
+        "name": "workspace_name",
+        "type": "string",
+        "desc": "Filter by workspace name"
+      },
+      {
+        "name": "virtual_cluster",
+        "type": "string",
+        "desc": "Filter by virtual cluster name"
+      }
+    ]
+  },
+  {
+    "name": "create_schema",
+    "description": "创建新的SCHEMA（数据模式）。",
+    "arguments": [
+      {
+        "name": "schema_name",
+        "type": "string",
+        "desc": "新建的 schema 名称"
+      },
+      {
+        "name": "if_not_exists",
+        "type": "boolean",
+        "desc": "可选，若为 true 则仅在不存在时创建"
+      },
+      {
+        "name": "comment",
+        "type": "string",
+        "desc": "可选，schema 的描述性注释"
+      }
+    ]
+  },
+  {
+    "name": "create_catalog_connection",
+    "description": "创建CATALOG CONNECTION以访问外部元数据目录。",
+    "arguments": [
+      {
+        "name": "connection_name",
+        "type": "string",
+        "desc": "CATALOG CONNECTION 名称"
+      },
+      {
+        "name": "catalog_type",
+        "type": "string",
+        "desc": "Catalog 类型，支持 HIVE、OSS_CATALOG、DATABRICKS"
+      },
+      {
+        "name": "if_not_exists",
+        "type": "boolean",
+        "desc": "可选，若为 true 则仅在不存在时创建"
+      }
+    ]
+  },
+  {
+    "name": "create_external_catalog",
+    "description": "创建EXTERNAL CATALOG以挂载外部元数据目录。",
+    "arguments": [
+      {
+        "name": "catalog_name",
+        "type": "string",
+        "desc": "EXTERNAL CATALOG 名称，如 my_hive_catalog"
+      },
+      {
+        "name": "connection",
+        "type": "string",
+        "desc": "已创建的 CATALOG CONNECTION 名称"
+      },
+      {
+        "name": "options",
+        "type": "object",
+        "desc": "可选，OPTIONS 其它参数，键值对"
+      }
+    ]
+  },
+  {
+    "name": "create_external_schema",
+    "description": "创建EXTERNAL SCHEMA以将外部数据库挂载为Lakehouse模式。",
+    "arguments": [
+      {
+        "name": "schema_name",
+        "type": "string",
+        "desc": "EXTERNAL SCHEMA 名称，如 my_schema"
+      },
+      {
+        "name": "connection",
+        "type": "string",
+        "desc": "已创建的 CATALOG CONNECTION 名称"
+      },
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "外部 catalog 下的数据库名"
+      }
+    ]
+  },
+  {
+    "name": "create_external_table",
+    "description": "根据ClickZetta官方文档创建外部表。",
+    "arguments": [
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "外部表名称（必需）"
+      },
+      {
+        "name": "table_format",
+        "type": "string",
+        "desc": "外部表格式类型：\n• DELTA - Delta Lake格式，存储在对象存储\n⚠️  根据ClickZetta官方文档，目前只支持Delta Lake格式\n❌"
+      },
+      {
+        "name": "columns",
+        "type": [
+          "string",
+          "array"
+        ],
+        "desc": "列定义，支持两种格式：\n• 字符串格式: 'order_id INT, product_id STRING, sale_amount DOUBLE'\n• 数组格"
+      }
+    ]
+  },
+  {
+    "name": "create_api_connection",
+    "description": "创建API CONNECTION用于云函数连接，支持阿里云FC、腾讯云函数、AWS Lambda。",
+    "arguments": [
+      {
+        "name": "connection_name",
+        "type": "string",
+        "desc": "API CONNECTION 名称，如 ai_function_connection"
+      },
+      {
+        "name": "provider",
+        "type": "string",
+        "desc": "云函数提供商（必需）"
+      },
+      {
+        "name": "region",
+        "type": "string",
+        "desc": "云服务区域（必需），如 cn-hangzhou、ap-beijing、us-east-1"
+      }
+    ]
+  },
+  {
+    "name": "create_storage_connection",
+    "description": "创建STORAGE CONNECTION以访问外部存储系统。",
+    "arguments": [
+      {
+        "name": "connection_name",
+        "type": "string",
+        "desc": "连接名称，如 hdfs_conn、oss_conn、cos_conn、s3_conn"
+      },
+      {
+        "name": "connection_type",
+        "type": "string",
+        "desc": "连接类型"
+      },
+      {
+        "name": "endpoint",
+        "type": "string",
+        "desc": "服务端点地址"
+      }
+    ]
+  },
+  {
+    "name": "create_volume",
+    "description": "创建EXTERNAL VOLUME以访问对象存储。",
+    "arguments": [
+      {
+        "name": "volume_name",
+        "type": "string",
+        "desc": "VOLUME 名称，如 sh_image_volume、my_tx_volume、aws_s3_volume_arn"
+      },
+      {
+        "name": "volume_type",
+        "type": "string",
+        "desc": "对象存储类型，支持 oss/cos/s3"
+      },
+      {
+        "name": "bucket",
+        "type": "string",
+        "desc": "对象存储桶名,A bucket name must be comprised of lower-case characters, numbers or dash"
+      }
+    ]
+  },
+  {
+    "name": "create_table",
+    "description": "创建ClickZetta表，支持完整的CREATE TABLE语法。",
+    "arguments": [
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "表名称"
+      },
+      {
+        "name": "if_not_exists",
+        "type": "boolean",
+        "desc": "可选，若为true则仅在表不存在时创建"
+      },
+      {
+        "name": "creation_method",
+        "type": "string",
+        "desc": "表创建方式"
+      }
+    ]
+  },
+  {
+    "name": "create_function",
+    "description": "创建基于SQL的用户自定义函数(UDF)。",
+    "arguments": [
+      {
+        "name": "function_name",
+        "type": "string",
+        "desc": "函数名称，可用schema限定（如：public.my_func）"
+      },
+      {
+        "name": "return_type",
+        "type": "string",
+        "desc": "标量函数返回类型：INT、DOUBLE、STRING、BOOLEAN等"
+      },
+      {
+        "name": "returns_table",
+        "type": "array",
+        "desc": "表函数返回结构（与return_type互斥）"
+      }
+    ]
+  },
+  {
+    "name": "create_external_function",
+    "description": "🚀 创建外部函数（EXTERNAL FUNCTION）- 基于云函数服务执行Python/Java代码。",
+    "arguments": [
+      {
+        "name": "function_name",
+        "type": "string",
+        "desc": "外部函数名称，可用schema限定（如：public.my_func）"
+      },
+      {
+        "name": "class_name",
+        "type": "string",
+        "desc": "🎯 函数处理器（Handler）- ClickZetta要求使用module.class格式：\n• ✅ 正确格式：'my_function.my_functio"
+      },
+      {
+        "name": "resource_uris",
+        "type": [
+          "array",
+          "string"
+        ],
+        "desc": "📂 函数代码资源位置 - 自动验证文件存在性：\n• 🔍 Volume验证：检查volume://路径的文件是否真实存在\n• ⚠️ 云存储警告：OSS/S3路径无"
+      }
+    ]
+  },
+  {
+    "name": "create_index",
+    "description": "创建索引，支持VECTOR/INVERTED/BLOOMFILTER三种类型。",
+    "arguments": [
+      {
+        "name": "index_type",
+        "type": "string",
+        "desc": "索引类型"
+      },
+      {
+        "name": "index_name",
+        "type": "string",
+        "desc": "索引名称"
+      },
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "表名称（可包含schema）"
+      }
+    ]
+  },
+  {
+    "name": "create_pipe",
+    "description": "创建PIPE管道，用于自动化数据导入 - 智能优化版本。",
+    "arguments": [
+      {
+        "name": "pipe_name",
+        "type": "string",
+        "desc": "PIPE名称（必需）"
+      },
+      {
+        "name": "target_table",
+        "type": "string",
+        "desc": "目标表名（智能模式：自动生成COPY语句）"
+      },
+      {
+        "name": "source_volume",
+        "type": "string",
+        "desc": "源VOLUME名称（智能模式：自动生成COPY语句）"
+      }
+    ]
+  },
+  {
+    "name": "create_table_stream",
+    "description": "创建表流，用于捕获表的变更数据。",
+    "arguments": [
+      {
+        "name": "stream_name",
+        "type": "string",
+        "desc": "流名称"
+      },
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "源表名称"
+      },
+      {
+        "name": "stream_type",
+        "type": "string",
+        "desc": "流类型"
+      }
+    ]
+  },
+  {
+    "name": "create_dynamic_table",
+    "description": "创建动态表，自动维护查询结果的实时更新。",
+    "arguments": [
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "动态表名称"
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "定义动态表的SQL查询"
+      },
+      {
+        "name": "refresh_mode",
+        "type": "string",
+        "desc": "刷新模式"
+      }
+    ]
+  },
+  {
+    "name": "create_knowledge_base",
+    "description": "使用非结构化ETL管道从文档构建新的知识库。",
+    "arguments": [
+      {
+        "name": "documents_source_type",
+        "type": "string",
+        "desc": "文档源类型，如 'volume' 或 's3' 或 'local'"
+      },
+      {
+        "name": "volume_name",
+        "type": "string",
+        "desc": "Volume名称，volume类型必需"
+      },
+      {
+        "name": "documents_source_path",
+        "type": "string",
+        "desc": "文档源路径，必须由用户提供"
+      }
+    ]
+  },
+  {
+    "name": "create_vcluster",
+    "description": "创建虚拟计算集群(Virtual Cluster)。",
+    "arguments": [
+      {
+        "name": "cluster_name",
+        "type": "string",
+        "desc": "集群名称"
+      },
+      {
+        "name": "cluster_type",
+        "type": "string",
+        "desc": "集群类型"
+      },
+      {
+        "name": "cluster_size",
+        "type": "integer",
+        "desc": "集群规格，1-256 CRU"
+      }
+    ]
+  },
+  {
+    "name": "generate_external_function_template",
+    "description": "🚀 生成外部函数模板代码 - 基于clickzetta_aisql项目的成功经验。",
+    "arguments": [
+      {
+        "name": "function_name",
+        "type": "string",
+        "desc": "函数名称，将作为Python类名和ZIP文件名"
+      },
+      {
+        "name": "template_type",
+        "type": "string",
+        "desc": "模板类型"
+      },
+      {
+        "name": "system_prompt",
+        "type": "string",
+        "desc": "AI系统提示词（仅ai_text_processing类型使用）"
+      }
+    ]
+  },
+  {
+    "name": "test_external_function_locally",
+    "description": "🧪 本地测试外部函数 - 部署前验证和调试。",
+    "arguments": [
+      {
+        "name": "python_file",
+        "type": "string",
+        "desc": "Python文件路径"
+      },
+      {
+        "name": "function_name",
+        "type": "string",
+        "desc": "函数名称（可选，自动推断）"
+      },
+      {
+        "name": "test_cases",
+        "type": "array",
+        "desc": "测试用例列表"
+      }
+    ]
+  },
+  {
+    "name": "switch_vcluster_schema",
+    "description": "切换当前VCLUSTER（虚拟集群）和/或SCHEMA，在当前workspace内切换计算资源和数据范围。",
+    "arguments": [
+      {
+        "name": "schema_name",
+        "type": "string",
+        "desc": "要切换到的schema名称（可选）"
+      },
+      {
+        "name": "vcluster_name",
+        "type": "string",
+        "desc": "要切换到的vcluster名称（可选）"
+      }
+    ]
+  },
+  {
+    "name": "switch_workspace",
+    "description": "切换当前连接的workspace。",
+    "arguments": [
+      {
+        "name": "workspace_name",
+        "type": "string",
+        "desc": "目标workspace名称"
+      },
+      {
+        "name": "list_workspaces",
+        "type": "boolean",
+        "desc": "是否列出所有可用的workspace"
+      },
+      {
+        "name": "update_config",
+        "type": "boolean",
+        "desc": "是否永久更新连接配置文件"
+      }
+    ]
+  },
+  {
+    "name": "show_object_list",
+    "description": "列出数据库对象，支持智能筛选、统计分析和过滤建议。",
+    "arguments": [
+      {
+        "name": "show_command",
+        "type": "string",
+        "desc": "Legacy parameter (backward compatible). You can use the following syntax to cons"
+      },
+      {
+        "name": "object_type",
+        "type": "string",
+        "desc": "Type of objects to list (recommended over show_command)"
+      },
+      {
+        "name": "in_schema",
+        "type": "string",
+        "desc": "Optional schema name to filter objects within. Note: VOLUMES does not support IN"
+      }
+    ]
+  },
+  {
+    "name": "desc_object",
+    "description": "获取数据库对象的详细信息。",
+    "arguments": [
+      {
+        "name": "object_type",
+        "type": "string",
+        "desc": "Type of the object. Supported: WORKSPACE, TABLE, VIEW, TABLE STREAM, SCHEMA, CON"
+      },
+      {
+        "name": "object_name",
+        "type": "string",
+        "desc": "Name of the object to describe (can include schema qualification like 'schema.ta"
+      },
+      {
+        "name": "extended",
+        "type": "boolean",
+        "desc": "Use EXTENDED mode for more detailed information (tables/views)"
+      }
+    ]
+  },
+  {
+    "name": "refresh_dynamic_table",
+    "description": "手动刷新动态表数据。示例：REFRESH DYNAMIC TABLE my_dt;",
+    "arguments": [
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "动态表名称"
+      }
+    ]
+  },
+  {
+    "name": "restore_object",
+    "description": "将表、动态表或物化视图恢复到指定历史时间点。",
+    "arguments": [
+      {
+        "name": "object_type",
+        "type": "string",
+        "desc": "对象类型，支持 'table'、'dynamic table'、'materialized view'"
+      },
+      {
+        "name": "object_name",
+        "type": "string",
+        "desc": "对象名称"
+      },
+      {
+        "name": "timestamp",
+        "type": "string",
+        "desc": "要恢复到的时间点，支持多种格式：\n• 完整格式: '2024-01-26 17:44:45.349'\n• 秒级格式: '2024-01-26 17:44:45'"
+      }
+    ]
+  },
+  {
+    "name": "undrop_object",
+    "description": "恢复被删除的表、动态表或物化视图。示例：UNDROP TABLE my_table; 支持对象类型：table、dynamic table、materialized view。",
+    "arguments": [
+      {
+        "name": "object_type",
+        "type": "string",
+        "desc": "对象类型，支持 'table'、'dynamic table'、'materialized view'"
+      },
+      {
+        "name": "object_name",
+        "type": "string",
+        "desc": "对象名称"
+      }
+    ]
+  },
+  {
+    "name": "drop_object",
+    "description": "🚨 安全删除各种类型的数据库对象，支持确认机制和UNDROP提示。",
+    "arguments": [
+      {
+        "name": "object_name",
+        "type": "string",
+        "desc": "要删除的对象名称"
+      },
+      {
+        "name": "object_type",
+        "type": "string",
+        "desc": "对象类型（如TABLE、VIEW、SCHEMA等）"
+      },
+      {
+        "name": "if_exists",
+        "type": "boolean",
+        "desc": "是否使用IF EXISTS（默认True，对象不存在时不报错）"
+      }
+    ]
+  },
+  {
+    "name": "manage_share",
+    "description": "管理SHARE对象 - 统一的跨实例数据共享管理工具。",
+    "arguments": [
+      {
+        "name": "operation",
+        "type": "string",
+        "desc": "操作类型"
+      },
+      {
+        "name": "share_name",
+        "type": "string",
+        "desc": "SHARE名称（list操作可选）"
+      },
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "表名（grant_table/revoke_table操作需要）"
+      }
+    ]
+  },
+  {
+    "name": "import_data_src",
+    "description": "从URL、文件路径或Volume导入数据到表。",
+    "arguments": [
+      {
+        "name": "from_url",
+        "type": "string",
+        "desc": "数据源地址，支持三种格式（注意格式支持差异）：\n\n1. Volume URL (推荐): volume://my_volume/folder/data.json"
+      },
+      {
+        "name": "dest_table",
+        "type": "string",
+        "desc": "目标表名称"
+      },
+      {
+        "name": "write_mode",
+        "type": "string",
+        "desc": "数据写入模式：\n• 'create' - 新建表模式，要求目标表不存在，如果表已存在会报错并提示更换表名\n• 'overwrite' - 覆盖模式，替换已存在表"
+      }
+    ]
+  },
+  {
+    "name": "import_data_from_db",
+    "description": "从外部数据库导入数据到ClickZetta表。",
+    "arguments": [
+      {
+        "name": "db_type",
+        "type": "string",
+        "desc": "数据库类型（如：'mysql'、'postgresql'、'sqlite'）"
+      },
+      {
+        "name": "host",
+        "type": "string",
+        "desc": "数据库服务器主机名或IP地址（SQLite不需要）"
+      },
+      {
+        "name": "port",
+        "type": "integer",
+        "desc": "数据库服务器端口号（SQLite不需要）"
+      }
+    ]
+  },
+  {
+    "name": "preview_volume_data",
+    "description": "对VOLUME上的半结构化文件进行SQL查询分析或导入到表。",
+    "arguments": [
+      {
+        "name": "copy_statement",
+        "type": "string",
+        "desc": "完整的COPY INTO语句，如：COPY INTO target_table FROM @volume/path/ FILE_FORMAT=(TYPE='CS"
+      },
+      {
+        "name": "source_volume",
+        "type": "string",
+        "desc": "VOLUME 名称，如 volume_name、TABLE table_name、USER"
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "文件格式，如 csv、parquet、bson、orc 等"
+      }
+    ]
+  },
+  {
+    "name": "add_data_insight",
+    "description": "添加数据洞察到备忘录中，记录分析过程中发现的重要信息",
+    "arguments": [
+      {
+        "name": "insight",
+        "type": "string",
+        "desc": "Data insight discovered from analysis"
+      }
+    ]
+  },
+  {
+    "name": "put_file_to_volume",
+    "description": "🚀 将文件上传到ClickZetta Lakehouse的VOLUME存储。",
+    "arguments": [
+      {
+        "name": "source_path",
+        "type": "string",
+        "desc": "文件路径或HTTP(S) URL。如果只提供文件名，会自动在默认上传目录中搜索：\n• /app/.clickzetta/data/uploads (容器环境)\n"
+      },
+      {
+        "name": "content",
+        "type": "string",
+        "desc": "📝 直接上传文件内容（文本格式）- 外部函数开发利器：\n• 🎯 主要用途：Python外部函数代码直接上传\n• ✅ 支持格式：.py源码、.sql脚本、.txt"
+      },
+      {
+        "name": "target_volume",
+        "type": "string",
+        "desc": "🎯 目标Volume存储位置：\n• 📂 推荐Volume：\n  - external_functions_prod（生产环境外部函数）\n  - external"
+      }
+    ]
+  },
+  {
+    "name": "get_file_from_volume",
+    "description": "将ClickZetta Lakehouse Volume的文件下载到本地目录。",
+    "arguments": [
+      {
+        "name": "source_volume",
+        "type": "string",
+        "desc": "源 Volume 名称，如 volume_name、TABLE table_name、USER"
+      },
+      {
+        "name": "source_file",
+        "type": "string",
+        "desc": "Volume 内的文件名，支持逗号分隔或 list"
+      },
+      {
+        "name": "target_local_path",
+        "type": "string",
+        "desc": "本地目标目录路径（可选）。文件将以原名下载到此目录。\n未指定时自动使用默认下载目录：\n• /app/.clickzetta/data/downloads (容器"
+      }
+    ]
+  },
+  {
+    "name": "list_files_on_volume",
+    "description": "列举Volume中的文件列表。",
+    "arguments": [
+      {
+        "name": "target_volume",
+        "type": "string",
+        "desc": "Volume 名称，如 volume_name、TABLE table_name、USER"
+      },
+      {
+        "name": "target_subdirectory",
+        "type": "string",
+        "desc": "可选，子目录"
+      },
+      {
+        "name": "pattern",
+        "type": "string",
+        "desc": "可选，文件名正则表达式筛选模式（标准regex语法，非shell glob）。\n常用示例:\n• '.*\\.json$' - JSON文件\n• '.*\\.(jso"
+      }
+    ]
+  },
+  {
+    "name": "remove_file_from_volume",
+    "description": "从Volume删除文件或目录。",
+    "arguments": [
+      {
+        "name": "target_volume",
+        "type": "string",
+        "desc": "Volume 名称，如 volume_name、TABLE table_name、USER"
+      },
+      {
+        "name": "target_file",
+        "type": "string",
+        "desc": "要删除的文件名，支持逗号分隔或 list"
+      },
+      {
+        "name": "target_subdirectory",
+        "type": "string",
+        "desc": "要删除的子目录"
+      }
+    ]
+  },
+  {
+    "name": "alter_dynamic_table",
+    "description": "修改动态表属性。",
+    "arguments": [
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "动态表名称"
+      },
+      {
+        "name": "operation",
+        "type": "string",
+        "desc": "操作类型。直接支持的操作：\n• suspend - 暂停动态表调度\n• resume - 恢复动态表调度\n• set_comment - 修改表注释\n• ren"
+      },
+      {
+        "name": "column_name",
+        "type": "string",
+        "desc": "列名（列操作时必需）"
+      }
+    ]
+  },
+  {
+    "name": "alter_pipe",
+    "description": "修改 PIPE 属性。支持的操作：suspend/resume、set_virtual_cluster、set_batch_interval、set_batch_size、set_max_skip_batch_count、set_copy_job_hint。每次只能修改一个属性。",
+    "arguments": [
+      {
+        "name": "pipe_name",
+        "type": "string",
+        "desc": "PIPE名称"
+      },
+      {
+        "name": "operation",
+        "type": "string",
+        "desc": "操作类型"
+      },
+      {
+        "name": "virtual_cluster",
+        "type": "string",
+        "desc": "虚拟集群名称"
+      }
+    ]
+  },
+  {
+    "name": "modify_dynamic_table_data",
+    "description": "对动态表执行插入、更新、删除、合并操作。",
+    "arguments": [
+      {
+        "name": "sql",
+        "type": "string",
+        "desc": "要执行的SQL语句（必需）。支持：\n• INSERT INTO table_name VALUES (...)\n• INSERT INTO table_name"
+      },
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "目标动态表名称（可选）。\n💡 如果不提供，系统会自动从SQL中提取表名"
+      }
+    ]
+  },
+  {
+    "name": "alter_vcluster",
+    "description": "修改计算集群(Virtual Cluster)。",
+    "arguments": [
+      {
+        "name": "cluster_name",
+        "type": "string",
+        "desc": "计算集群名称"
+      },
+      {
+        "name": "operation",
+        "type": "string",
+        "desc": "操作类型：\n• RESUME - 启动集群\n• SUSPEND - 停止集群\n• CANCEL_ALL_JOBS - 取消集群中的所有作业\n• SET - 修改"
+      },
+      {
+        "name": "if_exists",
+        "type": "boolean",
+        "desc": "可选，若为 true 则仅在集群存在时执行操作"
+      }
+    ]
+  },
+  {
+    "name": "get_operation_guide",
+    "description": "获取ClickZetta特定操作和任务的综合指南。",
+    "arguments": [
+      {
+        "name": "to_do_something",
+        "type": "string",
+        "desc": "The thing you want to do, should be one of the following: analyze_slow_query, an"
+      }
+    ]
+  },
+  {
+    "name": "add_knowledge_entry",
+    "description": "将用户输入的知识添加到向量数据库中。",
+    "arguments": [
+      {
+        "name": "knowledge_table_name",
+        "type": "string",
+        "desc": "目标知识库表名，例如：'product_knowledge', 'technical_specs'等"
+      },
+      {
+        "name": "knowledge",
+        "type": "string",
+        "desc": "要添加的知识内容。示例：\n'云器Lakehouse的SQL是和Spark SQL、Snowflake高度兼容，云器的Zettapark是和pySpark、Sno"
+      }
+    ]
+  },
+  {
+    "name": "get_external_function_guide",
+    "description": "获取Python外部函数开发的完整指南和最佳实践。",
+    "arguments": [
+      {
+        "name": "topic",
+        "type": "string",
+        "desc": "指南主题"
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "返回格式"
+      }
+    ]
+  },
+  {
+    "name": "package_external_function",
+    "description": "智能打包Python外部函数及其依赖。",
+    "arguments": [
+      {
+        "name": "source_file",
+        "type": "string",
+        "desc": "Python源文件路径，如'/path/to/function.py'。与source_content参数互斥"
+      },
+      {
+        "name": "source_content",
+        "type": "string",
+        "desc": "Python源代码内容（推荐）。与source_file参数互斥，避免文件路径问题"
+      },
+      {
+        "name": "dependencies",
+        "type": "array",
+        "desc": "依赖包列表，如['requests', 'numpy==1.21.0']。对于numpy等C扩展包会特别警告"
+      }
+    ]
+  },
+  {
+    "name": "get_external_function_template",
+    "description": "获取ClickZetta外部函数开发模板。",
+    "arguments": [
+      {
+        "name": "template_type",
+        "type": "string",
+        "desc": "模板类型：\n• basic: 基础函数模板\n• ai_text: AI文本处理函数（摘要、翻译、情感分析）\n• ai_multimodal: AI多模态函数（图"
+      },
+      {
+        "name": "function_name",
+        "type": "string",
+        "desc": "函数名称（用于模板中的类名）"
+      },
+      {
+        "name": "include_dependencies",
+        "type": "boolean",
+        "desc": "是否包含依赖包信息"
+      }
+    ]
+  },
+  {
+    "name": "smart_crawl_to_volume",
+    "description": "智能抓取URL内容到VOLUME。",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "要抓取的URL"
+      },
+      {
+        "name": "volume",
+        "type": "string",
+        "desc": "目标ClickZetta Volume"
+      },
+      {
+        "name": "volume_dir",
+        "type": "string",
+        "desc": "目标Volume的子目录"
+      }
+    ]
+  },
+  {
+    "name": "run_happy_paths",
+    "description": "执行Lakehouse快乐路径演示。",
+    "arguments": [
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "The language for the Happy Path guidance"
+      }
+    ]
+  },
+  {
+    "name": "switch_lakehouse_instance",
+    "description": "切换多云环境或Lakehouse环境。",
+    "arguments": [
+      {
+        "name": "connection_name",
+        "type": "string",
+        "desc": "要切换到的连接名称（注意：这是配置中的连接名，不是ClickZetta实例ID）"
+      },
+      {
+        "name": "list_connections",
+        "type": "boolean",
+        "desc": "是否列出所有可用连接"
+      },
+      {
+        "name": "reload",
+        "type": "boolean",
+        "desc": "是否重新加载配置文件"
+      }
+    ]
+  },
+  {
+    "name": "smart_crawl_url",
+    "description": "智能网页内容抓取工具。",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "要抓取的URL地址"
+      },
+      {
+        "name": "css_selector",
+        "type": "string",
+        "desc": "CSS选择器，用于提取特定内容"
+      },
+      {
+        "name": "word_count_threshold",
+        "type": "integer",
+        "desc": "内容块的最小词数阈值"
+      }
+    ]
+  },
+  {
+    "name": "crawl_single_page",
+    "description": "单页面网页抓取工具。",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "要抓取的网页URL"
+      },
+      {
+        "name": "css_selector",
+        "type": "string",
+        "desc": "CSS选择器，用于提取特定内容"
+      },
+      {
+        "name": "word_count_threshold",
+        "type": "integer",
+        "desc": "内容块的最小词数阈值"
+      }
+    ]
+  },
+  {
+    "name": "lakehouse_metadata_insights",
+    "description": "湖仓元数据洞察工具(仅基于sys.information_schema里的元数据进行分析)",
+    "arguments": [
+      {
+        "name": "show_capabilities",
+        "type": "boolean",
+        "desc": "是否只显示工具能力介绍（不执行分析）。设置为true时，将详细介绍所有可用的分析类别和场景，帮助用户了解工具功能。"
+      },
+      {
+        "name": "general_guidance",
+        "type": "boolean",
+        "desc": "是否提供通用分析指导（不执行分析）。当现有20种预定义分析无法满足需求时，提供基于sys.information_schema的自定义分析指导，包括表结构、分析"
+      },
+      {
+        "name": "show_sql",
+        "type": "boolean",
+        "desc": "是否只显示指定分析对应的SQL查询（不执行分析）。设置为true时，需要同时提供analysis_name参数，将返回该分析所使用的SQL查询语句、查询目的和相"
+      }
+    ]
+  }
+]
