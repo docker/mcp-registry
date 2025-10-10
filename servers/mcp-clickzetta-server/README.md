@@ -158,7 +158,7 @@ Full tool documentation available in [tools.json](tools.json).
 
 ## Links
 
-- **Official MCP Server Guide**: [Lakehouse MCP Server Documentation](https://www.yunqi.tech/documents/LakehouseMCPServer_intro)
+- **Official ClickZetta Lakehouse MCP Server Guide**: [Lakehouse MCP Server Documentation](https://www.yunqi.tech/documents/LakehouseMCPServer_intro)
 - **Docker Image**: [czqiliang/mcp-clickzetta-server](https://hub.docker.com/r/czqiliang/mcp-clickzetta-server)
 - **ClickZetta Platform**: [yunqi.tech/documents](https://www.yunqi.tech/documents)
 - **MCP Protocol**: [Model Context Protocol](https://modelcontextprotocol.io)
@@ -199,10 +199,6 @@ Apache-2.0
 **Tool Issues**:
 - Use `exclude_tools` in system_config to disable specific tools
 - Check logs with `log_level: DEBUG` for detailed information
-
----
-
-**Ready to start?** Create your configuration file and add the server to your MCP client!
 
 ---
 
