@@ -26,31 +26,39 @@ about:
     - Advanced analytics and insights
     - Multi-connection support with context switching
   icon: https://gist.githubusercontent.com/yunqiqiliang/56cd2ee3c1d0d4c39de1f729607aeaa0/raw/8023327c55006f51cba3013fd7fac78cab3a7396/clickzetta_logo.svg
-  homepage: https://github.com/yunqiqiliang/mcp-clickzetta-server
+  homepage: https://www.yunqi.tech/documents
   license: Apache-2.0
 
 source:
-  project: https://github.com/yunqiqiliang/mcp-clickzetta-server
+  project: https://hub.docker.com/r/czqiliang/mcp-clickzetta-server
 
 config:
   description: |
     Configure ClickZetta Lakehouse connection via mounted configuration file.
     
-    Before starting, create a configuration file at ~/.clickzetta/connections.json
-    based on the template from:
-    https://raw.githubusercontent.com/yunqiqiliang/mcp-clickzetta-server/main/config/connections-template.json
+    Create ~/.clickzetta/connections.json with your credentials:
     
-    The configuration file should contain your ClickZetta credentials:
-    - service: API endpoint (e.g., api.clickzetta.com)
-    - username: Your ClickZetta username
-    - password: Your ClickZetta password
-    - instance: Instance name
-    - workspace: Workspace name
-    - schema: Schema name
-    - vcluster: Virtual cluster name (default: default_ap)
+    {
+      "connections": [{
+        "is_default": true,
+        "connection_name": "my_clickzetta",
+        "service": "cn-shanghai-alicloud.api.clickzetta.com",
+        "username": "YOUR_USERNAME",
+        "password": "YOUR_PASSWORD",
+        "instance": "YOUR_INSTANCE",
+        "workspace": "quick_start",
+        "schema": "public",
+        "vcluster": "default_ap"
+      }],
+      "system_config": {
+        "allow_write": false,
+        "prefetch": true,
+        "log_level": "INFO"
+      }
+    }
     
-    The server supports stdio transport for Claude Desktop integration.
-    Port 8502:8501 is mapped for optional web UI access.
+    See connections-template.json in this directory for a complete example.
+    The server uses stdio transport for Claude Desktop integration.
 
   volumes:
     - name: clickzetta-config
