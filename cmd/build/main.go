@@ -119,8 +119,7 @@ func buildDockerEnv(additionalEnv ...string) []string {
 func buildMcpImage(ctx context.Context, server servers.Server) error {
 	projectURL := server.Source.Project
 	branch := server.Source.Branch
-	directory := server.Source.Directory
-
+	commit := server.Source.Commit
 	client := github.New()
 
 	repository, err := client.GetProjectRepository(ctx, projectURL)
@@ -132,24 +131,22 @@ func buildMcpImage(ctx context.Context, server servers.Server) error {
 		branch = repository.GetDefaultBranch()
 	}
 
-	sha, err := client.GetCommitSHA1(ctx, projectURL, branch)
-	if err != nil {
-		return err
+	if commit == "" {
+		var err error
+		commit, err = client.GetCommitSHA1(ctx, projectURL, branch)
+		if err != nil {
+			return err
+		}
 	}
 
-	gitURL := projectURL + ".git#"
-	if branch != "" {
-		gitURL += branch
-	}
-	if directory != "" && directory != "." {
-		gitURL += ":" + directory
-	}
+	gitURL := server.GetContext()
 
 	var cmd *exec.Cmd
 	token := os.Getenv("GITHUB_TOKEN")
 
 	buildArgs := []string{
-		"-f", server.GetDockerfile(), "-t", "check", "-t", server.Image, "--label", "org.opencontainers.image.revision=" + sha, "--load",
+		"-f", server.GetDockerfile(), "-t", "check", "-t", server.Image,
+		"--label", "org.opencontainers.image.revision=" + commit, "--load",
 	}
 
 	if server.Source.BuildTarget != "" {
