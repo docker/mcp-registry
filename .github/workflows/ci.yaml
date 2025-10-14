@@ -2,7 +2,8 @@ on:
   pull_request:
 
 jobs:
-  validate-servers:
+  validate:
+    name: "Code and Server Validation"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,6 +21,9 @@ jobs:
         with:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run unit tests
+        run: task unittest
 
       - name: Get changed servers
         shell: bash
