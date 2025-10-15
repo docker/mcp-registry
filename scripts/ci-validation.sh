@@ -11,36 +11,42 @@ process_server() {
   local file="$1"
   local dir=$(dirname "$file")
   local name=$(basename "$dir")
-  
+
   echo "Processing server: $name"
   echo "================================"
-  
+
   # Run each command and check for failures
   if ! task validate -- --name "$name"; then
     echo "ERROR: Validation failed for $name"
+    task clean -- "$name" >/dev/null 2>&1 || true
     return 1
   fi
-  
+
   if ! task build -- --tools --pull-community "$name"; then
     echo "ERROR: Build failed for $name"
+    task clean -- "$name" >/dev/null 2>&1 || true
     return 1
   fi
-  
+
   echo "--------------------------------"
-  
+
   if ! task catalog -- "$name"; then
     echo "ERROR: Catalog generation failed for $name"
+    task clean -- "$name" >/dev/null 2>&1 || true
     return 1
   fi
-  
+
   echo "--------------------------------"
-  
+
   cat "catalogs/$name/catalog.yaml"
-  
+
   echo "--------------------------------"
   echo "Successfully processed: $name"
   echo ""
-  
+  if ! task clean -- "$name"; then
+    echo "WARNING: Cleanup encountered issues for $name"
+  fi
+
   return 0
 }
 
@@ -54,10 +60,10 @@ while IFS= read -r file; do
     echo "Skipping already processed server: $name (from file: $file)"
     continue
   fi
-  
+
   # Mark this server as processed
   processed_servers="${processed_servers}|$name|"
-  
+
   if ! process_server "$file"; then
     echo "FAILED: Processing server from file: $file"
     overall_success=false
