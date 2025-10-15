@@ -51,6 +51,10 @@ func run(name string) error {
 		return err
 	}
 
+	if err := isRunVolumesValid(name); err != nil {
+		return err
+	}
+
 	if err := IsLicenseValid(name); err != nil {
 		return err
 	}
@@ -143,6 +147,53 @@ func isConfigEnvValid(name string) error {
 	}
 
 	fmt.Println("✅ Config env is valid")
+	return nil
+}
+
+// Check volume parameter usage is valid
+func isRunVolumesValid(name string) error {
+	server, err := readServerYaml(name)
+	if err != nil {
+		return err
+	}
+
+	for _, vol := range server.Run.Volumes {
+		if !strings.Contains(vol, "{{") {
+			continue
+		}
+		// Extract all template parameters from the volume string
+		start := strings.Index(vol, "{{")
+		for start != -1 {
+			end := strings.Index(vol[start:], "}}")
+			if end == -1 {
+				break
+			}
+			end += start + 2
+			param := vol[start:end]
+
+			// Skip if it's a filter expression (contains |)
+			paramContent := param[2 : len(param)-2]
+			if strings.Contains(paramContent, "|") {
+				// Extract just the parameter name before the first |
+				paramName := strings.Split(paramContent, "|")[0]
+				if !strings.HasPrefix(paramName, server.Name+".") {
+					return fmt.Errorf("volume parameter must be prefixed with %q but found %q in: %q", server.Name+".", paramName, vol)
+				}
+			} else {
+				// Regular parameter without filters
+				if !strings.HasPrefix(paramContent, server.Name+".") {
+					return fmt.Errorf("volume parameter must be prefixed with %q but found %q in: %q", server.Name+".", paramContent, vol)
+				}
+			}
+
+			start = strings.Index(vol[end:], "{{")
+			if start != -1 {
+				start += end
+			}
+		}
+	}
+
+	fmt.Println("✅ Run volumes are valid")
 	return nil
 }
 
