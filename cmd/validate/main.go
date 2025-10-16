@@ -25,13 +25,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// legacyNameExceptions enumerates catalog entries added before current naming rules.
-var legacyNameExceptions = map[string]bool{
-	"SQLite":              true,
-	"osp_marketing_tools": true,
-	"youtube_transcript":  true,
-}
-
 func main() {
 	name := flag.String("name", "", "Name of the mcp server, name is guessed if not provided")
 	flag.Parse()
@@ -77,6 +70,13 @@ func run(name string) error {
 	}
 
 	return nil
+}
+
+// legacyNameExceptions enumerates catalog entries added before current naming rules.
+var legacyNameExceptions = map[string]bool{
+	"SQLite":              true,
+	"osp_marketing_tools": true,
+	"youtube_transcript":  true,
 }
 
 // check if the name is a valid
@@ -331,6 +331,11 @@ func hasValidTools(server servers.Server) error {
 	return nil
 }
 
+// Some special entries bypass the dynamic tools requirement.
+var oauthDynamicToolExceptions = map[string]bool{
+	"github-official": true,
+}
+
 // check if servers with OAuth have dynamic tools enabled
 func isOAuthDynamicValid(name string) error {
 	server, err := readServerYaml(name)
@@ -341,7 +346,11 @@ func isOAuthDynamicValid(name string) error {
 	// If server has OAuth configuration, it must have dynamic tools enabled
 	if len(server.OAuth) > 0 {
 		if server.Dynamic == nil || !server.Dynamic.Tools {
-			return fmt.Errorf("server with OAuth must have 'dynamic: tools: true' configuration")
+			if oauthDynamicToolExceptions[name] {
+				fmt.Printf("⚠️ OAuth dynamic rule bypassed for %s (legacy configuration).\n", name)
+			} else {
+				return fmt.Errorf("server with OAuth must have 'dynamic: tools: true' configuration")
+			}
 		}
 	}
 
