@@ -209,23 +209,23 @@ func isIconValid(name string) error {
 	}
 
 	if server.About.Icon == "" {
-		fmt.Println("🛑 No icon found")
+		fmt.Println("⚠️ No icon found")
 		return nil
 	}
 	// fetch the image and check the size
 	resp, err := http.Get(server.About.Icon)
 	if err != nil {
-		fmt.Println("🛑 Icon could not be fetched")
+		fmt.Println("⚠️ Icon could not be fetched")
 		return nil
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		fmt.Printf("🛑 Icon could not be fetched, status code: %d, url: %s\n", resp.StatusCode, server.About.Icon)
+		fmt.Printf("⚠️ Icon could not be fetched, status code: %d, url: %s\n", resp.StatusCode, server.About.Icon)
 		return nil
 	}
 	if resp.ContentLength > 2*1024*1024 {
-		fmt.Println("🛑 Icon is too large. It must be less than 2MB")
+		fmt.Println("⚠️ Icon is too large. It must be less than 2MB")
 		return nil
 	}
 
@@ -248,12 +248,12 @@ func isIconValid(name string) error {
 		return err
 	}
 	if format != "png" {
-		fmt.Println("🛑 Icon is not a png or svg. It must be a png or svg")
+		fmt.Println("⚠️ Icon is not a png or svg. It must be a png or svg")
 		return nil
 	}
 
 	if img.Width > 512 || img.Height > 512 {
-		fmt.Println("🛑 Icon is too large. It must be less than 512x512")
+		fmt.Println("⚠️ Icon is too large. It must be less than 512x512")
 		return nil
 	}
 
