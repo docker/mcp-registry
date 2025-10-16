@@ -25,6 +25,13 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// legacyNameExceptions enumerates catalog entries added before current naming rules.
+var legacyNameExceptions = map[string]bool{
+	"SQLite":              true,
+	"osp_marketing_tools": true,
+	"youtube_transcript":  true,
+}
+
 func main() {
 	name := flag.String("name", "", "Name of the mcp server, name is guessed if not provided")
 	flag.Parse()
@@ -76,6 +83,10 @@ func run(name string) error {
 func isNameValid(name string) error {
 	// check if name has only letters, numbers, and hyphens
 	if !regexp.MustCompile(`^[a-z0-9-]+$`).MatchString(name) {
+		if legacyNameExceptions[name] {
+			fmt.Printf("⚠️ Name %s is grandfathered and bypasses naming rules.\n", name)
+			return nil
+		}
 		return fmt.Errorf("name is not valid. It must be a lowercase string with only letters, numbers, and hyphens")
 	}
 
