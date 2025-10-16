@@ -229,10 +229,17 @@ func isIconValid(name string) error {
 		return nil
 	}
 
-	// Check content type for SVG support
+	// Check content type for SVG, favicon, and WebP support
 	contentType := resp.Header.Get("Content-Type")
-	if contentType == "image/svg+xml" {
+	switch contentType {
+	case "image/svg+xml":
 		fmt.Println("✅ Icon is valid (SVG)")
+		return nil
+	case "image/x-icon":
+		fmt.Println("✅ Icon is valid (favicon)")
+		return nil
+	case "image/webp":
+		fmt.Println("✅ Icon is valid (WebP)")
 		return nil
 	}
 
