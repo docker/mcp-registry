@@ -247,7 +247,7 @@ func isIconValid(name string) error {
 	if err != nil {
 		return err
 	}
-	if format != "png" {
+	if format != "png" && format != "jpeg" {
 		fmt.Println("⚠️ Icon is not a png or svg. It must be a png or svg")
 		return nil
 	}
