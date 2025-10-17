@@ -43,6 +43,10 @@ func run(name string) error {
 		return err
 	}
 
+	if err := isCommitPinnedIfNecessary(name); err != nil {
+		return err
+	}
+
 	if err := areSecretsValid(name); err != nil {
 		return err
 	}
@@ -112,6 +116,32 @@ func isDirectoryValid(name string) error {
 	}
 
 	fmt.Println("✅ Directory is valid")
+	return nil
+}
+
+var commitSHA1Pattern = regexp.MustCompile(`^[a-f0-9]{40}$`)
+
+// isCommitPinnedIfNecessary ensures that every local server is pinned to a specific commit.
+func isCommitPinnedIfNecessary(name string) error {
+	server, err := readServerYaml(name)
+	if err != nil {
+		return err
+	}
+
+	if server.Type != "server" {
+		fmt.Println("✅ Commit pin not required (non-local server)")
+		return nil
+	}
+
+	if server.Source.Commit == "" {
+		return fmt.Errorf("local server must specify source.commit to pin the audited revision")
+	}
+
+	if !commitSHA1Pattern.MatchString(strings.ToLower(server.Source.Commit)) {
+		return fmt.Errorf("source.commit must be a 40-character lowercase SHA1 (got %q)", server.Source.Commit)
+	}
+
+	fmt.Println("✅ Commit is pinned")
 	return nil
 }
 
