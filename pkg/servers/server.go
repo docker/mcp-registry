@@ -75,13 +75,6 @@ func (s *Server) GetBranch() string {
 	return s.Source.Branch
 }
 
-func (s *Server) GetRevision() string {
-	if s.Source.Commit != "" {
-		return s.Source.Commit
-	}
-	return s.GetBranch()
-}
-
 func (s *Server) GetDockerfileUrl() string {
 	revision := s.Source.Commit
 	if revision == "" {
