@@ -1,0 +1,136 @@
+name: Update MCP Server Version Pins
+
+on:
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-pins:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git user
+        run: |
+          git config user.name "docker-mcp-bot"
+          git config user.email "docker-mcp-bot@users.noreply.github.com"
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update pinned commits
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          task update-pins
+
+      - name: Collect per-server patches
+        id: prepare
+        run: |
+          # Gather the diff for each modified server YAML and store it as an
+          # individual patch file so we can open one PR per server.
+          mkdir -p patches
+          changed_files=$(git status --porcelain | awk '$2 ~ /^servers\/.*\/server.yaml$/ {print $2}')
+          if [ -z "$changed_files" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          server_list=()
+          for file in $changed_files; do
+            server=$(basename "$(dirname "$file")")
+            git diff -- "$file" > "patches/${server}.patch"
+            server_list+=("$server")
+          done
+
+          # Reset the working tree so we can apply patches one-at-a-time.
+          git checkout -- servers
+
+          # Expose the server list to later steps.
+          printf '%s\n' "${server_list[@]}" | paste -sd',' - > patches/servers.txt
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "servers=$(cat patches/servers.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Create pull requests
+        if: steps.prepare.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          IFS=',' read -ra SERVERS <<< "${{ steps.prepare.outputs.servers }}"
+          for server in "${SERVERS[@]}"; do
+            patch="patches/${server}.patch"
+            if [ ! -s "$patch" ]; then
+              echo "No patch found for $server, skipping."
+              continue
+            fi
+
+            # Look up the new commit hash in the patch so we can decide whether
+            # an existing automation branch already covers it.
+            new_commit=$(awk '/^\+.*commit:/{print $2}' "$patch" | tail -n1)
+            branch="automation/update-pin-${server}"
+
+            # Start from a clean copy of main for each server so branches do not
+            # interfere with one another.
+            git checkout main
+            git fetch origin main
+            git reset --hard origin/main
+
+            # If a prior PR exists for this server, fetch it and bail out when
+            # the requested commit is identical (no update required).
+            if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+              git fetch origin "$branch"
+              existing_commit=$(git show "origin/${branch}:servers/${server}/server.yaml" 2>/dev/null | awk '/commit:/{print $2}' | tail -n1)
+              if [ -n "$existing_commit" ] && [ "$existing_commit" = "$new_commit" ]; then
+                echo "Existing PR for $server already pins ${existing_commit}; skipping."
+                continue
+              fi
+            fi
+
+            # Apply the patch onto a fresh branch for this server.
+            git checkout -B "$branch" origin/main
+            if ! git apply "$patch"; then
+              echo "Failed to apply patch for $server, skipping."
+              continue
+            fi
+
+            if git diff --quiet; then
+              echo "No changes after applying patch for $server, skipping."
+              continue
+            fi
+
+            # Commit the server YAML change and force-push the automation branch.
+            git add "servers/${server}/server.yaml"
+            git commit -m "chore: update pin for ${server}"
+            git push --force origin "$branch"
+
+            # Create or update the PR dedicated to this server.
+            if gh pr view --head "$branch" >/dev/null 2>&1; then
+              gh pr edit "$branch" \
+                --title "chore: update pin for ${server}" \
+                --body "Automated commit pin update for ${server}."
+            else
+              gh pr create \
+                --title "chore: update pin for ${server}" \
+                --body "Automated commit pin update for ${server}." \
+                --base main \
+                --head "$branch"
+            fi
+          done
+
+          git checkout main
