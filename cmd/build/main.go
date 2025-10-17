@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/docker/mcp-registry/internal/mcp"
-	"github.com/docker/mcp-registry/pkg/github"
 	"github.com/docker/mcp-registry/pkg/servers"
 )
 
@@ -117,26 +116,9 @@ func buildDockerEnv(additionalEnv ...string) []string {
 }
 
 func buildMcpImage(ctx context.Context, server servers.Server) error {
-	projectURL := server.Source.Project
-	branch := server.Source.Branch
 	commit := server.Source.Commit
-	client := github.New()
-
-	repository, err := client.GetProjectRepository(ctx, projectURL)
-	if err != nil {
-		return err
-	}
-
-	if branch == "" {
-		branch = repository.GetDefaultBranch()
-	}
-
 	if commit == "" {
-		var err error
-		commit, err = client.GetCommitSHA1(ctx, projectURL, branch)
-		if err != nil {
-			return err
-		}
+		return fmt.Errorf("local server %s must specify source.commit before building", server.Name)
 	}
 
 	gitURL := server.GetContext()
