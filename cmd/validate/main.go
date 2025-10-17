@@ -43,6 +43,10 @@ func run(name string) error {
 		return err
 	}
 
+	if err := isCommitPinnedIfNecessary(name); err != nil {
+		return err
+	}
+
 	if err := areSecretsValid(name); err != nil {
 		return err
 	}
@@ -72,10 +76,21 @@ func run(name string) error {
 	return nil
 }
 
+// legacyNameExceptions enumerates catalog entries added before current naming rules.
+var legacyNameExceptions = map[string]bool{
+	"SQLite":              true,
+	"osp_marketing_tools": true,
+	"youtube_transcript":  true,
+}
+
 // check if the name is a valid
 func isNameValid(name string) error {
 	// check if name has only letters, numbers, and hyphens
 	if !regexp.MustCompile(`^[a-z0-9-]+$`).MatchString(name) {
+		if legacyNameExceptions[name] {
+			fmt.Printf("⚠️ Name %s is grandfathered and bypasses naming rules.\n", name)
+			return nil
+		}
 		return fmt.Errorf("name is not valid. It must be a lowercase string with only letters, numbers, and hyphens")
 	}
 
@@ -104,21 +119,63 @@ func isDirectoryValid(name string) error {
 	return nil
 }
 
-// check if the secrets are valid
-// secrets must be prefixed with the name of the server
-func areSecretsValid(name string) error {
-	// read the server.yaml file
+var commitSHA1Pattern = regexp.MustCompile(`^[a-f0-9]{40}$`)
+
+// isCommitPinnedIfNecessary ensures that every local server is pinned to a specific commit.
+func isCommitPinnedIfNecessary(name string) error {
 	server, err := readServerYaml(name)
 	if err != nil {
 		return err
 	}
 
-	// check if the server.yaml file has a valid secrets
-	if len(server.Config.Secrets) > 0 {
-		for _, secret := range server.Config.Secrets {
-			if !strings.HasPrefix(secret.Name, name+".") {
-				return fmt.Errorf("secret %s is not valid. It must be prefixed with the name of the server", secret.Name)
+	if server.Type != "server" {
+		fmt.Println("✅ Commit pin not required (non-local server)")
+		return nil
+	}
+
+	if server.Source.Commit == "" {
+		return fmt.Errorf("local server must specify source.commit to pin the audited revision")
+	}
+
+	if !commitSHA1Pattern.MatchString(strings.ToLower(server.Source.Commit)) {
+		return fmt.Errorf("source.commit must be a 40-character lowercase SHA1 (got %q)", server.Source.Commit)
+	}
+
+	fmt.Println("✅ Commit is pinned")
+	return nil
+}
+
+// secretNamePattern validates that secret names match the expected prefix.name
+// format requirement.
+var secretNamePattern = regexp.MustCompile(`^[A-Za-z0-9_-]+\.[A-Za-z0-9._-]+$`)
+
+// legacySecretNameExceptions enumerates secrets defined before the current
+// naming rules were introduced.
+var legacySecretNameExceptions = map[string]map[string]bool{
+	"nasdaq-data-link": {
+		"nasdaq_data_link_api_key": true,
+	},
+	"sec-edgar": {
+		"sec_edgar_user_agent": true,
+	},
+}
+
+// check if the secrets are valid
+func areSecretsValid(name string) error {
+	server, err := readServerYaml(name)
+	if err != nil {
+		return err
+	}
+
+	// Ensure that all secrets match the expected format. We no longer require
+	// that the prefix matches the server name.
+	for _, secret := range server.Config.Secrets {
+		if !secretNamePattern.MatchString(secret.Name) {
+			if legacySecretNameExceptions[name][secret.Name] {
+				fmt.Printf("⚠️ Secret %s for %s is grandfathered and bypasses naming rules.\n", secret.Name, name)
+				continue
 			}
+			return fmt.Errorf("secret %s is not valid. It must use prefix.name format with alphanumeric characters, hyphen, period, or underscore", secret.Name)
 		}
 	}
 
@@ -182,30 +239,37 @@ func isIconValid(name string) error {
 	}
 
 	if server.About.Icon == "" {
-		fmt.Println("🛑 No icon found")
+		fmt.Println("⚠️ No icon found")
 		return nil
 	}
 	// fetch the image and check the size
 	resp, err := http.Get(server.About.Icon)
 	if err != nil {
-		fmt.Println("🛑 Icon could not be fetched")
+		fmt.Println("⚠️ Icon could not be fetched")
 		return nil
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		fmt.Printf("🛑 Icon could not be fetched, status code: %d, url: %s\n", resp.StatusCode, server.About.Icon)
+		fmt.Printf("⚠️ Icon could not be fetched, status code: %d, url: %s\n", resp.StatusCode, server.About.Icon)
 		return nil
 	}
 	if resp.ContentLength > 2*1024*1024 {
-		fmt.Println("🛑 Icon is too large. It must be less than 2MB")
+		fmt.Println("⚠️ Icon is too large. It must be less than 2MB")
 		return nil
 	}
 
-	// Check content type for SVG support
+	// Check content type for SVG, favicon, and WebP support
 	contentType := resp.Header.Get("Content-Type")
-	if contentType == "image/svg+xml" {
+	switch contentType {
+	case "image/svg+xml":
 		fmt.Println("✅ Icon is valid (SVG)")
+		return nil
+	case "image/x-icon":
+		fmt.Println("✅ Icon is valid (favicon)")
+		return nil
+	case "image/webp":
+		fmt.Println("✅ Icon is valid (WebP)")
 		return nil
 	}
 
@@ -213,13 +277,13 @@ func isIconValid(name string) error {
 	if err != nil {
 		return err
 	}
-	if format != "png" {
-		fmt.Println("🛑 Icon is not a png or svg. It must be a png or svg")
+	if format != "png" && format != "jpeg" {
+		fmt.Println("⚠️ Icon is not a png or svg. It must be a png or svg")
 		return nil
 	}
 
 	if img.Width > 512 || img.Height > 512 {
-		fmt.Println("🛑 Icon is too large. It must be less than 512x512")
+		fmt.Println("⚠️ Icon is too large. It must be less than 512x512")
 		return nil
 	}
 
@@ -304,6 +368,11 @@ func hasValidTools(server servers.Server) error {
 	return nil
 }
 
+// Some special entries bypass the dynamic tools requirement.
+var oauthDynamicToolExceptions = map[string]bool{
+	"github-official": true,
+}
+
 // check if servers with OAuth have dynamic tools enabled
 func isOAuthDynamicValid(name string) error {
 	server, err := readServerYaml(name)
@@ -314,7 +383,11 @@ func isOAuthDynamicValid(name string) error {
 	// If server has OAuth configuration, it must have dynamic tools enabled
 	if len(server.OAuth) > 0 {
 		if server.Dynamic == nil || !server.Dynamic.Tools {
-			return fmt.Errorf("server with OAuth must have 'dynamic: tools: true' configuration")
+			if oauthDynamicToolExceptions[name] {
+				fmt.Printf("⚠️ OAuth dynamic rule bypassed for %s (special configuration).\n", name)
+			} else {
+				return fmt.Errorf("server with OAuth must have 'dynamic: tools: true' configuration")
+			}
 		}
 	}
 

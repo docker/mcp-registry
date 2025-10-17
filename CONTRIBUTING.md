@@ -64,6 +64,7 @@ about:
   icon: https://avatars.githubusercontent.com/u/182288589?s=200&v=4
 source:
   project: https://github.com/myorg/my-orgdb-mcp
+  commit: 0123456789abcdef0123456789abcdef01234567
 config:
   description: Configure the connection to TODO
   secrets:

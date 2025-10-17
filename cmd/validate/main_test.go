@@ -88,6 +88,20 @@ func Test_isNameValid(t *testing.T) {
 			},
 			wantError: true,
 		},
+		{
+			name: "legacy uppercase name",
+			args: args{
+				name: "SQLite",
+			},
+			wantError: false,
+		},
+		{
+			name: "legacy underscore name",
+			args: args{
+				name: "youtube_transcript",
+			},
+			wantError: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
