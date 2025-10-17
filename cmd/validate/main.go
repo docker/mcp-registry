@@ -354,7 +354,7 @@ func isOAuthDynamicValid(name string) error {
 	if len(server.OAuth) > 0 {
 		if server.Dynamic == nil || !server.Dynamic.Tools {
 			if oauthDynamicToolExceptions[name] {
-				fmt.Printf("⚠️ OAuth dynamic rule bypassed for %s (legacy configuration).\n", name)
+				fmt.Printf("⚠️ OAuth dynamic rule bypassed for %s (special configuration).\n", name)
 			} else {
 				return fmt.Errorf("server with OAuth must have 'dynamic: tools: true' configuration")
 			}
