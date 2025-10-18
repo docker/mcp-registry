@@ -14,8 +14,6 @@ Local servers run in Docker containers on your machine. They:
 - Run locally with full container isolation
 - Can benefit from Docker-built images with enhanced security features (signatures, provenance, SBOMs, automatic updates)
 
-**This guide primarily covers local servers.** If you're adding a local server, follow the instructions starting from "Step-by-Step Guide" below.
-
 ### 🌐 Remote Servers (Hosted)
 Remote servers are hosted externally and accessed via HTTP(S). They:
 - Don't require a Dockerfile (already deployed somewhere)
@@ -42,7 +40,7 @@ Remote servers are hosted externally and accessed via HTTP(S). They:
 - Every pull request requires a review from the Docker team before merging.
 - Once approved, all of your commits will be squashed into a single commit with your PR title.
 
-## 📋 Step-by-Step Guide for Local Servers
+## 🏠 Adding a Local MCP Server
 
 ### 1️⃣ Fork this repository
 
