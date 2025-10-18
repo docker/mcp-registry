@@ -311,6 +311,13 @@ You can test your remote server configuration by importing it into Docker Deskto
 ```bash
 task catalog -- my-remote-server
 docker mcp catalog import $PWD/catalogs/my-remote-server/catalog.yaml
+docker mcp server enable my-remote-server
+```
+
+For OAuth-enabled servers, authorize the server:
+
+```bash
+docker mcp oauth authorize my-remote-server
 ```
 
 Now you can configure and test your remote server in the MCP Toolkit on Docker Desktop.

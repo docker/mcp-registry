@@ -205,10 +205,15 @@ func main() {
 	fmt.Println()
 	fmt.Println("🚀 Next steps:")
 	fmt.Println("1. Review the generated server.yaml file")
-	fmt.Println("2. Test your server: task catalog -- " + data.ServerName)
-	fmt.Println("3. Import to Docker Desktop: docker mcp catalog import $PWD/catalogs/" + data.ServerName + "/catalog.yaml")
-	fmt.Println("4. Reset catalog when done: docker mcp catalog reset")
-	fmt.Println("5. Create a pull request to add it to the registry")
+	fmt.Println("2. Test your server:")
+	fmt.Println("   task catalog -- " + data.ServerName)
+	fmt.Println("   docker mcp catalog import $PWD/catalogs/" + data.ServerName + "/catalog.yaml")
+	fmt.Println("   docker mcp server enable " + data.ServerName)
+	if data.UseOAuth {
+		fmt.Println("   docker mcp oauth authorize " + data.ServerName + " (for OAuth)")
+	}
+	fmt.Println("3. Reset catalog when done: docker mcp catalog reset")
+	fmt.Println("4. Create a pull request to add it to the registry")
 }
 
 func generateAndSave(data *RemoteWizardData) error {
