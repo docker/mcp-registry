@@ -320,7 +320,7 @@ For OAuth-enabled servers, authorize the server:
 docker mcp oauth authorize my-remote-server
 ```
 
-Now you can configure and test your remote server in the MCP Toolkit on Docker Desktop.
+Now you can start the gateway with `docker mcp gateway run` and test tool calls to the remote server.
 
 When done testing, reset the catalog:
 
