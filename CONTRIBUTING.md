@@ -213,9 +213,7 @@ Remote MCP servers are already hosted externally and don't require Docker image 
 - A documentation URL for your server
 - OAuth configuration details (if authentication is required)
 
-### Step-by-Step Guide for Remote Servers
-
-#### 1️⃣ Fork this repository
+### 1️⃣ Fork this repository
 
 Fork the repository to your own GitHub account and clone it locally.
 
@@ -330,21 +328,6 @@ Create a pull request with your remote server files. Make sure to:
 - Verify that your server URL is publicly accessible
 - Test OAuth configuration if applicable
 - Ensure the documentation URL in `readme.md` is valid
-
-### Key Differences: Local vs Remote Servers
-
-| Feature | Local Server | Remote Server |
-|---------|-------------|---------------|
-| **Type** | `type: server` | `type: remote` |
-| **Requires Dockerfile** | ✅ Yes | ❌ No |
-| **Image Building** | ✅ Required | ❌ Not needed |
-| **Source Repository** | Required with `source.project` and `source.commit` | Not required |
-| **Remote Configuration** | ❌ Not applicable | ✅ Required: `remote.transport_type` and `remote.url` |
-| **Authentication** | Config secrets | OAuth (typically) |
-| **Tool Discovery** | Static (from container) | Dynamic (`dynamic.tools: true`) |
-| **Hosting** | Docker container locally | External HTTP(S) endpoint |
-
----
 
 ## 📜 Code of Conduct
 
