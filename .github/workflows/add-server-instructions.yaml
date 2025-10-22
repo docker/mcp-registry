@@ -1,0 +1,166 @@
+name: Add Server Instructions
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'servers/**/server.yaml'
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  add-instructions:
+    name: "Generate Configuration Instructions"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Fetch base branch
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+
+      - name: Detect changed server files
+        id: changed-servers
+        run: |
+          # Get changed server.yaml files
+          CHANGED_FILES=$(git diff --name-only --diff-filter=AM origin/${{ github.event.pull_request.base.ref }}...HEAD | grep "^servers/.*/server.yaml$" || true)
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No server.yaml files changed"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          # Save changed files for next step
+          echo "$CHANGED_FILES" > changed-servers.txt
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+
+      - name: Check for servers with config sections
+        id: check-config
+        if: steps.changed-servers.outputs.has_changes == 'true'
+        run: |
+          SERVERS_NEEDING_INSTRUCTIONS=""
+
+          while IFS= read -r file; do
+            if [ -f "$file" ]; then
+              # Check if file has a config section with secrets or env
+              if grep -q "^config:" "$file"; then
+                if grep -A 50 "^config:" "$file" | grep -q "^\s*secrets:\|^\s*env:"; then
+                  # Check if instructions field already exists for secrets
+                  HAS_SECRET_INSTRUCTIONS=false
+                  HAS_ENV_INSTRUCTIONS=false
+                  HAS_CONFIG_INSTRUCTIONS=false
+
+                  if grep -A 100 "^config:" "$file" | grep -q "^\s*instructions:"; then
+                    HAS_CONFIG_INSTRUCTIONS=true
+                  fi
+
+                  # Check if any secret entry has instructions field
+                  if grep -A 50 "secrets:" "$file" | grep -q "^\s*instructions:"; then
+                    HAS_SECRET_INSTRUCTIONS=true
+                  fi
+
+                  # Check if any env entry has instructions field
+                  if grep -A 50 "env:" "$file" | grep -q "^\s*instructions:"; then
+                    HAS_ENV_INSTRUCTIONS=true
+                  fi
+
+                  # Only add to list if any instructions are missing
+                  if [ "$HAS_SECRET_INSTRUCTIONS" = false ] || [ "$HAS_ENV_INSTRUCTIONS" = false ] || [ "$HAS_CONFIG_INSTRUCTIONS" = false ]; then
+                    SERVERS_NEEDING_INSTRUCTIONS="${SERVERS_NEEDING_INSTRUCTIONS}${file}"$'\n'
+                  fi
+                fi
+              fi
+            fi
+          done < changed-servers.txt
+
+          if [ -z "$SERVERS_NEEDING_INSTRUCTIONS" ]; then
+            echo "No servers need instructions added"
+            echo "needs_instructions=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "Servers needing instructions:"
+          echo "$SERVERS_NEEDING_INSTRUCTIONS"
+          echo "$SERVERS_NEEDING_INSTRUCTIONS" > servers-needing-instructions.txt
+          echo "needs_instructions=true" >> $GITHUB_OUTPUT
+
+      - name: Generate instructions with Codex
+        if: steps.check-config.outputs.needs_instructions == 'true'
+        uses: github/codex@v1
+        with:
+          codex_task: |
+            You are helping to improve MCP server configuration files in the mcp-registry repository.
+
+            Your task is to analyze changed server.yaml files and add helpful instructions for configuration fields.
+
+            For each server.yaml file listed in servers-needing-instructions.txt:
+
+            1. Read the server.yaml file
+            2. Check the config.secrets section (if present):
+               - For each secret entry that does NOT have an "instructions" field:
+                 * Add a new "instructions" field with a short 1-sentence explanation of what this field is
+                 * If there's documentation available at the source.project URL, include a link to relevant docs
+
+            3. Check the config.env section (if present):
+               - For each env entry that does NOT have an "instructions" field:
+                 * Add a new "instructions" field with a short 1-sentence explanation of what this field is
+                 * If there's documentation available at the source.project URL, include a link to relevant docs
+
+            4. Check if config.instructions field exists:
+               - If NOT present, add a config.instructions field with:
+                 * A very short (1-2 paragraphs) description guiding the user on how to configure this MCP server
+                 * Explain where users can find the necessary secrets and env values
+                 * Use the source.project URL (GitHub repo) as context to understand what these fields are
+
+            5. Create a single suggestion (code change) for each server.yaml file with all the above changes
+
+            Important guidelines:
+            - Keep instructions concise (1-2 sentences max per field)
+            - Use the GitHub repository at source.project for context about what fields mean
+            - Fetch and read the README or documentation from the source repository if needed
+            - Only add instructions where they don't already exist
+            - Maintain the existing YAML formatting and indentation
+            - Focus on being helpful - explain WHERE to get values, not just WHAT they are
+
+            Example of what to add:
+
+            For a secret entry:
+            ```yaml
+            secrets:
+              - name: github.personal_access_token
+                env: GITHUB_PERSONAL_ACCESS_TOKEN
+                example: <YOUR_TOKEN>
+                instructions: "Create a personal access token at https://github.com/settings/tokens with repo permissions."
+            ```
+
+            For an env entry:
+            ```yaml
+            env:
+              - name: DATABASE_URL
+                example: postgresql://localhost:5432/mydb
+                value: "{{database.url}}"
+                instructions: "Connection string for your PostgreSQL database."
+            ```
+
+            For config.instructions:
+            ```yaml
+            config:
+              instructions: |
+                To configure this server, you'll need a GitHub personal access token with appropriate repository permissions.
+                Create one at https://github.com/settings/tokens and ensure it has read access to the repositories you want to query.
+                The token should be stored securely and provided via the GITHUB_PERSONAL_ACCESS_TOKEN environment variable.
+              secrets:
+                ...
+            ```
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pr_number: ${{ github.event.pull_request.number }}
