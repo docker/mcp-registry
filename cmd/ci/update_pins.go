@@ -1,29 +1,8 @@
-/*
-Copyright © 2025 Docker, Inc.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-*/
-
 package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -35,21 +14,25 @@ import (
 	"github.com/docker/mcp-registry/pkg/servers"
 )
 
-// main orchestrates the pin refresh process, updating server definitions when
-// upstream branches advance.
-func main() {
+// runUpdatePins refreshes pinned commits for local servers by resolving the
+// latest upstream revision on the tracked branch and updating server YAML
+// definitions in place. It does not take any CLI flags and emits a summary of
+// modified servers on stdout; errors are reported per server so that a single
+// failure does not abort the entire sweep.
+func runUpdatePins(args []string) error {
+	if len(args) != 0 {
+		return errors.New("update-pins does not accept additional arguments")
+	}
+
 	ctx := context.Background()
 
-	// Enumerate the server directories that contain YAML definitions.
 	entries, err := os.ReadDir("servers")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "reading servers directory: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("reading servers directory: %w", err)
 	}
 
 	var updated []string
 	for _, entry := range entries {
-		// Ignore any files that are not server directories.
 		if !entry.IsDir() {
 			continue
 		}
@@ -64,41 +47,33 @@ func main() {
 		if server.Type != "server" {
 			continue
 		}
-
 		if !strings.HasPrefix(server.Image, "mcp/") {
 			continue
 		}
-
 		if server.Source.Project == "" {
 			continue
 		}
 
-		// Only GitHub repositories are supported by the current workflow.
 		if !strings.Contains(server.Source.Project, "github.com/") {
 			fmt.Printf("Skipping %s: project is not hosted on GitHub.\n", server.Name)
 			continue
 		}
 
-		// Unpinned servers have to undergo a separate security audit first.
 		existing := strings.ToLower(server.Source.Commit)
 		if existing == "" {
 			fmt.Printf("Skipping %s: no pinned commit present.\n", server.Name)
 			continue
 		}
 
-		// Resolve the current branch head for comparison.
-		branch := server.GetBranch()
 		client := github.NewFromServer(server)
-
-		latest, err := client.GetCommitSHA1(ctx, server.Source.Project, branch)
+		latest, err := client.GetCommitSHA1(ctx, server.Source.Project, server.GetBranch())
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "fetching commit for %s: %v\n", server.Name, err)
 			continue
 		}
-
 		latest = strings.ToLower(latest)
 
-		changed, err := writeCommit(serverPath, latest)
+		changed, err := writePinnedCommit(serverPath, latest)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "updating %s: %v\n", server.Name, err)
 			continue
@@ -113,24 +88,22 @@ func main() {
 		if changed {
 			updated = append(updated, server.Name)
 		}
-		if existing == latest && !changed {
-			continue
-		}
 	}
 
 	if len(updated) == 0 {
 		fmt.Println("No commit updates required.")
-		return
+		return nil
 	}
 
 	sort.Strings(updated)
 	fmt.Println("Servers with updated pins:", strings.Join(updated, ", "))
+	return nil
 }
 
-// writeCommit inserts or updates the commit field inside the source block of
-// a server definition while preserving the surrounding formatting. The bool
-// return value indicates whether the file contents were modified.
-func writeCommit(path string, updated string) (bool, error) {
+// writePinnedCommit replaces the commit field inside the source block with the
+// provided SHA while preserving formatting. A boolean indicates whether the
+// file changed.
+func writePinnedCommit(path string, updated string) (bool, error) {
 	content, err := os.ReadFile(path)
 	if err != nil {
 		return false, err
@@ -145,7 +118,7 @@ func writeCommit(path string, updated string) (bool, error) {
 		}
 	}
 	if sourceIndex == -1 {
-		return false, fmt.Errorf("no source block found")
+		return false, fmt.Errorf("no source block found in %s", path)
 	}
 
 	commitIndex := -1
@@ -165,7 +138,7 @@ func writeCommit(path string, updated string) (bool, error) {
 	}
 
 	if commitIndex < 0 {
-		return false, fmt.Errorf("no commit line found in source block")
+		return false, fmt.Errorf("no commit line found in %s", path)
 	}
 
 	newLine := indent + "commit: " + updated

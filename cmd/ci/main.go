@@ -31,6 +31,8 @@ func main() {
 		err = runCollectFullAudit(args)
 	case "prepare-full-audit":
 		err = runPrepareFullAudit(args)
+	case "update-pins":
+		err = runUpdatePins(args)
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command: %s\n", cmd)
 		os.Exit(2)
