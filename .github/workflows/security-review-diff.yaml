@@ -1,13 +1,19 @@
 name: Security Review (Diff)
 
 on:
-  pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
-      - ready_for_review
-      - labeled
+  workflow_dispatch:
+    inputs:
+      pull_request_number:
+        description: "Optional pull request number to review"
+        required: false
+        default: ""
+  # pull_request:
+  #   types:
+  #     - opened
+  #     - synchronize
+  #     - reopened
+  #     - ready_for_review
+  #     - labeled
 
 concurrency:
   group: security-review-diff-${{ github.event.pull_request.number || github.run_id }}
@@ -17,6 +23,7 @@ jobs:
   pr-security-review:
     name: Pull Request Security Review
     runs-on: ubuntu-24.04
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     permissions:
       contents: read
       pull-requests: write
@@ -45,10 +52,26 @@ jobs:
 
       - name: Collect updated pin targets
         id: pins
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          base_sha="${{ github.event.pull_request.base.sha }}"
+          head_sha="${{ github.sha }}"
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.pull_request_number }}" ]; then
+            pr_json=$(gh pr view "${{ github.event.inputs.pull_request_number }}" --json baseRefOid,headRefOid)
+            base_sha=$(echo "$pr_json" | jq -r '.baseRefOid')
+            head_sha=$(echo "$pr_json" | jq -r '.headRefOid')
+          fi
+
+          if [ -z "$base_sha" ] || [ -z "$head_sha" ]; then
+            echo "Unable to resolve base/head SHA for review." >&2
+            exit 0
+          fi
+
           task ci -- collect-updated-pins \
-            --base "${{ github.event.pull_request.base.sha }}" \
-            --head "${{ github.sha }}" \
+            --base "$base_sha" \
+            --head "$head_sha" \
             --workspace "${{ github.workspace }}" \
             --output-json pins-context.json \
             --summary-md pins-summary.md
@@ -63,10 +86,26 @@ jobs:
 
       - name: Collect new local servers
         id: newservers
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          base_sha="${{ github.event.pull_request.base.sha }}"
+          head_sha="${{ github.sha }}"
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.pull_request_number }}" ]; then
+            pr_json=$(gh pr view "${{ github.event.inputs.pull_request_number }}" --json baseRefOid,headRefOid)
+            base_sha=$(echo "$pr_json" | jq -r '.baseRefOid')
+            head_sha=$(echo "$pr_json" | jq -r '.headRefOid')
+          fi
+
+          if [ -z "$base_sha" ] || [ -z "$head_sha" ]; then
+            echo "Unable to resolve base/head SHA for review." >&2
+            exit 0
+          fi
+
           task ci -- collect-new-servers \
-            --base "${{ github.event.pull_request.base.sha }}" \
-            --head "${{ github.sha }}" \
+            --base "$base_sha" \
+            --head "$head_sha" \
             --workspace "${{ github.workspace }}" \
             --output-json new-servers-context.json \
             --summary-md new-servers-summary.md
