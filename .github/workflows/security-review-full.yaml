@@ -1,0 +1,126 @@
+name: Security Review (Full)
+
+on:
+  workflow_dispatch:
+    inputs:
+      servers:
+        description: "Comma-separated list of local server names to audit (leave blank for all)."
+        required: false
+        default: ""
+
+concurrency:
+  group: security-review-full-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  full-audit:
+    name: Execute Full Audit
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Collect audit targets
+        run: |
+          task ci -- collect-full-audit \
+            --workspace "${{ github.workspace }}" \
+            --servers "${{ github.event.inputs.servers }}" \
+            --output-json audit-targets.json
+
+          if jq -e '. | length > 0' audit-targets.json >/dev/null; then
+            echo "AUDIT_HAS_TARGETS=true" >> "$GITHUB_ENV"
+          else
+            echo "No audit targets identified; exiting." >&2
+            echo "AUDIT_HAS_TARGETS=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Prepare audit contexts
+        if: env.AUDIT_HAS_TARGETS == 'true'
+        run: |
+          mkdir -p /tmp/full-audit
+          rm -f full-audit-summary.md
+          echo "# Full Audit Targets" >> full-audit-summary.md
+          echo "" >> full-audit-summary.md
+
+          idx=0
+          jq -c '.[]' audit-targets.json | while read -r target; do
+            server=$(echo "$target" | jq -r '.server')
+            echo "$target" > target.json
+            task ci -- prepare-full-audit \
+              --target-file target.json \
+              --output-dir /tmp/full-audit
+
+            repo=$(echo "$target" | jq -r '.project')
+            commit=$(echo "$target" | jq -r '.commit')
+            directory=$(echo "$target" | jq -r '.directory')
+            if [ -z "$directory" ] || [ "$directory" = "null" ]; then
+              directory="(repository root)"
+            fi
+
+            {
+              echo "## ${server}"
+              echo "- Repository: ${repo}"
+              echo "- Commit: \`${commit}\`"
+              echo "- Directory: ${directory}"
+              echo ""
+            } >> full-audit-summary.md
+            idx=$((idx+1))
+          done
+
+          echo "Prepared ${idx} audit targets."
+
+      - name: Load security review prompt
+        if: env.AUDIT_HAS_TARGETS == 'true'
+        run: |
+          {
+            echo 'SECURITY_REVIEW_PROMPT<<EOF'
+            cat prompts/security-review-full.txt
+            echo 'EOF'
+          } >> "$GITHUB_ENV"
+
+      - name: Run Claude security review
+        if: env.AUDIT_HAS_TARGETS == 'true'
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: ${{ env.SECURITY_REVIEW_PROMPT }}
+          claude_args: |
+            --add-file ${{ github.workspace }}/full-audit-summary.md
+            --add-file ${{ github.workspace }}/templates/security-review-full.md
+            --add-dir /tmp/full-audit
+            --allowed-tools "Read,Write,Bash(git:*),Bash(mkdir)"
+
+      - name: Store security report
+        if: env.AUDIT_HAS_TARGETS == 'true'
+        run: |
+          if [ -f /tmp/security-review.md ]; then
+            mkdir -p reports
+            cp /tmp/security-review.md reports/full-audit-report.md
+          else
+            echo "warning: no security review produced" >&2
+          fi
+
+      - name: Upload security reports
+        if: env.AUDIT_HAS_TARGETS == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: reports/
+          if-no-files-found: warn

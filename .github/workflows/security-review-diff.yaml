@@ -1,0 +1,195 @@
+name: Security Review (Diff)
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+      - labeled
+
+concurrency:
+  group: security-review-diff-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  pr-security-review:
+    name: Pull Request Security Review
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    env:
+      SECURITY_BLOCK_LABEL: "security:blocked"
+      SECURITY_RISK_LABEL_PREFIX: "security:risk:"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Collect updated pin targets
+        id: pins
+        run: |
+          task ci -- collect-updated-pins \
+            --base "${{ github.event.pull_request.base.sha }}" \
+            --head "${{ github.sha }}" \
+            --workspace "${{ github.workspace }}" \
+            --output-json pins-context.json \
+            --summary-md pins-summary.md
+
+          if [ -s pins-context.json ]; then
+            echo "has_targets=true" >> "$GITHUB_OUTPUT"
+            echo "context=pins-context.json" >> "$GITHUB_OUTPUT"
+            echo "summary=pins-summary.md" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_targets=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Collect new local servers
+        id: newservers
+        run: |
+          task ci -- collect-new-servers \
+            --base "${{ github.event.pull_request.base.sha }}" \
+            --head "${{ github.sha }}" \
+            --workspace "${{ github.workspace }}" \
+            --output-json new-servers-context.json \
+            --summary-md new-servers-summary.md
+
+          if [ -s new-servers-context.json ]; then
+            echo "has_targets=true" >> "$GITHUB_OUTPUT"
+            echo "context=new-servers-context.json" >> "$GITHUB_OUTPUT"
+            echo "summary=new-servers-summary.md" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_targets=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ensure security labels exist
+        if: steps.pins.outputs.has_targets == 'true' || steps.newservers.outputs.has_targets == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create "${SECURITY_BLOCK_LABEL}" \
+            --color B60205 \
+            --description "Security automation detected blocking issues." \
+            || echo "Label ${SECURITY_BLOCK_LABEL} already exists."
+
+          for risk in critical high medium low info; do
+            label="${SECURITY_RISK_LABEL_PREFIX}${risk}"
+            gh label create "$label" \
+              --color 0E8A16 \
+              --description "Security automation risk assessment: ${risk}." \
+              || echo "Label $label already exists."
+          done
+
+      - name: Remove stale security labels
+        if: steps.pins.outputs.has_targets == 'true' || steps.newservers.outputs.has_targets == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for label in "${SECURITY_BLOCK_LABEL}" \
+            "${SECURITY_RISK_LABEL_PREFIX}critical" \
+            "${SECURITY_RISK_LABEL_PREFIX}high" \
+            "${SECURITY_RISK_LABEL_PREFIX}medium" \
+            "${SECURITY_RISK_LABEL_PREFIX}low" \
+            "${SECURITY_RISK_LABEL_PREFIX}info"
+          do
+            gh pr edit "${{ github.event.pull_request.number }}" \
+              --repo "${{ github.repository }}" \
+              --remove-label "$label" || true
+          done
+
+      - name: Prepare review context
+        if: steps.pins.outputs.has_targets == 'true' || steps.newservers.outputs.has_targets == 'true'
+        run: |
+          mkdir -p /tmp/security-review/pins
+          mkdir -p /tmp/security-review/new
+
+          if [ "${{ steps.pins.outputs.has_targets }}" = "true" ]; then
+            task ci -- prepare-updated-pins \
+              --context-file "${{ steps.pins.outputs.context }}" \
+              --output-dir /tmp/security-review/pins
+          fi
+
+          if [ "${{ steps.newservers.outputs.has_targets }}" = "true" ]; then
+            task ci -- prepare-new-servers \
+              --context-file "${{ steps.newservers.outputs.context }}" \
+              --output-dir /tmp/security-review/new
+          fi
+
+          task ci -- compose-pr-summary \
+            --pins-summary "${{ steps.pins.outputs.summary }}" \
+            --new-summary "${{ steps.newservers.outputs.summary }}" \
+            --output summary.md
+
+      - name: Load security review prompt
+        if: steps.pins.outputs.has_targets == 'true' || steps.newservers.outputs.has_targets == 'true'
+        run: |
+          {
+            echo 'SECURITY_REVIEW_PROMPT<<EOF'
+            cat prompts/security-review-diff.txt
+            echo 'EOF'
+          } >> "$GITHUB_ENV"
+
+      - name: Run Claude security review
+        if: steps.pins.outputs.has_targets == 'true' || steps.newservers.outputs.has_targets == 'true'
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: ${{ env.SECURITY_REVIEW_PROMPT }}
+          claude_args: |
+            --add-file ${{ github.workspace }}/summary.md
+            --add-file ${{ github.workspace }}/templates/security-review-diff.md
+            --add-dir /tmp/security-review/pins
+            --add-dir /tmp/security-review/new
+            --allowed-tools "Read,Write,Bash(git:*),Bash(gh:*),Bash(mkdir)"
+
+      - name: Post security review as PR comment
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ ! -f /tmp/security-review.md ]; then
+            echo "No security review report produced."
+            exit 0
+          fi
+
+          {
+            cat /tmp/security-review.md
+            echo ""
+            echo "<!-- automated-security-review -->"
+          } > security-review-comment.md
+
+          comment_id=$(gh api \
+            repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
+            --jq '.[] | select(.body | contains("<!-- automated-security-review -->")) | .id' \
+            || true)
+
+          if [ -n "$comment_id" ]; then
+            gh api \
+              -X PATCH \
+              -H "Accept: application/vnd.github+json" \
+              /repos/${{ github.repository }}/issues/comments/$comment_id \
+              -F body="@security-review-comment.md"
+          else
+            gh pr comment ${{ github.event.pull_request.number }} \
+              --repo ${{ github.repository }} \
+              --body-file security-review-comment.md
+          fi

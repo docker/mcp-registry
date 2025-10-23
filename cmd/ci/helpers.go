@@ -1,0 +1,146 @@
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+
+	"gopkg.in/yaml.v3"
+)
+
+// writeJSONFile stores the provided value as indented JSON at the given path.
+func writeJSONFile(path string, value any) error {
+	payload, err := json.MarshalIndent(value, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, payload, 0o644)
+}
+
+// readJSONFile populates value with JSON data read from the provided path.
+func readJSONFile(path string, value any) error {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(content, value)
+}
+
+// removeIfPresent deletes the file at the path when it exists.
+func removeIfPresent(path string) {
+	if path == "" {
+		return
+	}
+	if _, err := os.Stat(path); err == nil {
+		_ = os.Remove(path)
+	}
+}
+
+// loadServerYAMLFromWorkspace loads a server YAML file located in the workspace.
+func loadServerYAMLFromWorkspace(workspace, relative string) (serverDocument, error) {
+	fullPath := filepath.Join(workspace, relative)
+	content, err := os.ReadFile(fullPath)
+	if err != nil {
+		return serverDocument{}, err
+	}
+	return decodeServerDocument(content)
+}
+
+// loadServerYAMLAt loads a server YAML file from the git history at the commit.
+func loadServerYAMLAt(workspace, commit, relative string) (serverDocument, error) {
+	out, err := runGitCommand(workspace, "show", fmt.Sprintf("%s:%s", commit, relative))
+	if err != nil {
+		return serverDocument{}, err
+	}
+	return decodeServerDocument([]byte(out))
+}
+
+// decodeServerDocument converts raw YAML bytes into a serverDocument.
+func decodeServerDocument(raw []byte) (serverDocument, error) {
+	var doc serverDocument
+	if err := yaml.Unmarshal(raw, &doc); err != nil {
+		return serverDocument{}, err
+	}
+	return doc, nil
+}
+
+// isLocalServer returns true when the definition corresponds to a local server image.
+func isLocalServer(doc serverDocument) bool {
+	if !strings.EqualFold(doc.Type, "server") {
+		return false
+	}
+	return strings.HasPrefix(strings.TrimSpace(doc.Image), "mcp/")
+}
+
+// gitDiff runs git diff for server YAML files and returns the resulting paths.
+func gitDiff(workspace, base, head, mode string) ([]string, error) {
+	args := []string{"diff", mode, base, head, "--", "servers/*/server.yaml"}
+	out, err := runGitCommand(workspace, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	var lines []string
+	for _, line := range strings.Split(strings.TrimSpace(out), "\n") {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			lines = append(lines, line)
+		}
+	}
+	return lines, nil
+}
+
+// runGitCommand executes git with the given arguments inside the directory.
+func runGitCommand(dir string, args ...string) (string, error) {
+	cmd := exec.Command("git", args...)
+	cmd.Dir = dir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("git %s: %w\n%s", strings.Join(args, " "), err, string(output))
+	}
+	return string(output), nil
+}
+
+// initGitRepository creates or reuses a git repository rooted at dir with origin set.
+func initGitRepository(dir, remote string) error {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	if _, err := runGitCommand(dir, "rev-parse", "--is-inside-work-tree"); err == nil {
+		return nil
+	}
+	if _, err := runGitCommand(dir, "init"); err != nil {
+		return err
+	}
+	if _, err := runGitCommand(dir, "remote", "remove", "origin"); err == nil {
+		// ignore error
+	}
+	_, err := runGitCommand(dir, "remote", "add", "origin", remote)
+	return err
+}
+
+// fetchCommit retrieves a single commit from origin into the repository.
+func fetchCommit(dir, commit string) error {
+	_, err := runGitCommand(dir, "fetch", "--depth", "1", "--no-tags", "origin", commit)
+	return err
+}
+
+// splitList normalizes a delimited string into lowercase server names.
+func splitList(raw string) []string {
+	if raw == "" {
+		return nil
+	}
+	var values []string
+	for _, segment := range strings.FieldsFunc(raw, func(r rune) bool {
+		return r == ',' || r == '\n' || r == ' ' || r == '\t'
+	}) {
+		value := strings.TrimSpace(segment)
+		if value != "" {
+			values = append(values, strings.ToLower(value))
+		}
+	}
+	return values
+}
