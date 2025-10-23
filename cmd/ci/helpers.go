@@ -31,6 +31,8 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/docker/mcp-registry/pkg/servers"
 )
 
 // writeJSONFile stores the provided value as indented JSON at the given path.
@@ -62,35 +64,35 @@ func removeIfPresent(path string) {
 }
 
 // loadServerYAMLFromWorkspace loads a server YAML file located in the workspace.
-func loadServerYAMLFromWorkspace(workspace, relative string) (serverDocument, error) {
+func loadServerYAMLFromWorkspace(workspace, relative string) (servers.Server, error) {
 	fullPath := filepath.Join(workspace, relative)
 	content, err := os.ReadFile(fullPath)
 	if err != nil {
-		return serverDocument{}, err
+		return servers.Server{}, err
 	}
 	return decodeServerDocument(content)
 }
 
 // loadServerYAMLAt loads a server YAML file from the git history at the commit.
-func loadServerYAMLAt(workspace, commit, relative string) (serverDocument, error) {
+func loadServerYAMLAt(workspace, commit, relative string) (servers.Server, error) {
 	out, err := runGitCommand(workspace, "show", fmt.Sprintf("%s:%s", commit, relative))
 	if err != nil {
-		return serverDocument{}, err
+		return servers.Server{}, err
 	}
 	return decodeServerDocument([]byte(out))
 }
 
-// decodeServerDocument converts raw YAML bytes into a serverDocument.
-func decodeServerDocument(raw []byte) (serverDocument, error) {
-	var doc serverDocument
+// decodeServerDocument converts raw YAML bytes into a servers.Server.
+func decodeServerDocument(raw []byte) (servers.Server, error) {
+	var doc servers.Server
 	if err := yaml.Unmarshal(raw, &doc); err != nil {
-		return serverDocument{}, err
+		return servers.Server{}, err
 	}
 	return doc, nil
 }
 
 // isLocalServer returns true when the definition corresponds to a local server image.
-func isLocalServer(doc serverDocument) bool {
+func isLocalServer(doc servers.Server) bool {
 	if !strings.EqualFold(doc.Type, "server") {
 		return false
 	}
