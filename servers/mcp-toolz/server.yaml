@@ -1,0 +1,58 @@
+name: mcp-toolz
+image: mcp/mcp-toolz
+type: server
+meta:
+  category: productivity
+  tags:
+    - context-management
+    - todo
+    - persistence
+    - claude-code
+    - ai-assistant
+    - session-continuity
+about:
+  title: MCP Toolz
+  description: Context management, todo persistence, and AI second opinions for Claude Code. Share contexts and todos across sessions, get feedback from ChatGPT or Claude.
+  icon: https://avatars.githubusercontent.com/u/1024025?v=4
+source:
+  project: https://github.com/taylorleese/mcp-toolz
+  commit: f75aa7fbbdca854b7cb7521ce74065e02daa7435
+config:
+  description: Configure MCP Toolz with optional API keys for AI second opinions
+  secrets:
+    - name: mcp-toolz.openai_api_key
+      env: OPENAI_API_KEY
+      example: sk-...
+      optional: true
+    - name: mcp-toolz.anthropic_api_key
+      env: ANTHROPIC_API_KEY
+      example: sk-ant-...
+      optional: true
+  env:
+    - name: MCP_TOOLS_DB_PATH
+      example: /data/contexts.db
+      value: '{{mcp-toolz.db_path}}'
+      optional: true
+    - name: MCP_TOOLS_MODEL
+      example: gpt-5
+      value: '{{mcp-toolz.openai_model}}'
+      optional: true
+    - name: MCP_TOOLS_CLAUDE_MODEL
+      example: claude-sonnet-4-5-20250929
+      value: '{{mcp-toolz.claude_model}}'
+      optional: true
+  parameters:
+    type: object
+    properties:
+      db_path:
+        type: string
+        description: Path to SQLite database for contexts and todos
+        default: /home/app/.mcp-toolz/contexts.db
+      openai_model:
+        type: string
+        description: OpenAI model to use for ChatGPT responses
+        default: gpt-5
+      claude_model:
+        type: string
+        description: Anthropic model to use for Claude responses
+        default: claude-sonnet-4-5-20250929
