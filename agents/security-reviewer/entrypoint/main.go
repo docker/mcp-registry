@@ -29,8 +29,6 @@ const (
 	envReviewRepositoryPath = "REVIEW_REPOSITORY_PATH"
 	envReviewReportPath     = "REVIEW_REPORT_PATH"
 	envReviewLabelsPath     = "REVIEW_LABELS_PATH"
-	envClaudeReviewModel    = "CLAUDE_REVIEW_MODEL"
-	envCodexReviewModel     = "CODEX_REVIEW_MODEL"
 	envAgentAllowedTools    = "REVIEW_AGENT_ALLOWED_TOOLS"
 	envAgentExtraArgs       = "REVIEW_AGENT_EXTRA_ARGS"
 	envExtraDirs            = "REVIEW_EXTRA_ALLOWED_DIRS"
