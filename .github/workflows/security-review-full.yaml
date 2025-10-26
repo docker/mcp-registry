@@ -38,6 +38,7 @@ jobs:
 
       - name: Collect audit targets
         run: |
+          set -euo pipefail
           task ci -- collect-full-audit \
             --workspace "${{ github.workspace }}" \
             --servers "${{ github.event.inputs.servers }}" \
@@ -53,6 +54,7 @@ jobs:
       - name: Prepare audit contexts
         if: env.AUDIT_HAS_TARGETS == 'true'
         run: |
+          set -euo pipefail
           mkdir -p /tmp/full-audit
           rm -f full-audit-summary.md
           echo "# Full Audit Targets" >> full-audit-summary.md
@@ -85,37 +87,36 @@ jobs:
 
           echo "Prepared ${idx} audit targets."
 
-      - name: Load security review prompt
+      - name: Run security reviewer (Claude)
         if: env.AUDIT_HAS_TARGETS == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          {
-            echo 'SECURITY_REVIEW_PROMPT<<EOF'
-            cat prompts/security-review-full.txt
-            echo 'EOF'
-          } >> "$GITHUB_ENV"
-
-      - name: Run Claude security review
-        if: env.AUDIT_HAS_TARGETS == 'true'
-        id: claude
-        uses: anthropics/claude-code-action@v1
-        with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          prompt: ${{ env.SECURITY_REVIEW_PROMPT }}
-          claude_args: |
-            --add-file ${{ github.workspace }}/full-audit-summary.md
-            --add-file ${{ github.workspace }}/templates/security-review-full.md
-            --add-dir /tmp/full-audit
-            --allowed-tools "Read,Write,Bash(git:*),Bash(mkdir)"
-
-      - name: Store security report
-        if: env.AUDIT_HAS_TARGETS == 'true'
-        run: |
-          if [ -f /tmp/security-review.md ]; then
-            mkdir -p reports
-            cp /tmp/security-review.md reports/full-audit-report.md
-          else
-            echo "warning: no security review produced" >&2
+          set -euo pipefail
+          INPUT_ROOT="${RUNNER_TEMP}/reviewer/input"
+          OUTPUT_ROOT="${RUNNER_TEMP}/reviewer/output"
+          mkdir -p "$INPUT_ROOT" "$OUTPUT_ROOT"
+          cp "${{ github.workspace }}/full-audit-summary.md" "$INPUT_ROOT/summary.md"
+          if [ -d /tmp/full-audit ]; then
+            cp -R /tmp/full-audit "$INPUT_ROOT/full-audit"
+            export REVIEW_EXTRA_ALLOWED_DIRS="/input/full-audit"
           fi
+
+          pushd agents/security-reviewer >/dev/null
+          export REVIEW_INPUT_PATH="$INPUT_ROOT"
+          export REVIEW_OUTPUT_PATH_HOST="$OUTPUT_ROOT"
+          export REVIEW_SUMMARY_PATH="/input/summary.md"
+          export REVIEW_MODE="full"
+          export REVIEW_TARGET_LABEL="full-audit"
+          export REVIEW_AGENT="claude"
+          cleanup() { docker compose down --volumes --remove-orphans || true; }
+          trap cleanup EXIT
+          docker compose up --build --abort-on-container-exit reviewer
+          popd >/dev/null
+
+          mkdir -p "${{ github.workspace }}/reports"
+          cp "$OUTPUT_ROOT/security-review.md" "${{ github.workspace }}/reports/full-audit-report.md"
 
       - name: Upload security reports
         if: env.AUDIT_HAS_TARGETS == 'true'

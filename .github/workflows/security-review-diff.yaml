@@ -50,11 +50,12 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Collect updated pin targets
-        id: pins
+      - name: Resolve comparison commits
+        id: revision
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           base_sha="${{ github.event.pull_request.base.sha }}"
           head_sha="${{ github.sha }}"
 
@@ -64,8 +65,26 @@ jobs:
             head_sha=$(echo "$pr_json" | jq -r '.headRefOid')
           fi
 
+          if [ -n "$base_sha" ]; then
+            echo "base=$base_sha" >> "$GITHUB_OUTPUT"
+          fi
+          if [ -n "$head_sha" ]; then
+            echo "head=$head_sha" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Collect updated pin targets
+        id: pins
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_SHA: ${{ steps.revision.outputs.base }}
+          HEAD_SHA: ${{ steps.revision.outputs.head }}
+        run: |
+          set -euo pipefail
+          base_sha="$BASE_SHA"
+          head_sha="$HEAD_SHA"
+
           if [ -z "$base_sha" ] || [ -z "$head_sha" ]; then
-            echo "Unable to resolve base/head SHA for review." >&2
+            echo "has_targets=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -88,18 +107,15 @@ jobs:
         id: newservers
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_SHA: ${{ steps.revision.outputs.base }}
+          HEAD_SHA: ${{ steps.revision.outputs.head }}
         run: |
-          base_sha="${{ github.event.pull_request.base.sha }}"
-          head_sha="${{ github.sha }}"
-
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.pull_request_number }}" ]; then
-            pr_json=$(gh pr view "${{ github.event.inputs.pull_request_number }}" --json baseRefOid,headRefOid)
-            base_sha=$(echo "$pr_json" | jq -r '.baseRefOid')
-            head_sha=$(echo "$pr_json" | jq -r '.headRefOid')
-          fi
+          set -euo pipefail
+          base_sha="$BASE_SHA"
+          head_sha="$HEAD_SHA"
 
           if [ -z "$base_sha" ] || [ -z "$head_sha" ]; then
-            echo "Unable to resolve base/head SHA for review." >&2
+            echo "has_targets=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -123,6 +139,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           gh label create "${SECURITY_BLOCK_LABEL}" \
             --color B60205 \
             --description "Security automation detected blocking issues." \
@@ -141,13 +158,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           for label in "${SECURITY_BLOCK_LABEL}" \
             "${SECURITY_RISK_LABEL_PREFIX}critical" \
             "${SECURITY_RISK_LABEL_PREFIX}high" \
             "${SECURITY_RISK_LABEL_PREFIX}medium" \
             "${SECURITY_RISK_LABEL_PREFIX}low" \
-            "${SECURITY_RISK_LABEL_PREFIX}info"
-          do
+            "${SECURITY_RISK_LABEL_PREFIX}info"; do
             gh pr edit "${{ github.event.pull_request.number }}" \
               --repo "${{ github.repository }}" \
               --remove-label "$label" || true
@@ -156,8 +173,8 @@ jobs:
       - name: Prepare review context
         if: steps.pins.outputs.has_targets == 'true' || steps.newservers.outputs.has_targets == 'true'
         run: |
-          mkdir -p /tmp/security-review/pins
-          mkdir -p /tmp/security-review/new
+          set -euo pipefail
+          mkdir -p /tmp/security-review/pins /tmp/security-review/new
 
           if [ "${{ steps.pins.outputs.has_targets }}" = "true" ]; then
             task ci -- prepare-updated-pins \
@@ -176,42 +193,56 @@ jobs:
             --new-summary "${{ steps.newservers.outputs.summary }}" \
             --output summary.md
 
-      - name: Load security review prompt
+      - name: Run security reviewer (Claude)
         if: steps.pins.outputs.has_targets == 'true' || steps.newservers.outputs.has_targets == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          BASE_SHA: ${{ steps.revision.outputs.base }}
+          HEAD_SHA: ${{ steps.revision.outputs.head }}
         run: |
-          {
-            echo 'SECURITY_REVIEW_PROMPT<<EOF'
-            cat prompts/security-review-diff.txt
-            echo 'EOF'
-          } >> "$GITHUB_ENV"
+          set -euo pipefail
+          INPUT_ROOT="${RUNNER_TEMP}/reviewer/input"
+          OUTPUT_ROOT="${RUNNER_TEMP}/reviewer/output"
+          mkdir -p "$INPUT_ROOT" "$OUTPUT_ROOT"
+          cp "${{ github.workspace }}/summary.md" "$INPUT_ROOT/summary.md"
 
-      - name: Run Claude security review
-        if: steps.pins.outputs.has_targets == 'true' || steps.newservers.outputs.has_targets == 'true'
-        id: claude
-        uses: anthropics/claude-code-action@v1
-        with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          prompt: ${{ env.SECURITY_REVIEW_PROMPT }}
-          claude_args: |
-            --add-file ${{ github.workspace }}/summary.md
-            --add-file ${{ github.workspace }}/templates/security-review-diff.md
-            --add-dir /tmp/security-review/pins
-            --add-dir /tmp/security-review/new
-            --allowed-tools "Read,Write,Bash(git:*),Bash(gh:*),Bash(mkdir)"
+          if [ -d /tmp/security-review ]; then
+            mkdir -p "$INPUT_ROOT/contexts"
+            cp -R /tmp/security-review/. "$INPUT_ROOT/contexts"
+            export REVIEW_EXTRA_ALLOWED_DIRS="/input/contexts/pins /input/contexts/new"
+          fi
+
+          pushd agents/security-reviewer >/dev/null
+          export REVIEW_INPUT_PATH="$INPUT_ROOT"
+          export REVIEW_OUTPUT_PATH_HOST="$OUTPUT_ROOT"
+          export REVIEW_SUMMARY_PATH="/input/summary.md"
+          export REVIEW_MODE="diff"
+          export REVIEW_HEAD_SHA="$HEAD_SHA"
+          export REVIEW_BASE_SHA="$BASE_SHA"
+          export REVIEW_TARGET_LABEL="PR-${{ github.event.pull_request.number || github.run_id }}"
+          export REVIEW_AGENT="claude"
+          cleanup() { docker compose down --volumes --remove-orphans || true; }
+          trap cleanup EXIT
+          docker compose up --build --abort-on-container-exit reviewer
+          popd >/dev/null
+
+          mkdir -p "${{ github.workspace }}/review-output"
+          cp "$OUTPUT_ROOT/security-review.md" "${{ github.workspace }}/review-output/security-review.md"
 
       - name: Post security review as PR comment
         if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ ! -f /tmp/security-review.md ]; then
+          set -euo pipefail
+          if [ ! -f "${{ github.workspace }}/review-output/security-review.md" ]; then
             echo "No security review report produced."
             exit 0
           fi
 
           {
-            cat /tmp/security-review.md
+            cat "${{ github.workspace }}/review-output/security-review.md"
             echo ""
             echo "<!-- automated-security-review -->"
           } > security-review-comment.md
@@ -226,7 +257,7 @@ jobs:
               -X PATCH \
               -H "Accept: application/vnd.github+json" \
               /repos/${{ github.repository }}/issues/comments/$comment_id \
-              -F body="@security-review-comment.md"
+              -F body=@security-review-comment.md
           else
             gh pr comment ${{ github.event.pull_request.number }} \
               --repo ${{ github.repository }} \

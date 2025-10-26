@@ -1,0 +1,67 @@
+services:
+  reviewer:
+    build:
+      context: .
+    image: security-reviewer:latest
+    depends_on:
+      litellm:
+        condition: service_healthy
+    environment:
+      # Note: We want Claude Code to use a bearer token when making API requests
+      # to LiteLLM, not an X-Api-Key header. If we set ANTHROPIC_API_KEY, it
+      # will use an X-Api-Key header; ANTHROPIC_AUTH_TOKEN uses a bearer token.
+      ANTHROPIC_AUTH_TOKEN: "sk-compose-clients"
+      ANTHROPIC_BASE_URL: "http://litellm:4000"
+      CLAUDE_REVIEW_MODEL: ${CLAUDE_REVIEW_MODEL:-claude-sonnet-4-5-20250929}
+      OPENAI_API_KEY: "sk-compose-clients"
+      OPENAI_BASE_URL: "http://litellm:4000"
+      CODEX_REVIEW_MODEL: ${CODEX_REVIEW_MODEL:-gpt-5-codex}
+      REVIEW_AGENT: ${REVIEW_AGENT:-claude}
+      REVIEW_MODE: ${REVIEW_MODE:?Set REVIEW_MODE in environment or .env}
+      REVIEW_HEAD_SHA: ${REVIEW_HEAD_SHA:-}
+      REVIEW_BASE_SHA: ${REVIEW_BASE_SHA:-}
+      REVIEW_TARGET_LABEL: ${REVIEW_TARGET_LABEL:-}
+      REVIEW_PROMPT_PATH: ${REVIEW_PROMPT_PATH:-/input/prompt.md}
+      REVIEW_REPOSITORY_PATH: ${REVIEW_REPOSITORY_PATH:-/input/repository}
+      REVIEW_REPORT_PATH: ${REVIEW_REPORT_PATH:-/output/report.md}
+      REVIEW_LABELS_PATH: ${REVIEW_LABELS_PATH:-/output/labels.txt}
+      REVIEW_AGENT_ALLOWED_TOOLS: ${REVIEW_AGENT_ALLOWED_TOOLS:-}
+      REVIEW_AGENT_EXTRA_ARGS: ${REVIEW_AGENT_EXTRA_ARGS:---verbose}
+      REVIEW_EXTRA_ALLOWED_DIRS: ${REVIEW_EXTRA_ALLOWED_DIRS:-}
+      REVIEW_EXTRA_ALLOWED_FILES: ${REVIEW_EXTRA_ALLOWED_FILES:-}
+    volumes:
+      - type: bind
+        source: ${REVIEW_INPUT_PATH:?Set REVIEW_INPUT_PATH to bind the repository under review}
+        target: /input
+        read_only: true
+      - type: bind
+        source: ${REVIEW_OUTPUT_PATH_HOST:?Set REVIEW_OUTPUT_PATH_HOST for report output}
+        target: /output
+    networks:
+      - internal
+
+  litellm:
+    image: ghcr.io/berriai/litellm:main-stable
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 http://localhost:4000/health/liveliness || exit 1" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - ./litellm.config.yaml:/app/config.yaml
+    networks:
+      - internal
+      - external
+    restart: unless-stopped
+
+networks:
+  internal:
+    driver: bridge
+    internal: true
+  external:
+    driver: bridge
