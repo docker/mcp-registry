@@ -4,13 +4,17 @@
 FROM golang:1.25-trixie AS gobuilder
 ENV CGO_ENABLED=0
 
+# Create and set a working directory for the code.
+RUN mkdir -p /security-reviewer
+WORKDIR /security-reviewer
+
 # Copy dependency specifications and ensure they're downloaded.
 COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy entrypoint sources and build the entrypoint
 COPY entrypoint ./entrypoint
-RUN go build -o /build/security-reviewer ./entrypoint
+RUN go build -o /security-reviewer/security-reviewer ./entrypoint
 
 
 # Use a debian image to host the agent.
@@ -48,7 +52,7 @@ RUN useradd --create-home --shell /bin/bash agent \
     && install -d -o agent -g agent /output
 
 # Copy the entrypoint and report template.
-COPY --from=gobuilder /build/security-reviewer /opt/security-reviewer/security-reviewer
+COPY --from=gobuilder /security-reviewer/security-reviewer /opt/security-reviewer/security-reviewer
 COPY --chown=agent:agent report-template.md /opt/security-reviewer/report-template.md
 
 # Set the entrypoint user and working directory.
