@@ -1,8 +1,5 @@
 # Security Review Report
 
-## Executive Summary
-[One to two paragraphs summarizing the repository's security posture.]
-
 ## Scope Summary
 - **Review Mode:** [Differential/Full]
 - **Repository:** [URL or path]
@@ -10,6 +7,9 @@
 - **Base Commit:** [SHA or N/A]
 - **Commit Range:** [base...head or single commit]
 - **Overall Risk Level:** [CRITICAL/HIGH/MEDIUM/LOW/INFO]
+
+## Executive Summary
+[One to two paragraphs summarizing the repository's security posture.]
 
 ## Detailed Findings
 ### [Finding title — severity]
