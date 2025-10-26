@@ -30,8 +30,8 @@ jobs:
       issues: write
 
     env:
-      SECURITY_BLOCK_LABEL: "security:blocked"
-      SECURITY_RISK_LABEL_PREFIX: "security:risk:"
+      SECURITY_BLOCK_LABEL: "security-blocked"
+      SECURITY_RISK_LABEL_PREFIX: "security-risk:"
 
     steps:
       - name: Checkout repository
@@ -228,7 +228,49 @@ jobs:
           popd >/dev/null
 
           mkdir -p "${{ github.workspace }}/review-output"
-          cp "$OUTPUT_ROOT/security-review.md" "${{ github.workspace }}/review-output/security-review.md"
+          if [ -f "$OUTPUT_ROOT/security-review.md" ]; then
+            cp "$OUTPUT_ROOT/security-review.md" "${{ github.workspace }}/review-output/security-review.md"
+          fi
+          if [ -f "$OUTPUT_ROOT/labels.txt" ]; then
+            cp "$OUTPUT_ROOT/labels.txt" "${{ github.workspace }}/review-output/labels.txt"
+          fi
+
+      - name: Apply security labels
+        if: steps.pins.outputs.has_targets == 'true' || steps.newservers.outputs.has_targets == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          labels_file="${{ github.workspace }}/review-output/labels.txt"
+          pr_number="${{ github.event.pull_request.number }}"
+
+          if [ -z "$pr_number" ]; then
+            echo "No pull request number available; skipping label application." >&2
+            exit 0
+          fi
+
+          if [ ! -f "$labels_file" ]; then
+            echo "Labels file not produced; skipping label application." >&2
+            exit 0
+          fi
+
+          mapfile -t labels < <(grep -Ev '^\s*$' "$labels_file" || true)
+          if [ "${#labels[@]}" -eq 0 ]; then
+            echo "Labels file empty; skipping label application." >&2
+            exit 0
+          fi
+
+          for label in "${labels[@]}"; do
+            gh label create "$label" \
+              --color 0E8A16 \
+              --description "Security automation label." \
+              --repo "${{ github.repository }}" \
+              || echo "Label $label already exists."
+
+            gh pr edit "$pr_number" \
+              --repo "${{ github.repository }}" \
+              --add-label "$label"
+          done
 
       - name: Post security review as PR comment
         if: always()

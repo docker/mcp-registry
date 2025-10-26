@@ -38,4 +38,6 @@ Labeling guidance:
 - Emit exactly one overall risk label in the form `security-risk:<level>` where
   `<level>` is one of `critical`, `high`, `medium`, `low`, or `info`.
 - Align the chosen label with the overall risk level declared in the report.
+- If you identify blocking or critical issues that must halt release, also
+  include the label `security-blocked` on a separate line.
 - Leave $LABELS_PATH empty only if the review cannot be completed.
