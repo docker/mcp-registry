@@ -1,0 +1,132 @@
+name: Security Review (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      servers:
+        description: "Comma-separated list of local server names to audit (leave blank for all)."
+        required: false
+        default: ""
+
+concurrency:
+  group: security-review-manual-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  full-audit:
+    name: Execute Full Audit
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Collect audit targets
+        run: |
+          set -euo pipefail
+          task ci -- collect-full-audit \
+            --workspace "${{ github.workspace }}" \
+            --servers "${{ github.event.inputs.servers }}" \
+            --output-json audit-targets.json
+
+          if jq -e '. | length > 0' audit-targets.json >/dev/null; then
+            echo "AUDIT_HAS_TARGETS=true" >> "$GITHUB_ENV"
+          else
+            echo "No audit targets identified; exiting." >&2
+            echo "AUDIT_HAS_TARGETS=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Run security reviewer (Claude)
+        if: env.AUDIT_HAS_TARGETS == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          agent="claude"
+
+          mkdir -p reports
+          combined_body="reports/full-audit.body"
+          combined_report="reports/full-audit-report.md"
+          combined_labels="reports/full-audit-labels.txt"
+
+          : > "$combined_body"
+          : > "$combined_labels"
+
+          while read -r target; do
+            server=$(echo "$target" | jq -r '.server')
+            project=$(echo "$target" | jq -r '.project')
+            head_commit=$(echo "$target" | jq -r '.commit')
+
+            if [ -z "$project" ] || [ "$project" = "null" ]; then
+              echo "Skipping $server: missing project URL." >&2
+              continue
+            fi
+            if [ -z "$head_commit" ] || [ "$head_commit" = "null" ]; then
+              echo "Skipping $server: missing commit information." >&2
+              continue
+            fi
+
+            report_path="reports/${server}.md"
+            labels_path="reports/${server}-labels.txt"
+
+            task security-reviewer -- \
+              --agent "$agent" \
+              --mode full \
+              --repo "$project" \
+              --head "$head_commit" \
+              --target-label "$server" \
+              --output "$report_path" \
+              --labels-output "$labels_path"
+
+            {
+              echo "## ${server}"
+              echo ""
+              cat "$report_path"
+              echo ""
+            } >> "$combined_body"
+
+            if [ -s "$labels_path" ]; then
+              cat "$labels_path" >> "$combined_labels"
+            fi
+          done < <(jq -c '.[]' audit-targets.json)
+
+          if [ -s "$combined_body" ]; then
+            {
+              echo "# Full Security Audit"
+              echo ""
+              cat "$combined_body"
+            } > "$combined_report"
+          else
+            rm -f "$combined_report"
+          fi
+          rm -f "$combined_body"
+
+          if [ -s "$combined_labels" ]; then
+            sort -u "$combined_labels" -o "$combined_labels"
+          else
+            rm -f "$combined_labels"
+          fi
+
+      - name: Upload security reports
+        if: env.AUDIT_HAS_TARGETS == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: reports/
+          if-no-files-found: warn

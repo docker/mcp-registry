@@ -1,0 +1,378 @@
+name: Security Review (Changes)
+
+on:
+  workflow_dispatch:
+    inputs:
+      pull_request_number:
+        description: "Optional pull request number to review"
+        required: false
+        default: ""
+  # pull_request:
+  #   types:
+  #     - opened
+  #     - synchronize
+  #     - reopened
+  #     - ready_for_review
+  #     - labeled
+
+concurrency:
+  group: security-review-changes-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  pr-security-review:
+    name: Pull Request Security Review
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve comparison commits
+        id: revision
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          base_sha="${{ github.event.pull_request.base.sha }}"
+          head_sha="${{ github.sha }}"
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.pull_request_number }}" ]; then
+            pr_json=$(gh pr view "${{ github.event.inputs.pull_request_number }}" --json baseRefOid,headRefOid)
+            base_sha=$(echo "$pr_json" | jq -r '.baseRefOid')
+            head_sha=$(echo "$pr_json" | jq -r '.headRefOid')
+          fi
+
+          if [ -n "$base_sha" ]; then
+            echo "base=$base_sha" >> "$GITHUB_OUTPUT"
+          fi
+          if [ -n "$head_sha" ]; then
+            echo "head=$head_sha" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Collect updated pin targets
+        id: pins
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          base_sha="${{ steps.revision.outputs.base }}"
+          head_sha="${{ steps.revision.outputs.head }}"
+
+          if [ -z "$base_sha" ] || [ -z "$head_sha" ]; then
+            echo "has_targets=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          task ci -- collect-updated-pins \
+            --base "$base_sha" \
+            --head "$head_sha" \
+            --workspace "${{ github.workspace }}" \
+            --output-json pins-context.json \
+            --summary-md pins-summary.md
+
+          if [ -s pins-context.json ]; then
+            echo "has_targets=true" >> "$GITHUB_OUTPUT"
+            echo "context=pins-context.json" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_targets=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Collect new local servers
+        id: newservers
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          base_sha="${{ steps.revision.outputs.base }}"
+          head_sha="${{ steps.revision.outputs.head }}"
+
+          if [ -z "$base_sha" ] || [ -z "$head_sha" ]; then
+            echo "has_targets=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          task ci -- collect-new-servers \
+            --base "$base_sha" \
+            --head "$head_sha" \
+            --workspace "${{ github.workspace }}" \
+            --output-json new-servers-context.json \
+            --summary-md new-servers-summary.md
+
+          if [ -s new-servers-context.json ]; then
+            echo "has_targets=true" >> "$GITHUB_OUTPUT"
+            echo "context=new-servers-context.json" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_targets=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run security reviewer (Claude)
+        if: steps.pins.outputs.has_targets == 'true' || steps.newservers.outputs.has_targets == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          agent="claude"
+
+          mkdir -p review-output
+          combined_body="review-output/security-review.body"
+          combined_report="review-output/security-review.md"
+          combined_labels="review-output/labels.txt"
+
+          : > "$combined_body"
+          : > "$combined_labels"
+
+          if [ "${{ steps.pins.outputs.has_targets }}" = "true" ]; then
+            while read -r target; do
+              server=$(echo "$target" | jq -r '.server')
+              project=$(echo "$target" | jq -r '.project')
+              base_commit=$(echo "$target" | jq -r '.old_commit')
+              head_commit=$(echo "$target" | jq -r '.new_commit')
+
+              if [ -z "$project" ] || [ "$project" = "null" ]; then
+                echo "Skipping $server: missing project URL." >&2
+                continue
+              fi
+              if [ -z "$base_commit" ] || [ "$base_commit" = "null" ] || [ -z "$head_commit" ] || [ "$head_commit" = "null" ]; then
+                echo "Skipping $server: missing commit information." >&2
+                continue
+              fi
+
+              report_path="review-output/${server}-diff.md"
+              labels_path="review-output/${server}-diff-labels.txt"
+
+              task security-reviewer -- \
+                --agent "$agent" \
+                --mode diff \
+                --repo "$project" \
+                --base "$base_commit" \
+                --head "$head_commit" \
+                --target-label "$server" \
+                --output "$report_path" \
+                --labels-output "$labels_path"
+
+              {
+                echo "## ${server} (updated pin)"
+                echo ""
+                cat "$report_path"
+                echo ""
+              } >> "$combined_body"
+
+              if [ -s "$labels_path" ]; then
+                cat "$labels_path" >> "$combined_labels"
+              fi
+            done < <(jq -c '.[]' "${{ steps.pins.outputs.context }}")
+          fi
+
+          if [ "${{ steps.newservers.outputs.has_targets }}" = "true" ]; then
+            while read -r target; do
+              server=$(echo "$target" | jq -r '.server')
+              project=$(echo "$target" | jq -r '.project')
+              head_commit=$(echo "$target" | jq -r '.commit')
+
+              if [ -z "$project" ] || [ "$project" = "null" ]; then
+                echo "Skipping $server: missing project URL." >&2
+                continue
+              fi
+              if [ -z "$head_commit" ] || [ "$head_commit" = "null" ]; then
+                echo "Skipping $server: missing commit information." >&2
+                continue
+              fi
+
+              report_path="review-output/${server}-new.md"
+              labels_path="review-output/${server}-new-labels.txt"
+
+              task security-reviewer -- \
+                --agent "$agent" \
+                --mode full \
+                --repo "$project" \
+                --head "$head_commit" \
+                --target-label "$server" \
+                --output "$report_path" \
+                --labels-output "$labels_path"
+
+              {
+                echo "## ${server} (new server)"
+                echo ""
+                cat "$report_path"
+                echo ""
+              } >> "$combined_body"
+
+              if [ -s "$labels_path" ]; then
+                cat "$labels_path" >> "$combined_labels"
+              fi
+            done < <(jq -c '.[]' "${{ steps.newservers.outputs.context }}")
+          fi
+
+          summary_tmp="review-output/change-summary.body"
+          : > "$summary_tmp"
+          if [ -s pins-summary.md ]; then
+            {
+              echo "## Updated Commit Pins"
+              echo ""
+              cat pins-summary.md
+              echo ""
+            } >> "$summary_tmp"
+          fi
+          if [ -s new-servers-summary.md ]; then
+            {
+              echo "## New Local Servers"
+              echo ""
+              cat new-servers-summary.md
+              echo ""
+            } >> "$summary_tmp"
+          fi
+
+          if [ -s "$combined_body" ] || [ -s "$summary_tmp" ]; then
+            {
+              if [ -s "$summary_tmp" ]; then
+                echo "# Security Review Targets"
+                echo ""
+                cat "$summary_tmp"
+                echo ""
+              fi
+              if [ -s "$combined_body" ]; then
+                echo "# Automated Security Review"
+                echo ""
+                cat "$combined_body"
+              fi
+            } > "$combined_report"
+          else
+            rm -f "$combined_report"
+          fi
+          rm -f "$combined_body" "$summary_tmp"
+
+          if [ -s "$combined_labels" ]; then
+            sort -u "$combined_labels" -o "$combined_labels"
+          else
+            rm -f "$combined_labels"
+          fi
+
+      - name: Apply security labels
+        if: steps.pins.outputs.has_targets == 'true' || steps.newservers.outputs.has_targets == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          labels_file="${{ github.workspace }}/review-output/labels.txt"
+          pr_number="${{ github.event.pull_request.number }}"
+          repo="${{ github.repository }}"
+          standard_labels=(security-blocked security-risk:critical security-risk:high security-risk:medium security-risk:low security-risk:info)
+
+          if [ -z "$pr_number" ]; then
+            echo "No pull request number available; skipping label application." >&2
+            exit 0
+          fi
+
+          for label in "${standard_labels[@]}"; do
+            gh pr edit "$pr_number" --repo "$repo" --remove-label "$label" || true
+          done
+
+          if [ ! -f "$labels_file" ] || ! grep -qEv '^\s*$' "$labels_file"; then
+            echo "Labels file absent or empty; no labels applied." >&2
+            exit 0
+          fi
+
+          mapfile -t labels < <(grep -Ev '^\s*$' "$labels_file" | sort -u)
+
+          blocked=false
+          highest=""
+          for label in "${labels[@]}"; do
+            if [ "$label" = "security-blocked" ]; then
+              blocked=true
+            fi
+          done
+
+          for severity in critical high medium low info; do
+            candidate="security-risk:${severity}"
+            for label in "${labels[@]}"; do
+              if [ "$label" = "$candidate" ]; then
+                highest="$candidate"
+                break 2
+              fi
+            done
+          done
+
+          final_labels=()
+          if [ "$blocked" = true ]; then
+            final_labels+=("security-blocked")
+          fi
+          if [ -n "$highest" ]; then
+            final_labels+=("$highest")
+          fi
+
+          if [ "${#final_labels[@]}" -eq 0 ]; then
+            echo "No recognized labels to apply." >&2
+            exit 0
+          fi
+
+          for label in "${final_labels[@]}"; do
+            if [ "$label" = "security-blocked" ]; then
+              gh label create "$label" \
+                --color B60205 \
+                --description "Security automation detected blocking issues." \
+                --repo "$repo" \
+                || echo "Label $label already exists."
+            else
+              gh label create "$label" \
+                --color 0E8A16 \
+                --description "Security automation risk assessment." \
+                --repo "$repo" \
+                || echo "Label $label already exists."
+            fi
+
+            gh pr edit "$pr_number" --repo "$repo" --add-label "$label"
+          done
+
+      - name: Post security review as PR comment
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ ! -f "${{ github.workspace }}/review-output/security-review.md" ]; then
+            echo "No security review report produced."
+            exit 0
+          fi
+
+          {
+            cat "${{ github.workspace }}/review-output/security-review.md"
+            echo ""
+            echo "<!-- automated-security-review -->"
+          } > security-review-comment.md
+
+          comment_id=$(gh api \
+            repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
+            --jq '.[] | select(.body | contains("<!-- automated-security-review -->")) | .id' \
+            || true)
+
+          if [ -n "$comment_id" ]; then
+            gh api \
+              -X PATCH \
+              -H "Accept: application/vnd.github+json" \
+              /repos/${{ github.repository }}/issues/comments/$comment_id \
+              -F body=@security-review-comment.md
+          else
+            gh pr comment ${{ github.event.pull_request.number }} \
+              --repo ${{ github.repository }} \
+              --body-file security-review-comment.md
+          fi
