@@ -34,22 +34,10 @@ const (
 	agentNameCodex  = "codex"
 )
 
-// ReviewMode enumerates supported security review modes.
-type ReviewMode string
-
-const (
-	// ReviewModeFull requests a full repository audit.
-	ReviewModeFull ReviewMode = "full"
-	// ReviewModeDiff requests a differential audit between two commits.
-	ReviewModeDiff ReviewMode = "diff"
-)
-
 // options stores parsed CLI arguments.
 type options struct {
 	// Agent selects the underlying reviewer agent implementation.
 	Agent string
-	// Mode is the requested review mode to execute.
-	Mode ReviewMode
 	// Repository is the Git repository URL or filesystem path.
 	Repository string
 	// HeadSHA is the commit under audit.
@@ -72,7 +60,6 @@ type options struct {
 
 var (
 	flagAgent       string
-	flagMode        string
 	flagRepo        string
 	flagHead        string
 	flagBase        string
@@ -96,20 +83,6 @@ var rootCmd = &cobra.Command{
 			return fmt.Errorf("invalid agent %q (supported: %s, %s)", flagAgent, agentNameClaude, agentNameCodex)
 		}
 
-		modeValue := strings.ToLower(strings.TrimSpace(flagMode))
-		if modeValue == "" {
-			modeValue = string(ReviewModeDiff)
-		}
-		var mode ReviewMode
-		switch modeValue {
-		case string(ReviewModeDiff):
-			mode = ReviewModeDiff
-		case string(ReviewModeFull):
-			mode = ReviewModeFull
-		default:
-			return fmt.Errorf("unknown review mode %q (supported: %s, %s)", flagMode, ReviewModeDiff, ReviewModeFull)
-		}
-
 		labelsOutput := strings.TrimSpace(flagLabels)
 		if labelsOutput == "" {
 			labelsOutput = deriveDefaultLabelsPath(flagOutput)
@@ -117,7 +90,6 @@ var rootCmd = &cobra.Command{
 
 		opts := options{
 			Agent:        agent,
-			Mode:         mode,
 			Repository:   strings.TrimSpace(flagRepo),
 			HeadSHA:      strings.TrimSpace(flagHead),
 			BaseSHA:      strings.TrimSpace(flagBase),
@@ -135,10 +107,6 @@ var rootCmd = &cobra.Command{
 		if opts.HeadSHA == "" {
 			return errors.New("--head is required")
 		}
-		if opts.Mode == ReviewModeDiff && opts.BaseSHA == "" {
-			return errors.New("--base is required when mode=diff")
-		}
-
 		ctx := cmd.Context()
 		return run(ctx, opts)
 	},
@@ -146,7 +114,6 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.Flags().StringVar(&flagAgent, "agent", agentNameClaude, "Reviewer agent to use (claude or codex).")
-	rootCmd.Flags().StringVar(&flagMode, "mode", string(ReviewModeDiff), "Review mode: diff or full.")
 	rootCmd.Flags().StringVar(&flagRepo, "repo", "", "Git repository URL or local path to review.")
 	rootCmd.Flags().StringVar(&flagHead, "head", "", "Head commit SHA to review.")
 	rootCmd.Flags().StringVar(&flagBase, "base", "", "Base commit SHA for differential reviews.")
@@ -173,6 +140,23 @@ func main() {
 
 // run coordinates workspace preparation, compose execution, and cleanup.
 func run(ctx context.Context, opts options) error {
+	if opts.BaseSHA != "" {
+		fmt.Printf(
+			"Starting differential security review (agent=%s head=%s base=%s target=%s)\n",
+			opts.Agent,
+			opts.HeadSHA,
+			opts.BaseSHA,
+			opts.TargetLabel,
+		)
+	} else {
+		fmt.Printf(
+			"Starting full security review (agent=%s head=%s target=%s)\n",
+			opts.Agent,
+			opts.HeadSHA,
+			opts.TargetLabel,
+		)
+	}
+
 	// Make sure LiteLLM can authenticate before we stage any work.
 	switch opts.Agent {
 	case "claude":
@@ -287,7 +271,7 @@ func prepareRepository(ctx context.Context, opts options, repositoryDir string) 
 		return fmt.Errorf("checkout head commit: %w", err)
 	}
 
-	if opts.Mode == ReviewModeDiff {
+	if opts.BaseSHA != "" {
 		if err := ensureCommit(ctx, repositoryDir, opts.BaseSHA); err != nil {
 			return err
 		}
@@ -370,7 +354,6 @@ func buildComposeEnv(opts options, repositoryDir, outputDir string) []string {
 	env = append(env,
 		fmt.Sprintf("COMPOSE_PROJECT_NAME=%s", projectName),
 		fmt.Sprintf("REVIEW_AGENT=%s", opts.Agent),
-		fmt.Sprintf("REVIEW_MODE=%s", opts.Mode),
 		fmt.Sprintf("REVIEW_HEAD_SHA=%s", opts.HeadSHA),
 		fmt.Sprintf("REVIEW_BASE_SHA=%s", opts.BaseSHA),
 		fmt.Sprintf("REVIEW_TARGET_LABEL=%s", opts.TargetLabel),

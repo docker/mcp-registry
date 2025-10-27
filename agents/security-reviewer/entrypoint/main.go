@@ -38,8 +38,8 @@ type ReviewMode string
 const (
 	// ReviewModeFull requests a full repository audit.
 	ReviewModeFull ReviewMode = "full"
-	// ReviewModeDiff requests a differential review between two commits.
-	ReviewModeDiff ReviewMode = "diff"
+	// ReviewModeDifferential requests a differential review between two commits.
+	ReviewModeDifferential ReviewMode = "differential"
 )
 
 // agentInvocation captures execution hints per reviewer agent.
@@ -99,17 +99,7 @@ func main() {
 // run orchestrates prompt generation and agent execution.
 func run(ctx context.Context) error {
 	// Parse review configuration from the environment.
-	modeRaw, err := fetchEnv("REVIEW_MODE", true)
-	if err != nil {
-		return err
-	}
-	mode, err := normalizeMode(modeRaw)
-	if err != nil {
-		return err
-	}
-
-	requireHead := mode != ReviewModeFull
-	headSHA, err := fetchEnv("REVIEW_HEAD_SHA", requireHead)
+	headSHA, err := fetchEnv("REVIEW_HEAD_SHA", true)
 	if err != nil {
 		return err
 	}
@@ -117,8 +107,10 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if mode == ReviewModeDiff && baseSHA == "" {
-		return errors.New("REVIEW_BASE_SHA is required when REVIEW_MODE=diff")
+
+	mode := ReviewModeFull
+	if baseSHA != "" {
+		mode = ReviewModeDifferential
 	}
 
 	targetLabel, err := fetchEnv("REVIEW_TARGET_LABEL", false)
@@ -274,18 +266,6 @@ func ensureLabelsFile(path string) error {
 	return fmt.Errorf("stat labels file %s: %w", path, err)
 }
 
-// normalizeMode converts raw user input into a canonical ReviewMode value.
-func normalizeMode(raw string) (ReviewMode, error) {
-	switch strings.ToLower(strings.TrimSpace(raw)) {
-	case string(ReviewModeDiff), "differential":
-		return ReviewModeDiff, nil
-	case string(ReviewModeFull):
-		return ReviewModeFull, nil
-	default:
-		return "", fmt.Errorf("invalid review mode: %s", raw)
-	}
-}
-
 // runAgent executes the reviewer agent command and captures output streams.
 func runAgent(ctx context.Context, agent reviewerAgent, inv agentInvocation) (string, string, error) {
 	cmd, err := agent.BuildCommand(ctx, inv)
@@ -317,7 +297,7 @@ func buildPromptContent(mode ReviewMode, targetLabel, headSHA, baseSHA string) (
 	}
 	displayBase := "Not applicable"
 	commitRange := "Not applicable"
-	if mode == ReviewModeDiff {
+	if mode == ReviewModeDifferential {
 		cleanBase := strings.TrimSpace(baseSHA)
 		cleanHead := strings.TrimSpace(headSHA)
 		if cleanBase == "" {
@@ -368,7 +348,7 @@ func renderPrompt(ph promptPlaceholders) (string, error) {
 
 // gitDiffHint conveys how the agent should inspect the repository state.
 func gitDiffHint(mode ReviewMode, baseSHA, headSHA string) string {
-	if mode == ReviewModeDiff {
+	if mode == ReviewModeDifferential {
 		cleanBase := strings.TrimSpace(baseSHA)
 		cleanHead := strings.TrimSpace(headSHA)
 		if cleanBase == "" || cleanHead == "" {
@@ -382,7 +362,7 @@ func gitDiffHint(mode ReviewMode, baseSHA, headSHA string) string {
 // modeLabel converts a review mode to a user friendly label.
 func modeLabel(mode ReviewMode) string {
 	switch mode {
-	case ReviewModeDiff:
+	case ReviewModeDifferential:
 		return "Differential"
 	case ReviewModeFull:
 		return "Full"
@@ -394,7 +374,7 @@ func modeLabel(mode ReviewMode) string {
 // modeSummary explains the responsibilities associated with a review mode.
 func modeSummary(mode ReviewMode) string {
 	switch mode {
-	case ReviewModeDiff:
+	case ReviewModeDifferential:
 		return "You are reviewing the changes introduced between the base and head commits. Prioritize spotting deliberately malicious additions alongside accidental vulnerabilities."
 	case ReviewModeFull:
 		return "You are auditing the repository snapshot at the provided head commit. Assume attackers may have hidden malicious logic and hunt for both intentional and accidental risks."
