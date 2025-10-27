@@ -16,7 +16,7 @@ import (
 
 const (
 	defaultListenAddr       = ":4000"
-	defaultOpenAIBaseURL    = "https://api.openai.com"
+	defaultOpenAIBaseURL    = "https://api.openai.com/v1"
 	defaultAnthropicBaseURL = "https://api.anthropic.com"
 	openAIInboundPrefix     = "/openai/"
 	anthropicInboundPrefix  = "/anthropic/"
@@ -129,8 +129,10 @@ func buildProviderHandler(provider providerProxy, clientToken string) http.Handl
 	proxy := httputil.NewSingleHostReverseProxy(provider.Target)
 	originalDirector := proxy.Director
 	proxy.Director = func(req *http.Request) {
+		inboundPath := req.URL.Path
+		inboundRawPath := req.URL.RawPath
 		originalDirector(req)
-		rewriteRequest(req, provider)
+		rewriteRequest(req, inboundPath, inboundRawPath, provider)
 	}
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
 		log.Printf("proxy error [%s]: %v", provider.DisplayName, err)
@@ -158,21 +160,32 @@ func buildProviderHandler(provider providerProxy, clientToken string) http.Handl
 }
 
 // rewriteRequest adjusts the outbound request before it is sent upstream.
-func rewriteRequest(req *http.Request, provider providerProxy) {
+func rewriteRequest(req *http.Request, inboundPath, inboundRawPath string, provider providerProxy) {
 	req.URL.Scheme = provider.Target.Scheme
 	req.URL.Host = provider.Target.Host
 	req.Host = provider.Target.Host
 
-	// Strip the provider prefix from the incoming path.
-	trimmedPath := strings.TrimPrefix(req.URL.Path, provider.Prefix)
-	if !strings.HasPrefix(trimmedPath, "/") {
-		trimmedPath = "/" + trimmedPath
+	trimmedPath := strings.TrimPrefix(inboundPath, provider.Prefix)
+	if trimmedPath == inboundPath {
+		trimmedPath = ""
 	}
 
-	// Combine the target's base path with the trimmed path.
 	basePath := provider.Target.Path
-	req.URL.Path = joinURLPath(basePath, trimmedPath)
-	req.URL.RawPath = req.URL.EscapedPath()
+	extraPath := singleLeadingSlash(trimmedPath)
+	req.URL.Path = joinURLPath(basePath, extraPath)
+
+	trimmedRaw := ""
+	if inboundRawPath != "" {
+		trimmedRaw = strings.TrimPrefix(inboundRawPath, provider.Prefix)
+		if trimmedRaw == inboundRawPath {
+			trimmedRaw = ""
+		}
+	}
+	if trimmedRaw != "" {
+		req.URL.RawPath = joinURLPath(basePath, singleLeadingSlash(trimmedRaw))
+	} else {
+		req.URL.RawPath = req.URL.Path
+	}
 
 	stripSensitiveHeaders(req.Header)
 

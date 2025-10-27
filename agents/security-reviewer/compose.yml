@@ -44,7 +44,10 @@ services:
     image: security-reviewer-proxy:latest
     environment:
       PROXY_LISTEN_ADDR: ":4000"
-      PROXY_OPENAI_BASE_URL: ${PROXY_OPENAI_BASE_URL:-https://api.openai.com}
+      PROXY_OPENAI_BASE_URL: ${PROXY_OPENAI_BASE_URL:-https://api.openai.com/v1}
+      # NOTE: Anthropic clients such as Claude Code will implicitly include a
+      # /v1 component in their request URLs, so if you override this environment
+      # variable, be sure not to include a /v1 path component.
       PROXY_ANTHROPIC_BASE_URL: ${PROXY_ANTHROPIC_BASE_URL:-https://api.anthropic.com}
       PROXY_API_KEY: "sk-compose-clients"
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
