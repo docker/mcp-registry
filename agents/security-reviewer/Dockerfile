@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-# Use a golang image to build the agent entrypoint (with cgo disabled).
+# Use a golang image to build the reviewer and proxy binaries (with cgo disabled).
 FROM golang:1.25-trixie AS gobuilder
 ENV CGO_ENABLED=0
 
@@ -12,13 +12,16 @@ WORKDIR /security-reviewer
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy entrypoint sources and build the entrypoint
-COPY entrypoint ./entrypoint
-RUN go build -o /security-reviewer/security-reviewer ./entrypoint
+# Copy reviewer and proxy sources, then build both binaries.
+COPY reviewer ./reviewer
+COPY proxy ./proxy
+RUN mkdir -p /security-reviewer/build
+RUN go build -o /security-reviewer/build/reviewer ./reviewer
+RUN go build -o /security-reviewer/build/proxy ./proxy
 
 
 # Use a debian image to host the agent.
-FROM debian:trixie-slim
+FROM debian:trixie-slim AS reviewer-image
 
 # Set up configuration.
 ARG CLAUDE_CODE_VERSION=latest
@@ -51,14 +54,30 @@ RUN useradd --create-home --shell /bin/bash agent \
     && install -d -o agent -g agent /workspace/input \
     && install -d -o agent -g agent /workspace/output
 
-# Copy the entrypoint and report template.
-COPY --from=gobuilder /security-reviewer/security-reviewer /opt/security-reviewer/security-reviewer
+# Copy the reviewer assets and report template.
+COPY --from=gobuilder /security-reviewer/build/reviewer /opt/security-reviewer/reviewer
 COPY --chown=agent:agent prompt-template.md /opt/security-reviewer/prompt-template.md
 COPY --chown=agent:agent report-template.md /opt/security-reviewer/report-template.md
 
-# Set the entrypoint user and working directory.
+# Set the reviewer user and working directory.
 USER agent
 WORKDIR /workspace
 
-# Set the entrypoint.
-ENTRYPOINT ["/opt/security-reviewer/security-reviewer"]
+# Set the reviewer entrypoint.
+ENTRYPOINT ["/opt/security-reviewer/reviewer"]
+
+
+# Lightweight image hosting the API proxy.
+FROM debian:trixie-slim AS proxy-image
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        wget \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=gobuilder /security-reviewer/build/proxy /opt/security-reviewer/proxy
+
+EXPOSE 4000
+ENTRYPOINT ["/opt/security-reviewer/proxy"]

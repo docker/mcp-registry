@@ -157,7 +157,7 @@ func run(ctx context.Context, opts options) error {
 		)
 	}
 
-	// Make sure LiteLLM can authenticate before we stage any work.
+	// Ensure the credential proxy has the API keys it needs before staging work.
 	switch opts.Agent {
 	case "claude":
 		if _, ok := os.LookupEnv(envAnthropicAPIKey); !ok {

@@ -2,19 +2,21 @@ services:
   reviewer:
     build:
       context: .
+      target: reviewer-image
     image: security-reviewer:latest
     depends_on:
-      litellm:
+      proxy:
         condition: service_healthy
     environment:
+      # Configure the reviewer CLIs to authenticate against the local proxy.
       # Note: We want Claude Code to use a bearer token when making API requests
-      # to LiteLLM, not an X-Api-Key header. If we set ANTHROPIC_API_KEY, it
+      # to the proxy, not an X-Api-Key header. If we set ANTHROPIC_API_KEY, it
       # will use an X-Api-Key header; ANTHROPIC_AUTH_TOKEN uses a bearer token.
       ANTHROPIC_AUTH_TOKEN: "sk-compose-clients"
-      ANTHROPIC_BASE_URL: "http://litellm:4000"
+      ANTHROPIC_BASE_URL: "http://proxy:4000/anthropic"
       CLAUDE_REVIEW_MODEL: ${CLAUDE_REVIEW_MODEL:-claude-sonnet-4-5-20250929}
       OPENAI_API_KEY: "sk-compose-clients"
-      OPENAI_BASE_URL: "http://litellm:4000"
+      OPENAI_BASE_URL: "http://proxy:4000/openai"
       CODEX_REVIEW_MODEL: ${CODEX_REVIEW_MODEL:-gpt-5-codex}
       REVIEW_AGENT: ${REVIEW_AGENT:-claude}
       REVIEW_HEAD_SHA: ${REVIEW_HEAD_SHA:-}
@@ -32,20 +34,24 @@ services:
     networks:
       - internal
 
-  litellm:
-    image: ghcr.io/berriai/litellm:main-stable
-    command: ["--config", "/app/config.yaml", "--port", "4000"]
+  proxy:
+    build:
+      context: .
+      target: proxy-image
+    image: security-reviewer-proxy:latest
     environment:
+      PROXY_LISTEN_ADDR: ":4000"
+      PROXY_OPENAI_BASE_URL: ${PROXY_OPENAI_BASE_URL:-https://api.openai.com}
+      PROXY_ANTHROPIC_BASE_URL: ${PROXY_ANTHROPIC_BASE_URL:-https://api.anthropic.com}
+      PROXY_API_KEY: "sk-compose-clients"
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     healthcheck:
-      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 http://localhost:4000/health/liveliness || exit 1" ]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 http://localhost:4000/health/liveliness || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 5
       start_period: 5s
-    volumes:
-      - ./litellm.config.yaml:/app/config.yaml
     networks:
       - internal
       - external
