@@ -29,7 +29,9 @@ Mode-specific focus:
   secrets handling, dependency risk, and opportunities for escalation.
 
 Report expectations:
-- Structure your findings using `/opt/security-reviewer/report-template.md`.
+- Reproduce every heading, section order, and field exactly as written in
+  `/opt/security-reviewer/report-template.md`; replace bracketed placeholders
+  with concrete content but do not add or remove sections.
 - Save the final report to $REPORT_PATH.
 - Articulate severity, impact, evidence, and remediation for each issue.
 

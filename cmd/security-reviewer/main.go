@@ -17,20 +17,15 @@ import (
 )
 
 const (
-	composeFileName         = "compose.yml"
-	promptFileName          = "prompt.md"
-	reportFileName          = "report.md"
-	labelsFileName          = "labels.txt"
-	repositoryDirName       = "repository"
-	dockerExecutable        = "docker"
-	gitExecutable           = "git"
-	projectPrefix           = "security-reviewer"
-	agentService            = "reviewer"
-	composeRelativePath     = "agents/security-reviewer"
-	containerPromptPath     = "/input/prompt.md"
-	containerRepositoryPath = "/input/repository"
-	containerReportPath     = "/output/report.md"
-	containerLabelsPath     = "/output/labels.txt"
+	composeFileName     = "compose.yml"
+	reportFileName      = "report.md"
+	labelsFileName      = "labels.txt"
+	repositoryDirName   = "repository"
+	dockerExecutable    = "docker"
+	gitExecutable       = "git"
+	projectPrefix       = "security-reviewer"
+	agentService        = "reviewer"
+	composeRelativePath = "agents/security-reviewer"
 
 	envAnthropicAPIKey = "ANTHROPIC_API_KEY"
 	envOpenAIAPIKey    = "OPENAI_API_KEY"
@@ -69,8 +64,6 @@ type options struct {
 	LabelsOutput string
 	// Model optionally overrides the reviewer model selection.
 	Model string
-	// AllowedTools optionally overrides the set of allowed tools.
-	AllowedTools string
 	// ExtraArgs optionally appends raw arguments to the agent CLI.
 	ExtraArgs string
 	// KeepWorkdir preserves the temporary workspace when true.
@@ -87,7 +80,6 @@ var (
 	flagOutput      string
 	flagLabels      string
 	flagModel       string
-	flagAllowed     string
 	flagExtraArgs   string
 	flagKeepWorkdir bool
 )
@@ -133,7 +125,6 @@ var rootCmd = &cobra.Command{
 			OutputPath:   flagOutput,
 			LabelsOutput: labelsOutput,
 			Model:        strings.TrimSpace(flagModel),
-			AllowedTools: strings.TrimSpace(flagAllowed),
 			ExtraArgs:    strings.TrimSpace(flagExtraArgs),
 			KeepWorkdir:  flagKeepWorkdir,
 		}
@@ -163,7 +154,6 @@ func init() {
 	rootCmd.Flags().StringVar(&flagOutput, "output", "security-review.md", "Destination for the rendered report.")
 	rootCmd.Flags().StringVar(&flagLabels, "labels-output", "", "Destination for the labels file (defaults alongside the report).")
 	rootCmd.Flags().StringVar(&flagModel, "model", "", "Override the reviewer model for the selected agent.")
-	rootCmd.Flags().StringVar(&flagAllowed, "allowed-tools", "", "Override the allowed tool list for the reviewer agent.")
 	rootCmd.Flags().StringVar(&flagExtraArgs, "extra-args", "", "Additional arguments passed to the reviewer agent.")
 	rootCmd.Flags().BoolVar(&flagKeepWorkdir, "keep-workdir", false, "Keep the temporary workspace after completion.")
 
@@ -207,30 +197,19 @@ func run(ctx context.Context, opts options) error {
 		fmt.Printf("Temporary workspace preserved at %s\n", workdir)
 	}
 
-	// Create standard input and output directories for the container mounts.
-	inputDir := filepath.Join(workdir, "input")
-	outputDir := filepath.Join(workdir, "output")
-	if err = os.MkdirAll(inputDir, 0o755); err != nil {
-		return fmt.Errorf("create input directory: %w", err)
-	}
-	if err = os.MkdirAll(outputDir, 0o755); err != nil {
-		return fmt.Errorf("create output directory: %w", err)
-	}
-
 	// Materialize the repository commits required for the review.
-	repositoryDir := filepath.Join(inputDir, repositoryDirName)
+	repositoryDir := filepath.Join(workdir, repositoryDirName)
 	if err = prepareRepository(ctx, opts, repositoryDir); err != nil {
 		return err
 	}
 
-	// Render the prompt template specific to this review.
-	promptPath := filepath.Join(inputDir, promptFileName)
-	if err = renderPrompt(opts, promptPath); err != nil {
-		return err
+	outputDir := filepath.Join(workdir, "output")
+	if err = os.MkdirAll(outputDir, 0o755); err != nil {
+		return fmt.Errorf("create output directory: %w", err)
 	}
 
 	// Launch the compose project and wait for the reviewer to finish.
-	if err = runCompose(ctx, opts, workdir, inputDir, outputDir); err != nil {
+	if err = runCompose(ctx, opts, workdir, repositoryDir, outputDir); err != nil {
 		return err
 	}
 
@@ -256,19 +235,6 @@ func run(ctx context.Context, opts options) error {
 	return nil
 }
 
-// parseFlags parses and validates CLI arguments.
-// normalizeMode returns a canonical ReviewMode value.
-func normalizeMode(raw string) (ReviewMode, error) {
-	switch strings.ToLower(strings.TrimSpace(raw)) {
-	case string(ReviewModeDiff), "differential":
-		return ReviewModeDiff, nil
-	case string(ReviewModeFull):
-		return ReviewModeFull, nil
-	default:
-		return "", fmt.Errorf("invalid review mode: %s", raw)
-	}
-}
-
 // deriveDefaultLabelsPath produces a labels output path near the report path.
 func deriveDefaultLabelsPath(reportPath string) string {
 	reportPath = strings.TrimSpace(reportPath)
@@ -285,30 +251,6 @@ func deriveDefaultLabelsPath(reportPath string) string {
 		base = "security-review"
 	}
 	return filepath.Join(dir, base+"-labels.txt")
-}
-
-// modeLabel returns a human readable label for the selected review mode.
-func modeLabel(mode ReviewMode) string {
-	switch mode {
-	case ReviewModeDiff:
-		return "Differential"
-	case ReviewModeFull:
-		return "Full"
-	default:
-		return "Unknown"
-	}
-}
-
-// modeSummary returns a short explanation of the review mode.
-func modeSummary(mode ReviewMode) string {
-	switch mode {
-	case ReviewModeDiff:
-		return "You are reviewing the changes introduced between the base and head commits. Prioritize spotting deliberately malicious additions alongside accidental vulnerabilities."
-	case ReviewModeFull:
-		return "You are auditing the repository snapshot at the provided head commit. Assume attackers may have hidden malicious logic and hunt for both intentional and accidental risks."
-	default:
-		return "The review mode is unknown."
-	}
 }
 
 // sanitizeName converts arbitrary text into a slug.
@@ -354,48 +296,6 @@ func prepareRepository(ctx context.Context, opts options, repositoryDir string) 
 	return nil
 }
 
-// renderPrompt generates the review prompt rendered with scope details.
-func renderPrompt(opts options, promptPath string) error {
-	templatePath := filepath.Join(composeRelativePath, promptFileName)
-	data, err := os.ReadFile(templatePath)
-	if err != nil {
-		return fmt.Errorf("read prompt template: %w", err)
-	}
-	targetLabel := opts.TargetLabel
-	if strings.TrimSpace(targetLabel) == "" {
-		targetLabel = "Not provided"
-	}
-	headCommit := opts.HeadSHA
-	if strings.TrimSpace(headCommit) == "" {
-		headCommit = "Not provided"
-	}
-	baseCommit := "Not applicable"
-	commitRange := "Not applicable"
-	gitDiffHint := "Audit the entire working tree at the head commit."
-	if opts.Mode == ReviewModeDiff {
-		baseCommit = opts.BaseSHA
-		if strings.TrimSpace(baseCommit) == "" {
-			baseCommit = "Not provided"
-		}
-		commitRange = fmt.Sprintf("%s...%s", opts.BaseSHA, opts.HeadSHA)
-		gitDiffHint = fmt.Sprintf("Run `git diff %s...%s` (and related commands) inside %s to inspect the change set.", opts.BaseSHA, opts.HeadSHA, containerRepositoryPath)
-	}
-	replacer := strings.NewReplacer(
-		"$MODE_LABEL", modeLabel(opts.Mode),
-		"$MODE_SUMMARY", modeSummary(opts.Mode),
-		"$TARGET_LABEL", targetLabel,
-		"$REPOSITORY_PATH", containerRepositoryPath,
-		"$HEAD_COMMIT", headCommit,
-		"$BASE_COMMIT", baseCommit,
-		"$COMMIT_RANGE", commitRange,
-		"$GIT_DIFF_HINT", gitDiffHint,
-		"$REPORT_PATH", containerReportPath,
-		"$LABELS_PATH", containerLabelsPath,
-	)
-	prompt := replacer.Replace(string(data))
-	return os.WriteFile(promptPath, []byte(prompt), 0o644)
-}
-
 // ensureCommit verifies that a commit exists locally, fetching if needed.
 func ensureCommit(ctx context.Context, repoDir, sha string) error {
 	if sha == "" {
@@ -426,14 +326,14 @@ func copyFile(src, dst string) error {
 }
 
 // runCompose executes the docker compose workflow for the review.
-func runCompose(ctx context.Context, opts options, workdir, inputDir, outputDir string) error {
+func runCompose(ctx context.Context, opts options, workdir, repositoryDir, outputDir string) error {
 	// Compose assumes relative paths, so stage a copy inside the temp workspace.
 	composeDir := filepath.Join(workdir, composeRelativePath)
 	if err := copyDir(composeRelativePath, composeDir); err != nil {
 		return err
 	}
 
-	env := buildComposeEnv(opts, inputDir, outputDir)
+	env := buildComposeEnv(opts, repositoryDir, outputDir)
 	up := exec.CommandContext(ctx, dockerExecutable, "compose", "-f", composeFileName, "up", "--build", "--abort-on-container-exit", "--exit-code-from", agentService)
 	up.Dir = composeDir
 	up.Env = env
@@ -455,7 +355,7 @@ func runCompose(ctx context.Context, opts options, workdir, inputDir, outputDir 
 }
 
 // buildComposeEnv prepares environment variables for docker compose.
-func buildComposeEnv(opts options, inputDir, outputDir string) []string {
+func buildComposeEnv(opts options, repositoryDir, outputDir string) []string {
 	env := os.Environ()
 	// Generate a stable slug to keep compose project names readable.
 	slug := sanitizeName(opts.TargetLabel)
@@ -474,12 +374,8 @@ func buildComposeEnv(opts options, inputDir, outputDir string) []string {
 		fmt.Sprintf("REVIEW_HEAD_SHA=%s", opts.HeadSHA),
 		fmt.Sprintf("REVIEW_BASE_SHA=%s", opts.BaseSHA),
 		fmt.Sprintf("REVIEW_TARGET_LABEL=%s", opts.TargetLabel),
-		fmt.Sprintf("REVIEW_PROMPT_PATH=%s", containerPromptPath),
-		fmt.Sprintf("REVIEW_REPOSITORY_PATH=%s", containerRepositoryPath),
-		fmt.Sprintf("REVIEW_REPORT_PATH=%s", containerReportPath),
-		fmt.Sprintf("REVIEW_LABELS_PATH=%s", containerLabelsPath),
-		fmt.Sprintf("REVIEW_INPUT_PATH=%s", inputDir),
-		fmt.Sprintf("REVIEW_OUTPUT_PATH_HOST=%s", outputDir),
+		fmt.Sprintf("REVIEW_REPOSITORY_PATH=%s", repositoryDir),
+		fmt.Sprintf("REVIEW_OUTPUT_PATH=%s", outputDir),
 	)
 	if opts.Model != "" {
 		// Route custom models to the right environment variable per agent.
@@ -489,9 +385,6 @@ func buildComposeEnv(opts options, inputDir, outputDir string) []string {
 		case agentNameCodex:
 			env = append(env, fmt.Sprintf("CODEX_REVIEW_MODEL=%s", opts.Model))
 		}
-	}
-	if opts.AllowedTools != "" {
-		env = append(env, fmt.Sprintf("REVIEW_AGENT_ALLOWED_TOOLS=%s", opts.AllowedTools))
 	}
 	if opts.ExtraArgs != "" {
 		env = append(env, fmt.Sprintf("REVIEW_AGENT_EXTRA_ARGS=%s", opts.ExtraArgs))

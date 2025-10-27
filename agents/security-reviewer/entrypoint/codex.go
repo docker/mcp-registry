@@ -10,20 +10,24 @@ import (
 // codexAgent implements reviewerAgent for the OpenAI Codex CLI.
 type codexAgent struct{}
 
+// Name returns the stable identifier for the Codex agent implementation.
 func (codexAgent) Name() string {
 	return agentNameCodex
 }
 
+// ModelEnvVar exposes the environment variable used to override Codex models.
 func (codexAgent) ModelEnvVar() string {
 	// Codex shells read from CODEX_REVIEW_MODEL when provided.
 	return "CODEX_REVIEW_MODEL"
 }
 
+// DefaultAllowedTools returns the default tool allowlist for Codex.
 func (codexAgent) DefaultAllowedTools() string {
 	// Codex manages tool permissions internally, so we default to an empty allowlist.
 	return ""
 }
 
+// BuildCommand constructs the Codex CLI invocation for a review run.
 func (codexAgent) BuildCommand(ctx context.Context, inv agentInvocation) (*exec.Cmd, error) {
 	args := []string{"--quiet", "--json"}
 	if strings.TrimSpace(inv.Model) != "" {

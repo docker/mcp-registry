@@ -21,22 +21,15 @@ services:
       REVIEW_HEAD_SHA: ${REVIEW_HEAD_SHA:-}
       REVIEW_BASE_SHA: ${REVIEW_BASE_SHA:-}
       REVIEW_TARGET_LABEL: ${REVIEW_TARGET_LABEL:-}
-      REVIEW_PROMPT_PATH: ${REVIEW_PROMPT_PATH:-/input/prompt.md}
-      REVIEW_REPOSITORY_PATH: ${REVIEW_REPOSITORY_PATH:-/input/repository}
-      REVIEW_REPORT_PATH: ${REVIEW_REPORT_PATH:-/output/report.md}
-      REVIEW_LABELS_PATH: ${REVIEW_LABELS_PATH:-/output/labels.txt}
-      REVIEW_AGENT_ALLOWED_TOOLS: ${REVIEW_AGENT_ALLOWED_TOOLS:-}
-      REVIEW_AGENT_EXTRA_ARGS: ${REVIEW_AGENT_EXTRA_ARGS:---verbose}
-      REVIEW_EXTRA_ALLOWED_DIRS: ${REVIEW_EXTRA_ALLOWED_DIRS:-}
-      REVIEW_EXTRA_ALLOWED_FILES: ${REVIEW_EXTRA_ALLOWED_FILES:-}
+      REVIEW_AGENT_EXTRA_ARGS: ${REVIEW_AGENT_EXTRA_ARGS:-}
     volumes:
       - type: bind
-        source: ${REVIEW_INPUT_PATH:?Set REVIEW_INPUT_PATH to bind the repository under review}
-        target: /input
+        source: ${REVIEW_REPOSITORY_PATH:?Set REVIEW_REPOSITORY_PATH to bind the repository under review}
+        target: /workspace/input/repository
         read_only: true
       - type: bind
-        source: ${REVIEW_OUTPUT_PATH_HOST:?Set REVIEW_OUTPUT_PATH_HOST for report output}
-        target: /output
+        source: ${REVIEW_OUTPUT_PATH:?Set REVIEW_OUTPUT_PATH for report output}
+        target: /workspace/output
     networks:
       - internal
 

@@ -15,46 +15,73 @@ import (
 )
 
 const (
+	promptTemplatePath        = "/opt/security-reviewer/prompt-template.md"
 	reportTemplatePath        = "/opt/security-reviewer/report-template.md"
-	defaultPromptPath         = "/input/prompt.md"
-	defaultRepositoryPath     = "/input/repository"
-	defaultReportPath         = "/output/report.md"
-	defaultLabelsPath         = "/output/labels.txt"
+	defaultPromptPath         = "/workspace/input/prompt.md"
+	defaultRepositoryPath     = "/workspace/input/repository"
+	defaultReportPath         = "/workspace/output/report.md"
+	defaultLabelsPath         = "/workspace/output/labels.txt"
 	defaultClaudeAllowedTools = "Read,Write,Bash(git:*),Bash(mkdir),Bash(ls),Bash(cat)"
 	defaultReviewAgent        = "claude"
 	defaultAgentWorkingDir    = "/workspace"
 
-	envReviewAgent          = "REVIEW_AGENT"
-	envReviewPromptPath     = "REVIEW_PROMPT_PATH"
-	envReviewRepositoryPath = "REVIEW_REPOSITORY_PATH"
-	envReviewReportPath     = "REVIEW_REPORT_PATH"
-	envReviewLabelsPath     = "REVIEW_LABELS_PATH"
-	envAgentAllowedTools    = "REVIEW_AGENT_ALLOWED_TOOLS"
-	envAgentExtraArgs       = "REVIEW_AGENT_EXTRA_ARGS"
-	envExtraDirs            = "REVIEW_EXTRA_ALLOWED_DIRS"
-	envExtraFiles           = "REVIEW_EXTRA_ALLOWED_FILES"
-	envCodexQuiet           = "CODEX_QUIET_MODE"
-	envCodexJson            = "CODEX_JSON_MODE"
-	envCodexWorkingDir      = "CODEX_WORKDIR"
+	envReviewAgent     = "REVIEW_AGENT"
+	envAgentExtraArgs  = "REVIEW_AGENT_EXTRA_ARGS"
+	envCodexQuiet      = "CODEX_QUIET_MODE"
+	envCodexJson       = "CODEX_JSON_MODE"
+	envCodexWorkingDir = "CODEX_WORKDIR"
 )
 
 // ReviewMode enumerates supported security review modes.
 type ReviewMode string
 
 const (
+	// ReviewModeFull requests a full repository audit.
 	ReviewModeFull ReviewMode = "full"
+	// ReviewModeDiff requests a differential review between two commits.
 	ReviewModeDiff ReviewMode = "diff"
 )
 
 // agentInvocation captures execution hints per reviewer agent.
 type agentInvocation struct {
-	Prompt       string
-	Model        string
+	// Prompt is the rendered instruction text passed over stdin.
+	Prompt string
+	// Model identifies the model to invoke, when the agent supports overrides.
+	Model string
+	// AllowedTools enumerates tool permissions for agents that honor them.
 	AllowedTools string
-	AllowedDirs  []string
+	// AllowedDirs lists directories the agent should be allowed to traverse.
+	AllowedDirs []string
+	// AllowedFiles lists specific files the agent may read or write.
 	AllowedFiles []string
-	ExtraArgs    string
-	WorkingDir   string
+	// ExtraArgs contains caller-supplied CLI arguments for the agent.
+	ExtraArgs string
+	// WorkingDir specifies the directory where the agent command executes.
+	WorkingDir string
+}
+
+// promptPlaceholders stores values substituted into the static prompt template.
+type promptPlaceholders struct {
+	// ModeLabel is the human friendly descriptor for the review mode.
+	ModeLabel string
+	// ModeSummary highlights the responsibilities for the current mode.
+	ModeSummary string
+	// TargetLabel is an identifier referencing the repository under review.
+	TargetLabel string
+	// RepositoryPath points to the checked-out repository mount.
+	RepositoryPath string
+	// HeadCommit is the commit under audit.
+	HeadCommit string
+	// BaseCommit is the comparison commit for diff reviews.
+	BaseCommit string
+	// CommitRange renders the <base>...<head> spec for diff reviews.
+	CommitRange string
+	// GitDiffHint guides the agent on how to inspect the change set.
+	GitDiffHint string
+	// ReportPath denotes where the agent should write its report.
+	ReportPath string
+	// LabelsPath denotes where the agent should write labels for automation.
+	LabelsPath string
 }
 
 // main configures logging, resolves environment, and runs the selected agent.
@@ -100,40 +127,32 @@ func run(ctx context.Context) error {
 	}
 
 	// Resolve concrete paths for prompt, repository, and outputs.
-	promptPath := strings.TrimSpace(firstNonEmpty(
-		mustFetchOptional(envReviewPromptPath),
-		defaultPromptPath,
-	))
-	repositoryPath := strings.TrimSpace(firstNonEmpty(
-		mustFetchOptional(envReviewRepositoryPath),
-		defaultRepositoryPath,
-	))
-	reportPath := strings.TrimSpace(firstNonEmpty(
-		mustFetchOptional(envReviewReportPath),
-		defaultReportPath,
-	))
-	labelsPath := strings.TrimSpace(firstNonEmpty(
-		mustFetchOptional(envReviewLabelsPath),
-		defaultLabelsPath,
-	))
+	promptPath := defaultPromptPath
+	repositoryPath := defaultRepositoryPath
+	reportPath := defaultReportPath
+	labelsPath := defaultLabelsPath
 
 	promptPath = filepath.Clean(promptPath)
 	repositoryPath = filepath.Clean(repositoryPath)
 	reportPath = filepath.Clean(reportPath)
 	labelsPath = filepath.Clean(labelsPath)
-	reportDir := filepath.Dir(reportPath)
-	labelsDir := filepath.Dir(labelsPath)
 
 	// Read the rendered prompt and ensure the repository mount is present.
 	if err = ensureDirectory(repositoryPath); err != nil {
 		return err
 	}
 
-	promptBytes, err := os.ReadFile(promptPath)
+	promptContent, err := buildPromptContent(mode, targetLabel, headSHA, baseSHA)
 	if err != nil {
-		return fmt.Errorf("read prompt %s: %w", promptPath, err)
+		return err
 	}
-	logInfo(fmt.Sprintf("Loaded prompt from %s.", promptPath))
+	if err = ensureParent(promptPath); err != nil {
+		return err
+	}
+	if err = os.WriteFile(promptPath, []byte(promptContent), 0o644); err != nil {
+		return fmt.Errorf("write prompt: %w", err)
+	}
+	logInfo(fmt.Sprintf("Rendered prompt to %s.", promptPath))
 
 	// Select the reviewer implementation and build invocation parameters.
 	agentName, err := fetchEnv(envReviewAgent, false)
@@ -154,28 +173,15 @@ func run(ctx context.Context) error {
 		model = mustFetchOptional(envName)
 	}
 
-	allowedTools := firstNonEmpty(
-		mustFetchOptional(envAgentAllowedTools),
-		mustFetchOptional("CLAUDE_ALLOWED_TOOLS"),
-		agent.DefaultAllowedTools(),
-	)
-	extraArgs := firstNonEmpty(
-		mustFetchOptional(envAgentExtraArgs),
-		mustFetchOptional("CLAUDE_EXTRA_ARGS"),
-	)
+	allowedTools := agent.DefaultAllowedTools()
+	extraArgs := mustFetchOptional(envAgentExtraArgs)
 
-	allowedDirs := []string{repositoryPath, defaultAgentWorkingDir, reportDir, labelsDir}
-	if extraDirs := mustFetchOptional(envExtraDirs); extraDirs != "" {
-		allowedDirs = append(allowedDirs, parseList(extraDirs)...)
-	}
+	allowedDirs := []string{defaultAgentWorkingDir}
 
 	allowedFiles := []string{reportTemplatePath, promptPath}
-	if extraFiles := mustFetchOptional(envExtraFiles); extraFiles != "" {
-		allowedFiles = append(allowedFiles, parseList(extraFiles)...)
-	}
 
 	inv := agentInvocation{
-		Prompt:       string(promptBytes),
+		Prompt:       promptContent,
 		Model:        model,
 		AllowedTools: allowedTools,
 		AllowedDirs:  allowedDirs,
@@ -240,40 +246,6 @@ func mustFetchOptional(name string) string {
 	return value
 }
 
-// firstNonEmpty returns the first non-empty string from the provided list.
-func firstNonEmpty(values ...string) string {
-	for _, v := range values {
-		if strings.TrimSpace(v) != "" {
-			return v
-		}
-	}
-	return ""
-}
-
-// ensureDirectory verifies that the provided path exists and is a directory.
-func ensureDirectory(path string) error {
-	info, err := os.Stat(path)
-	if err != nil {
-		return fmt.Errorf("stat %s: %w", path, err)
-	}
-	if !info.IsDir() {
-		return fmt.Errorf("expected directory at %s", path)
-	}
-	return nil
-}
-
-// normalizeMode validates mode strings and returns canonical values.
-func normalizeMode(raw string) (ReviewMode, error) {
-	switch strings.ToLower(strings.TrimSpace(raw)) {
-	case "diff", "differential":
-		return ReviewModeDiff, nil
-	case "full":
-		return ReviewModeFull, nil
-	default:
-		return "", fmt.Errorf("invalid REVIEW_MODE: %s", raw)
-	}
-}
-
 // ensureParent creates directories needed for the provided path.
 func ensureParent(path string) error {
 	dir := filepath.Dir(path)
@@ -302,12 +274,16 @@ func ensureLabelsFile(path string) error {
 	return fmt.Errorf("stat labels file %s: %w", path, err)
 }
 
-// parseList splits whitespace separated values into a slice.
-func parseList(raw string) []string {
-	if strings.TrimSpace(raw) == "" {
-		return nil
+// normalizeMode converts raw user input into a canonical ReviewMode value.
+func normalizeMode(raw string) (ReviewMode, error) {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case string(ReviewModeDiff), "differential":
+		return ReviewModeDiff, nil
+	case string(ReviewModeFull):
+		return ReviewModeFull, nil
+	default:
+		return "", fmt.Errorf("invalid review mode: %s", raw)
 	}
-	return strings.Fields(raw)
 }
 
 // runAgent executes the reviewer agent command and captures output streams.
@@ -327,6 +303,104 @@ func runAgent(ctx context.Context, agent reviewerAgent, inv agentInvocation) (st
 	}
 
 	return stdout.String(), stderr.String(), nil
+}
+
+// buildPromptContent renders a concrete prompt for the selected review mode.
+func buildPromptContent(mode ReviewMode, targetLabel, headSHA, baseSHA string) (string, error) {
+	displayLabel := strings.TrimSpace(targetLabel)
+	if displayLabel == "" {
+		displayLabel = "Not provided"
+	}
+	displayHead := strings.TrimSpace(headSHA)
+	if displayHead == "" {
+		displayHead = "Not provided"
+	}
+	displayBase := "Not applicable"
+	commitRange := "Not applicable"
+	if mode == ReviewModeDiff {
+		cleanBase := strings.TrimSpace(baseSHA)
+		cleanHead := strings.TrimSpace(headSHA)
+		if cleanBase == "" {
+			displayBase = "Not provided"
+		} else {
+			displayBase = cleanBase
+		}
+		if cleanBase != "" && cleanHead != "" {
+			commitRange = fmt.Sprintf("%s...%s", baseSHA, headSHA)
+		}
+	}
+
+	ph := promptPlaceholders{
+		ModeLabel:      modeLabel(mode),
+		ModeSummary:    modeSummary(mode),
+		TargetLabel:    displayLabel,
+		RepositoryPath: defaultRepositoryPath,
+		HeadCommit:     displayHead,
+		BaseCommit:     displayBase,
+		CommitRange:    commitRange,
+		GitDiffHint:    gitDiffHint(mode, baseSHA, headSHA),
+		ReportPath:     defaultReportPath,
+		LabelsPath:     defaultLabelsPath,
+	}
+	return renderPrompt(ph)
+}
+
+// renderPrompt injects placeholder values into the prompt template.
+func renderPrompt(ph promptPlaceholders) (string, error) {
+	templateBytes, err := os.ReadFile(promptTemplatePath)
+	if err != nil {
+		return "", fmt.Errorf("read prompt template: %w", err)
+	}
+	replacer := strings.NewReplacer(
+		"$MODE_LABEL", ph.ModeLabel,
+		"$MODE_SUMMARY", ph.ModeSummary,
+		"$TARGET_LABEL", ph.TargetLabel,
+		"$REPOSITORY_PATH", ph.RepositoryPath,
+		"$HEAD_COMMIT", ph.HeadCommit,
+		"$BASE_COMMIT", ph.BaseCommit,
+		"$COMMIT_RANGE", ph.CommitRange,
+		"$GIT_DIFF_HINT", ph.GitDiffHint,
+		"$REPORT_PATH", ph.ReportPath,
+		"$LABELS_PATH", ph.LabelsPath,
+	)
+	return replacer.Replace(string(templateBytes)), nil
+}
+
+// gitDiffHint conveys how the agent should inspect the repository state.
+func gitDiffHint(mode ReviewMode, baseSHA, headSHA string) string {
+	if mode == ReviewModeDiff {
+		cleanBase := strings.TrimSpace(baseSHA)
+		cleanHead := strings.TrimSpace(headSHA)
+		if cleanBase == "" || cleanHead == "" {
+			return fmt.Sprintf("Run `git diff` inside %s to inspect the change set.", defaultRepositoryPath)
+		}
+		return fmt.Sprintf("Run `git diff %s...%s` (and related commands) inside %s to inspect the change set.", baseSHA, headSHA, defaultRepositoryPath)
+	}
+	return "Audit the entire working tree at the head commit."
+}
+
+// modeLabel converts a review mode to a user friendly label.
+func modeLabel(mode ReviewMode) string {
+	switch mode {
+	case ReviewModeDiff:
+		return "Differential"
+	case ReviewModeFull:
+		return "Full"
+	default:
+		return "Unknown"
+	}
+}
+
+// modeSummary explains the responsibilities associated with a review mode.
+func modeSummary(mode ReviewMode) string {
+	switch mode {
+	case ReviewModeDiff:
+		return "You are reviewing the changes introduced between the base and head commits. Prioritize spotting deliberately malicious additions alongside accidental vulnerabilities."
+	case ReviewModeFull:
+		return "You are auditing the repository snapshot at the provided head commit. Assume attackers may have hidden malicious logic and hunt for both intentional and accidental risks."
+	default:
+		return "The review mode is unknown."
+	}
 }
 
 // fileExists returns true when a non-zero length file exists at path.
@@ -354,4 +428,16 @@ func logError(err error) {
 		return
 	}
 	fmt.Fprintf(os.Stderr, "[security-reviewer] ERROR: %s\n", err)
+}
+
+// ensureDirectory verifies that the supplied path exists and is a directory.
+func ensureDirectory(path string) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("stat directory %s: %w", path, err)
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("%s is not a directory", path)
+	}
+	return nil
 }

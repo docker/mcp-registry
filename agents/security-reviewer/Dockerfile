@@ -48,11 +48,12 @@ RUN npm install --global \
 # Create a dedicated runtime user and working directories.
 RUN useradd --create-home --shell /bin/bash agent \
     && install -d -o agent -g agent /workspace \
-    && install -d -o agent -g agent /input \
-    && install -d -o agent -g agent /output
+    && install -d -o agent -g agent /workspace/input \
+    && install -d -o agent -g agent /workspace/output
 
 # Copy the entrypoint and report template.
 COPY --from=gobuilder /security-reviewer/security-reviewer /opt/security-reviewer/security-reviewer
+COPY --chown=agent:agent prompt-template.md /opt/security-reviewer/prompt-template.md
 COPY --chown=agent:agent report-template.md /opt/security-reviewer/report-template.md
 
 # Set the entrypoint user and working directory.

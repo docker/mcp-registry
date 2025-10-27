@@ -9,20 +9,24 @@ import (
 // claudeAgent implements reviewerAgent for Claude Code.
 type claudeAgent struct{}
 
+// Name returns the stable identifier for the Claude agent implementation.
 func (claudeAgent) Name() string {
 	return agentNameClaude
 }
 
+// ModelEnvVar exposes the environment variable used to override the model.
 func (claudeAgent) ModelEnvVar() string {
 	// Claude Code reads its target model from CLAUDE_REVIEW_MODEL.
 	return "CLAUDE_REVIEW_MODEL"
 }
 
+// DefaultAllowedTools returns the default Claude tool allowlist.
 func (claudeAgent) DefaultAllowedTools() string {
 	// Mirror the default permissions granted in prior workflows.
 	return defaultClaudeAllowedTools
 }
 
+// BuildCommand constructs the Claude CLI invocation for a review run.
 func (claudeAgent) BuildCommand(ctx context.Context, inv agentInvocation) (*exec.Cmd, error) {
 	args := []string{"--print", "--output-format", "text"}
 	if strings.TrimSpace(inv.AllowedTools) != "" {
