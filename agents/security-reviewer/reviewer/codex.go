@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/mattn/go-shellwords"
 )
 
 // codexAgent implements reviewerAgent for the OpenAI Codex CLI.
@@ -37,7 +40,11 @@ func (codexAgent) BuildCommand(ctx context.Context, inv agentInvocation) (*exec.
 		args = append(args, "--cd", inv.WorkingDir)
 	}
 	if strings.TrimSpace(inv.ExtraArgs) != "" {
-		args = append(args, strings.Fields(inv.ExtraArgs)...)
+		parsed, err := shellwords.Parse(inv.ExtraArgs)
+		if err != nil {
+			return nil, fmt.Errorf("parse extra args: %w", err)
+		}
+		args = append(args, parsed...)
 	}
 	args = append(args, "-")
 

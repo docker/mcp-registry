@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os/exec"
 	"strings"
+
+	"github.com/mattn/go-shellwords"
 )
 
 // claudeAgent implements reviewerAgent for Claude Code.
@@ -50,7 +53,11 @@ func (claudeAgent) BuildCommand(ctx context.Context, inv agentInvocation) (*exec
 		args = append(args, "--add-dir", dir)
 	}
 	if strings.TrimSpace(inv.ExtraArgs) != "" {
-		args = append(args, strings.Fields(inv.ExtraArgs)...)
+		parsed, err := shellwords.Parse(inv.ExtraArgs)
+		if err != nil {
+			return nil, fmt.Errorf("parse extra args: %w", err)
+		}
+		args = append(args, parsed...)
 	}
 
 	cmd := exec.CommandContext(ctx, "claude", args...)
