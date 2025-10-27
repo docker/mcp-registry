@@ -18,8 +18,6 @@ type reviewerAgent interface {
 	Name() string
 	// ModelEnvVar returns the environment variable that overrides the agent's model, or empty when not applicable.
 	ModelEnvVar() string
-	// DefaultAllowedTools returns the allowlist of tools that should be enabled when the caller does not specify one.
-	DefaultAllowedTools() string
 	// BuildCommand returns the configured command used to invoke the agent.
 	BuildCommand(ctx context.Context, inv agentInvocation) (*exec.Cmd, error)
 }

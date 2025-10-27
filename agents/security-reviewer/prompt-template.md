@@ -29,8 +29,8 @@ Mode-specific focus:
 
 Report expectations:
 - Reproduce every heading, section order, and field exactly as written in
-  `/opt/security-reviewer/report-template.md`; replace bracketed placeholders
-  with concrete content but do not add or remove sections.
+  `$REPORT_TEMPLATE_PATH`; replace bracketed placeholders with concrete
+  content but do not add or remove sections.
 - Save the final report to $REPORT_PATH.
 - Articulate severity, impact, evidence, and remediation for each issue.
 

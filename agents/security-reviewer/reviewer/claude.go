@@ -23,12 +23,6 @@ func (claudeAgent) ModelEnvVar() string {
 	return "CLAUDE_REVIEW_MODEL"
 }
 
-// DefaultAllowedTools returns the default Claude tool allowlist.
-func (claudeAgent) DefaultAllowedTools() string {
-	// Mirror the default permissions granted in prior workflows.
-	return defaultClaudeAllowedTools
-}
-
 // BuildCommand constructs the Claude CLI invocation for a review run.
 func (claudeAgent) BuildCommand(ctx context.Context, inv agentInvocation) (*exec.Cmd, error) {
 	// When running Claude Code in non-interactive mode, the only output format
@@ -39,18 +33,13 @@ func (claudeAgent) BuildCommand(ctx context.Context, inv agentInvocation) (*exec
 	//   https://github.com/anthropics/claude-code/issues/4346
 	// In the meantime, I think we'll just live with the JSON output, since at
 	// least that gives some indication of progress and what's happening.
-	args := []string{"--print", "--verbose", "--output-format", "stream-json"}
-	if strings.TrimSpace(inv.AllowedTools) != "" {
-		args = append(args, "--allowed-tools", inv.AllowedTools)
+	args := []string{
+		"--print", "--verbose",
+		"--output-format", "stream-json",
+		"--dangerously-skip-permissions",
 	}
 	if strings.TrimSpace(inv.Model) != "" {
 		args = append(args, "--model", inv.Model)
-	}
-	for _, dir := range inv.AllowedDirs {
-		if strings.TrimSpace(dir) == "" {
-			continue
-		}
-		args = append(args, "--add-dir", dir)
 	}
 	if strings.TrimSpace(inv.ExtraArgs) != "" {
 		parsed, err := shellwords.Parse(inv.ExtraArgs)

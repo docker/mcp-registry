@@ -15,21 +15,20 @@ import (
 )
 
 const (
-	promptTemplatePath        = "/opt/security-reviewer/prompt-template.md"
-	reportTemplatePath        = "/opt/security-reviewer/report-template.md"
-	defaultPromptPath         = "/workspace/input/prompt.md"
-	defaultRepositoryPath     = "/workspace/input/repository"
-	defaultReportPath         = "/workspace/output/report.md"
-	defaultLabelsPath         = "/workspace/output/labels.txt"
-	defaultClaudeAllowedTools = "Read,Write,Bash(git:*),Bash(mkdir),Bash(ls),Bash(cat)"
-	defaultReviewAgent        = "claude"
-	defaultAgentWorkingDir    = "/workspace"
+	promptTemplatePath     = "/opt/security-reviewer/prompt-template.md"
+	reportTemplatePath     = "/opt/security-reviewer/report-template.md"
+	defaultPromptPath      = "/workspace/input/prompt.md"
+	defaultRepositoryPath  = "/workspace/input/repository"
+	defaultReportPath      = "/workspace/output/report.md"
+	defaultLabelsPath      = "/workspace/output/labels.txt"
+	defaultReviewAgent     = "claude"
+	defaultAgentWorkingDir = "/workspace"
 
-	envReviewAgent     = "REVIEW_AGENT"
-	envAgentExtraArgs  = "REVIEW_AGENT_EXTRA_ARGS"
-	envCodexQuiet      = "CODEX_QUIET_MODE"
-	envCodexJson       = "CODEX_JSON_MODE"
-	envCodexWorkingDir = "CODEX_WORKDIR"
+	envReviewAgent    = "REVIEW_AGENT"
+	envAgentExtraArgs = "REVIEW_AGENT_EXTRA_ARGS"
+	envReviewHeadSHA  = "REVIEW_HEAD_SHA"
+	envReviewBaseSHA  = "REVIEW_BASE_SHA"
+	envReviewTarget   = "REVIEW_TARGET_LABEL"
 )
 
 // ReviewMode enumerates supported security review modes.
@@ -48,12 +47,6 @@ type agentInvocation struct {
 	Prompt string
 	// Model identifies the model to invoke, when the agent supports overrides.
 	Model string
-	// AllowedTools enumerates tool permissions for agents that honor them.
-	AllowedTools string
-	// AllowedDirs lists directories the agent should be allowed to traverse.
-	AllowedDirs []string
-	// AllowedFiles lists specific files the agent may read or write.
-	AllowedFiles []string
 	// ExtraArgs contains caller-supplied CLI arguments for the agent.
 	ExtraArgs string
 	// WorkingDir specifies the directory where the agent command executes.
@@ -82,6 +75,8 @@ type promptPlaceholders struct {
 	ReportPath string
 	// LabelsPath denotes where the agent should write labels for automation.
 	LabelsPath string
+	// ReportTemplatePath tells the agent which template to follow exactly.
+	ReportTemplatePath string
 }
 
 // main configures logging, resolves environment, and runs the selected agent.
@@ -99,11 +94,11 @@ func main() {
 // run orchestrates prompt generation and agent execution.
 func run(ctx context.Context) error {
 	// Parse review configuration from the environment.
-	headSHA, err := fetchEnv("REVIEW_HEAD_SHA", true)
+	headSHA, err := fetchEnv(envReviewHeadSHA, true)
 	if err != nil {
 		return err
 	}
-	baseSHA, err := fetchEnv("REVIEW_BASE_SHA", false)
+	baseSHA, err := fetchEnv(envReviewBaseSHA, false)
 	if err != nil {
 		return err
 	}
@@ -113,7 +108,7 @@ func run(ctx context.Context) error {
 		mode = ReviewModeDifferential
 	}
 
-	targetLabel, err := fetchEnv("REVIEW_TARGET_LABEL", false)
+	targetLabel, err := fetchEnv(envReviewTarget, false)
 	if err != nil {
 		return err
 	}
@@ -165,21 +160,12 @@ func run(ctx context.Context) error {
 		model = mustFetchOptional(envName)
 	}
 
-	allowedTools := agent.DefaultAllowedTools()
 	extraArgs := mustFetchOptional(envAgentExtraArgs)
-
-	allowedDirs := []string{defaultAgentWorkingDir}
-
-	allowedFiles := []string{reportTemplatePath, promptPath}
-
 	inv := agentInvocation{
-		Prompt:       promptContent,
-		Model:        model,
-		AllowedTools: allowedTools,
-		AllowedDirs:  allowedDirs,
-		AllowedFiles: allowedFiles,
-		ExtraArgs:    extraArgs,
-		WorkingDir:   defaultAgentWorkingDir,
+		Prompt:     promptContent,
+		Model:      model,
+		ExtraArgs:  extraArgs,
+		WorkingDir: defaultAgentWorkingDir,
 	}
 
 	logInfo(fmt.Sprintf(
@@ -311,16 +297,17 @@ func buildPromptContent(mode ReviewMode, targetLabel, headSHA, baseSHA string) (
 	}
 
 	ph := promptPlaceholders{
-		ModeLabel:      modeLabel(mode),
-		ModeSummary:    modeSummary(mode),
-		TargetLabel:    displayLabel,
-		RepositoryPath: defaultRepositoryPath,
-		HeadCommit:     displayHead,
-		BaseCommit:     displayBase,
-		CommitRange:    commitRange,
-		GitDiffHint:    gitDiffHint(mode, baseSHA, headSHA),
-		ReportPath:     defaultReportPath,
-		LabelsPath:     defaultLabelsPath,
+		ModeLabel:          modeLabel(mode),
+		ModeSummary:        modeSummary(mode),
+		TargetLabel:        displayLabel,
+		RepositoryPath:     defaultRepositoryPath,
+		HeadCommit:         displayHead,
+		BaseCommit:         displayBase,
+		CommitRange:        commitRange,
+		GitDiffHint:        gitDiffHint(mode, baseSHA, headSHA),
+		ReportPath:         defaultReportPath,
+		LabelsPath:         defaultLabelsPath,
+		ReportTemplatePath: reportTemplatePath,
 	}
 	return renderPrompt(ph)
 }
@@ -342,6 +329,7 @@ func renderPrompt(ph promptPlaceholders) (string, error) {
 		"$GIT_DIFF_HINT", ph.GitDiffHint,
 		"$REPORT_PATH", ph.ReportPath,
 		"$LABELS_PATH", ph.LabelsPath,
+		"$REPORT_TEMPLATE_PATH", ph.ReportTemplatePath,
 	)
 	return replacer.Replace(string(templateBytes)), nil
 }

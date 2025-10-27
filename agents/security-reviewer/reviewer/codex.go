@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 	"os/exec"
 	"strings"
 
@@ -24,20 +23,15 @@ func (codexAgent) ModelEnvVar() string {
 	return "CODEX_REVIEW_MODEL"
 }
 
-// DefaultAllowedTools returns the default tool allowlist for Codex.
-func (codexAgent) DefaultAllowedTools() string {
-	// Codex manages tool permissions internally, so we default to an empty allowlist.
-	return ""
-}
-
 // BuildCommand constructs the Codex CLI invocation for a review run.
 func (codexAgent) BuildCommand(ctx context.Context, inv agentInvocation) (*exec.Cmd, error) {
-	args := []string{"exec", "--skip-git-repo-check", "--dangerously-bypass-approvals-and-sandbox"}
+	args := []string{
+		"exec",
+		"--skip-git-repo-check",
+		"--dangerously-bypass-approvals-and-sandbox",
+	}
 	if strings.TrimSpace(inv.Model) != "" {
 		args = append(args, "--model", inv.Model)
-	}
-	if inv.WorkingDir != "" {
-		args = append(args, "--cd", inv.WorkingDir)
 	}
 	if strings.TrimSpace(inv.ExtraArgs) != "" {
 		parsed, err := shellwords.Parse(inv.ExtraArgs)
@@ -53,13 +47,6 @@ func (codexAgent) BuildCommand(ctx context.Context, inv agentInvocation) (*exec.
 	if inv.WorkingDir != "" {
 		cmd.Dir = inv.WorkingDir
 	}
-
-	env := os.Environ()
-	env = append(env, envCodexQuiet+"=1", envCodexJson+"=1")
-	if inv.WorkingDir != "" {
-		env = append(env, envCodexWorkingDir+"="+inv.WorkingDir)
-	}
-	cmd.Env = env
 
 	return cmd, nil
 }
