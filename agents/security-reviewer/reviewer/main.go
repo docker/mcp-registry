@@ -289,19 +289,19 @@ func runAgent(ctx context.Context, agent reviewerAgent, inv agentInvocation) (st
 func buildPromptContent(mode ReviewMode, targetLabel, headSHA, baseSHA string) (string, error) {
 	displayLabel := strings.TrimSpace(targetLabel)
 	if displayLabel == "" {
-		displayLabel = "Not provided"
+		displayLabel = "[Not provided]"
 	}
 	displayHead := strings.TrimSpace(headSHA)
 	if displayHead == "" {
-		displayHead = "Not provided"
+		displayHead = "[Not provided]"
 	}
-	displayBase := "Not applicable"
-	commitRange := "Not applicable"
+	displayBase := "[Not applicable]"
+	commitRange := "[Not applicable]"
 	if mode == ReviewModeDifferential {
 		cleanBase := strings.TrimSpace(baseSHA)
 		cleanHead := strings.TrimSpace(headSHA)
 		if cleanBase == "" {
-			displayBase = "Not provided"
+			displayBase = "[Not provided]"
 		} else {
 			displayBase = cleanBase
 		}
@@ -375,9 +375,9 @@ func modeLabel(mode ReviewMode) string {
 func modeSummary(mode ReviewMode) string {
 	switch mode {
 	case ReviewModeDifferential:
-		return "You are reviewing the changes introduced between the base and head commits. Prioritize spotting deliberately malicious additions alongside accidental vulnerabilities."
+		return "You are reviewing the changes introduced in a Git repository between the specified base and head commits. Prioritize spotting deliberately malicious additions alongside accidental vulnerabilities."
 	case ReviewModeFull:
-		return "You are auditing the repository snapshot at the provided head commit. Assume attackers may have hidden malicious logic and hunt for both intentional and accidental risks."
+		return "You are auditing a Git repository snapshot at the specified head commit. Assume attackers may have hidden malicious logic and hunt for both intentional and accidental risks."
 	default:
 		return "The review mode is unknown."
 	}

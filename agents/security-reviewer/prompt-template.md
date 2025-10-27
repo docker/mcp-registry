@@ -1,11 +1,10 @@
 # Docker MCP Security Review Instructions
 
-Mode: $MODE_LABEL
-
 $MODE_SUMMARY
 
-Repository metadata:
-- Target label: $TARGET_LABEL
+Security review metadata:
+- Mode: $MODE_LABEL
+- Repository name: $TARGET_LABEL
 - Repository path: $REPOSITORY_PATH
 - Head commit: $HEAD_COMMIT
 - Base commit: $BASE_COMMIT

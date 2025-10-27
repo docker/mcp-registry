@@ -28,7 +28,8 @@ func (claudeAgent) DefaultAllowedTools() string {
 
 // BuildCommand constructs the Claude CLI invocation for a review run.
 func (claudeAgent) BuildCommand(ctx context.Context, inv agentInvocation) (*exec.Cmd, error) {
-	args := []string{"--print", "--output-format", "text"}
+	// https://github.com/anthropics/claude-code/issues/4346
+	args := []string{"--print", "--verbose", "--output-format", "stream-json"}
 	if strings.TrimSpace(inv.AllowedTools) != "" {
 		args = append(args, "--allowed-tools", inv.AllowedTools)
 	}

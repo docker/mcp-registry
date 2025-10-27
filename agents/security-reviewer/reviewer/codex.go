@@ -29,14 +29,17 @@ func (codexAgent) DefaultAllowedTools() string {
 
 // BuildCommand constructs the Codex CLI invocation for a review run.
 func (codexAgent) BuildCommand(ctx context.Context, inv agentInvocation) (*exec.Cmd, error) {
-	args := []string{"--quiet", "--json"}
+	args := []string{"exec", "--json", "--skip-git-repo-check", "--sandbox", "workspace-write"}
 	if strings.TrimSpace(inv.Model) != "" {
 		args = append(args, "--model", inv.Model)
+	}
+	if inv.WorkingDir != "" {
+		args = append(args, "--cd", inv.WorkingDir)
 	}
 	if strings.TrimSpace(inv.ExtraArgs) != "" {
 		args = append(args, strings.Fields(inv.ExtraArgs)...)
 	}
-	args = append(args, "exec", "--input", "-")
+	args = append(args, "-")
 
 	cmd := exec.CommandContext(ctx, "codex", args...)
 	cmd.Stdin = strings.NewReader(inv.Prompt)
