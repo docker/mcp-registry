@@ -29,7 +29,7 @@ func (codexAgent) DefaultAllowedTools() string {
 
 // BuildCommand constructs the Codex CLI invocation for a review run.
 func (codexAgent) BuildCommand(ctx context.Context, inv agentInvocation) (*exec.Cmd, error) {
-	args := []string{"exec", "--json", "--skip-git-repo-check", "--sandbox", "workspace-write"}
+	args := []string{"exec", "--json", "--skip-git-repo-check", "--dangerously-bypass-approvals-and-sandbox"}
 	if strings.TrimSpace(inv.Model) != "" {
 		args = append(args, "--model", inv.Model)
 	}
