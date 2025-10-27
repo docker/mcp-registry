@@ -28,7 +28,14 @@ func (claudeAgent) DefaultAllowedTools() string {
 
 // BuildCommand constructs the Claude CLI invocation for a review run.
 func (claudeAgent) BuildCommand(ctx context.Context, inv agentInvocation) (*exec.Cmd, error) {
-	// https://github.com/anthropics/claude-code/issues/4346
+	// When running Claude Code in non-interactive mode, the only output format
+	// that gives regular progress updates is stream-json - anything else waits
+	// for the full analysis to complete and then provides all the output at
+	// once. It would be nice if Claude Code had something like a stream-text
+	// mode, and there's a request for that here:
+	//   https://github.com/anthropics/claude-code/issues/4346
+	// In the meantime, I think we'll just live with the JSON output, since at
+	// least that gives some indication of progress and what's happening.
 	args := []string{"--print", "--verbose", "--output-format", "stream-json"}
 	if strings.TrimSpace(inv.AllowedTools) != "" {
 		args = append(args, "--allowed-tools", inv.AllowedTools)
