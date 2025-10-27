@@ -219,8 +219,10 @@ func withLogging(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 		duration := time.Since(start)
 		remote := remoteAddr(r.Context(), r.RemoteAddr)
-		log.Printf("proxy request method=%s path=%s remote=%s duration=%s",
-			r.Method, r.URL.Path, remote, duration)
+		if r.URL.Path != healthPath {
+			log.Printf("proxy request method=%s path=%s remote=%s duration=%s",
+				r.Method, r.URL.Path, remote, duration)
+		}
 	})
 }
 
