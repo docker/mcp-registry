@@ -51,10 +51,12 @@ func main() {
 	})
 
 	server := &http.Server{
-		Addr:         cfg.listenAddr,
-		Handler:      withLogging(mux),
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 60 * time.Second,
+		Addr:        cfg.listenAddr,
+		Handler:     withLogging(mux),
+		ReadTimeout: 15 * time.Second,
+		// WriteTimeout needs to be relatively high because it limits how long
+		// the upstream inference API has to respond.
+		WriteTimeout: 3600 * time.Second,
 		IdleTimeout:  60 * time.Second,
 	}
 
