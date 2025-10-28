@@ -31,7 +31,7 @@ const (
 	// anthropicInboundPrefix is the path prefix used to route requests to Anthropic.
 	anthropicInboundPrefix = "/anthropic/"
 	// healthPath is the HTTP endpoint used for container health checks.
-	healthPath = "/health/liveliness"
+	healthPath = "/health/liveness"
 	// headerAuthorization is the inbound HTTP header that carries bearer tokens.
 	headerAuthorization = "Authorization"
 	// headerAnthropicAPIKey is the Anthropic-specific header carrying API keys.
