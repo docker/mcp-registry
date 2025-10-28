@@ -7,6 +7,18 @@ on:
         description: "Comma-separated list of local server names to audit (leave blank for all)."
         required: false
         default: ""
+      agent:
+        description: "Optional reviewer agent (claude or codex)."
+        required: false
+        default: ""
+      model:
+        description: "Optional reviewer model override."
+        required: false
+        default: ""
+      timeout_secs:
+        description: "Optional reviewer timeout in seconds (defaults to 1800)."
+        required: false
+        default: ""
 
 concurrency:
   group: security-review-manual-${{ github.run_id }}
@@ -37,6 +49,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Collect audit targets
+        id: collect
         run: |
           set -euo pipefail
           task ci -- collect-full-audit \
@@ -45,28 +58,33 @@ jobs:
             --output-json audit-targets.json
 
           if jq -e '. | length > 0' audit-targets.json >/dev/null; then
-            echo "AUDIT_HAS_TARGETS=true" >> "$GITHUB_ENV"
+            echo "has_targets=true" >> "$GITHUB_OUTPUT"
+            echo "targets=audit-targets.json" >> "$GITHUB_OUTPUT"
           else
             echo "No audit targets identified; exiting." >&2
-            echo "AUDIT_HAS_TARGETS=false" >> "$GITHUB_ENV"
+            echo "has_targets=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Run security reviewer (Claude)
-        if: env.AUDIT_HAS_TARGETS == 'true'
+      - name: Run security reviewer
+        if: steps.collect.outputs.has_targets == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          REVIEW_AGENT_INPUT: ${{ github.event.inputs.agent }}
+          REVIEW_MODEL_INPUT: ${{ github.event.inputs.model }}
+          REVIEW_TIMEOUT_INPUT: ${{ github.event.inputs.timeout_secs }}
         run: |
           set -euo pipefail
-          agent="claude"
+          agent="${REVIEW_AGENT_INPUT:-}"
+          if [ -z "$agent" ]; then
+            agent="claude"
+          fi
+
+          model="${REVIEW_MODEL_INPUT:-}"
+
+          timeout_secs="${REVIEW_TIMEOUT_INPUT:-1800}"
 
           mkdir -p reports
-          combined_body="reports/full-audit.body"
-          combined_report="reports/full-audit-report.md"
-          combined_labels="reports/full-audit-labels.txt"
-
-          : > "$combined_body"
-          : > "$combined_labels"
 
           while read -r target; do
             server=$(echo "$target" | jq -r '.server')
@@ -84,47 +102,24 @@ jobs:
 
             report_path="reports/${server}.md"
             labels_path="reports/${server}-labels.txt"
-
-            task security-reviewer -- \
+            cmd=(task security-reviewer -- \
               --agent "$agent" \
-              --mode full \
               --repo "$project" \
               --head "$head_commit" \
               --target-label "$server" \
               --output "$report_path" \
-              --labels-output "$labels_path"
+              --labels-output "$labels_path" \
+              --timeout "$timeout_secs")
 
-            {
-              echo "## ${server}"
-              echo ""
-              cat "$report_path"
-              echo ""
-            } >> "$combined_body"
-
-            if [ -s "$labels_path" ]; then
-              cat "$labels_path" >> "$combined_labels"
+            if [ -n "$model" ]; then
+              cmd+=(--model "$model")
             fi
-          done < <(jq -c '.[]' audit-targets.json)
 
-          if [ -s "$combined_body" ]; then
-            {
-              echo "# Full Security Audit"
-              echo ""
-              cat "$combined_body"
-            } > "$combined_report"
-          else
-            rm -f "$combined_report"
-          fi
-          rm -f "$combined_body"
-
-          if [ -s "$combined_labels" ]; then
-            sort -u "$combined_labels" -o "$combined_labels"
-          else
-            rm -f "$combined_labels"
-          fi
+            "${cmd[@]}"
+          done < <(jq -c '.[]' "${{ steps.collect.outputs.targets }}")
 
       - name: Upload security reports
-        if: env.AUDIT_HAS_TARGETS == 'true'
+        if: steps.collect.outputs.has_targets == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: security-reports

@@ -38,6 +38,9 @@ func runUpdatePins(args []string) error {
 		}
 
 		serverPath := filepath.Join("servers", entry.Name(), "server.yaml")
+
+		// Parse the server definition so that we can evaluate eligibility and
+		// discover the backing GitHub repository and branch information.
 		server, err := servers.Read(serverPath)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "reading %s: %v\n", serverPath, err)
@@ -54,6 +57,8 @@ func runUpdatePins(args []string) error {
 			continue
 		}
 
+		// Only repositories hosted on GitHub can be advanced by this command,
+		// because the helper client relies on the GitHub API for commit lookup.
 		if !strings.Contains(server.Source.Project, "github.com/") {
 			fmt.Printf("Skipping %s: project is not hosted on GitHub.\n", server.Name)
 			continue
@@ -66,6 +71,8 @@ func runUpdatePins(args []string) error {
 		}
 
 		client := github.NewFromServer(server)
+		// Resolve the latest commit on the configured branch so we can refresh
+		// the pin if it has advanced since the last sweep.
 		latest, err := client.GetCommitSHA1(ctx, server.Source.Project, server.GetBranch())
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "fetching commit for %s: %v\n", server.Name, err)
@@ -121,6 +128,8 @@ func writePinnedCommit(path string, updated string) (bool, error) {
 		return false, fmt.Errorf("no source block found in %s", path)
 	}
 
+	// Scan the nested source block until we locate the commit attribute,
+	// capturing its indentation so that formatting survives the rewrite.
 	commitIndex := -1
 	indent := ""
 	commitPattern := regexp.MustCompile(`^([ \t]+)commit:\s*[a-fA-F0-9]{40}\s*$`)
@@ -141,6 +150,8 @@ func writePinnedCommit(path string, updated string) (bool, error) {
 		return false, fmt.Errorf("no commit line found in %s", path)
 	}
 
+	// Replace only the commit value so that other keys maintain their
+	// original ordering and indentation.
 	newLine := indent + "commit: " + updated
 	lines[commitIndex] = newLine
 

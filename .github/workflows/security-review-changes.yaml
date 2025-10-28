@@ -7,6 +7,18 @@ on:
         description: "Optional pull request number to review"
         required: false
         default: ""
+      agent:
+        description: "Optional reviewer agent (claude or codex)."
+        required: false
+        default: ""
+      model:
+        description: "Optional reviewer model override."
+        required: false
+        default: ""
+      timeout_secs:
+        description: "Optional reviewer timeout in seconds (defaults to 1800)."
+        required: false
+        default: ""
   # pull_request:
   #   types:
   #     - opened
@@ -54,11 +66,13 @@ jobs:
           set -euo pipefail
           base_sha="${{ github.event.pull_request.base.sha }}"
           head_sha="${{ github.sha }}"
+          pr_number="${{ github.event.pull_request.number }}"
 
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.pull_request_number }}" ]; then
-            pr_json=$(gh pr view "${{ github.event.inputs.pull_request_number }}" --json baseRefOid,headRefOid)
+            pr_json=$(gh pr view "${{ github.event.inputs.pull_request_number }}" --json baseRefOid,headRefOid,number)
             base_sha=$(echo "$pr_json" | jq -r '.baseRefOid')
             head_sha=$(echo "$pr_json" | jq -r '.headRefOid')
+            pr_number=$(echo "$pr_json" | jq -r '.number')
           fi
 
           if [ -n "$base_sha" ]; then
@@ -66,6 +80,9 @@ jobs:
           fi
           if [ -n "$head_sha" ]; then
             echo "head=$head_sha" >> "$GITHUB_OUTPUT"
+          fi
+          if [ -n "$pr_number" ] && [ "$pr_number" != "null" ]; then
+            echo "pr=$pr_number" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Collect updated pin targets
@@ -124,22 +141,230 @@ jobs:
             echo "has_targets=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Run security reviewer (Claude)
+      - name: Gather existing security review metadata
+        if: steps.pins.outputs.has_targets == 'true' || steps.newservers.outputs.has_targets == 'true'
+        id: existing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          metadata_file="existing-reviews.json"
+          pr_number="${{ steps.revision.outputs.pr }}"
+          repo="${{ github.repository }}"
+
+          if [ -n "$pr_number" ]; then
+            gh api \
+              --paginate \
+              repos/$repo/issues/$pr_number/comments \
+              --jq '[.[] | select(.body | contains("<!-- automated-security-review:")) | {id: .id, metadata: (.body | capture("<!-- automated-security-review:(?<json>{[^>]+}) -->").json | fromjson)}]' \
+              > "$metadata_file" || echo '[]' > "$metadata_file"
+          else
+            echo '[]' > "$metadata_file"
+          fi
+
+          if [ ! -s "$metadata_file" ]; then
+            echo '[]' > "$metadata_file"
+          fi
+
+          echo "file=$metadata_file" >> "$GITHUB_OUTPUT"
+
+      - name: Run security reviewers
         if: steps.pins.outputs.has_targets == 'true' || steps.newservers.outputs.has_targets == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REVIEW_AGENT_INPUT: ${{ github.event.inputs.agent }}
+          REVIEW_MODEL_INPUT: ${{ github.event.inputs.model }}
+          REVIEW_TIMEOUT_INPUT: ${{ github.event.inputs.timeout_secs }}
         run: |
           set -euo pipefail
-          agent="claude"
+
+          agent="${REVIEW_AGENT_INPUT:-}"
+          if [ -z "$agent" ]; then
+            agent="claude"
+          fi
+
+          model="${REVIEW_MODEL_INPUT:-}"
+
+          timeout_secs="${REVIEW_TIMEOUT_INPUT:-1800}"
+
+          pr_number="${{ steps.revision.outputs.pr }}"
+          repo="${{ github.repository }}"
+          metadata_file="${{ steps.existing.outputs.file }}"
+          if [ -z "$metadata_file" ] || [ ! -f "$metadata_file" ]; then
+            metadata_file="existing-reviews.json"
+            echo '[]' > "$metadata_file"
+          fi
 
           mkdir -p review-output
-          combined_body="review-output/security-review.body"
-          combined_report="review-output/security-review.md"
-          combined_labels="review-output/labels.txt"
 
-          : > "$combined_body"
-          : > "$combined_labels"
+          results_tmp="review-output/review-results.ndjson"
+          : > "$results_tmp"
+          if [ -s "$metadata_file" ]; then
+            jq -c '.[] | {target: .metadata.target, mode: .metadata.mode, base: (.metadata.base // ""), head: (.metadata.head // ""), labels: (.metadata.labels // []), comment_id: (.id|tostring)}' "$metadata_file" >> "$results_tmp"
+          fi
+
+          github_repo_regex='^https://github.com/([^/]+)/([^/]+?)(\.git)?$'
+
+          review_target() {
+            local mode="$1"
+            local server="$2"
+            local project="$3"
+            local base_commit="$4"
+            local head_commit="$5"
+            local comment_id=""
+
+            if [ -z "$project" ] || [ "$project" = "null" ]; then
+              echo "Skipping $server: missing project URL." >&2
+              return
+            fi
+            if [ "$mode" = "differential" ]; then
+              if [ -z "$base_commit" ] || [ "$base_commit" = "null" ] || [ -z "$head_commit" ] || [ "$head_commit" = "null" ]; then
+                echo "Skipping $server: missing commit information." >&2
+                return
+              fi
+            else
+              if [ -z "$head_commit" ] || [ "$head_commit" = "null" ]; then
+                echo "Skipping $server: missing head commit." >&2
+                return
+              fi
+              base_commit=""
+            fi
+
+            local exact_id
+            exact_id=$(jq -r --arg mode "$mode" --arg target "$server" --arg base "$base_commit" --arg head "$head_commit" '
+              map(select(.metadata.mode == $mode and .metadata.target == $target and (.metadata.base // "") == $base and (.metadata.head // "") == $head))
+              | first
+              | (.id|tostring // "")
+            ' "$metadata_file")
+
+            if [ -n "$exact_id" ]; then
+              echo "Skipping $server ($mode): already reviewed for this commit." >&2
+              return
+            fi
+
+            local existing_comment_id
+            existing_comment_id=$(jq -r --arg mode "$mode" --arg target "$server" '
+              map(select(.metadata.mode == $mode and .metadata.target == $target))
+              | first
+              | (.id|tostring // "")
+            ' "$metadata_file")
+
+            local report_suffix
+            if [ "$mode" = "differential" ]; then
+              report_suffix="diff"
+            else
+              report_suffix="full"
+            fi
+
+            local report_path="review-output/${server}-${report_suffix}.md"
+            local labels_path="review-output/${server}-${report_suffix}-labels.txt"
+
+            cmd=(task security-reviewer -- \
+              --agent "$agent" \
+              --repo "$project" \
+              --head "$head_commit" \
+              --target-label "$server" \
+              --output "$report_path" \
+              --labels-output "$labels_path" \
+              --timeout "$timeout_secs")
+            if [ "$mode" = "differential" ]; then
+              cmd+=(--base "$base_commit")
+            fi
+            if [ -n "$model" ]; then
+              cmd+=(--model "$model")
+            fi
+
+            "${cmd[@]}"
+
+            local labels_json
+            if [ -s "$labels_path" ]; then
+              labels_json=$(jq -Rs 'split("\n") | map(select(length > 0))' "$labels_path")
+            else
+              labels_json='[]'
+            fi
+
+            local repo_slug=""
+            if [[ "$project" =~ $github_repo_regex ]]; then
+              repo_slug="${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
+            fi
+
+            local link_line
+            if [ -n "$repo_slug" ]; then
+              if [ "$mode" = "differential" ]; then
+                link_line="- Diff: [view changes](https://github.com/${repo_slug}/compare/${base_commit}...${head_commit})"
+              else
+                link_line="- Snapshot: [view tree](https://github.com/${repo_slug}/tree/${head_commit})"
+              fi
+            else
+              if [ "$mode" = "differential" ]; then
+                link_line="- Diff: unavailable (non-GitHub repository)."
+              else
+                link_line="- Snapshot: unavailable (non-GitHub repository)."
+              fi
+            fi
+
+            local mode_label
+            if [ "$mode" = "differential" ]; then
+              mode_label="Differential"
+            else
+              mode_label="Full"
+            fi
+
+            local labels_summary
+            labels_summary=$(echo "$labels_json" | jq -r 'if length == 0 then "- Labels: none." else "- Labels: " + (join(", ")) end')
+
+            local metadata_json
+            metadata_json=$(jq -n --arg target "$server" --arg mode "$mode" --arg base "$base_commit" --arg head "$head_commit" --argjson labels "$labels_json" '{target:$target,mode:$mode,base:$base,head:$head,labels:$labels}')
+
+            local comment_body="review-output/${server}-${report_suffix}-comment.md"
+            {
+              echo "⚠️ **Automated security review (beta).** This system may make mistakes and is intended only to aid human reviewers."
+              echo ""
+              echo "- Target: \\`$server\\`"
+              echo "- Review mode: $mode_label"
+              echo "$link_line"
+              echo "$labels_summary"
+              echo ""
+              echo "---"
+              echo ""
+              cat "$report_path"
+              echo ""
+              echo "<!-- automated-security-review:${metadata_json} -->"
+            } > "$comment_body"
+
+            if [ -z "$pr_number" ]; then
+              echo "No pull request number available; skipping comment publication for $server." >&2
+            else
+              body_json=$(jq -Rs '.' "$comment_body")
+              if [ -n "$existing_comment_id" ]; then
+                printf '{"body":%s}\n' "$body_json" | gh api \
+                  repos/$repo/issues/comments/$existing_comment_id \
+                  --method PATCH \
+                  --header "Content-Type: application/json" \
+                  --input - >/dev/null
+                comment_id="$existing_comment_id"
+              else
+                comment_response=$(printf '{"body":%s}\n' "$body_json" | gh api \
+                  repos/$repo/issues/$pr_number/comments \
+                  --method POST \
+                  --header "Content-Type: application/json" \
+                  --input -)
+                comment_id=$(echo "$comment_response" | jq -r '.id | tostring')
+              fi
+            fi
+
+            jq -n \
+              --arg target "$server" \
+              --arg mode "$mode" \
+              --arg base "$base_commit" \
+              --arg head "$head_commit" \
+              --argjson labels "$labels_json" \
+              --arg comment_id "$comment_id" \
+              '{target:$target,mode:$mode,base:$base,head:$head,labels:$labels,comment_id:$comment_id}' \
+              >> "$results_tmp"
+          }
 
           if [ "${{ steps.pins.outputs.has_targets }}" = "true" ]; then
             while read -r target; do
@@ -147,39 +372,7 @@ jobs:
               project=$(echo "$target" | jq -r '.project')
               base_commit=$(echo "$target" | jq -r '.old_commit')
               head_commit=$(echo "$target" | jq -r '.new_commit')
-
-              if [ -z "$project" ] || [ "$project" = "null" ]; then
-                echo "Skipping $server: missing project URL." >&2
-                continue
-              fi
-              if [ -z "$base_commit" ] || [ "$base_commit" = "null" ] || [ -z "$head_commit" ] || [ "$head_commit" = "null" ]; then
-                echo "Skipping $server: missing commit information." >&2
-                continue
-              fi
-
-              report_path="review-output/${server}-diff.md"
-              labels_path="review-output/${server}-diff-labels.txt"
-
-              task security-reviewer -- \
-                --agent "$agent" \
-                --mode diff \
-                --repo "$project" \
-                --base "$base_commit" \
-                --head "$head_commit" \
-                --target-label "$server" \
-                --output "$report_path" \
-                --labels-output "$labels_path"
-
-              {
-                echo "## ${server} (updated pin)"
-                echo ""
-                cat "$report_path"
-                echo ""
-              } >> "$combined_body"
-
-              if [ -s "$labels_path" ]; then
-                cat "$labels_path" >> "$combined_labels"
-              fi
+              review_target "differential" "$server" "$project" "$base_commit" "$head_commit"
             done < <(jq -c '.[]' "${{ steps.pins.outputs.context }}")
           fi
 
@@ -188,83 +381,18 @@ jobs:
               server=$(echo "$target" | jq -r '.server')
               project=$(echo "$target" | jq -r '.project')
               head_commit=$(echo "$target" | jq -r '.commit')
-
-              if [ -z "$project" ] || [ "$project" = "null" ]; then
-                echo "Skipping $server: missing project URL." >&2
-                continue
-              fi
-              if [ -z "$head_commit" ] || [ "$head_commit" = "null" ]; then
-                echo "Skipping $server: missing commit information." >&2
-                continue
-              fi
-
-              report_path="review-output/${server}-new.md"
-              labels_path="review-output/${server}-new-labels.txt"
-
-              task security-reviewer -- \
-                --agent "$agent" \
-                --mode full \
-                --repo "$project" \
-                --head "$head_commit" \
-                --target-label "$server" \
-                --output "$report_path" \
-                --labels-output "$labels_path"
-
-              {
-                echo "## ${server} (new server)"
-                echo ""
-                cat "$report_path"
-                echo ""
-              } >> "$combined_body"
-
-              if [ -s "$labels_path" ]; then
-                cat "$labels_path" >> "$combined_labels"
-              fi
+              review_target "full" "$server" "$project" "" "$head_commit"
             done < <(jq -c '.[]' "${{ steps.newservers.outputs.context }}")
           fi
 
-          summary_tmp="review-output/change-summary.body"
-          : > "$summary_tmp"
-          if [ -s pins-summary.md ]; then
-            {
-              echo "## Updated Commit Pins"
-              echo ""
-              cat pins-summary.md
-              echo ""
-            } >> "$summary_tmp"
-          fi
-          if [ -s new-servers-summary.md ]; then
-            {
-              echo "## New Local Servers"
-              echo ""
-              cat new-servers-summary.md
-              echo ""
-            } >> "$summary_tmp"
-          fi
-
-          if [ -s "$combined_body" ] || [ -s "$summary_tmp" ]; then
-            {
-              if [ -s "$summary_tmp" ]; then
-                echo "# Security Review Targets"
-                echo ""
-                cat "$summary_tmp"
-                echo ""
-              fi
-              if [ -s "$combined_body" ]; then
-                echo "# Automated Security Review"
-                echo ""
-                cat "$combined_body"
-              fi
-            } > "$combined_report"
+          if [ -s "$results_tmp" ]; then
+            jq -s 'reduce .[] as $item ({}; .[$item.mode + "|" + $item.target] = $item) | [.[]]' "$results_tmp" > "review-output/review-results.json"
+            jq -r '.[] | .labels[]?' "review-output/review-results.json" | sort -u > "review-output/labels.txt" || true
+            if [ ! -s "review-output/labels.txt" ]; then
+              rm -f "review-output/labels.txt"
+            fi
           else
-            rm -f "$combined_report"
-          fi
-          rm -f "$combined_body" "$summary_tmp"
-
-          if [ -s "$combined_labels" ]; then
-            sort -u "$combined_labels" -o "$combined_labels"
-          else
-            rm -f "$combined_labels"
+            echo '[]' > "review-output/review-results.json"
           fi
 
       - name: Apply security labels
@@ -326,53 +454,5 @@ jobs:
           fi
 
           for label in "${final_labels[@]}"; do
-            if [ "$label" = "security-blocked" ]; then
-              gh label create "$label" \
-                --color B60205 \
-                --description "Security automation detected blocking issues." \
-                --repo "$repo" \
-                || echo "Label $label already exists."
-            else
-              gh label create "$label" \
-                --color 0E8A16 \
-                --description "Security automation risk assessment." \
-                --repo "$repo" \
-                || echo "Label $label already exists."
-            fi
-
-            gh pr edit "$pr_number" --repo "$repo" --add-label "$label"
+            gh pr edit "$pr_number" --repo "$repo" --add-label "$label" || echo "Warning: unable to apply label $label" >&2
           done
-
-      - name: Post security review as PR comment
-        if: always()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          if [ ! -f "${{ github.workspace }}/review-output/security-review.md" ]; then
-            echo "No security review report produced."
-            exit 0
-          fi
-
-          {
-            cat "${{ github.workspace }}/review-output/security-review.md"
-            echo ""
-            echo "<!-- automated-security-review -->"
-          } > security-review-comment.md
-
-          comment_id=$(gh api \
-            repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
-            --jq '.[] | select(.body | contains("<!-- automated-security-review -->")) | .id' \
-            || true)
-
-          if [ -n "$comment_id" ]; then
-            gh api \
-              -X PATCH \
-              -H "Accept: application/vnd.github+json" \
-              /repos/${{ github.repository }}/issues/comments/$comment_id \
-              -F body=@security-review-comment.md
-          else
-            gh pr comment ${{ github.event.pull_request.number }} \
-              --repo ${{ github.repository }} \
-              --body-file security-review-comment.md
-          fi
