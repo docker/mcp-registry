@@ -1,11 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"io/fs"
 	"os"
 	"os/signal"
@@ -17,22 +15,37 @@ import (
 )
 
 const (
-	promptTemplatePath     = "/opt/security-reviewer/prompt-template.md"
-	reportTemplatePath     = "/opt/security-reviewer/report-template.md"
-	defaultPromptPath      = "/workspace/input/prompt.md"
-	defaultRepositoryPath  = "/workspace/input/repository"
-	defaultReportPath      = "/workspace/output/report.md"
-	defaultLabelsPath      = "/workspace/output/labels.txt"
-	defaultReviewAgent     = "claude"
+	// promptTemplatePath is the location of the static prompt template bundled with the image.
+	promptTemplatePath = "/opt/security-reviewer/prompt-template.md"
+	// reportTemplatePath is the location of the report template referenced in prompts.
+	reportTemplatePath = "/opt/security-reviewer/report-template.md"
+	// defaultPromptPath is where the rendered prompt is written for the agent to consume.
+	defaultPromptPath = "/workspace/input/prompt.md"
+	// defaultRepositoryPath is the mount point containing the repository under review.
+	defaultRepositoryPath = "/workspace/input/repository"
+	// defaultReportPath is the expected location for the agent's security report.
+	defaultReportPath = "/workspace/output/report.md"
+	// defaultLabelsPath is the expected location for the agent's label output.
+	defaultLabelsPath = "/workspace/output/labels.txt"
+	// defaultReviewAgent is the reviewer implementation used when none is specified.
+	defaultReviewAgent = "claude"
+	// defaultAgentWorkingDir is the directory from which the agent executes.
 	defaultAgentWorkingDir = "/workspace"
-	defaultTimeout         = time.Hour
+	// defaultTimeout bounds how long the reviewer will wait for the agent to complete.
+	defaultTimeout = time.Hour
 
-	envReviewAgent    = "REVIEW_AGENT"
+	// envReviewAgent selects which reviewer agent to run.
+	envReviewAgent = "REVIEW_AGENT"
+	// envAgentExtraArgs contains optional CLI arguments passed through to the agent.
 	envAgentExtraArgs = "REVIEW_AGENT_EXTRA_ARGS"
-	envReviewHeadSHA  = "REVIEW_HEAD_SHA"
-	envReviewBaseSHA  = "REVIEW_BASE_SHA"
-	envReviewTarget   = "REVIEW_TARGET_LABEL"
-	envReviewTimeout  = "REVIEW_TIMEOUT_SECS"
+	// envReviewHeadSHA provides the head commit SHA under review.
+	envReviewHeadSHA = "REVIEW_HEAD_SHA"
+	// envReviewBaseSHA provides the base commit SHA when performing differential reviews.
+	envReviewBaseSHA = "REVIEW_BASE_SHA"
+	// envReviewTarget supplies a human-readable label describing the review target.
+	envReviewTarget = "REVIEW_TARGET_LABEL"
+	// envReviewTimeout allows callers to override the agent execution timeout in seconds.
+	envReviewTimeout = "REVIEW_TIMEOUT_SECS"
 )
 
 // ReviewMode enumerates supported security review modes.
@@ -117,19 +130,8 @@ func run(ctx context.Context) error {
 		return err
 	}
 
-	// Resolve concrete paths for prompt, repository, and outputs.
-	promptPath := defaultPromptPath
-	repositoryPath := defaultRepositoryPath
-	reportPath := defaultReportPath
-	labelsPath := defaultLabelsPath
-
-	promptPath = filepath.Clean(promptPath)
-	repositoryPath = filepath.Clean(repositoryPath)
-	reportPath = filepath.Clean(reportPath)
-	labelsPath = filepath.Clean(labelsPath)
-
-	// Read the rendered prompt and ensure the repository mount is present.
-	if err = ensureDirectory(repositoryPath); err != nil {
+	// Ensure the repository mount is present before processing.
+	if err = ensureDirectory(defaultRepositoryPath); err != nil {
 		return err
 	}
 
@@ -137,13 +139,13 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if err = ensureParent(promptPath); err != nil {
+	if err = ensureParent(defaultPromptPath); err != nil {
 		return err
 	}
-	if err = os.WriteFile(promptPath, []byte(promptContent), 0o644); err != nil {
+	if err = os.WriteFile(defaultPromptPath, []byte(promptContent), 0o644); err != nil {
 		return fmt.Errorf("write prompt: %w", err)
 	}
-	logInfo(fmt.Sprintf("Rendered prompt to %s.", promptPath))
+	logInfo(fmt.Sprintf("Rendered prompt to %s.", defaultPromptPath))
 
 	// Select the reviewer implementation and build invocation parameters.
 	agentName, err := fetchEnv(envReviewAgent, false)
@@ -161,10 +163,13 @@ func run(ctx context.Context) error {
 
 	var model string
 	if envName := agent.ModelEnvVar(); envName != "" {
-		model = mustFetchOptional(envName)
+		model, err = fetchEnv(envName, false)
+		if err != nil {
+			return err
+		}
 	}
 
-	extraArgs := mustFetchOptional(envAgentExtraArgs)
+	extraArgs, _ := fetchEnv(envAgentExtraArgs, false)
 	inv := agentInvocation{
 		Prompt:     promptContent,
 		Model:      model,
@@ -180,44 +185,36 @@ func run(ctx context.Context) error {
 	agentCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	logInfo(fmt.Sprintf(
-		"Starting %s review (agent=%s head=%s base=%s label=%s).",
-		mode, agent.Name(), headSHA, baseSHA, targetLabel,
-	))
+	if mode == ReviewModeDifferential {
+		logInfo(fmt.Sprintf(
+			"Starting differential review (agent=%s head=%s base=%s label=%s).",
+			agent.Name(), headSHA, baseSHA, targetLabel,
+		))
+	} else {
+		logInfo(fmt.Sprintf(
+			"Starting full review (agent=%s head=%s label=%s).",
+			agent.Name(), headSHA, targetLabel,
+		))
+	}
 
 	// Execute the agent command and relay its output streams.
-	stdout, stderr, runErr := runAgent(agentCtx, agent, inv)
-	if stderr != "" {
-		logError(errors.New(stderr))
-	}
-	if stdout != "" {
-		fmt.Print(stdout)
-	}
-	if runErr != nil {
-		return runErr
+	if err := runAgent(agentCtx, agent, inv); err != nil {
+		return err
 	}
 
-	// Persist the report and labels outputs, falling back to stdout when needed.
-	if err = ensureParent(reportPath); err != nil {
-		return err
+	// Inspect the outputs and warn if they were not produced.
+	if fileExists(defaultReportPath) {
+		logInfo(fmt.Sprintf("Report stored at %s.", defaultReportPath))
+	} else {
+		logWarn(fmt.Sprintf("Report not produced at %s.", defaultReportPath))
 	}
-	if !fileExists(reportPath) {
-		if err = os.WriteFile(reportPath, []byte(stdout), 0o644); err != nil {
-			return fmt.Errorf("write fallback report: %w", err)
-		}
-		logInfo("Report not found, wrote fallback using stdout output.")
-	}
-
-	if err = ensureParent(labelsPath); err != nil {
-		return err
-	}
-	if err = ensureLabelsFile(labelsPath); err != nil {
-		return err
+	if fileExists(defaultLabelsPath) {
+		logInfo(fmt.Sprintf("Labels stored at %s.", defaultLabelsPath))
+	} else {
+		logWarn(fmt.Sprintf("Labels not produced at %s.", defaultLabelsPath))
 	}
 
 	logInfo("Security review completed successfully.")
-	logInfo(fmt.Sprintf("Report stored at %s.", reportPath))
-	logInfo(fmt.Sprintf("Labels stored at %s.", labelsPath))
 	return nil
 }
 
@@ -230,12 +227,6 @@ func fetchEnv(name string, required bool) (string, error) {
 	return value, nil
 }
 
-// mustFetchOptional retrieves an optional environment variable without error returns.
-func mustFetchOptional(name string) string {
-	value, _ := fetchEnv(name, false)
-	return value
-}
-
 // ensureParent creates directories needed for the provided path.
 func ensureParent(path string) error {
 	dir := filepath.Dir(path)
@@ -245,42 +236,20 @@ func ensureParent(path string) error {
 	return os.MkdirAll(dir, 0o755)
 }
 
-// ensureLabelsFile guarantees the labels file exists as a regular file.
-func ensureLabelsFile(path string) error {
-	info, err := os.Stat(path)
-	if err == nil {
-		if info.IsDir() {
-			return fmt.Errorf("expected file at %s", path)
-		}
-		return nil
-	}
-	if errors.Is(err, os.ErrNotExist) {
-		if writeErr := os.WriteFile(path, []byte{}, 0o644); writeErr != nil {
-			return fmt.Errorf("create labels file %s: %w", path, writeErr)
-		}
-		logInfo(fmt.Sprintf("Labels file not found, created empty file at %s.", path))
-		return nil
-	}
-	return fmt.Errorf("stat labels file %s: %w", path, err)
-}
-
 // runAgent executes the reviewer agent command and captures output streams.
-func runAgent(ctx context.Context, agent reviewerAgent, inv agentInvocation) (string, string, error) {
+func runAgent(ctx context.Context, agent reviewerAgent, inv agentInvocation) error {
 	cmd, err := agent.BuildCommand(ctx, inv)
 	if err != nil {
-		return "", "", err
+		return err
 	}
 
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-	cmd.Stdout = io.MultiWriter(os.Stdout, &stdout)
-	cmd.Stderr = io.MultiWriter(os.Stderr, &stderr)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
 	if err = cmd.Run(); err != nil {
-		return stdout.String(), stderr.String(), fmt.Errorf("%s invocation failed: %w", agent.Name(), err)
+		return fmt.Errorf("%s invocation failed: %w", agent.Name(), err)
 	}
-
-	return stdout.String(), stderr.String(), nil
+	return nil
 }
 
 func resolveTimeout() (time.Duration, error) {
@@ -301,23 +270,11 @@ func buildPromptContent(mode ReviewMode, targetLabel, headSHA, baseSHA string) (
 	if displayLabel == "" {
 		displayLabel = "[Not provided]"
 	}
-	displayHead := strings.TrimSpace(headSHA)
-	if displayHead == "" {
-		displayHead = "[Not provided]"
-	}
-	displayBase := "[Not applicable]"
+	baseDisplay := "[Not applicable]"
 	commitRange := "[Not applicable]"
 	if mode == ReviewModeDifferential {
-		cleanBase := strings.TrimSpace(baseSHA)
-		cleanHead := strings.TrimSpace(headSHA)
-		if cleanBase == "" {
-			displayBase = "[Not provided]"
-		} else {
-			displayBase = cleanBase
-		}
-		if cleanBase != "" && cleanHead != "" {
-			commitRange = fmt.Sprintf("%s...%s", baseSHA, headSHA)
-		}
+		baseDisplay = baseSHA
+		commitRange = fmt.Sprintf("%s...%s", baseSHA, headSHA)
 	}
 
 	ph := promptPlaceholders{
@@ -325,8 +282,8 @@ func buildPromptContent(mode ReviewMode, targetLabel, headSHA, baseSHA string) (
 		ModeSummary:        modeSummary(mode),
 		TargetLabel:        displayLabel,
 		RepositoryPath:     defaultRepositoryPath,
-		HeadCommit:         displayHead,
-		BaseCommit:         displayBase,
+		HeadCommit:         headSHA,
+		BaseCommit:         baseDisplay,
 		CommitRange:        commitRange,
 		GitDiffHint:        gitDiffHint(mode, baseSHA, headSHA),
 		ReportPath:         defaultReportPath,
@@ -361,11 +318,6 @@ func renderPrompt(ph promptPlaceholders) (string, error) {
 // gitDiffHint conveys how the agent should inspect the repository state.
 func gitDiffHint(mode ReviewMode, baseSHA, headSHA string) string {
 	if mode == ReviewModeDifferential {
-		cleanBase := strings.TrimSpace(baseSHA)
-		cleanHead := strings.TrimSpace(headSHA)
-		if cleanBase == "" || cleanHead == "" {
-			return fmt.Sprintf("Run `git diff` inside %s to inspect the change set.", defaultRepositoryPath)
-		}
 		return fmt.Sprintf("Run `git diff %s...%s` (and related commands) inside %s to inspect the change set.", baseSHA, headSHA, defaultRepositoryPath)
 	}
 	return "Audit the entire working tree at the head commit."
@@ -401,7 +353,7 @@ func fileExists(path string) bool {
 	if err != nil {
 		return false
 	}
-	if info.IsDir() {
+	if info.Mode()&os.ModeType != 0 {
 		return false
 	}
 	return info.Size() > 0
@@ -410,6 +362,11 @@ func fileExists(path string) bool {
 // logInfo prints informational messages prefixed for clarity.
 func logInfo(msg string) {
 	fmt.Printf("[security-reviewer] %s\n", msg)
+}
+
+// logWarn prints warning messages prefixed for clarity.
+func logWarn(msg string) {
+	fmt.Printf("[security-reviewer] WARNING: %s\n", msg)
 }
 
 // logError prints error messages prefixed for clarity.

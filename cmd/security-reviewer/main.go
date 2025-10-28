@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -17,22 +18,36 @@ import (
 )
 
 const (
-	composeFileName       = "compose.yml"
-	reportFileName        = "report.md"
-	labelsFileName        = "labels.txt"
-	repositoryDirName     = "repository"
-	dockerExecutable      = "docker"
-	gitExecutable         = "git"
-	projectPrefix         = "security-reviewer"
-	agentService          = "reviewer"
-	composeRelativePath   = "agents/security-reviewer"
+	// composeFileName is the compose manifest executed for each review run.
+	composeFileName = "compose.yml"
+	// reportFileName is the name of the individual report emitted by the agent.
+	reportFileName = "report.md"
+	// labelsFileName is the name of the label output emitted by the agent.
+	labelsFileName = "labels.txt"
+	// repositoryDirName is the working directory used to stage repository clones.
+	repositoryDirName = "repository"
+	// dockerExecutable identifies the docker CLI binary invoked by the tool.
+	dockerExecutable = "docker"
+	// gitExecutable identifies the git CLI binary used to manage repositories.
+	gitExecutable = "git"
+	// projectPrefix is applied to compose project names to make them unique yet readable.
+	projectPrefix = "security-reviewer"
+	// agentService is the compose service name running the security reviewer container.
+	agentService = "reviewer"
+	// composeRelativePath is the path to the compose project relative to the repository root.
+	composeRelativePath = "agents/security-reviewer"
+	// defaultTimeoutSeconds bounds agent execution time when not explicitly configured.
 	defaultTimeoutSeconds = 3600
 
+	// envAnthropicAPIKey is the environment variable supplying Claude credentials.
 	envAnthropicAPIKey = "ANTHROPIC_API_KEY"
-	envOpenAIAPIKey    = "OPENAI_API_KEY"
+	// envOpenAIAPIKey is the environment variable supplying Codex credentials.
+	envOpenAIAPIKey = "OPENAI_API_KEY"
 
+	// agentNameClaude identifies the Claude-based reviewer.
 	agentNameClaude = "claude"
-	agentNameCodex  = "codex"
+	// agentNameCodex identifies the Codex-based reviewer.
+	agentNameCodex = "codex"
 )
 
 // options stores parsed CLI arguments.
@@ -61,52 +76,44 @@ type options struct {
 	TimeoutSeconds int
 }
 
-var (
-	flagAgent       string
-	flagRepo        string
-	flagHead        string
-	flagBase        string
-	flagTarget      string
-	flagOutput      string
-	flagLabels      string
-	flagTimeoutSecs int
-	flagModel       string
-	flagExtraArgs   string
-	flagKeepWorkdir bool
-)
+var cliOpts = options{
+	Agent:          agentNameClaude,
+	OutputPath:     "security-review.md",
+	TimeoutSeconds: defaultTimeoutSeconds,
+}
 
 var rootCmd = &cobra.Command{
 	Use:   "security-reviewer",
 	Short: "Run the security reviewer compose workflow",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		agent := strings.ToLower(strings.TrimSpace(flagAgent))
+		agent := strings.ToLower(strings.TrimSpace(cliOpts.Agent))
 		if agent == "" {
 			agent = agentNameClaude
 		}
 		if agent != agentNameClaude && agent != agentNameCodex {
-			return fmt.Errorf("invalid agent %q (supported: %s, %s)", flagAgent, agentNameClaude, agentNameCodex)
+			return fmt.Errorf("invalid agent %q (supported: %s, %s)", cliOpts.Agent, agentNameClaude, agentNameCodex)
 		}
 
-		labelsOutput := strings.TrimSpace(flagLabels)
+		labelsOutput := strings.TrimSpace(cliOpts.LabelsOutput)
 		if labelsOutput == "" {
-			labelsOutput = deriveDefaultLabelsPath(flagOutput)
+			labelsOutput = deriveDefaultLabelsPath(cliOpts.OutputPath)
 		}
-		timeoutSecs := flagTimeoutSecs
+		timeoutSecs := cliOpts.TimeoutSeconds
 		if timeoutSecs <= 0 {
 			timeoutSecs = defaultTimeoutSeconds
 		}
 
 		opts := options{
 			Agent:          agent,
-			Repository:     strings.TrimSpace(flagRepo),
-			HeadSHA:        strings.TrimSpace(flagHead),
-			BaseSHA:        strings.TrimSpace(flagBase),
-			TargetLabel:    strings.TrimSpace(flagTarget),
-			OutputPath:     flagOutput,
+			Repository:     strings.TrimSpace(cliOpts.Repository),
+			HeadSHA:        strings.TrimSpace(cliOpts.HeadSHA),
+			BaseSHA:        strings.TrimSpace(cliOpts.BaseSHA),
+			TargetLabel:    strings.TrimSpace(cliOpts.TargetLabel),
+			OutputPath:     strings.TrimSpace(cliOpts.OutputPath),
 			LabelsOutput:   labelsOutput,
-			Model:          strings.TrimSpace(flagModel),
-			ExtraArgs:      strings.TrimSpace(flagExtraArgs),
-			KeepWorkdir:    flagKeepWorkdir,
+			Model:          strings.TrimSpace(cliOpts.Model),
+			ExtraArgs:      strings.TrimSpace(cliOpts.ExtraArgs),
+			KeepWorkdir:    cliOpts.KeepWorkdir,
 			TimeoutSeconds: timeoutSecs,
 		}
 
@@ -122,17 +129,17 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.Flags().StringVar(&flagAgent, "agent", agentNameClaude, "Reviewer agent to use (claude or codex).")
-	rootCmd.Flags().StringVar(&flagRepo, "repo", "", "Git repository URL or local path to review.")
-	rootCmd.Flags().StringVar(&flagHead, "head", "", "Head commit SHA to review.")
-	rootCmd.Flags().StringVar(&flagBase, "base", "", "Base commit SHA for differential reviews.")
-	rootCmd.Flags().StringVar(&flagTarget, "target-label", "", "Human readable identifier for the target.")
-	rootCmd.Flags().StringVar(&flagOutput, "output", "security-review.md", "Destination for the rendered report.")
-	rootCmd.Flags().StringVar(&flagLabels, "labels-output", "", "Destination for the labels file (defaults alongside the report).")
-	rootCmd.Flags().IntVar(&flagTimeoutSecs, "timeout", defaultTimeoutSeconds, "Maximum runtime for the review in seconds (defaults to 3600 seconds).")
-	rootCmd.Flags().StringVar(&flagModel, "model", "", "Override the reviewer model for the selected agent.")
-	rootCmd.Flags().StringVar(&flagExtraArgs, "extra-args", "", "Additional arguments passed to the reviewer agent.")
-	rootCmd.Flags().BoolVar(&flagKeepWorkdir, "keep-workdir", false, "Keep the temporary workspace after completion.")
+	rootCmd.Flags().StringVar(&cliOpts.Agent, "agent", cliOpts.Agent, "Reviewer agent to use (claude or codex).")
+	rootCmd.Flags().StringVar(&cliOpts.Repository, "repo", cliOpts.Repository, "Git repository URL or local path to review.")
+	rootCmd.Flags().StringVar(&cliOpts.HeadSHA, "head", cliOpts.HeadSHA, "Head commit SHA to review.")
+	rootCmd.Flags().StringVar(&cliOpts.BaseSHA, "base", cliOpts.BaseSHA, "Base commit SHA for differential reviews.")
+	rootCmd.Flags().StringVar(&cliOpts.TargetLabel, "target-label", cliOpts.TargetLabel, "Human readable identifier for the target.")
+	rootCmd.Flags().StringVar(&cliOpts.OutputPath, "output", cliOpts.OutputPath, "Destination for the rendered report.")
+	rootCmd.Flags().StringVar(&cliOpts.LabelsOutput, "labels-output", cliOpts.LabelsOutput, "Destination for the labels file (defaults alongside the report).")
+	rootCmd.Flags().IntVar(&cliOpts.TimeoutSeconds, "timeout", cliOpts.TimeoutSeconds, "Maximum runtime for the review in seconds (defaults to 3600 seconds).")
+	rootCmd.Flags().StringVar(&cliOpts.Model, "model", cliOpts.Model, "Override the reviewer model for the selected agent.")
+	rootCmd.Flags().StringVar(&cliOpts.ExtraArgs, "extra-args", cliOpts.ExtraArgs, "Additional arguments passed to the reviewer agent.")
+	rootCmd.Flags().BoolVar(&cliOpts.KeepWorkdir, "keep-workdir", cliOpts.KeepWorkdir, "Keep the temporary workspace after completion.")
 
 	_ = rootCmd.MarkFlagRequired("repo")
 	_ = rootCmd.MarkFlagRequired("head")
@@ -233,17 +240,21 @@ func run(ctx context.Context, opts options) error {
 func deriveDefaultLabelsPath(reportPath string) string {
 	reportPath = strings.TrimSpace(reportPath)
 	if reportPath == "" {
+		// Without an explicit report, fall back to a stable default name.
 		return "security-review-labels.txt"
 	}
+	// Place the labels file alongside the report for easier discovery.
 	dir := filepath.Dir(reportPath)
 	base := filepath.Base(reportPath)
 	idx := strings.LastIndex(base, ".")
 	if idx > 0 {
+		// Drop the extension so the generated labels file mirrors the report name.
 		base = base[:idx]
 	}
 	if strings.TrimSpace(base) == "" {
 		base = "security-review"
 	}
+	// Append a suffix to distinguish the labels artifact from the report.
 	return filepath.Join(dir, base+"-labels.txt")
 }
 
@@ -260,7 +271,6 @@ func sanitizeName(text string) string {
 }
 
 // prepareRepository clones the repository and materializes commits for review.
-
 func prepareRepository(ctx context.Context, opts options, repositoryDir string) error {
 	parentDir := filepath.Dir(repositoryDir)
 	if err := os.MkdirAll(parentDir, 0o755); err != nil {
@@ -309,14 +319,23 @@ func ensureCommit(ctx context.Context, repoDir, sha string) error {
 
 // copyFile copies a file from src to dst, creating parent directories.
 func copyFile(src, dst string) error {
-	data, err := os.ReadFile(src)
+	in, err := os.Open(src)
 	if err != nil {
-		return fmt.Errorf("read file %s: %w", src, err)
+		return fmt.Errorf("open file %s: %w", src, err)
 	}
+	defer in.Close()
 	if err = os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
 		return fmt.Errorf("create directory for %s: %w", dst, err)
 	}
-	return os.WriteFile(dst, data, 0o644)
+	out, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644)
+	if err != nil {
+		return fmt.Errorf("open destination %s: %w", dst, err)
+	}
+	defer out.Close()
+	if _, err = io.Copy(out, in); err != nil {
+		return fmt.Errorf("copy %s to %s: %w", src, dst, err)
+	}
+	return nil
 }
 
 // runCompose executes the docker compose workflow for the review.

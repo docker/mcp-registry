@@ -54,7 +54,7 @@ RUN useradd --create-home --shell /bin/bash agent \
     && install -d -o agent -g agent /workspace/input \
     && install -d -o agent -g agent /workspace/output
 
-# Copy the reviewer assets and report template.
+# Copy the reviewer entrypoint and assets.
 COPY --from=gobuilder /security-reviewer/build/reviewer /opt/security-reviewer/reviewer
 COPY --chown=agent:agent prompt-template.md /opt/security-reviewer/prompt-template.md
 COPY --chown=agent:agent report-template.md /opt/security-reviewer/report-template.md
@@ -67,9 +67,10 @@ WORKDIR /workspace
 ENTRYPOINT ["/opt/security-reviewer/reviewer"]
 
 
-# Lightweight image hosting the API proxy.
+# Use a debian image to host the proxy.
 FROM debian:trixie-slim AS proxy-image
 
+# Install dependencies, including those needed for healthchecks.
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -77,7 +78,11 @@ RUN apt-get update \
         wget \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy the proxy entrypoint.
 COPY --from=gobuilder /security-reviewer/build/proxy /opt/security-reviewer/proxy
 
+# Expose the proxy's default port.
 EXPOSE 4000
+
+# Set the proxy entrypoint.
 ENTRYPOINT ["/opt/security-reviewer/proxy"]
