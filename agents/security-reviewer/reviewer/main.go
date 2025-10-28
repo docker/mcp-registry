@@ -10,8 +10,10 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
+	"time"
 )
 
 const (
@@ -23,12 +25,14 @@ const (
 	defaultLabelsPath      = "/workspace/output/labels.txt"
 	defaultReviewAgent     = "claude"
 	defaultAgentWorkingDir = "/workspace"
+	defaultTimeout         = time.Hour
 
 	envReviewAgent    = "REVIEW_AGENT"
 	envAgentExtraArgs = "REVIEW_AGENT_EXTRA_ARGS"
 	envReviewHeadSHA  = "REVIEW_HEAD_SHA"
 	envReviewBaseSHA  = "REVIEW_BASE_SHA"
 	envReviewTarget   = "REVIEW_TARGET_LABEL"
+	envReviewTimeout  = "REVIEW_TIMEOUT_SECS"
 )
 
 // ReviewMode enumerates supported security review modes.
@@ -168,13 +172,21 @@ func run(ctx context.Context) error {
 		WorkingDir: defaultAgentWorkingDir,
 	}
 
+	timeout, err := resolveTimeout()
+	if err != nil {
+		return err
+	}
+
+	agentCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
 	logInfo(fmt.Sprintf(
 		"Starting %s review (agent=%s head=%s base=%s label=%s).",
 		mode, agent.Name(), headSHA, baseSHA, targetLabel,
 	))
 
 	// Execute the agent command and relay its output streams.
-	stdout, stderr, runErr := runAgent(ctx, agent, inv)
+	stdout, stderr, runErr := runAgent(agentCtx, agent, inv)
 	if stderr != "" {
 		logError(errors.New(stderr))
 	}
@@ -269,6 +281,18 @@ func runAgent(ctx context.Context, agent reviewerAgent, inv agentInvocation) (st
 	}
 
 	return stdout.String(), stderr.String(), nil
+}
+
+func resolveTimeout() (time.Duration, error) {
+	value := strings.TrimSpace(os.Getenv(envReviewTimeout))
+	if value == "" {
+		return defaultTimeout, nil
+	}
+	secs, err := strconv.Atoi(value)
+	if err != nil || secs <= 0 {
+		return 0, fmt.Errorf("invalid %s value %q", envReviewTimeout, value)
+	}
+	return time.Duration(secs) * time.Second, nil
 }
 
 // buildPromptContent renders a concrete prompt for the selected review mode.

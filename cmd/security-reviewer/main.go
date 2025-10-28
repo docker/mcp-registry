@@ -17,15 +17,16 @@ import (
 )
 
 const (
-	composeFileName     = "compose.yml"
-	reportFileName      = "report.md"
-	labelsFileName      = "labels.txt"
-	repositoryDirName   = "repository"
-	dockerExecutable    = "docker"
-	gitExecutable       = "git"
-	projectPrefix       = "security-reviewer"
-	agentService        = "reviewer"
-	composeRelativePath = "agents/security-reviewer"
+	composeFileName       = "compose.yml"
+	reportFileName        = "report.md"
+	labelsFileName        = "labels.txt"
+	repositoryDirName     = "repository"
+	dockerExecutable      = "docker"
+	gitExecutable         = "git"
+	projectPrefix         = "security-reviewer"
+	agentService          = "reviewer"
+	composeRelativePath   = "agents/security-reviewer"
+	defaultTimeoutSeconds = 3600
 
 	envAnthropicAPIKey = "ANTHROPIC_API_KEY"
 	envOpenAIAPIKey    = "OPENAI_API_KEY"
@@ -56,6 +57,8 @@ type options struct {
 	ExtraArgs string
 	// KeepWorkdir preserves the temporary workspace when true.
 	KeepWorkdir bool
+	// TimeoutSeconds bounds the reviewer runtime; zero uses the default.
+	TimeoutSeconds int
 }
 
 var (
@@ -66,6 +69,7 @@ var (
 	flagTarget      string
 	flagOutput      string
 	flagLabels      string
+	flagTimeoutSecs int
 	flagModel       string
 	flagExtraArgs   string
 	flagKeepWorkdir bool
@@ -87,18 +91,23 @@ var rootCmd = &cobra.Command{
 		if labelsOutput == "" {
 			labelsOutput = deriveDefaultLabelsPath(flagOutput)
 		}
+		timeoutSecs := flagTimeoutSecs
+		if timeoutSecs <= 0 {
+			timeoutSecs = defaultTimeoutSeconds
+		}
 
 		opts := options{
-			Agent:        agent,
-			Repository:   strings.TrimSpace(flagRepo),
-			HeadSHA:      strings.TrimSpace(flagHead),
-			BaseSHA:      strings.TrimSpace(flagBase),
-			TargetLabel:  strings.TrimSpace(flagTarget),
-			OutputPath:   flagOutput,
-			LabelsOutput: labelsOutput,
-			Model:        strings.TrimSpace(flagModel),
-			ExtraArgs:    strings.TrimSpace(flagExtraArgs),
-			KeepWorkdir:  flagKeepWorkdir,
+			Agent:          agent,
+			Repository:     strings.TrimSpace(flagRepo),
+			HeadSHA:        strings.TrimSpace(flagHead),
+			BaseSHA:        strings.TrimSpace(flagBase),
+			TargetLabel:    strings.TrimSpace(flagTarget),
+			OutputPath:     flagOutput,
+			LabelsOutput:   labelsOutput,
+			Model:          strings.TrimSpace(flagModel),
+			ExtraArgs:      strings.TrimSpace(flagExtraArgs),
+			KeepWorkdir:    flagKeepWorkdir,
+			TimeoutSeconds: timeoutSecs,
 		}
 
 		if opts.Repository == "" {
@@ -120,6 +129,7 @@ func init() {
 	rootCmd.Flags().StringVar(&flagTarget, "target-label", "", "Human readable identifier for the target.")
 	rootCmd.Flags().StringVar(&flagOutput, "output", "security-review.md", "Destination for the rendered report.")
 	rootCmd.Flags().StringVar(&flagLabels, "labels-output", "", "Destination for the labels file (defaults alongside the report).")
+	rootCmd.Flags().IntVar(&flagTimeoutSecs, "timeout", defaultTimeoutSeconds, "Maximum runtime for the review in seconds (defaults to 3600 seconds).")
 	rootCmd.Flags().StringVar(&flagModel, "model", "", "Override the reviewer model for the selected agent.")
 	rootCmd.Flags().StringVar(&flagExtraArgs, "extra-args", "", "Additional arguments passed to the reviewer agent.")
 	rootCmd.Flags().BoolVar(&flagKeepWorkdir, "keep-workdir", false, "Keep the temporary workspace after completion.")
@@ -359,6 +369,7 @@ func buildComposeEnv(opts options, repositoryDir, outputDir string) []string {
 		fmt.Sprintf("REVIEW_TARGET_LABEL=%s", opts.TargetLabel),
 		fmt.Sprintf("REVIEW_REPOSITORY_PATH=%s", repositoryDir),
 		fmt.Sprintf("REVIEW_OUTPUT_PATH=%s", outputDir),
+		fmt.Sprintf("REVIEW_TIMEOUT_SECS=%d", opts.TimeoutSeconds),
 	)
 	if opts.Model != "" {
 		// Route custom models to the right environment variable per agent.
