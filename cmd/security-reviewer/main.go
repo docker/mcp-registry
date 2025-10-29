@@ -205,10 +205,14 @@ func run(ctx context.Context, opts options) error {
 	}
 
 	outputDir := filepath.Join(workdir, "output")
-	// Use 0o777 to allow the container to write when running with a different
-	// UID (e.g., in CI environments like GitHub Actions).
-	if err = os.MkdirAll(outputDir, 0o777); err != nil {
+	if err = os.MkdirAll(outputDir, 0o755); err != nil {
 		return fmt.Errorf("create output directory: %w", err)
+	}
+	// Explicitly chmod to allow the container to write when running with a
+	// different UID (e.g., in CI environments like GitHub Actions). This is
+	// necessary because the directory creation is subject to umask.
+	if err = os.Chmod(outputDir, 0o777); err != nil {
+		return fmt.Errorf("chmod output directory: %w", err)
 	}
 
 	// Launch the compose project and wait for the reviewer to finish.
