@@ -147,12 +147,6 @@ jobs:
               fi
             fi
 
-            # Check PR limit for new branches only.
-            if [ "$branch_exists" = false ] && [ -n "$new_pr_limit" ] && [ "$new_pr_count" -ge "$new_pr_limit" ]; then
-              echo "New PR quota reached ($new_pr_limit); skipping $server."
-              continue
-            fi
-
             # Apply the patch onto a fresh branch for this server.
             git checkout -B "$branch" origin/main
             if ! git apply "$patch"; then
@@ -182,6 +176,12 @@ jobs:
                 failed_servers+=("$server (update)")
               fi
             else
+              # Check PR limit before creating new PR.
+              if [ -n "$new_pr_limit" ] && [ "$new_pr_count" -ge "$new_pr_limit" ]; then
+                echo "New PR quota reached ($new_pr_limit); skipping $server."
+                continue
+              fi
+
               if gh pr create \
                 --title "chore: update pin for ${server}" \
                 --body "Automated commit pin update for ${server}." \
