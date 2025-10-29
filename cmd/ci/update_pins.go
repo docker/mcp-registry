@@ -24,7 +24,7 @@ package main
 
 import (
 	"context"
-	"errors"
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -38,15 +38,25 @@ import (
 
 // runUpdatePins refreshes pinned commits for local servers by resolving the
 // latest upstream revision on the tracked branch and updating server YAML
-// definitions in place. It does not take any CLI flags and emits a summary of
-// modified servers on stdout; errors are reported per server so that a single
-// failure does not abort the entire sweep.
+// definitions in place. Accepts a --servers flag to limit which servers to
+// update. Emits a summary of modified servers on stdout; errors are reported
+// per server so that a single failure does not abort the entire sweep.
 func runUpdatePins(args []string) error {
-	if len(args) != 0 {
-		return errors.New("update-pins does not accept additional arguments")
+	fs := flag.NewFlagSet("update-pins", flag.ExitOnError)
+	serversFlag := fs.String("servers", "", "Comma-separated list of servers to update (leave blank for all)")
+	if err := fs.Parse(args); err != nil {
+		return err
 	}
 
 	ctx := context.Background()
+
+	// Parse the servers filter if provided.
+	allowedServers := make(map[string]bool)
+	if *serversFlag != "" {
+		for _, name := range splitList(*serversFlag) {
+			allowedServers[name] = true
+		}
+	}
 
 	entries, err := os.ReadDir("servers")
 	if err != nil {
@@ -56,6 +66,12 @@ func runUpdatePins(args []string) error {
 	var updated []string
 	for _, entry := range entries {
 		if !entry.IsDir() {
+			continue
+		}
+
+		// Skip servers not in the filter list (if provided).
+		serverName := strings.ToLower(entry.Name())
+		if len(allowedServers) > 0 && !allowedServers[serverName] {
 			continue
 		}
 
