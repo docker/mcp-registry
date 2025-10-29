@@ -402,11 +402,13 @@ jobs:
               # Review succeeded - determine conclusion from labels.
               conclusion=$(determine_conclusion "$labels_path")
 
-              # Build summary text.
+              # Build summary text with beta preamble.
+              beta_notice=$'**⚠️ Beta Feature:** This automated security review is designed to aid human assessment and may contain spurious findings. Please use your judgment when evaluating the results.\n\n'
+
               if [ "$review_type" = "differential" ]; then
-                summary="Differential review completed (${base_commit:0:7}...${head_commit:0:7})"
+                summary="${beta_notice}Differential review completed (${base_commit:0:7}...${head_commit:0:7})"
               else
-                summary="Full code review completed at ${head_commit:0:7}"
+                summary="${beta_notice}Full code review completed at ${head_commit:0:7}"
               fi
 
               # Read labels for summary.
@@ -416,26 +418,18 @@ jobs:
               fi
 
               # Read report and truncate if necessary.
-              beta_preamble=$'**⚠️ Beta Feature:** This automated security review is designed to aid human assessment and may contain spurious findings. Please use your judgment when evaluating the results.\n\n---\n\n'
-
               if [ -s "$report_path" ]; then
                 report_text=$(cat "$report_path")
                 report_size=${#report_text}
 
-                # Account for preamble size.
-                preamble_size=${#beta_preamble}
-                max_report_size=$((max_check_output_size - preamble_size))
-
-                if [ "$report_size" -gt "$max_report_size" ]; then
+                if [ "$report_size" -gt "$max_check_output_size" ]; then
                   # Truncate and add notice.
-                  truncate_at=$((max_report_size - 200))
+                  truncate_at=$((max_check_output_size - 200))
                   report_text="${report_text:0:$truncate_at}"
                   report_text=$''"${report_text}"$'\n\n---\n\n**Note:** Report truncated due to size limits. Full report available in workflow artifacts.'
                 fi
-
-                report_text="${beta_preamble}${report_text}"
               else
-                report_text="${beta_preamble}No report generated."
+                report_text="No report generated."
               fi
 
               # Update check with results.
