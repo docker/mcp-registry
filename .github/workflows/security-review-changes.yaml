@@ -287,9 +287,9 @@ jobs:
               echo "success"
             elif grep -qE '^security-blocked$' "$labels_file"; then
               echo "failure"
-            elif grep -qE '^security-risk:(critical|high)$' "$labels_file"; then
+            elif grep -qE '^security-risk:critical$' "$labels_file"; then
               echo "failure"
-            elif grep -qE '^security-risk:medium$' "$labels_file"; then
+            elif grep -qE '^security-risk:(high|medium)$' "$labels_file"; then
               echo "neutral"
             else
               echo "success"
@@ -412,22 +412,30 @@ jobs:
               # Read labels for summary.
               if [ -s "$labels_path" ]; then
                 labels_list=$(cat "$labels_path" | head -5 | paste -sd, -)
-                summary="${summary}\nLabels: ${labels_list}"
+                summary=$''"${summary}"$'\nLabels: '"${labels_list}"
               fi
 
               # Read report and truncate if necessary.
+              beta_preamble=$'**⚠️ Beta Feature:** This automated security review is designed to aid human assessment and may contain spurious findings. Please use your judgment when evaluating the results.\n\n---\n\n'
+
               if [ -s "$report_path" ]; then
                 report_text=$(cat "$report_path")
                 report_size=${#report_text}
 
-                if [ "$report_size" -gt "$max_check_output_size" ]; then
+                # Account for preamble size.
+                preamble_size=${#beta_preamble}
+                max_report_size=$((max_check_output_size - preamble_size))
+
+                if [ "$report_size" -gt "$max_report_size" ]; then
                   # Truncate and add notice.
-                  truncate_at=$((max_check_output_size - 200))
+                  truncate_at=$((max_report_size - 200))
                   report_text="${report_text:0:$truncate_at}"
-                  report_text="${report_text}\n\n---\n\n**Note:** Report truncated due to size limits. Full report available in workflow artifacts."
+                  report_text=$''"${report_text}"$'\n\n---\n\n**Note:** Report truncated due to size limits. Full report available in workflow artifacts.'
                 fi
+
+                report_text="${beta_preamble}${report_text}"
               else
-                report_text="No report generated."
+                report_text="${beta_preamble}No report generated."
               fi
 
               # Update check with results.

@@ -49,7 +49,7 @@ jobs:
 
       - name: Update pinned commits
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.UPDATE_PINS_GITHUB_TOKEN }}
         run: |
           if [ -n "${{ github.event.inputs.servers }}" ]; then
             task ci -- update-pins --servers "${{ github.event.inputs.servers }}"
@@ -105,7 +105,7 @@ jobs:
       - name: Create or update pull requests
         if: steps.prepare.outputs.changed == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.UPDATE_PINS_GITHUB_TOKEN }}
           MAX_NEW_PRS: ${{ github.event.inputs.max_new_prs || '' }}
         run: |
           IFS=',' read -ra SERVERS <<< "${{ steps.prepare.outputs.servers }}"
