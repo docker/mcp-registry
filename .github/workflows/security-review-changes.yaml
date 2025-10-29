@@ -51,6 +51,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Checkout pull request
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.pull_request_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr checkout "${{ github.event.inputs.pull_request_number }}"
+
       - name: Install Go
         uses: actions/setup-go@v5
         with:
@@ -68,23 +75,26 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          base_sha="${{ github.event.pull_request.base.sha }}"
-          head_sha="${{ github.sha }}"
-          pr_number="${{ github.event.pull_request.number }}"
 
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.pull_request_number }}" ]; then
-            pr_json=$(gh pr view "${{ github.event.inputs.pull_request_number }}" --json baseRefOid,headRefOid,number)
-            base_sha=$(echo "$pr_json" | jq -r '.baseRefOid')
-            head_sha=$(echo "$pr_json" | jq -r '.headRefOid')
-            pr_number=$(echo "$pr_json" | jq -r '.number')
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # For pull_request events, GitHub checks out a merge commit.
+            # Use the merge commit for the check, but review the actual PR changes.
+            check_sha="${{ github.sha }}"
+            head_sha=$(git rev-parse HEAD^2)
+            base_sha=$(git merge-base HEAD^1 HEAD^2)
+            pr_number="${{ github.event.pull_request.number }}"
+          else
+            # For workflow_dispatch, we've checked out the PR branch.
+            git fetch origin "${{ github.event.repository.default_branch }}"
+            check_sha=$(git rev-parse HEAD)
+            head_sha=$(git rev-parse HEAD)
+            base_sha=$(git merge-base HEAD "origin/${{ github.event.repository.default_branch }}")
+            pr_number="${{ github.event.inputs.pull_request_number }}"
           fi
 
-          if [ -n "$base_sha" ]; then
-            echo "base=$base_sha" >> "$GITHUB_OUTPUT"
-          fi
-          if [ -n "$head_sha" ]; then
-            echo "head=$head_sha" >> "$GITHUB_OUTPUT"
-          fi
+          echo "check=$check_sha" >> "$GITHUB_OUTPUT"
+          echo "base=$base_sha" >> "$GITHUB_OUTPUT"
+          echo "head=$head_sha" >> "$GITHUB_OUTPUT"
           if [ -n "$pr_number" ] && [ "$pr_number" != "null" ]; then
             echo "pr=$pr_number" >> "$GITHUB_OUTPUT"
           fi
@@ -159,7 +169,7 @@ jobs:
             agent="claude"
           fi
 
-          head_sha="${{ steps.revision.outputs.head }}"
+          check_sha="${{ steps.revision.outputs.check }}"
           repo="${{ github.repository }}"
 
           mkdir -p review-output
@@ -176,7 +186,7 @@ jobs:
             gh api repos/$repo/check-runs \
               --method POST \
               --field name="$check_name" \
-              --field head_sha="$head_sha" \
+              --field head_sha="$check_sha" \
               --field status="queued" \
               --field output[title]="Security Review: $server" \
               --field output[summary]="Queued for $review_type security review..." \
@@ -245,7 +255,7 @@ jobs:
           timeout_secs="${REVIEW_TIMEOUT_INPUT:-1800}"
           force_review="${FORCE_REVIEW_INPUT:-false}"
 
-          head_sha="${{ steps.revision.outputs.head }}"
+          check_sha="${{ steps.revision.outputs.check }}"
           repo="${{ github.repository }}"
 
           # Maximum size for GitHub check output text field (in bytes).
@@ -273,7 +283,7 @@ jobs:
             local check_name="$1"
 
             [ "$force_review" != "true" ] && \
-              [ -n "$(gh api repos/$repo/commits/$head_sha/check-runs \
+              [ -n "$(gh api repos/$repo/commits/$check_sha/check-runs \
                 --jq ".check_runs[] | select(.name == \"$check_name\" and .status == \"completed\")" 2>/dev/null)" ]
           }
 
@@ -300,7 +310,7 @@ jobs:
             gh api repos/$repo/check-runs \
               --method POST \
               --field name="$check_name" \
-              --field head_sha="$head_sha" \
+              --field head_sha="$check_sha" \
               --field status="queued" \
               --field output[title]="Security Review: $server" \
               --field output[summary]="Queued for $review_type security review..." \
