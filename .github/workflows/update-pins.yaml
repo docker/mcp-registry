@@ -111,6 +111,7 @@ jobs:
             exit 1
           fi
           new_pr_count=0
+          failed_servers=()
 
           for server in "${SERVERS[@]}"; do
             patch="patches/${server}.patch"
@@ -151,7 +152,7 @@ jobs:
             # Apply the patch onto a fresh branch for this server.
             git checkout -B "$branch" origin/main
             if ! git apply "$patch"; then
-              echo "Failed to apply patch for $server, skipping."
+              echo "::error::Failed to apply patch for $server, skipping."
               continue
             fi
 
@@ -164,7 +165,7 @@ jobs:
             git add "servers/${server}/server.yaml"
             git commit -m "chore: update pin for ${server}"
             if ! git push --force origin "$branch"; then
-              echo "Failed to push branch for $server, skipping." >&2
+              echo "::error::Failed to push branch for $server, skipping."
               continue
             fi
 
@@ -173,7 +174,8 @@ jobs:
               if ! gh pr edit "$branch" \
                 --title "chore: update pin for ${server}" \
                 --body "Automated commit pin update for ${server}." 2>&1; then
-                echo "Failed to update PR for $server" >&2
+                echo "::error::Failed to update PR for $server"
+                failed_servers+=("$server (update)")
               fi
             else
               if gh pr create \
@@ -183,10 +185,20 @@ jobs:
                 --head "$branch" 2>&1; then
                 new_pr_count=$((new_pr_count + 1))
               else
-                echo "Failed to create PR for $server" >&2
+                echo "::error::Failed to create PR for $server"
+                failed_servers+=("$server (create)")
               fi
             fi
           done
 
           # Leave the repository in a clean state.
           git checkout main
+
+          # Report summary and exit with error if any PRs failed.
+          if [ ${#failed_servers[@]} -gt 0 ]; then
+            echo "::error::Failed to create or update PRs for ${#failed_servers[@]} server(s):"
+            for server in "${failed_servers[@]}"; do
+              echo "  - $server"
+            done
+            exit 1
+          fi
