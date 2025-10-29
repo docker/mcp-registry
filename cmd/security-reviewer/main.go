@@ -208,12 +208,6 @@ func run(ctx context.Context, opts options) error {
 	if err = os.MkdirAll(outputDir, 0o755); err != nil {
 		return fmt.Errorf("create output directory: %w", err)
 	}
-	// Explicitly chmod to allow the container to write when running with a
-	// different UID (e.g., in CI environments like GitHub Actions). This is
-	// necessary because the directory creation is subject to umask.
-	if err = os.Chmod(outputDir, 0o777); err != nil {
-		return fmt.Errorf("chmod output directory: %w", err)
-	}
 
 	// Launch the compose project and wait for the reviewer to finish.
 	if err = runCompose(ctx, opts, workdir, repositoryDir, outputDir); err != nil {
@@ -386,6 +380,11 @@ func buildComposeEnv(opts options, repositoryDir, outputDir string) []string {
 		slug = "target"
 	}
 	projectName := fmt.Sprintf("%s-%s-%d", projectPrefix, slug, time.Now().Unix())
+
+	// Get current UID/GID to match container user with host user.
+	// This avoids permission issues with bind mounts.
+	uid, gid := getCurrentUIDGID()
+
 	env = append(env,
 		fmt.Sprintf("COMPOSE_PROJECT_NAME=%s", projectName),
 		fmt.Sprintf("REVIEW_AGENT=%s", opts.Agent),
@@ -395,6 +394,8 @@ func buildComposeEnv(opts options, repositoryDir, outputDir string) []string {
 		fmt.Sprintf("REVIEW_REPOSITORY_PATH=%s", repositoryDir),
 		fmt.Sprintf("REVIEW_OUTPUT_PATH=%s", outputDir),
 		fmt.Sprintf("REVIEW_TIMEOUT_SECS=%d", opts.TimeoutSeconds),
+		fmt.Sprintf("AGENT_UID=%d", uid),
+		fmt.Sprintf("AGENT_GID=%d", gid),
 	)
 	if opts.Model != "" {
 		// Route custom models to the right environment variable per agent.
