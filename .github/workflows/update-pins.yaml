@@ -1,0 +1,192 @@
+name: Update MCP Server Version Pins
+
+on:
+  # schedule:
+  #   - cron: "0 5 * * *"
+  workflow_dispatch:
+    inputs:
+      max_new_prs:
+        description: "Maximum number of new pull requests to create (leave blank for unlimited)."
+        required: false
+        default: ""
+      servers:
+        description: "Comma-separated list of servers to update (leave blank for all)."
+        required: false
+        default: ""
+
+concurrency:
+  group: update-pins
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-pins:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git user
+        run: |
+          git config user.name "docker-mcp-bot"
+          git config user.email "docker-mcp-bot@users.noreply.github.com"
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update pinned commits
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          task ci -- update-pins
+
+      - name: Collect per-server patches
+        id: prepare
+        env:
+          ALLOWED_SERVERS: ${{ github.event.inputs.servers || '' }}
+        run: |
+          # Gather the diff for each modified server YAML and store it as an
+          # individual patch file so we can open one PR per server.
+          mkdir -p patches
+          changed_files=$(git status --porcelain | awk '$2 ~ /^servers\/.*\/server.yaml$/ {print $2}')
+          if [ -z "$changed_files" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          allowed_servers=$(echo "$ALLOWED_SERVERS" | tr '[:upper:]' '[:lower:]' | tr -d ' ')
+          server_list=()
+          for file in $changed_files; do
+            server=$(basename "$(dirname "$file")")
+            server_lc=$(echo "$server" | tr '[:upper:]' '[:lower:]')
+
+            if [ -n "$allowed_servers" ]; then
+              if ! echo ",$allowed_servers," | grep -q ",$server_lc,"; then
+                continue
+              fi
+            fi
+
+            git diff -- "$file" > "patches/${server}.patch"
+            server_list+=("$server")
+          done
+
+          if [ ${#server_list[@]} -eq 0 ]; then
+            echo "No servers matched the provided filter; exiting." >&2
+            git checkout -- servers
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Reset the working tree so we can apply patches one-at-a-time.
+          git checkout -- servers
+
+          # Expose the server list to later steps.
+          printf '%s\n' "${server_list[@]}" | paste -sd',' - > patches/servers.txt
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "servers=$(cat patches/servers.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update pull requests
+        if: steps.prepare.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAX_NEW_PRS: ${{ github.event.inputs.max_new_prs || '' }}
+        run: |
+          IFS=',' read -ra SERVERS <<< "${{ steps.prepare.outputs.servers }}"
+          new_pr_limit=$(echo "$MAX_NEW_PRS" | tr -d ' ')
+          if [ -n "$new_pr_limit" ] && ! [[ "$new_pr_limit" =~ ^[0-9]+$ ]]; then
+            echo "Invalid max_new_prs value: $new_pr_limit" >&2
+            exit 1
+          fi
+          new_pr_count=0
+
+          for server in "${SERVERS[@]}"; do
+            patch="patches/${server}.patch"
+            if [ ! -s "$patch" ]; then
+              echo "No patch found for $server, skipping."
+              continue
+            fi
+
+            # Look up the new commit hash in the patch so we can decide whether
+            # an existing automation branch already covers it.
+            new_commit=$(awk '/^\+.*commit:/{print $2}' "$patch" | tail -n1)
+            branch="automation/update-pin-${server}"
+
+            # Start from a clean copy of main for each server so branches do not
+            # interfere with one another.
+            git checkout main
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Check if we've hit the new PR limit before doing any work.
+            branch_exists=false
+            if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+              branch_exists=true
+              git fetch origin "$branch"
+              existing_commit=$(git show "origin/${branch}:servers/${server}/server.yaml" 2>/dev/null | awk '/commit:/{print $2}' | tail -n1)
+              if [ -n "$existing_commit" ] && [ "$existing_commit" = "$new_commit" ]; then
+                echo "Existing PR for $server already pins ${existing_commit}; skipping."
+                continue
+              fi
+            fi
+
+            # Check PR limit for new branches only.
+            if [ "$branch_exists" = false ] && [ -n "$new_pr_limit" ] && [ "$new_pr_count" -ge "$new_pr_limit" ]; then
+              echo "New PR quota reached ($new_pr_limit); skipping $server."
+              continue
+            fi
+
+            # Apply the patch onto a fresh branch for this server.
+            git checkout -B "$branch" origin/main
+            if ! git apply "$patch"; then
+              echo "Failed to apply patch for $server, skipping."
+              continue
+            fi
+
+            if git diff --quiet; then
+              echo "No changes after applying patch for $server, skipping."
+              continue
+            fi
+
+            # Commit the server YAML change and force-push the automation branch.
+            git add "servers/${server}/server.yaml"
+            git commit -m "chore: update pin for ${server}"
+            if ! git push --force origin "$branch"; then
+              echo "Failed to push branch for $server, skipping." >&2
+              continue
+            fi
+
+            # Create or update the PR dedicated to this server.
+            if gh pr view --head "$branch" >/dev/null 2>&1; then
+              if ! gh pr edit "$branch" \
+                --title "chore: update pin for ${server}" \
+                --body "Automated commit pin update for ${server}." 2>&1; then
+                echo "Failed to update PR for $server" >&2
+              fi
+            else
+              if gh pr create \
+                --title "chore: update pin for ${server}" \
+                --body "Automated commit pin update for ${server}." \
+                --base main \
+                --head "$branch" 2>&1; then
+                new_pr_count=$((new_pr_count + 1))
+              else
+                echo "Failed to create PR for $server" >&2
+              fi
+            fi
+          done
+
+          # Leave the repository in a clean state.
+          git checkout main
