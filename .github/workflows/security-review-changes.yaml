@@ -164,6 +164,15 @@ jobs:
             echo "has_targets=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Switch to main for running reviews
+        run: |
+          set -euo pipefail
+          # We've collected the targets from the PR branch. Now switch to main
+          # so that all subsequent steps (creating checks, running reviews) use
+          # the latest security-reviewer implementation from main.
+          git fetch origin main
+          git checkout origin/main
+
       - name: Create pending security review checks
         if: steps.updatedpins.outputs.has_targets == 'true' || steps.newservers.outputs.has_targets == 'true'
         id: checks
