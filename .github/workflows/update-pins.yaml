@@ -51,7 +51,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          task ci -- update-pins
+          if [ -n "${{ github.event.inputs.servers }}" ]; then
+            task ci -- update-pins --servers "${{ github.event.inputs.servers }}"
+          else
+            task ci -- update-pins
+          fi
 
       - name: Collect per-server patches
         id: prepare

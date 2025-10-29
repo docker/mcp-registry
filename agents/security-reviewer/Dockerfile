@@ -26,6 +26,8 @@ FROM debian:trixie-slim AS reviewer-image
 # Set up configuration.
 ARG CLAUDE_CODE_VERSION=latest
 ARG CODEX_CLI_VERSION=latest
+ARG AGENT_UID=1000
+ARG AGENT_GID=1000
 
 # Install core packages, developer tooling, and runtime dependencies.
 ENV DEBIAN_FRONTEND=noninteractive
@@ -49,7 +51,9 @@ RUN npm install --global \
     && npm cache clean --force
 
 # Create a dedicated runtime user and working directories.
-RUN useradd --create-home --shell /bin/bash agent \
+# Use build args to allow matching host UID/GID to avoid permission issues.
+RUN groupadd --gid ${AGENT_GID} agent \
+    && useradd --uid ${AGENT_UID} --gid ${AGENT_GID} --create-home --shell /bin/bash agent \
     && install -d -o agent -g agent /workspace \
     && install -d -o agent -g agent /workspace/input \
     && install -d -o agent -g agent /workspace/output
