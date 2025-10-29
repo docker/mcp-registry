@@ -128,30 +128,6 @@ func runGitCommand(dir string, args ...string) (string, error) {
 	return string(output), nil
 }
 
-// initGitRepository creates or reuses a git repository rooted at dir with origin set.
-func initGitRepository(dir, remote string) error {
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return err
-	}
-	if _, err := runGitCommand(dir, "rev-parse", "--is-inside-work-tree"); err == nil {
-		return nil
-	}
-	if _, err := runGitCommand(dir, "init"); err != nil {
-		return err
-	}
-	if _, err := runGitCommand(dir, "remote", "remove", "origin"); err == nil {
-		// ignore error
-	}
-	_, err := runGitCommand(dir, "remote", "add", "origin", remote)
-	return err
-}
-
-// fetchCommit retrieves a single commit from origin into the repository.
-func fetchCommit(dir, commit string) error {
-	_, err := runGitCommand(dir, "fetch", "--depth", "1", "--no-tags", "origin", commit)
-	return err
-}
-
 // splitList normalizes a delimited string into lowercase server names.
 func splitList(raw string) []string {
 	if raw == "" {

@@ -183,6 +183,11 @@ jobs:
               --jq '.id'
           }
 
+          # Helper to create a slug suitable for check names.
+          slugify() {
+            echo "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g' | sed -E 's/^-+|-+$//g'
+          }
+
           # Create checks for updated pins (differential reviews).
           if [ "${{ steps.updatedpins.outputs.has_targets }}" = "true" ]; then
             while read -r target; do
@@ -191,7 +196,8 @@ jobs:
               old_commit=$(echo "$target" | jq -r '.old_commit')
               new_commit=$(echo "$target" | jq -r '.new_commit')
 
-              check_name="security-review/$agent/pin/$server"
+              server_slug=$(slugify "$server")
+              check_name="security-review/$agent/pin/$server_slug"
               check_id=$(create_pending_check "$check_name" "$server" "differential")
 
               echo "$check_name|$check_id|$server|$project|$new_commit|$old_commit|differential" >> review-output/check-ids.txt
@@ -205,7 +211,8 @@ jobs:
               project=$(echo "$target" | jq -r '.project')
               commit=$(echo "$target" | jq -r '.commit')
 
-              check_name="security-review/$agent/new/$server"
+              server_slug=$(slugify "$server")
+              check_name="security-review/$agent/new/$server_slug"
               check_id=$(create_pending_check "$check_name" "$server" "full")
 
               echo "$check_name|$check_id|$server|$project|$commit||full" >> review-output/check-ids.txt
@@ -356,6 +363,7 @@ jobs:
             if [ "$review_type" = "differential" ]; then
               if [ -z "$base_commit" ] || [ "$base_commit" = "null" ]; then
                 echo "Skipping $server: missing base commit for differential review." >&2
+                skip_check "$check_id" "$server" "missing base commit"
                 return
               fi
               cmd+=(--base "$base_commit")
@@ -426,7 +434,7 @@ jobs:
               "$project" \
               "$head_commit" \
               "$base_commit" \
-              "$review_type"
+              "$review_type" || true
           done < review-output/check-ids.txt
 
       - name: Upload security reports

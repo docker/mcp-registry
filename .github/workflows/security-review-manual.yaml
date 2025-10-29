@@ -74,7 +74,7 @@ jobs:
           REVIEW_MODEL_INPUT: ${{ github.event.inputs.model }}
           REVIEW_TIMEOUT_INPUT: ${{ github.event.inputs.timeout_secs }}
         run: |
-          set -euo pipefail
+          set -uo pipefail
           agent="${REVIEW_AGENT_INPUT:-}"
           if [ -z "$agent" ]; then
             agent="claude"
@@ -115,7 +115,9 @@ jobs:
               cmd+=(--model "$model")
             fi
 
-            "${cmd[@]}"
+            if ! "${cmd[@]}"; then
+              echo "Security review failed for $server" >&2
+            fi
           done < <(jq -c '.[]' "${{ steps.collect.outputs.targets }}")
 
       - name: Upload security reports

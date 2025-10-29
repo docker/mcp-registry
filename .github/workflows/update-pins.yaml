@@ -3,8 +3,6 @@ name: Update MCP Server Version Pins
 on:
   # schedule:
   #   - cron: "0 5 * * *"
-  schedule:
-    - cron: "0 0 1 * *"
   workflow_dispatch:
     inputs:
       max_new_prs:
@@ -132,20 +130,22 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            # If a prior PR exists for this server, fetch it and bail out when
-            # the requested commit is identical (no update required).
+            # Check if we've hit the new PR limit before doing any work.
+            branch_exists=false
             if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+              branch_exists=true
               git fetch origin "$branch"
               existing_commit=$(git show "origin/${branch}:servers/${server}/server.yaml" 2>/dev/null | awk '/commit:/{print $2}' | tail -n1)
               if [ -n "$existing_commit" ] && [ "$existing_commit" = "$new_commit" ]; then
                 echo "Existing PR for $server already pins ${existing_commit}; skipping."
                 continue
               fi
-            else
-              if [ -n "$new_pr_limit" ] && [ "$new_pr_count" -ge "$new_pr_limit" ]; then
-                echo "New PR quota reached ($new_pr_limit); skipping $server."
-                continue
-              fi
+            fi
+
+            # Check PR limit for new branches only.
+            if [ "$branch_exists" = false ] && [ -n "$new_pr_limit" ] && [ "$new_pr_count" -ge "$new_pr_limit" ]; then
+              echo "New PR quota reached ($new_pr_limit); skipping $server."
+              continue
             fi
 
             # Apply the patch onto a fresh branch for this server.
@@ -163,20 +163,28 @@ jobs:
             # Commit the server YAML change and force-push the automation branch.
             git add "servers/${server}/server.yaml"
             git commit -m "chore: update pin for ${server}"
-            git push --force origin "$branch"
+            if ! git push --force origin "$branch"; then
+              echo "Failed to push branch for $server, skipping." >&2
+              continue
+            fi
 
             # Create or update the PR dedicated to this server.
             if gh pr view --head "$branch" >/dev/null 2>&1; then
-              gh pr edit "$branch" \
+              if ! gh pr edit "$branch" \
                 --title "chore: update pin for ${server}" \
-                --body "Automated commit pin update for ${server}."
+                --body "Automated commit pin update for ${server}." 2>&1; then
+                echo "Failed to update PR for $server" >&2
+              fi
             else
-              gh pr create \
+              if gh pr create \
                 --title "chore: update pin for ${server}" \
                 --body "Automated commit pin update for ${server}." \
                 --base main \
-                --head "$branch"
-              new_pr_count=$((new_pr_count + 1))
+                --head "$branch" 2>&1; then
+                new_pr_count=$((new_pr_count + 1))
+              else
+                echo "Failed to create PR for $server" >&2
+              fi
             fi
           done
 
