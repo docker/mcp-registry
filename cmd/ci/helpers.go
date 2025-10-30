@@ -91,12 +91,25 @@ func decodeServerDocument(raw []byte) (servers.Server, error) {
 	return doc, nil
 }
 
-// isLocalServer returns true when the definition corresponds to a local server image.
+// isLocalServer returns true when the definition corresponds to a server that
+// should be security reviewed. This includes both local servers (mcp/ namespace)
+// and external servers that have a source repository.
 func isLocalServer(doc servers.Server) bool {
 	if !strings.EqualFold(doc.Type, "server") {
 		return false
 	}
-	return strings.HasPrefix(strings.TrimSpace(doc.Image), "mcp/")
+
+	// Include servers built in the mcp/ namespace.
+	if strings.HasPrefix(strings.TrimSpace(doc.Image), "mcp/") {
+		return true
+	}
+
+	// Include external servers that have a source repository with a commit pin.
+	// We can't guarantee provenance between source and image, but reviewing the
+	// source is better than nothing.
+	project := strings.TrimSpace(doc.Source.Project)
+	commit := strings.TrimSpace(doc.Source.Commit)
+	return project != "" && commit != ""
 }
 
 // gitDiff runs git diff for server YAML files and returns the resulting paths.
