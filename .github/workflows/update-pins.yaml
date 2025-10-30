@@ -129,23 +129,38 @@ jobs:
             new_commit=$(awk '/^\+.*commit:/{print $2}' "$patch" | tail -n1)
             branch="automation/update-pin-${server}"
 
+            # Check if a PR already exists for this branch.
+            existing_pr=$(gh pr list --head "$branch" --json number --jq '.[0].number // ""' 2>/dev/null || echo "")
+
+            # Check if branch exists and whether we need to update it.
+            branch_exists=false
+            if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+              branch_exists=true
+              # Check if existing branch already has the commit we want.
+              git fetch origin "$branch"
+              existing_commit=$(git show "origin/${branch}:servers/${server}/server.yaml" 2>/dev/null | awk '/commit:/{print $2}' | tail -n1)
+              if [ -n "$existing_commit" ] && [ "$existing_commit" = "$new_commit" ]; then
+                # Only skip if there's also an open PR for this branch.
+                if [ -n "$existing_pr" ]; then
+                  echo "Existing PR #$existing_pr for $server already pins ${existing_commit}; skipping."
+                  continue
+                else
+                  echo "Branch for $server already has ${existing_commit}, but no open PR found; will recreate."
+                fi
+              fi
+            fi
+
+            # Check quota before doing work if no PR exists.
+            if [ -z "$existing_pr" ] && [ -n "$new_pr_limit" ] && [ "$new_pr_count" -ge "$new_pr_limit" ]; then
+              echo "New PR quota reached ($new_pr_limit); skipping $server."
+              continue
+            fi
+
             # Start from a clean copy of main for each server so branches do not
             # interfere with one another.
             git checkout main
             git fetch origin main
             git reset --hard origin/main
-
-            # Check if we've hit the new PR limit before doing any work.
-            branch_exists=false
-            if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
-              branch_exists=true
-              git fetch origin "$branch"
-              existing_commit=$(git show "origin/${branch}:servers/${server}/server.yaml" 2>/dev/null | awk '/commit:/{print $2}' | tail -n1)
-              if [ -n "$existing_commit" ] && [ "$existing_commit" = "$new_commit" ]; then
-                echo "Existing PR for $server already pins ${existing_commit}; skipping."
-                continue
-              fi
-            fi
 
             # Apply the patch onto a fresh branch for this server.
             git checkout -B "$branch" origin/main
@@ -168,26 +183,25 @@ jobs:
             fi
 
             # Create or update the PR dedicated to this server.
-            if gh pr view --head "$branch" >/dev/null 2>&1; then
-              if ! gh pr edit "$branch" \
+            if [ -n "$existing_pr" ]; then
+              # Update existing PR.
+              if ! gh pr edit "$existing_pr" \
                 --title "chore: update pin for ${server}" \
                 --body "Automated commit pin update for ${server}." 2>&1; then
                 echo "::error::Failed to update PR for $server"
                 failed_servers+=("$server (update)")
+              else
+                echo "Updated existing PR #$existing_pr for $server"
               fi
             else
-              # Check PR limit before creating new PR.
-              if [ -n "$new_pr_limit" ] && [ "$new_pr_count" -ge "$new_pr_limit" ]; then
-                echo "New PR quota reached ($new_pr_limit); skipping $server."
-                continue
-              fi
-
+              # Create new PR.
               if gh pr create \
                 --title "chore: update pin for ${server}" \
                 --body "Automated commit pin update for ${server}." \
                 --base main \
                 --head "$branch" 2>&1; then
                 new_pr_count=$((new_pr_count + 1))
+                echo "Created new PR for $server"
               else
                 echo "::error::Failed to create PR for $server"
                 failed_servers+=("$server (create)")
