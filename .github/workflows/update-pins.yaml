@@ -132,6 +132,12 @@ jobs:
             # Check if a PR already exists for this branch.
             existing_pr=$(gh pr list --head "$branch" --json number --jq '.[0].number // ""' 2>/dev/null || echo "")
 
+            # Check quota before doing any git work if no PR exists.
+            if [ -z "$existing_pr" ] && [ -n "$new_pr_limit" ] && [ "$new_pr_count" -ge "$new_pr_limit" ]; then
+              echo "New PR quota reached ($new_pr_limit); skipping $server."
+              continue
+            fi
+
             # Check if branch exists and whether we need to update it.
             branch_exists=false
             if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
@@ -148,12 +154,6 @@ jobs:
                   echo "Branch for $server already has ${existing_commit}, but no open PR found; will recreate."
                 fi
               fi
-            fi
-
-            # Check quota before doing work if no PR exists.
-            if [ -z "$existing_pr" ] && [ -n "$new_pr_limit" ] && [ "$new_pr_count" -ge "$new_pr_limit" ]; then
-              echo "New PR quota reached ($new_pr_limit); skipping $server."
-              continue
             fi
 
             # Start from a clean copy of main for each server so branches do not
