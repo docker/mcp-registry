@@ -4,6 +4,12 @@ set -euo pipefail
 # Smoke test pour BioLab MCP Research Server
 # - Pull l'image GHCR
 # - Lance un conteneur temporaire (mapping host:8080 -> container:8000)
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Smoke test pour BioLab MCP Research Server
+# - Pull l'image GHCR
+# - Lance un conteneur temporaire (mapping host:8080 -> container:8000)
 # - Vérifie l'endpoint /health
 
 IMAGE="ghcr.io/aguennoune/biolab-mcp:v0.1.0"
