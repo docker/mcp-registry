@@ -1,1 +1,1 @@
-Docs: https://mcp.equinix.com/peeringInsights
+Docs: https://ix.equinix.com/home/

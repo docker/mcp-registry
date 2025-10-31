@@ -1,1 +1,1 @@
-Docs: https://mcp.equinix.com/fabric
+Docs: https://www.equinix.com/products/digital-infrastructure-services/equinix-fabric
