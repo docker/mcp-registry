@@ -22,11 +22,21 @@ jobs:
   update-pins:
     runs-on: ubuntu-24.04
     steps:
+      - name: Create GitHub auth token for mcp-registry-bot from GitHub App
+        id: docker-mcp-registry-bot-auth
+        uses: actions/create-github-app-token@af35edadc00be37caa72ed9f3e6d5f7801bfdf09 # v1.11.7
+        with:
+          app-id: ${{ vars.MCP_REGISTRY_BOT_APP_ID }}
+          private-key: ${{ secrets.MCP_REGISTRY_BOT_PRIVATE_KEY }}
+          owner: docker
+          repositories: |
+            mcp-registry
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.UPDATE_PINS_GITHUB_TOKEN }}
+          token: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
 
       - name: Configure Git user
         run: |
@@ -46,7 +56,7 @@ jobs:
 
       - name: Update pinned commits
         env:
-          GITHUB_TOKEN: ${{ secrets.UPDATE_PINS_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
         run: |
           if [ -n "${{ github.event.inputs.servers }}" ]; then
             task ci -- update-pins --servers "${{ github.event.inputs.servers }}"
@@ -102,7 +112,7 @@ jobs:
       - name: Create or update pull requests
         if: steps.prepare.outputs.changed == 'true'
         env:
-          GH_TOKEN: ${{ secrets.UPDATE_PINS_GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
           MAX_NEW_PRS: ${{ github.event.inputs.max_new_prs || '' }}
         run: |
           IFS=',' read -ra SERVERS <<< "${{ steps.prepare.outputs.servers }}"
