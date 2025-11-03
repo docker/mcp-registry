@@ -43,6 +43,14 @@ func run(name string) error {
 		return err
 	}
 
+	if err := isTitleValid(name); err != nil {
+		return err
+	}
+
+	if err := isYamlIndentationValid(name); err != nil {
+		return err
+	}
+
 	if err := isCommitPinnedIfNecessary(name); err != nil {
 		return err
 	}
@@ -116,6 +124,78 @@ func isDirectoryValid(name string) error {
 	}
 
 	fmt.Println("✅ Directory is valid")
+	return nil
+}
+
+// check if the title is valid
+// titles should not contain "MCP" or "Server" and every word should be capitalized
+func isTitleValid(name string) error {
+	server, err := readServerYaml(name)
+	if err != nil {
+		return err
+	}
+
+	title := server.About.Title
+
+	// Check for "MCP" or "Server" in the title
+	if strings.Contains(title, "MCP") {
+		return fmt.Errorf("title should not contain 'MCP': %s", title)
+	}
+	if strings.Contains(title, "Server") {
+		return fmt.Errorf("title should not contain 'Server': %s", title)
+	}
+
+	// Check that every word is capitalized
+	words := strings.Fields(title)
+	for _, word := range words {
+		if len(word) == 0 {
+			continue
+		}
+		// Check if the first character is uppercase
+		firstChar := []rune(word)[0]
+		if string(firstChar) != strings.ToUpper(string(firstChar)) {
+			return fmt.Errorf("title must have every word capitalized: %s (word: %s)", title, word)
+		}
+	}
+
+	fmt.Println("✅ Title is valid")
+	return nil
+}
+
+// check if the YAML file has proper indentation (2 spaces per level)
+func isYamlIndentationValid(name string) error {
+	yamlPath := filepath.Join("servers", name, "server.yaml")
+	content, err := os.ReadFile(yamlPath)
+	if err != nil {
+		return err
+	}
+
+	lines := strings.Split(string(content), "\n")
+	for i, line := range lines {
+		// Skip empty lines and lines without indentation
+		if len(line) == 0 || line[0] != ' ' {
+			continue
+		}
+
+		// Count leading spaces
+		spaces := 0
+		for _, char := range line {
+			if char == ' ' {
+				spaces++
+			} else if char == '\t' {
+				return fmt.Errorf("YAML must use spaces, not tabs (line %d): %s", i+1, line)
+			} else {
+				break
+			}
+		}
+
+		// Check if indentation is a multiple of 2
+		if spaces%2 != 0 {
+			return fmt.Errorf("YAML indentation must be 2 spaces per level (line %d has %d spaces): %s", i+1, spaces, line)
+		}
+	}
+
+	fmt.Println("✅ YAML indentation is valid")
 	return nil
 }
 
