@@ -157,9 +157,14 @@ jobs:
                 if patch -s /tmp/main-server.yaml "$patch" 2>/dev/null; then
                   # Compare the patched result to what's already on the branch.
                   if diff -q /tmp/main-server.yaml /tmp/existing-server.yaml >/dev/null 2>&1; then
-                    echo "Branch $branch already has the same changes; skipping."
-                    rm -f /tmp/existing-server.yaml /tmp/main-server.yaml
-                    continue
+                    # Only skip if there's also an open PR for this branch.
+                    if [ -n "$existing_pr" ]; then
+                      echo "Branch $branch already has the same changes and PR #$existing_pr exists; skipping."
+                      rm -f /tmp/existing-server.yaml /tmp/main-server.yaml
+                      continue
+                    else
+                      echo "Branch $branch has the same changes but no open PR found; will recreate PR."
+                    fi
                   fi
                 fi
                 rm -f /tmp/existing-server.yaml /tmp/main-server.yaml
