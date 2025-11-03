@@ -121,9 +121,6 @@ jobs:
               continue
             fi
 
-            # Look up the new commit hash in the patch so we can decide whether
-            # an existing automation branch already covers it.
-            new_commit=$(awk '/^\+.*commit:/{print $2}' "$patch" | tail -n1)
             branch="automation/update-pin-${server}"
 
             # Check if a PR already exists for this branch.
@@ -136,20 +133,26 @@ jobs:
             fi
 
             # Check if branch exists and whether we need to update it.
-            branch_exists=false
             if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
-              branch_exists=true
-              # Check if existing branch already has the commit we want.
+              # Check if existing branch already has the same changes by comparing
+              # the actual file content, not just the commit field. This prevents
+              # spurious force pushes when the patch hasn't changed.
               git fetch origin "$branch"
-              existing_commit=$(git show "origin/${branch}:servers/${server}/server.yaml" 2>/dev/null | awk '/commit:/{print $2}' | tail -n1)
-              if [ -n "$existing_commit" ] && [ "$existing_commit" = "$new_commit" ]; then
-                # Only skip if there's also an open PR for this branch.
-                if [ -n "$existing_pr" ]; then
-                  echo "Existing PR #$existing_pr for $server already pins ${existing_commit}; skipping."
-                  continue
-                else
-                  echo "Branch for $server already has ${existing_commit}, but no open PR found; will recreate."
+
+              # Get the current content from the branch and compare to the patch.
+              if git show "origin/${branch}:servers/${server}/server.yaml" > /tmp/existing-server.yaml 2>/dev/null; then
+                # Apply the patch to a temporary copy of main's version to see what
+                # the result would be.
+                git show "origin/main:servers/${server}/server.yaml" > /tmp/main-server.yaml 2>/dev/null || true
+                if patch -s /tmp/main-server.yaml "$patch" 2>/dev/null; then
+                  # Compare the patched result to what's already on the branch.
+                  if diff -q /tmp/main-server.yaml /tmp/existing-server.yaml >/dev/null 2>&1; then
+                    echo "Branch $branch already has the same changes; skipping."
+                    rm -f /tmp/existing-server.yaml /tmp/main-server.yaml
+                    continue
+                  fi
                 fi
+                rm -f /tmp/existing-server.yaml /tmp/main-server.yaml
               fi
             fi
 
@@ -181,15 +184,8 @@ jobs:
 
             # Create or update the PR dedicated to this server.
             if [ -n "$existing_pr" ]; then
-              # Update existing PR.
-              if ! gh pr edit "$existing_pr" \
-                --title "chore: update pin for ${server}" \
-                --body "Automated commit pin update for ${server}." 2>&1; then
-                echo "::error::Failed to update PR for $server"
-                failed_servers+=("$server (update)")
-              else
-                echo "Updated existing PR #$existing_pr for $server"
-              fi
+              # PR already exists; the force push above updated it.
+              echo "Updated existing PR #$existing_pr for $server via force push"
             else
               # Create new PR.
               if gh pr create \
