@@ -162,40 +162,19 @@ func isTitleValid(name string) error {
 	return nil
 }
 
-// check if the YAML file has proper indentation (2 spaces per level)
+// check if the YAML file is formatted correctly using prettier
 func isYamlIndentationValid(name string) error {
 	yamlPath := filepath.Join("servers", name, "server.yaml")
-	content, err := os.ReadFile(yamlPath)
+
+	// Use npx to run prettier without requiring local installation
+	cmd := exec.Command("npx", "--yes", "prettier", "--check", yamlPath)
+	output, err := cmd.CombinedOutput()
+
 	if err != nil {
-		return err
+		return fmt.Errorf("YAML file is not formatted correctly. Run 'npx prettier --write %s' to fix:\n%s", yamlPath, string(output))
 	}
 
-	lines := strings.Split(string(content), "\n")
-	for i, line := range lines {
-		// Skip empty lines and lines without indentation
-		if len(line) == 0 || line[0] != ' ' {
-			continue
-		}
-
-		// Count leading spaces
-		spaces := 0
-		for _, char := range line {
-			if char == ' ' {
-				spaces++
-			} else if char == '\t' {
-				return fmt.Errorf("YAML must use spaces, not tabs (line %d): %s", i+1, line)
-			} else {
-				break
-			}
-		}
-
-		// Check if indentation is a multiple of 2
-		if spaces%2 != 0 {
-			return fmt.Errorf("YAML indentation must be 2 spaces per level (line %d has %d spaces): %s", i+1, spaces, line)
-		}
-	}
-
-	fmt.Println("✅ YAML indentation is valid")
+	fmt.Println("✅ YAML formatting is valid")
 	return nil
 }
 
