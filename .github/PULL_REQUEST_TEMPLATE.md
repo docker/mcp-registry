@@ -27,3 +27,4 @@ assignees: ""
 - [ ] I understand this will undergo automated and manual review.
 - [ ] I have tested the MCP Server using `task validate -- --name SERVER_NAME`
 - [ ] I have built the MCP Server using `task build -- --tools SERVER_NAME`
+- [ ] If the server requires credentials to test it, I have [shared test credentials using this form](https://forms.gle/6Lw3nsvu2d6nFg8e6)
