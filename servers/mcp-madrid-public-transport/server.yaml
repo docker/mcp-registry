@@ -1,0 +1,92 @@
+name: mcp-madrid-public-transport
+image: dieguezz/mcp-madrid-public-transport:latest
+type: server
+meta:
+  category: transportation
+  tags:
+    - transportation
+    - madrid
+    - spain
+    - metro
+    - bus
+    - train
+    - real-time
+    - public-transport
+    - gtfs
+about:
+  title: Madrid Public Transport
+  description: |
+    Real-time public transportation information for Madrid, Spain. Query arrival times for Metro, EMT buses, urban/interurban buses, and Cercanías trains using the Model Context Protocol.
+
+    Available without credentials:
+    - Metro de Madrid (all lines)
+    - Cercanías trains (Renfe)
+
+    Requires free EMT API credentials (https://openapi.emtmadrid.es/):
+    - EMT buses (Madrid city buses)
+    - Urban/interurban buses
+  icon: https://raw.githubusercontent.com/dieguezz/mcp-madrid-public-transport/main/assets/icon.png
+source:
+  project: https://github.com/dieguezz/mcp-madrid-public-transport
+  commit: HEAD
+config:
+  description: |
+    Configure Madrid Transport MCP Server with EMT API credentials (optional).
+
+    Metro and train data work without credentials. For bus arrivals, register for free at https://openapi.emtmadrid.es/ to get your Client ID and Pass Key.
+  secrets:
+    - name: mcp-madrid-public-transport.emt_client_id
+      env: EMT_CLIENT_ID
+      example: your_emt_client_id_here
+      description: "OPTIONAL: EMT OpenAPI Client ID for bus arrivals (register at https://openapi.emtmadrid.es/). Not required for Metro and train data."
+    - name: mcp-madrid-public-transport.emt_pass_key
+      env: EMT_PASS_KEY
+      example: your_emt_passkey_here
+      description: "OPTIONAL: EMT OpenAPI Pass Key for bus arrivals (register at https://openapi.emtmadrid.es/). Not required for Metro and train data."
+  env:
+    - name: DEBUG
+      example: "false"
+      value: "{{mcp-madrid-public-transport.debug}}"
+      description: Enable debug logging
+    - name: DEBUG_LEVEL
+      example: info
+      value: "{{mcp-madrid-public-transport.debug_level}}"
+      description: "Log level: error, warn, info, verbose, debug"
+    - name: GTFS_DATA_PATH
+      example: ./transport-data
+      value: "{{mcp-madrid-public-transport.gtfs_data_path}}"
+      description: Path to GTFS data files (default: ./transport-data)
+    - name: CACHE_TTL_METRO
+      example: "30"
+      value: "{{mcp-madrid-public-transport.cache_ttl_metro}}"
+      description: Cache TTL for Metro arrivals in seconds (default: 30)
+    - name: CACHE_TTL_BUS
+      example: "10"
+      value: "{{mcp-madrid-public-transport.cache_ttl_bus}}"
+      description: Cache TTL for Bus arrivals in seconds (default: 10)
+    - name: CACHE_TTL_TRAIN
+      example: "10"
+      value: "{{mcp-madrid-public-transport.cache_ttl_train}}"
+      description: Cache TTL for Train arrivals in seconds (default: 10)
+  parameters:
+    type: object
+    properties:
+      debug:
+        type: string
+        default: "false"
+      debug_level:
+        type: string
+        default: info
+      gtfs_data_path:
+        type: string
+        default: ./transport-data
+      cache_ttl_metro:
+        type: string
+        default: "30"
+      cache_ttl_bus:
+        type: string
+        default: "10"
+      cache_ttl_train:
+        type: string
+        default: "10"
+    required: []
