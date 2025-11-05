@@ -15,7 +15,7 @@ If it's a GitHub repo, then it's a local MCP server and therefore needs a Docker
 
 If it's a remote MCP server URL:
 1. Create the new entry in the mcp-registry repo. Ensure it has a readme.md with a link to the remote server documentation and a tools.json which should contain an empty list "[]". Use notion-remote as a template but don't include the OAuth section if the remote server lacks OAuth.
-5. Run "task validate -- --name <server_name>" and "task build -- --tools <server_name>" replacing "<server_name>" with the name field of the server.yaml file and ensure they pass. If not, make changes until they pass or ask the user for help if you're stuck.
+2. Run "task validate -- --name <server_name>" and "task build -- --tools <server_name>" replacing "<server_name>" with the name field of the server.yaml file and ensure they pass. If not, make changes until they pass or ask the user for help if you're stuck.
 3. Create a PR with their new entry to the mcp-registry repo. Use .github/PULL_REQUEST_TEMPLATE.md as the PR template.
 
 After these steps, finish by telling the user exactly which PRs were created. If a new branch or fork of the server repo was created, tell them that once the PR into the main branch of the server repo is merged, that they should update the server entry in the mcp-registry repo with the main branch of the server repo.
