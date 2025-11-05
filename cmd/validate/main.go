@@ -43,6 +43,14 @@ func run(name string) error {
 		return err
 	}
 
+	if err := isTitleValid(name); err != nil {
+		return err
+	}
+
+	if err := isYamlIndentationValid(name); err != nil {
+		return err
+	}
+
 	if err := isCommitPinnedIfNecessary(name); err != nil {
 		return err
 	}
@@ -116,6 +124,57 @@ func isDirectoryValid(name string) error {
 	}
 
 	fmt.Println("✅ Directory is valid")
+	return nil
+}
+
+// check if the title is valid
+// titles should not contain "MCP" or "Server" and every word should be capitalized
+func isTitleValid(name string) error {
+	server, err := readServerYaml(name)
+	if err != nil {
+		return err
+	}
+
+	title := server.About.Title
+
+	// Check for "MCP" or "Server" in the title
+	if strings.Contains(title, "MCP") {
+		return fmt.Errorf("title should not contain 'MCP': %s", title)
+	}
+	if strings.Contains(title, "Server") {
+		return fmt.Errorf("title should not contain 'Server': %s", title)
+	}
+
+	// Check that every word is capitalized
+	words := strings.Fields(title)
+	for _, word := range words {
+		if len(word) == 0 {
+			continue
+		}
+		// Check if the first character is uppercase
+		firstChar := []rune(word)[0]
+		if string(firstChar) != strings.ToUpper(string(firstChar)) {
+			return fmt.Errorf("title must have every word capitalized: %s (word: %s)", title, word)
+		}
+	}
+
+	fmt.Println("✅ Title is valid")
+	return nil
+}
+
+// check if the YAML file is formatted correctly using prettier
+func isYamlIndentationValid(name string) error {
+	yamlPath := filepath.Join("servers", name, "server.yaml")
+
+	// Use npx to run prettier without requiring local installation
+	cmd := exec.Command("npx", "--yes", "prettier", "--check", yamlPath)
+	output, err := cmd.CombinedOutput()
+
+	if err != nil {
+		return fmt.Errorf("YAML file is not formatted correctly. Run 'npx prettier --write %s' to fix:\n%s", yamlPath, string(output))
+	}
+
+	fmt.Println("✅ YAML formatting is valid")
 	return nil
 }
 
