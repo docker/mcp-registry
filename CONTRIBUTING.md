@@ -21,8 +21,8 @@ Remote servers are hosted externally and accessed via HTTP(S). They:
 - Often require OAuth authentication
 - Have dynamic tool discovery
 
-## Add server with Claude Code
-Let Claude Code help you add a server by running `cat add_mcp_server.md | claude`
+## Add server entry with Claude Code
+Let Claude Code help you add a server entry by running `cat add_mcp_server.md | claude`
 If you prefer to do things manually, follow the steps below instead.
 
 ## Prerequisites
