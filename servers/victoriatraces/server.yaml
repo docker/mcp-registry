@@ -1,0 +1,83 @@
+name: victoriatraces
+image: ghcr.io/victoriametrics-community/mcp-victoriatraces
+type: server
+meta:
+    category: "monitoring"
+    tags:
+        - monitoring
+        - observability
+        - traces
+        - distributed-tracing
+        - victoriatraces
+        - devops
+        - sre
+        - logsql
+about:
+    title: "VictoriaTraces"
+    description: "Provides access to your VictoriaTraces instance and seamless integration with VictoriaTraces APIs and documentation. It can give you a comprehensive interface for tracing, observability, and debugging tasks related to your VictoriaTraces instances, enable advanced automation and interaction capabilities for engineers and tools."
+    icon: "https://github.com/user-attachments/assets/1c060750-370a-4440-b619-78b78c7abd7a"
+source:
+    project: "https://github.com/VictoriaMetrics-Community/mcp-victoriatraces"
+    commit: "19e84f1819a03e4ea6af971d04e7f0f669a98d9e"
+config:
+    description: "Configure the connection to VictoriaTraces MCP Server"
+    secrets:
+        - name: "victoriatraces.vt_instance_bearer_token"
+          env: "VT_INSTANCE_BEARER_TOKEN"
+          example: "<instance_bearer_token_for_authentication>"
+          required: false
+    env:
+        - name: "VT_INSTANCE_ENTRYPOINT"
+          example: "https://play-vtraces.sandbox.victoriametrics.com"
+          value: "{{victoriatraces.vt_instance_entrypoint}}"
+        - name: "VT_INSTANCE_HEADERS"
+          example: "HEADER2=HEADER_VALUE,HEADER2=HEADER_VALUE_2"
+          value: "{{victoriatraces.vt_instance_headers}}"
+        - name: "MCP_SERVER_MODE"
+          example: "stdio"
+          value: "{{victoriatraces.mcp_server_mode}}"
+        - name: "MCP_LISTEN_ADDR"
+          example: ":8081"
+          value: "{{victoriatraces.mcp_listen_addr}}"
+        - name: "MCP_DISABLED_TOOLS"
+          example: "hits,facets"
+          value: "{{victoriatraces.mcp_disabled_tools}}"
+        - name: "MCP_HEARTBEAT_INTERVAL"
+          example: "30s"
+          value: "{{victoriatraces.mcp_heartbeat_interval}}"
+    parameters:
+        type: object
+        required:
+          - vt_instance_entrypoint
+        properties:
+            vt_instance_entrypoint:
+                type: string
+                description: "URL of VictoriaTraces instance (it should be root URL of vtsingle or vtselect)"
+                example: "https://play-vtraces.sandbox.victoriametrics.com"
+            vt_instance_headers:
+                type: string
+                description: "Optional custom headers to include in requests to VictoriaTraces instance, formatted as 'header1=value1,header2=value2'"
+                example: "HEADER2=HEADER_VALUE,HEADER2=HEADER_VALUE_2"
+            mcp_server_mode:
+                type: string
+                description: "Mode in which the MCP server operates (possible values: stdio, http, sse)"
+                example: "stdio"
+                enum:
+                  - "stdio"
+                  - "http"
+                  - "sse"
+                default: "stdio"
+            mcp_listen_addr:
+                type: string
+                description: "Address and port on which the MCP server listens for incoming connections (e.g., ':8081')"
+                example: ":8081"
+                default: ":8081"
+            mcp_disabled_tools:
+                type: string
+                description: "Comma-separated list of tools to disable (possible values: export, metric_statistics, test_rules)"
+                example: "hits,facets"
+            mcp_heartbeat_interval:
+                type: string
+                description: "Defines the heartbeat interval for the streamable-http protocol. It means the MCP server will send a heartbeat to the client through the GET connection, to keep the connection alive from being closed by the network infrastructure (e.g. gateways)"
+                example: "30s"
+                default: "30s"
