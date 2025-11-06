@@ -1,0 +1,142 @@
+name: Security Review (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      servers:
+        description: "Comma-separated list of local server names to audit (leave blank for all)."
+        required: false
+        default: ""
+      agent:
+        description: "Reviewer agent"
+        required: false
+        type: choice
+        options:
+          - claude
+          - codex
+        default: claude
+      model:
+        description: "Optional reviewer model override."
+        required: false
+        default: ""
+      timeout_secs:
+        description: "Optional reviewer timeout in seconds (defaults to 1800)."
+        required: false
+        default: ""
+
+concurrency:
+  group: security-review-manual-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  full-audit:
+    name: Execute Full Audit
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker
+        uses: docker/setup-docker-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@v1
+
+      - name: Collect audit targets
+        id: collect
+        run: |
+          set -euo pipefail
+          task ci -- collect-full-audit \
+            --workspace "${{ github.workspace }}" \
+            --servers "${{ github.event.inputs.servers }}" \
+            --output-json audit-targets.json
+
+          if jq -e '. | length > 0' audit-targets.json >/dev/null; then
+            echo "has_targets=true" >> "$GITHUB_OUTPUT"
+            echo "targets=audit-targets.json" >> "$GITHUB_OUTPUT"
+          else
+            echo "No audit targets identified; exiting." >&2
+            echo "has_targets=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run security reviews
+        if: steps.collect.outputs.has_targets == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          REVIEW_AGENT_INPUT: ${{ github.event.inputs.agent }}
+          REVIEW_MODEL_INPUT: ${{ github.event.inputs.model }}
+          REVIEW_TIMEOUT_INPUT: ${{ github.event.inputs.timeout_secs }}
+        run: |
+          set -uo pipefail
+          agent="${REVIEW_AGENT_INPUT:-}"
+          if [ -z "$agent" ]; then
+            agent="claude"
+          fi
+
+          model="${REVIEW_MODEL_INPUT:-}"
+
+          timeout_secs="${REVIEW_TIMEOUT_INPUT:-1800}"
+
+          mkdir -p reports
+
+          while read -r target; do
+            server=$(echo "$target" | jq -r '.server')
+            project=$(echo "$target" | jq -r '.project')
+            head_commit=$(echo "$target" | jq -r '.commit')
+
+            if [ -z "$project" ] || [ "$project" = "null" ]; then
+              echo "::warning::Skipping $server: missing project URL"
+              continue
+            fi
+            if [ -z "$head_commit" ] || [ "$head_commit" = "null" ]; then
+              echo "::warning::Skipping $server: missing commit information"
+              continue
+            fi
+
+            report_path="reports/${server}.md"
+            labels_path="reports/${server}-labels.txt"
+            cmd=(task security-reviewer -- \
+              --agent "$agent" \
+              --repo "$project" \
+              --head "$head_commit" \
+              --target-label "$server" \
+              --output "$report_path" \
+              --labels-output "$labels_path" \
+              --timeout "$timeout_secs")
+
+            if [ -n "$model" ]; then
+              cmd+=(--model "$model")
+            fi
+
+            if ! "${cmd[@]}"; then
+              echo "::error::Security review failed for $server"
+            fi
+          done < <(jq -c '.[]' "${{ steps.collect.outputs.targets }}")
+
+      - name: Upload security reports
+        if: steps.collect.outputs.has_targets == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: reports/
+          if-no-files-found: warn

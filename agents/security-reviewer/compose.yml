@@ -1,0 +1,75 @@
+services:
+  reviewer:
+    build:
+      context: .
+      target: reviewer-image
+      args:
+        AGENT_UID: ${AGENT_UID:-1000}
+        AGENT_GID: ${AGENT_GID:-1000}
+    image: security-reviewer:latest
+    depends_on:
+      proxy:
+        condition: service_healthy
+    environment:
+      # Configure the reviewer CLIs to authenticate against the local proxy.
+      # Note: We want Claude Code to use a bearer token when making API requests
+      # to the proxy, not an X-Api-Key header. If we set ANTHROPIC_API_KEY, it
+      # will use an X-Api-Key header; ANTHROPIC_AUTH_TOKEN uses a bearer token.
+      ANTHROPIC_AUTH_TOKEN: "sk-compose-clients"
+      ANTHROPIC_BASE_URL: "http://proxy:4000/anthropic"
+      CLAUDE_REVIEW_MODEL: ${CLAUDE_REVIEW_MODEL:-claude-sonnet-4-5-20250929}
+      # Note: Codex won't respect the OPENAI_API_KEY environment variable when
+      # running in non-interactive mode, it will only use the CODEX_API_KEY
+      # environment variable.
+      CODEX_API_KEY: "sk-compose-clients"
+      OPENAI_BASE_URL: "http://proxy:4000/openai"
+      CODEX_REVIEW_MODEL: ${CODEX_REVIEW_MODEL:-gpt-5-codex}
+      REVIEW_AGENT: ${REVIEW_AGENT:-claude}
+      REVIEW_HEAD_SHA: ${REVIEW_HEAD_SHA:-}
+      REVIEW_BASE_SHA: ${REVIEW_BASE_SHA:-}
+      REVIEW_TARGET_LABEL: ${REVIEW_TARGET_LABEL:-}
+      REVIEW_AGENT_EXTRA_ARGS: ${REVIEW_AGENT_EXTRA_ARGS:-}
+      REVIEW_TIMEOUT_SECS: ${REVIEW_TIMEOUT_SECS:-3600}
+    volumes:
+      - type: bind
+        source: ${REVIEW_REPOSITORY_PATH:?Set REVIEW_REPOSITORY_PATH to bind the repository under review}
+        target: /workspace/input/repository
+        read_only: true
+      - type: bind
+        source: ${REVIEW_OUTPUT_PATH:?Set REVIEW_OUTPUT_PATH for report output}
+        target: /workspace/output
+    networks:
+      - internal
+
+  proxy:
+    build:
+      context: .
+      target: proxy-image
+    image: security-reviewer-proxy:latest
+    environment:
+      PROXY_LISTEN_ADDR: ":4000"
+      PROXY_OPENAI_BASE_URL: ${PROXY_OPENAI_BASE_URL:-https://api.openai.com/v1}
+      # NOTE: Anthropic clients such as Claude Code will implicitly include a
+      # /v1 component in their request URLs, so if you override this environment
+      # variable, be sure not to include a /v1 path component.
+      PROXY_ANTHROPIC_BASE_URL: ${PROXY_ANTHROPIC_BASE_URL:-https://api.anthropic.com}
+      PROXY_API_KEY: "sk-compose-clients"
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 http://localhost:4000/health/liveness || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - internal
+      - external
+    restart: unless-stopped
+
+networks:
+  internal:
+    driver: bridge
+    internal: true
+  external:
+    driver: bridge
