@@ -21,13 +21,17 @@ Remote servers are hosted externally and accessed via HTTP(S). They:
 - Often require OAuth authentication
 - Have dynamic tool discovery
 
-**If you're adding a remote server,** skip to the [Adding a Remote MCP Server](#adding-a-remote-mcp-server) section below.
+## Add server entry with Claude Code
+Let Claude Code help you add a server entry by running `cat add_mcp_server.md | claude`
+If you prefer to do things manually, follow the steps below instead.
 
 ## Prerequisites
 
 - Go v1.24+
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [Task](https://taskfile.dev/)
+
+**If you're adding a remote server,** skip to the [Adding a Remote MCP Server](#adding-a-remote-mcp-server) section below.
 
 ## 🔄 Pull request process overview
 
