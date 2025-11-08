@@ -6,15 +6,37 @@ jobs:
     name: "Code and Server Validation"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout main for tooling
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Needed for diffing
+          ref: main
+          path: main-tooling
+          fetch-depth: 1
 
-      - name: Install Go
+      - name: Install Go for building main tooling
         uses: actions/setup-go@v5
         with:
-          cache-dependency-path: go.sum
-          go-version-file: go.mod
+          go-version-file: main-tooling/go.mod
+
+      - name: Build validation tools from main
+        run: |
+          cd main-tooling
+          mkdir -p ../bin
+          go build -o ../bin/validate ./cmd/validate
+          go build -o ../bin/build ./cmd/build
+          go build -o ../bin/catalog ./cmd/catalog
+          go build -o ../bin/clean ./cmd/clean
+
+      - name: Checkout PR for validation
+        uses: actions/checkout@v4
+        with:
+          path: pr-workspace
+          fetch-depth: 0
+
+      - name: Install Go for PR branch
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: pr-workspace/go.mod
 
       - name: Install Task
         uses: arduino/setup-task@v2
@@ -22,15 +44,32 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run unit tests
-        run: task unittest
+      - name: Set up Docker
+        uses: docker/setup-docker-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@v1
+
+      - name: Run unit tests against PR branch
+        run: |
+          cd pr-workspace
+          go test ./...
 
       - name: Get changed servers
         shell: bash
         run: |
+          cd pr-workspace
           git fetch origin ${{ github.event.pull_request.base.ref }}
-          git diff --name-only --diff-filter=AM origin/${{ github.event.pull_request.base.ref }}...HEAD | grep "^servers/" > changed-servers.txt || true
+          git diff --name-only --diff-filter=AM origin/${{ github.event.pull_request.base.ref }}...HEAD | grep "^servers/" > ../changed-servers.txt || true
 
       - name: Build and catalog changed servers
         shell: bash
-        run: ./scripts/ci-validation.sh
+        run: |
+          # Use safe validation script from main with safe binaries.
+          "${{ github.workspace }}/main-tooling/scripts/ci-validation.sh" \
+            --bin-dir "${{ github.workspace }}/bin" \
+            --workspace "${{ github.workspace }}/pr-workspace" \
+            --changed-servers "${{ github.workspace }}/changed-servers.txt"

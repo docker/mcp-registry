@@ -1,0 +1,82 @@
+name: victorialogs
+image: ghcr.io/victoriametrics-community/mcp-victorialogs
+type: server
+meta:
+    category: "monitoring"
+    tags:
+        - monitoring
+        - observability
+        - logs
+        - victorialogs
+        - devops
+        - sre
+        - logsql
+about:
+    title: "VictoriaLogs"
+    description: "Provides access to your VictoriaLogs instance and seamless integration with VictoriaLogs APIs and documentation. It can give you a comprehensive interface for logs, observability, and debugging tasks related to your VictoriaLogs instances, enable advanced automation and interaction capabilities for engineers and tools."
+    icon: "https://github.com/user-attachments/assets/1c060750-370a-4440-b619-78b78c7abd7a"
+source:
+    project: "https://github.com/VictoriaMetrics-Community/mcp-victorialogs"
+    commit: "44923aafa325af016327ab55e07c56151f2495dc"
+config:
+    description: "Configure the connection to VictoriaLogs MCP Server"
+    secrets:
+        - name: "victorialogs.vl_instance_bearer_token"
+          env: "VL_INSTANCE_BEARER_TOKEN"
+          example: "<instance_bearer_token_for_authentication>"
+          required: false
+    env:
+        - name: "VL_INSTANCE_ENTRYPOINT"
+          example: "https://play-vmlogs.victoriametrics.com"
+          value: "{{victorialogs.vl_instance_entrypoint}}"
+        - name: "VL_INSTANCE_HEADERS"
+          example: "HEADER2=HEADER_VALUE,HEADER2=HEADER_VALUE_2"
+          value: "{{victorialogs.vl_instance_headers}}"
+        - name: "MCP_SERVER_MODE"
+          example: "stdio"
+          value: "{{victorialogs.mcp_server_mode}}"
+        - name: "MCP_LISTEN_ADDR"
+          example: ":8081"
+          value: "{{victorialogs.mcp_listen_addr}}"
+        - name: "MCP_DISABLED_TOOLS"
+          example: "hits,facets"
+          value: "{{victorialogs.mcp_disabled_tools}}"
+        - name: "MCP_HEARTBEAT_INTERVAL"
+          example: "30s"
+          value: "{{victorialogs.mcp_heartbeat_interval}}"
+    parameters:
+        type: object
+        required:
+          - vl_instance_entrypoint
+        properties:
+            vl_instance_entrypoint:
+                type: string
+                description: "URL of VictoriaLogs instance (it should be root URL of vlsingle or vlselect)"
+                example: "https://play-vmlogs.victoriametrics.com"
+            vl_instance_headers:
+                type: string
+                description: "Optional custom headers to include in requests to VictoriaLogs instance, formatted as 'header1=value1,header2=value2'"
+                example: "HEADER2=HEADER_VALUE,HEADER2=HEADER_VALUE_2"
+            mcp_server_mode:
+                type: string
+                description: "Mode in which the MCP server operates (possible values: stdio, http, sse)"
+                example: "stdio"
+                enum:
+                  - "stdio"
+                  - "http"
+                  - "sse"
+                default: "stdio"
+            mcp_listen_addr:
+                type: string
+                description: "Address and port on which the MCP server listens for incoming connections (e.g., ':8081')"
+                example: ":8081"
+                default: ":8081"
+            mcp_disabled_tools:
+                type: string
+                description: "Comma-separated list of tools to disable (possible values: export, metric_statistics, test_rules)"
+                example: "hits,facets"
+            mcp_heartbeat_interval:
+                type: string
+                description: "Defines the heartbeat interval for the streamable-http protocol. It means the MCP server will send a heartbeat to the client through the GET connection, to keep the connection alive from being closed by the network infrastructure (e.g. gateways)"
+                example: "30s"
+                default: "30s"
