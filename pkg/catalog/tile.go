@@ -166,7 +166,7 @@ func ToTile(ctx context.Context, server servers.Server) (Tile, error) {
 		}
 	}
 
-	dateAdded := time.Now().Format(time.RFC3339)
+	dateAdded := time.Now().UTC().Format(time.RFC3339)
 
 	var remote Remote
 	if server.Remote.URL != "" {
