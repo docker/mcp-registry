@@ -188,10 +188,11 @@ type Config struct {
 }
 
 type Secret struct {
-	Name     string `json:"name" yaml:"name"`
-	Env      string `json:"env" yaml:"env"`
-	Example  string `json:"example" yaml:"example"`
-	Required bool   `json:"required,omitempty" yaml:"required,omitempty"`
+	Name        string `json:"name" yaml:"name"`
+	Env         string `json:"env" yaml:"env"`
+	Example     string `json:"example" yaml:"example"`
+	Description string `json:"description,omitempty" yaml:"description,omitempty"`
+	Required    bool   `json:"required,omitempty" yaml:"required,omitempty"`
 }
 
 type Env struct {
