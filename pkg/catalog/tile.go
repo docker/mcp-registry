@@ -75,10 +75,11 @@ func ToTile(ctx context.Context, server servers.Server) (Tile, error) {
 		}
 
 		secrets = append(secrets, Secret{
-			Name:     s.Name,
-			Env:      s.Env,
-			Example:  s.Example,
-			Required: required,
+			Name:        s.Name,
+			Env:         s.Env,
+			Example:     s.Example,
+			Description: s.Description,
+			Required:    required,
 		})
 	}
 
@@ -166,7 +167,7 @@ func ToTile(ctx context.Context, server servers.Server) (Tile, error) {
 		}
 	}
 
-	dateAdded := time.Now().Format(time.RFC3339)
+	dateAdded := time.Now().UTC().Format(time.RFC3339)
 
 	var remote Remote
 	if server.Remote.URL != "" {
