@@ -41,7 +41,7 @@ If you prefer to do things manually, follow the steps below instead.
 - Repository includes a `cmd` folder with Go code to automate some of the steps.
 - Open a PR by ensuring the title and its description reflect the content of the PR.
 - Ensure that CI passes, if it fails, fix the failures.
-- Every pull request requires a review from the Docker team before merging.
+- Every pull request requires a review from the Docker team before merging. [Share test credentials using this form](https://forms.gle/6Lw3nsvu2d6nFg8e6).
 - Once approved, all of your commits will be squashed into a single commit with your PR title.
 
 ## 🏠 Adding a Local MCP Server
