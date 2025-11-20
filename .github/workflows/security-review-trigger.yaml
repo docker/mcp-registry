@@ -13,20 +13,44 @@ jobs:
   trigger-review:
     name: Trigger Security Review
     runs-on: ubuntu-latest
-    # Only run for PRs from the same repository (not forks) targeting main.
-    # Fork PRs or PRs targeting other branches can be reviewed manually via
-    # workflow_dispatch.
     if: |
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.base.ref == 'main'
     permissions:
-      actions: write
+      contents: read
     steps:
-      - name: Trigger security review workflow
+      - name: Dispatch private workflow
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.SECURITY_REVIEW_APP_TOKEN }}
+          REVIEWER_REPOSITORY: ${{ secrets.REVIEWER_REPOSITORY }}
         run: |
-          gh workflow run security-review-changes.yaml \
-            --repo ${{ github.repository }} \
-            --ref main \
-            --field pull_request_number=${{ github.event.pull_request.number }}
+          set -euo pipefail
+
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "SECURITY_REVIEW_APP_TOKEN secret is required" >&2
+            exit 1
+          fi
+          if [ -z "${REVIEWER_REPOSITORY:-}" ]; then
+            echo "REVIEWER_REPOSITORY secret is required" >&2
+            exit 1
+          fi
+
+          pr_number="${{ github.event.pull_request.number }}"
+          payload=$(jq -n \
+            --arg pr "$pr_number" \
+            --arg agent "claude" \
+            --arg model "" \
+            --arg timeout "" \
+            --arg force "false" \
+            --arg source_repo "${{ github.repository }}" \
+            '{pull_request_number:$pr, agent:$agent, model:$model, timeout_secs:$timeout, force_review:$force, repository:$source_repo}'
+          )
+
+          curl -sSf -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${REVIEWER_REPOSITORY}/dispatches" \
+            -d "{\"event_type\":\"security-review\",\"client_payload\":${payload}}"
+
+          echo "Dispatched automated review for PR #$pr_number"
