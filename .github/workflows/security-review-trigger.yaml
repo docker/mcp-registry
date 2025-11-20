@@ -22,11 +22,22 @@ jobs:
     permissions:
       actions: write
     steps:
-      - name: Trigger security review workflow
+      - name: Trigger Claude security review
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh workflow run security-review-changes.yaml \
             --repo ${{ github.repository }} \
             --ref main \
-            --field pull_request_number=${{ github.event.pull_request.number }}
+            --field pull_request_number=${{ github.event.pull_request.number }} \
+            --field agent=claude
+
+      - name: Trigger Codex security review
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run security-review-changes.yaml \
+            --repo ${{ github.repository }} \
+            --ref main \
+            --field pull_request_number=${{ github.event.pull_request.number }} \
+            --field agent=codex
