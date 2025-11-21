@@ -145,10 +145,14 @@ func isTitleValid(name string) error {
 		return fmt.Errorf("title should not contain 'Server': %s", title)
 	}
 
-	// Check that every word is capitalized
+	// Check that every word is capitalized (except "and" and "for")
 	words := strings.Fields(title)
 	for _, word := range words {
 		if len(word) == 0 {
+			continue
+		}
+		// Allow lowercase "and" and "for"
+		if word == "and" || word == "for" {
 			continue
 		}
 		// Check if the first character is uppercase
