@@ -19,21 +19,33 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Dispatch private workflow
+      - name: Parse reviewer repository
+        id: parse-repo
         env:
-          GH_TOKEN: ${{ secrets.SECURITY_REVIEW_APP_TOKEN }}
           REVIEWER_REPOSITORY: ${{ secrets.REVIEWER_REPOSITORY }}
         run: |
           set -euo pipefail
-
-          if [ -z "${GH_TOKEN:-}" ]; then
-            echo "SECURITY_REVIEW_APP_TOKEN secret is required" >&2
-            exit 1
-          fi
           if [ -z "${REVIEWER_REPOSITORY:-}" ]; then
             echo "REVIEWER_REPOSITORY secret is required" >&2
             exit 1
           fi
+          echo "name=${REVIEWER_REPOSITORY#*/}" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.MCP_REGISTRY_BOT_APP_ID }}
+          private-key: ${{ secrets.MCP_REGISTRY_BOT_PRIVATE_KEY }}
+          owner: docker
+          repositories: ${{ steps.parse-repo.outputs.name }}
+
+      - name: Dispatch private workflow
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          REVIEWER_REPOSITORY: ${{ secrets.REVIEWER_REPOSITORY }}
+        run: |
+          set -euo pipefail
 
           pr_number="${{ github.event.pull_request.number }}"
           payload=$(jq -n \
