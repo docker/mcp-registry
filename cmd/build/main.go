@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/docker/mcp-registry/internal/mcp"
-	"github.com/docker/mcp-registry/pkg/github"
 	"github.com/docker/mcp-registry/pkg/servers"
 )
 
@@ -45,6 +44,11 @@ func run(ctx context.Context, name string, listTools bool, pullCommunity bool) e
 	// Skip build for remote servers - they don't need Docker images
 	if server.Remote.URL != "" {
 		fmt.Printf("✅ Build skipped for remote server %s\n", name)
+		return nil
+	}
+
+	if server.Type == "poci" {
+		fmt.Printf("✅ Build skipped for poci server %s\n", name)
 		return nil
 	}
 
@@ -112,39 +116,19 @@ func buildDockerEnv(additionalEnv ...string) []string {
 }
 
 func buildMcpImage(ctx context.Context, server servers.Server) error {
-	projectURL := server.Source.Project
-	branch := server.Source.Branch
-	directory := server.Source.Directory
-
-	client := github.New()
-
-	repository, err := client.GetProjectRepository(ctx, projectURL)
-	if err != nil {
-		return err
+	commit := server.Source.Commit
+	if commit == "" {
+		return fmt.Errorf("local server %s must specify source.commit before building", server.Name)
 	}
 
-	if branch == "" {
-		branch = repository.GetDefaultBranch()
-	}
-
-	sha, err := client.GetCommitSHA1(ctx, projectURL, branch)
-	if err != nil {
-		return err
-	}
-
-	gitURL := projectURL + ".git#"
-	if branch != "" {
-		gitURL += branch
-	}
-	if directory != "" && directory != "." {
-		gitURL += ":" + directory
-	}
+	gitURL := server.GetContext()
 
 	var cmd *exec.Cmd
 	token := os.Getenv("GITHUB_TOKEN")
 
 	buildArgs := []string{
-		"-f", server.GetDockerfile(), "-t", "check", "-t", server.Image, "--label", "org.opencontainers.image.revision=" + sha, "--load",
+		"-f", server.GetDockerfile(), "-t", "check", "-t", server.Image,
+		"--label", "org.opencontainers.image.revision=" + commit, "--load",
 	}
 
 	if server.Source.BuildTarget != "" {

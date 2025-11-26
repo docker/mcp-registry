@@ -1,0 +1,487 @@
+name: Security Review (Changes)
+
+on:
+  workflow_dispatch:
+    inputs:
+      pull_request_number:
+        description: "Pull request number to review"
+        required: true
+        default: ""
+      agent:
+        description: "Reviewer agent"
+        required: false
+        type: choice
+        options:
+          - claude
+          - codex
+        default: claude
+      model:
+        description: "Optional reviewer model override."
+        required: false
+        default: ""
+      timeout_secs:
+        description: "Optional reviewer timeout in seconds (defaults to 1800)."
+        required: false
+        default: ""
+      force_review:
+        description: "Force re-review even if already completed for this commit"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: security-review-changes-${{ github.event.inputs.pull_request_number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  pr-security-review:
+    name: Pull Request Security Review
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: read
+
+    steps:
+      - name: Checkout main for tooling
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main-tooling
+          fetch-depth: 1
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: main-tooling/go.mod
+
+      - name: Build CI tools from main
+        run: |
+          cd main-tooling
+          mkdir -p ../bin
+          go build -o ../bin/ci ./cmd/ci
+          go build -o ../bin/security-reviewer ./cmd/security-reviewer
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker
+        uses: docker/setup-docker-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@v1
+
+      - name: Checkout PR for data collection
+        uses: actions/checkout@v4
+        with:
+          path: pr-workspace
+          fetch-depth: 0
+
+      - name: Checkout specific PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd pr-workspace
+          gh pr checkout "${{ github.event.inputs.pull_request_number }}"
+
+      - name: Resolve comparison commits
+        id: revision
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          cd pr-workspace
+
+          # Query the PR to get its actual base ref (the branch it targets).
+          pr_number="${{ github.event.inputs.pull_request_number }}"
+          base_ref=$(gh pr view "$pr_number" --json baseRefName --jq '.baseRefName')
+
+          echo "PR #$pr_number targets branch: $base_ref"
+
+          # Fetch the base branch and compute the merge base.
+          git fetch origin "$base_ref"
+          check_sha=$(git rev-parse HEAD)
+          head_sha=$(git rev-parse HEAD)
+          base_sha=$(git merge-base HEAD "origin/$base_ref")
+
+          echo "check=$check_sha" >> "$GITHUB_OUTPUT"
+          echo "base=$base_sha" >> "$GITHUB_OUTPUT"
+          echo "head=$head_sha" >> "$GITHUB_OUTPUT"
+          if [ -n "$pr_number" ] && [ "$pr_number" != "null" ]; then
+            echo "pr=$pr_number" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Collect updated pin targets
+        id: updatedpins
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          base_sha="${{ steps.revision.outputs.base }}"
+          head_sha="${{ steps.revision.outputs.head }}"
+
+          if [ -z "$base_sha" ] || [ -z "$head_sha" ]; then
+            echo "has_targets=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Use safe binary from main to collect data from PR workspace
+          ./bin/ci collect-updated-pins \
+            --base "$base_sha" \
+            --head "$head_sha" \
+            --workspace "${{ github.workspace }}/pr-workspace" \
+            --output-json pins-context.json \
+            --summary-md pins-summary.md
+
+          if [ -s pins-context.json ]; then
+            echo "has_targets=true" >> "$GITHUB_OUTPUT"
+            echo "context=pins-context.json" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_targets=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Collect new local servers
+        id: newservers
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          base_sha="${{ steps.revision.outputs.base }}"
+          head_sha="${{ steps.revision.outputs.head }}"
+
+          if [ -z "$base_sha" ] || [ -z "$head_sha" ]; then
+            echo "has_targets=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Use safe binary from main to collect data from PR workspace
+          ./bin/ci collect-new-servers \
+            --base "$base_sha" \
+            --head "$head_sha" \
+            --workspace "${{ github.workspace }}/pr-workspace" \
+            --output-json new-servers-context.json \
+            --summary-md new-servers-summary.md
+
+          if [ -s new-servers-context.json ]; then
+            echo "has_targets=true" >> "$GITHUB_OUTPUT"
+            echo "context=new-servers-context.json" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_targets=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create pending security review checks
+        if: steps.updatedpins.outputs.has_targets == 'true' || steps.newservers.outputs.has_targets == 'true'
+        id: checks
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REVIEW_AGENT_INPUT: ${{ github.event.inputs.agent }}
+        run: |
+          set -euo pipefail
+
+          agent="${REVIEW_AGENT_INPUT:-}"
+          if [ -z "$agent" ]; then
+            agent="claude"
+          fi
+
+          check_sha="${{ steps.revision.outputs.check }}"
+          repo="${{ github.repository }}"
+
+          mkdir -p review-output
+
+          # Store check names and IDs in files for the next step.
+          > review-output/check-ids.txt
+
+          # Function to create a pending check and return its ID.
+          create_pending_check() {
+            local check_name="$1"
+            local server="$2"
+            local review_type="$3"
+
+            gh api repos/$repo/check-runs \
+              --method POST \
+              --field name="$check_name" \
+              --field head_sha="$check_sha" \
+              --field status="queued" \
+              --field output[title]="Security Review: $server" \
+              --field output[summary]="Queued for $review_type security review..." \
+              --jq '.id'
+          }
+
+          # Helper to create a slug suitable for check names.
+          slugify() {
+            echo "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g' | sed -E 's/^-+|-+$//g'
+          }
+
+          # Create checks for updated pins (differential reviews).
+          if [ "${{ steps.updatedpins.outputs.has_targets }}" = "true" ]; then
+            while read -r target; do
+              server=$(echo "$target" | jq -r '.server')
+              project=$(echo "$target" | jq -r '.project')
+              old_commit=$(echo "$target" | jq -r '.old_commit')
+              new_commit=$(echo "$target" | jq -r '.new_commit')
+
+              server_slug=$(slugify "$server")
+              check_name="security-review/$agent/pin/$server_slug"
+              check_id=$(create_pending_check "$check_name" "$server" "differential")
+
+              echo "$check_name|$check_id|$server|$project|$new_commit|$old_commit|differential" >> review-output/check-ids.txt
+            done < <(jq -c '.[]' "${{ steps.updatedpins.outputs.context }}")
+          fi
+
+          # Create checks for new servers (full reviews).
+          if [ "${{ steps.newservers.outputs.has_targets }}" = "true" ]; then
+            while read -r target; do
+              server=$(echo "$target" | jq -r '.server')
+              project=$(echo "$target" | jq -r '.project')
+              commit=$(echo "$target" | jq -r '.commit')
+
+              server_slug=$(slugify "$server")
+              check_name="security-review/$agent/new/$server_slug"
+              check_id=$(create_pending_check "$check_name" "$server" "full")
+
+              echo "$check_name|$check_id|$server|$project|$commit||full" >> review-output/check-ids.txt
+            done < <(jq -c '.[]' "${{ steps.newservers.outputs.context }}")
+          fi
+
+          num_checks=$(wc -l < review-output/check-ids.txt)
+          echo "Created $num_checks pending check(s)"
+          echo "has_checks=true" >> "$GITHUB_OUTPUT"
+
+      - name: Run security reviews
+        if: steps.checks.outputs.has_checks == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REVIEW_AGENT_INPUT: ${{ github.event.inputs.agent }}
+          REVIEW_MODEL_INPUT: ${{ github.event.inputs.model }}
+          REVIEW_TIMEOUT_INPUT: ${{ github.event.inputs.timeout_secs }}
+          FORCE_REVIEW_INPUT: ${{ github.event.inputs.force_review }}
+        run: |
+          set -euo pipefail
+
+          agent="${REVIEW_AGENT_INPUT:-}"
+          if [ -z "$agent" ]; then
+            agent="claude"
+          fi
+
+          model="${REVIEW_MODEL_INPUT:-}"
+          timeout_secs="${REVIEW_TIMEOUT_INPUT:-1800}"
+          force_review="${FORCE_REVIEW_INPUT:-false}"
+
+          check_sha="${{ steps.revision.outputs.check }}"
+          repo="${{ github.repository }}"
+
+          # Maximum size for GitHub check output text field (in bytes).
+          max_check_output_size=65000
+
+          # Function to determine check conclusion from labels.
+          determine_conclusion() {
+            local labels_file="$1"
+
+            if [ ! -s "$labels_file" ]; then
+              echo "success"
+            elif grep -qE '^security-blocked$' "$labels_file"; then
+              echo "failure"
+            elif grep -qE '^security-risk:critical$' "$labels_file"; then
+              echo "failure"
+            elif grep -qE '^security-risk:(high|medium)$' "$labels_file"; then
+              echo "neutral"
+            else
+              echo "success"
+            fi
+          }
+
+          # Function to check if a review is already completed (unless forced).
+          should_skip_review() {
+            local check_name="$1"
+
+            [ "$force_review" != "true" ] && \
+              [ -n "$(gh api repos/$repo/commits/$check_sha/check-runs \
+                --jq ".check_runs[] | select(.name == \"$check_name\" and .status == \"completed\")" 2>/dev/null)" ]
+          }
+
+          # Function to mark a check as skipped.
+          skip_check() {
+            local check_id="$1"
+            local server="$2"
+            local reason="$3"
+
+            gh api repos/$repo/check-runs/$check_id \
+              --method PATCH \
+              --field status="completed" \
+              --field conclusion="skipped" \
+              --field output[title]="Security Review: $server" \
+              --field output[summary]="Skipped - $reason"
+          }
+
+          # Function to create a pending check and return its ID.
+          create_pending_check() {
+            local check_name="$1"
+            local server="$2"
+            local review_type="$3"
+
+            gh api repos/$repo/check-runs \
+              --method POST \
+              --field name="$check_name" \
+              --field head_sha="$check_sha" \
+              --field status="queued" \
+              --field output[title]="Security Review: $server" \
+              --field output[summary]="Queued for $review_type security review..." \
+              --jq '.id'
+          }
+
+          # Function to run a security review and update a check.
+          run_review() {
+            local check_name="$1"
+            local check_id="$2"
+            local server="$3"
+            local project="$4"
+            local head_commit="$5"
+            local base_commit="$6"
+            local review_type="$7"
+
+            if [ -z "$project" ] || [ "$project" = "null" ]; then
+              echo "::warning::Skipping $server: missing project URL"
+              skip_check "$check_id" "$server" "missing project URL"
+              return
+            fi
+            if [ -z "$head_commit" ] || [ "$head_commit" = "null" ]; then
+              echo "::warning::Skipping $server: missing head commit"
+              skip_check "$check_id" "$server" "missing head commit"
+              return
+            fi
+
+            # Check if we should skip this review.
+            if should_skip_review "$check_name"; then
+              echo "Skipping $server: review already completed for this commit (use force_review to re-run)" >&2
+              skip_check "$check_id" "$server" "review already completed for this commit"
+              return
+            fi
+
+            echo "Starting $review_type review for $server..."
+
+            # Mark check as in progress.
+            gh api repos/$repo/check-runs/$check_id \
+              --method PATCH \
+              --field status="in_progress" \
+              --field output[title]="Security Review: $server" \
+              --field output[summary]="Running $review_type security review..."
+
+            # Run the security review using safe binary from main.
+            # Must run from main-tooling directory so binary can find
+            # agents/security-reviewer and other relative resources.
+            report_path="${{ github.workspace }}/review-output/${server}-${review_type}.md"
+            labels_path="${{ github.workspace }}/review-output/${server}-${review_type}-labels.txt"
+
+            cd "${{ github.workspace }}/main-tooling"
+
+            cmd=("${{ github.workspace }}/bin/security-reviewer" \
+              --agent "$agent" \
+              --repo "$project" \
+              --head "$head_commit" \
+              --target-label "$server" \
+              --output "$report_path" \
+              --labels-output "$labels_path" \
+              --timeout "$timeout_secs")
+
+            if [ -n "$model" ]; then
+              cmd+=(--model "$model")
+            fi
+
+            if [ "$review_type" = "differential" ]; then
+              if [ -z "$base_commit" ] || [ "$base_commit" = "null" ]; then
+                echo "::warning::Skipping $server: missing base commit for differential review"
+                skip_check "$check_id" "$server" "missing base commit"
+                return
+              fi
+              cmd+=(--base "$base_commit")
+            fi
+
+            if "${cmd[@]}"; then
+              # Review succeeded - determine conclusion from labels.
+              conclusion=$(determine_conclusion "$labels_path")
+
+              # Build summary text with beta preamble.
+              beta_notice=$'**⚠️ Beta Feature:** This automated security review is designed to aid human assessment and may contain spurious findings. Please use your judgment when evaluating the results.\n\n'
+
+              if [ "$review_type" = "differential" ]; then
+                # For differential reviews, include a clickable link to the GitHub diff.
+                compare_url="${project}/compare/${base_commit}...${head_commit}"
+                summary="${beta_notice}Differential review completed ([${base_commit:0:7}...${head_commit:0:7}](${compare_url}))"
+              else
+                # For full reviews, link to the specific commit.
+                commit_url="${project}/commit/${head_commit}"
+                summary="${beta_notice}Full code review completed at [${head_commit:0:7}](${commit_url})"
+              fi
+
+              # Read labels for summary.
+              if [ -s "$labels_path" ]; then
+                labels_list=$(cat "$labels_path" | head -5 | paste -sd, -)
+                summary=$''"${summary}"$'\nLabels: '"${labels_list}"
+              fi
+
+              # Read report and truncate if necessary.
+              if [ -s "$report_path" ]; then
+                report_text=$(cat "$report_path")
+                report_size=${#report_text}
+
+                if [ "$report_size" -gt "$max_check_output_size" ]; then
+                  # Truncate and add notice.
+                  truncate_at=$((max_check_output_size - 200))
+                  report_text="${report_text:0:$truncate_at}"
+                  report_text=$''"${report_text}"$'\n\n---\n\n**Note:** Report truncated due to size limits. Full report available in workflow artifacts.'
+                fi
+              else
+                report_text="No report generated."
+              fi
+
+              # Update check with results.
+              gh api repos/$repo/check-runs/$check_id \
+                --method PATCH \
+                --field status="completed" \
+                --field conclusion="$conclusion" \
+                --field output[title]="Security Review: $server" \
+                --field output[summary]="$summary" \
+                --field output[text]="$report_text"
+
+              echo "Completed $review_type review for $server (conclusion: $conclusion)"
+            else
+              # Review failed.
+              gh api repos/$repo/check-runs/$check_id \
+                --method PATCH \
+                --field status="completed" \
+                --field conclusion="failure" \
+                --field output[title]="Security Review: $server" \
+                --field output[summary]="Security review failed to complete" \
+                --field output[text]="The security review process encountered an error. Check workflow logs for details."
+
+              echo "::error::Failed $review_type review for $server"
+            fi
+          }
+
+          # Run all reviews using the check IDs created in the previous step.
+          while IFS='|' read -r check_name check_id server project head_commit base_commit review_type; do
+            run_review \
+              "$check_name" \
+              "$check_id" \
+              "$server" \
+              "$project" \
+              "$head_commit" \
+              "$base_commit" \
+              "$review_type" || true
+          done < review-output/check-ids.txt
+
+      - name: Upload security reports
+        if: always() && (steps.updatedpins.outputs.has_targets == 'true' || steps.newservers.outputs.has_targets == 'true')
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: review-output/
+          if-no-files-found: warn

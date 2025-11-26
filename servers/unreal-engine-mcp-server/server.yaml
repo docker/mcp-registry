@@ -1,0 +1,57 @@
+name: unreal-engine-mcp-server
+image: mcp/unreal-engine-mcp-server
+type: server
+meta:
+  category: games
+  tags:
+    - games
+    - unreal-engine
+    - game-development
+    - automation
+    - editor
+about:
+  title: Unreal Engine
+  description: A comprehensive Model Context Protocol (MCP) server that enables AI assistants to control Unreal Engine via Remote Control API. Built with TypeScript and designed for game development automation.
+  icon: https://raw.githubusercontent.com/ChiR24/Unreal_mcp/main/Public/icon.png
+source:
+  project: https://github.com/ChiR24/Unreal_mcp
+  commit: 16f9feac2a1feb8bab9b8826fb965f2badffdb6d
+config:
+  description: Configure the connection to Unreal Engine Remote Control API
+  env:
+    - name: UE_HOST
+      value: "{{unreal-engine-mcp-server.ue_host}}"
+    - name: UE_RC_HTTP_PORT
+      value: "{{unreal-engine-mcp-server.ue_rc_http_port}}"
+    - name: UE_RC_WS_PORT
+      value: "{{unreal-engine-mcp-server.ue_rc_ws_port}}"
+    - name: LOG_LEVEL
+      value: "{{unreal-engine-mcp-server.log_level}}"
+  parameters:
+    type: object
+    properties:
+      ue_host:
+        type: string
+        default: "host.docker.internal"
+        description: "Unreal Engine host address. Use: host.docker.internal for local UE on Windows/Mac Docker, 127.0.0.1 for Linux without Docker, or actual IP address (e.g., 192.168.1.100) for remote UE"
+      ue_rc_http_port:
+        type: string
+        default: "30010"
+        description: "Remote Control HTTP port"
+      ue_rc_ws_port:
+        type: string
+        default: "30020"
+        description: "Remote Control WebSocket port"
+      log_level:
+        type: string
+        default: "info"
+        description: "Logging level"
+        enum:
+          - "debug"
+          - "info"
+          - "warn"
+          - "error"
+    required:
+      - ue_host
+      - ue_rc_http_port
+      - ue_rc_ws_port

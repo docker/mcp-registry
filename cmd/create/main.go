@@ -128,10 +128,7 @@ func run(ctx context.Context, buildURL, name, category, userProvidedImage string
 	}
 
 	if build && userProvidedImage == "" {
-		gitURL := projectURL + ".git#"
-		if branch != "" {
-			gitURL += branch
-		}
+		gitURL := projectURL + ".git#" + sha
 		if directory != "" && directory != "." {
 			gitURL += ":" + directory
 		}
@@ -219,6 +216,7 @@ func run(ctx context.Context, buildURL, name, category, userProvidedImage string
 			Project:   projectURL,
 			Upstream:  upstream,
 			Branch:    branch,
+			Commit:    sha,
 			Directory: directory,
 		},
 		Run: servers.Run{

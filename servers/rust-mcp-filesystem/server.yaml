@@ -1,0 +1,52 @@
+name: rust-mcp-filesystem
+image: mcp/rust-mcp-filesystem
+type: server
+meta:
+  category: productivity
+  tags:
+    - productivity
+about:
+  title: Rust Filesystem
+  description: |-
+    The Rust MCP Filesystem is a high-performance, asynchronous, and lightweight Model Context Protocol (MCP) server built in Rust for secure and efficient filesystem operations. Designed with security in mind, it operates in read-only mode by default and restricts clients from updating allowed directories via MCP Roots unless explicitly enabled, ensuring robust protection against unauthorized access. Leveraging asynchronous I/O, it delivers blazingly fast performance with a minimal resource footprint.
+    Optimized for token efficiency, the Rust MCP Filesystem enables large language models (LLMs) to precisely target searches and edits within specific sections of large files and restrict operations by file size range, making it ideal for efficient file exploration, automation, and system integration.
+  icon: https://raw.githubusercontent.com/rust-mcp-stack/rust-mcp-filesystem/refs/heads/main/docs/_media/rust-mcp-filesystem.png
+source:
+  project: https://github.com/rust-mcp-stack/rust-mcp-filesystem
+  commit: a959b4c0465ad5452e74b46043a7a91d62f0ea24
+run:
+  command:
+    - "{{rust-mcp-filesystem.allowed_directories|volume-target|into}}"
+  volumes:
+    - "{{rust-mcp-filesystem.allowed_directories|volume|into}}"
+  disableNetwork: true
+config:
+  description: Configure rust-mcp-filesystem to allow access only to permitted directories.
+  env:
+    - name: ENABLE_ROOTS
+      example: "false"
+      value: "{{rust-mcp-filesystem.enable_roots}}"
+    - name: ALLOW_WRITE
+      example: "false"
+      value: "{{rust-mcp-filesystem.allow_write}}"
+  parameters:
+    type: object
+    properties:
+      allow_write:
+        type: boolean
+        title: Allow Write
+        description: Enable read/write mode. If false, the app operates in read-only mode.
+        default: false
+      enable_roots:
+        type: boolean
+        title: Enable MCP Roots
+        description: Enable dynamic directory access control via MCP client-side Roots.
+        default: false
+      allowed_directories:
+        type: array
+        items:
+          type: string
+        title: Allowed Directories
+        description: List of directories that rust-mcp-filesystem can access.
+        default:
+          - /Users/local-test

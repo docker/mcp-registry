@@ -85,6 +85,10 @@ run:
     - --transport=stdio
 ```
 
+## Source Pinning
+
+Local servers must pin their source repository to a specific Git commit using the `source.commit` field. Once an initial revision is accepted into the registry, an automated nightly GitHub Action will drive PRs to perform updates.
+
 ## User
 
 If you need to run the container with a specific user, you can do it in the `run` block. If you want the user to be able to define the container user, you will need to create a parameter first and then add the `run` block to the server.
@@ -119,6 +123,7 @@ about:
   icon: https://...
 source:
   project: https://github.com/my-org/my-mcp-server
+  commit: 0123456789abcdef0123456789abcdef01234567
 run:
   command:
   - --transport=stdio

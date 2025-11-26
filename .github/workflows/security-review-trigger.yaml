@@ -1,0 +1,32 @@
+name: Security Review Trigger
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+      - labeled
+
+jobs:
+  trigger-review:
+    name: Trigger Security Review
+    runs-on: ubuntu-latest
+    # Only run for PRs from the same repository (not forks) targeting main.
+    # Fork PRs or PRs targeting other branches can be reviewed manually via
+    # workflow_dispatch.
+    if: |
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.base.ref == 'main'
+    permissions:
+      actions: write
+    steps:
+      - name: Trigger security review workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run security-review-changes.yaml \
+            --repo ${{ github.repository }} \
+            --ref main \
+            --field pull_request_number=${{ github.event.pull_request.number }}

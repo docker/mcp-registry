@@ -9,20 +9,19 @@ meta:
     - api-testing
     - monitoring
 about:
-  title: SmartBear MCP Server
-  description: SmartBear's official MCP Server for API Hub, Test Hub and Insight Hub
+  title: SmartBear
+  description: MCP server for AI access to SmartBear tools, including BugSnag, Reflect, API Hub, PactFlow.
   icon: https://avatars.githubusercontent.com/u/1644671?s=200&v=4
 source:
   project: https://github.com/SmartBear/smartbear-mcp
   branch: main
+  commit: d4189dbb98d69db5c7bda60b25ee1e0423cf0972
 config:
   description: Configure the connection to SmartBear services
   secrets:
-    - name: smartbear.insight_hub_auth_token
-      env: INSIGHT_HUB_AUTH_TOKEN
-      required: false
-    - name: smartbear.insight_hub_project_api_key
-      env: INSIGHT_HUB_PROJECT_API_KEY
+    - name: smartbear.bugsnag_auth_token
+      env: BUGSNAG_AUTH_TOKEN
+      example: "<your-bugsnag-auth-token>"
       required: false
     - name: smartbear.reflect_api_token
       example: "<your-reflect-api-token>"
@@ -32,12 +31,35 @@ config:
       example: "<your-api-hub-api-key>"
       env: API_HUB_API_KEY
       required: false
+    - name: smartbear.pact_broker_token
+      example: "<your-pact-broker-token>"
+      env: PACT_BROKER_TOKEN
+      required: false
+    - name: smartbear.pact_broker_password
+      example: "<your-pact-broker-password>"
+      env: PACT_BROKER_PASSWORD
+      required: false
   env:
-    - name: MCP_SERVER_INSIGHT_HUB_API_KEY
-      example: "00000000000000000000000000000000"
-      value: '{{smartbear.mcp_server_insight_hub_api_key}}'
+    - name: BUGSNAG_PROJECT_API_KEY
+      example: "<your-bugsnag-project-api-key>"
+      value: "{{smartbear.bugsnag_api_key}}"
+    - name: BUGSNAG_ENDPOINT
+      example: "https://notify.your-server.com"
+      value: "{{smartbear.bugsnag_endpoint}}"
+    - name: PACT_BROKER_BASE_URL
+      example: "https://your-tenant.pactflow.io"
+      value: "{{smartbear.pact_broker_base_url}}"
+    - name: PACT_BROKER_USERNAME
+      example: "<your-pact-broker-username>"
+      value: "{{smartbear.pact_broker_username}}"
   parameters:
     type: object
     properties:
-      mcp_server_insight_hub_api_key:
+      bugsnag_api_key:
+        type: string
+      bugsnag_endpoint:
+        type: string
+      pact_broker_base_url:
+        type: string
+      pact_broker_username:
         type: string
