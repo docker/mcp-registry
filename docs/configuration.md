@@ -95,7 +95,7 @@ Once an initial revision is accepted into the registry, an automated nightly Git
 
 - Check for new commits on your configured branch (defaults to `main`)
 - Create pull requests to update the `source.commit` field when newer commits are available
-- These PRs are automatically reviewed and merged by the Docker team
+- These PRs are created automatically; review and merging are performed manually by the Docker team
 
 After a pin update PR is merged, Docker's infrastructure automatically:
 

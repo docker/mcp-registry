@@ -230,7 +230,7 @@ For servers using Docker-built images (those with `image: mcp/your-server-name`)
 
 1. **Automated Pin Updates**: A nightly GitHub Action (runs at 5 AM UTC) automatically checks all Docker-built servers for new commits on their configured branch
 2. **Automatic PR Creation**: When a newer commit is detected, the bot creates a pull request updating the `source.commit` field in your `server.yaml`
-3. **PR Approval**: The PR will be automatically created and merged by the Docker team after review
+3. **PR Review and Merge**: The PR is created automatically, but review and merging are performed manually by the Docker team
 4. **Image Build**: Once the PR is merged to `main`, Docker's infrastructure automatically:
    - Detects the change to `server.yaml`
    - Builds the Docker image from the new pinned commit
