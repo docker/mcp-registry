@@ -214,7 +214,7 @@ Once your PR is approved and merged:
 - [Docker Desktop's MCP Toolkit](https://www.docker.com/products/docker-desktop/)
 - [Docker Hub `mcp` namespace](https://hub.docker.com/u/mcp) (for MCP servers built by Docker)
 
-**Future Updates**: Once your server is in the registry, see [Updating Your MCP Server](#-updating-your-mcp-server) section below for how to update it to new versions.
+**Future Updates**: Once your server is in the registry, see [Updating Your MCP Server](#updating-your-mcp-server) section below for how to update it to new versions.
 
 ---
 

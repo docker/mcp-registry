@@ -108,7 +108,7 @@ After a pin update PR is merged, Docker's infrastructure automatically:
 
 **Note**: Automatic updates only apply to Docker-built images (those with `image: mcp/...`). Servers using custom images must be updated manually.
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md#-updating-your-mcp-server) for more details on the update process.
+See [CONTRIBUTING.md](../CONTRIBUTING.md#updating-your-mcp-server) for more details on the update process.
 
 ## User
 

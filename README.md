@@ -49,7 +49,7 @@ _**Non-compliant servers will be reviewed and may be removed from the registry.*
 
 ### How do I update my MCP server to a new version?
 
-**For Docker-built images** (`image: mcp/...`): An automated system checks for updates daily and creates pull requests automatically. Just push new commits to your repository, and the system handles the rest. See [CONTRIBUTING.md](CONTRIBUTING.md#-updating-your-mcp-server) for details.
+**For Docker-built images** (`image: mcp/...`): An automated system checks for updates daily and creates pull requests automatically. Just push new commits to your repository, and the system handles the rest. See [CONTRIBUTING.md](CONTRIBUTING.md#updating-your-mcp-server) for details.
 
 **For custom images**: Manually update the `source.commit` field in your `server.yaml` and create a PR.
 
