@@ -1,0 +1,68 @@
+name: kenshi-fcs
+image: mcp/kenshi-fcs
+type: server
+meta:
+  category: gaming
+  tags:
+    - kenshi
+    - modding
+    - game-development
+    - fcs
+about:
+  title: Kenshi FCS Server
+  description: MCP server for Kenshi game modding - query, modify, and validate mods programmatically using the Forgotten Construction Set (FCS) SDK
+  icon: https://www.google.com/s2/favicons?domain=lofigames.com&sz=64
+source:
+  project: https://github.com/Cabbage125/kenshi-mod-workspace
+  commit: 882951e
+  directory: .claude/mcp-servers/kenshi-fcs-server
+run:
+  volumes:
+    - "{{kenshi-fcs.kenshi_path|volume|into}}"
+    - "{{kenshi-fcs.workshop_path|volume|into}}"
+    - "{{kenshi-fcs.data_path|volume|into}}"
+config:
+  description: Configure Kenshi installation paths and data directories
+  parameters:
+    type: object
+    properties:
+      kenshi_path:
+        type: string
+        description: "Path to Kenshi game installation directory (contains data/ and mods/ folders)"
+        default: "/kenshi"
+      workshop_path:
+        type: string
+        description: "Path to Steam Workshop content directory"
+        default: "/workshop"
+      data_path:
+        type: string
+        description: "Persistent data storage for backups, logs, and database"
+        default: "/data"
+      backup_dir:
+        type: string
+        description: "Directory for mod backups (relative to data_path)"
+        default: "backups"
+      database_path:
+        type: string
+        description: "Path to SQLite database (relative to data_path or absolute)"
+        default: "kenshi_data.db"
+      verbose:
+        type: string
+        description: "Enable verbose logging (1 or 0)"
+        default: "0"
+    required:
+      - kenshi_path
+      - data_path
+  env:
+    - name: KENSHI_PATH
+      value: "{{kenshi-fcs.kenshi_path}}"
+    - name: WORKSHOP_PATH
+      value: "{{kenshi-fcs.workshop_path}}"
+    - name: FCS_BACKUP_DIR
+      value: "{{kenshi-fcs.data_path}}/{{kenshi-fcs.backup_dir}}"
+    - name: FCS_LOG_DIR
+      value: "{{kenshi-fcs.data_path}}/logs"
+    - name: FCS_DATABASE_PATH
+      value: "{{kenshi-fcs.data_path}}/{{kenshi-fcs.database_path}}"
+    - name: FCS_SERVER_VERBOSE
+      value: "{{kenshi-fcs.verbose}}"
