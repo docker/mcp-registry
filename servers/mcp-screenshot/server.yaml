@@ -1,0 +1,239 @@
+name: mcp-screenshot
+displayName: MCP Screenshot Server
+description: Cross-platform screenshot capture server for AI agents with multi-format support, PII masking, and security controls
+version: 0.0.5
+author:
+  name: Digital Defiance
+  email: info@digitaldefiance.org
+  url: https://digitaldefiance.org
+license: MIT
+homepage: https://github.com/digital-defiance/ai-capabilities-suite/tree/main/packages/mcp-screenshot
+repository:
+  type: git
+  url: https://github.com/digital-defiance/ai-capabilities-suite.git
+  directory: packages/mcp-screenshot
+
+# Docker configuration
+docker:
+  image: digidefiance/mcp-screenshot
+  tag: latest
+  alternativeImages:
+    - ghcr.io/digital-defiance/mcp-screenshot:latest
+  platforms:
+    - linux/amd64
+    - linux/arm64
+
+# Categories and tags
+categories:
+  - productivity
+  - utilities
+  - development-tools
+tags:
+  - screenshot
+  - screen-capture
+  - image-processing
+  - pii-masking
+  - privacy
+  - security
+  - cross-platform
+  - multi-monitor
+  - window-capture
+  - region-capture
+
+# Supported platforms
+platforms:
+  - linux
+  - macos
+  - windows
+
+# MCP tools provided
+tools:
+  - name: screenshot_capture_full
+    description: Capture full screen or specific display
+    category: capture
+    parameters:
+      - name: display
+        type: string
+        required: false
+        description: Display ID for multi-monitor setups
+      - name: format
+        type: string
+        required: true
+        enum: [png, jpeg, webp, bmp]
+        description: Image format
+      - name: quality
+        type: number
+        required: false
+        min: 1
+        max: 100
+        description: Compression quality for lossy formats
+      - name: savePath
+        type: string
+        required: false
+        description: File path to save screenshot
+      - name: enablePIIMasking
+        type: boolean
+        required: false
+        default: false
+        description: Enable PII detection and masking
+
+  - name: screenshot_capture_window
+    description: Capture specific application window
+    category: capture
+    parameters:
+      - name: windowId
+        type: string
+        required: false
+        description: Window identifier
+      - name: windowTitle
+        type: string
+        required: false
+        description: Window title pattern
+      - name: includeFrame
+        type: boolean
+        required: false
+        default: false
+        description: Include window frame and title bar
+      - name: format
+        type: string
+        required: true
+        enum: [png, jpeg, webp, bmp]
+        description: Image format
+
+  - name: screenshot_capture_region
+    description: Capture rectangular screen region
+    category: capture
+    parameters:
+      - name: x
+        type: number
+        required: true
+        min: 0
+        description: X coordinate in pixels
+      - name: y
+        type: number
+        required: true
+        min: 0
+        description: Y coordinate in pixels
+      - name: width
+        type: number
+        required: true
+        min: 1
+        description: Region width in pixels
+      - name: height
+        type: number
+        required: true
+        min: 1
+        description: Region height in pixels
+      - name: format
+        type: string
+        required: true
+        enum: [png, jpeg, webp, bmp]
+        description: Image format
+
+  - name: screenshot_list_displays
+    description: List all connected displays with metadata
+    category: information
+    parameters: []
+
+  - name: screenshot_list_windows
+    description: List all visible windows with metadata
+    category: information
+    parameters: []
+
+# Features
+features:
+  - Cross-platform screenshot capture (Linux, macOS, Windows)
+  - Multiple capture modes (full screen, window, region)
+  - Multi-format support (PNG, JPEG, WebP, BMP)
+  - Configurable compression and quality settings
+  - PII detection and masking with OCR
+  - Multi-monitor support
+  - Window enumeration and filtering
+  - Security policies and path validation
+  - Rate limiting and audit logging
+  - Base64 encoding for in-memory transfer
+
+# Use cases
+useCases:
+  - Visual debugging and UI analysis
+  - Documentation and screenshot generation
+  - Automated testing and visual regression
+  - Screen monitoring and recording
+  - Privacy-aware screenshot capture
+
+# Requirements
+requirements:
+  node: ">=18.0.0"
+  docker: ">=20.10.0"
+
+# Environment variables
+environment:
+  - name: NODE_ENV
+    description: Node environment (production/development)
+    default: production
+    required: false
+  - name: TESSDATA_PREFIX
+    description: Path to Tesseract training data
+    default: /usr/share/tessdata
+    required: false
+
+# Volumes
+volumes:
+  - path: /app/screenshots
+    description: Directory for saved screenshots
+    required: false
+  - path: /app/config
+    description: Configuration directory
+    required: false
+
+# Configuration example
+configuration:
+  command: docker
+  args:
+    - run
+    - -i
+    - --rm
+    - -v
+    - ${PWD}/screenshots:/app/screenshots
+    - -v
+    - ${PWD}/config.json:/app/config/config.json:ro
+    - digidefiance/mcp-screenshot:latest
+
+# Security
+security:
+  runAsNonRoot: true
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+  securityOpt:
+    - no-new-privileges:true
+
+# Resource limits
+resources:
+  limits:
+    cpu: "2"
+    memory: 2Gi
+  requests:
+    cpu: "0.5"
+    memory: 512Mi
+
+# Health check
+healthCheck:
+  enabled: true
+  interval: 30s
+  timeout: 10s
+  retries: 3
+
+# Documentation
+documentation:
+  readme: https://github.com/digital-defiance/ai-capabilities-suite/blob/main/packages/mcp-screenshot/README.md
+  api: https://github.com/digital-defiance/ai-capabilities-suite/blob/main/packages/mcp-screenshot/API.md
+  configuration: https://github.com/digital-defiance/ai-capabilities-suite/blob/main/packages/mcp-screenshot/CONFIGURATION.md
+  examples: https://github.com/digital-defiance/ai-capabilities-suite/blob/main/packages/mcp-screenshot/EXAMPLES.md
+
+# Support
+support:
+  issues: https://github.com/digital-defiance/ai-capabilities-suite/issues
+  email: info@digitaldefiance.org
+  documentation: https://github.com/digital-defiance/ai-capabilities-suite/tree/main/packages/mcp-screenshot

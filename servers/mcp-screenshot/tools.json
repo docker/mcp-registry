@@ -1,0 +1,342 @@
+{
+  "tools": [
+    {
+      "name": "screenshot_capture_full",
+      "displayName": "Capture Full Screen",
+      "description": "Capture full screen or specific display with optional PII masking",
+      "category": "capture",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "display": {
+            "type": "string",
+            "description": "Display ID for multi-monitor setups (optional)"
+          },
+          "format": {
+            "type": "string",
+            "enum": ["png", "jpeg", "webp", "bmp"],
+            "description": "Image format",
+            "default": "png"
+          },
+          "quality": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Compression quality for lossy formats (1-100)"
+          },
+          "savePath": {
+            "type": "string",
+            "description": "File path to save screenshot (optional, returns base64 if not provided)"
+          },
+          "enablePIIMasking": {
+            "type": "boolean",
+            "description": "Enable PII detection and masking",
+            "default": false
+          }
+        },
+        "required": ["format"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["success", "error"]
+          },
+          "filePath": {
+            "type": "string",
+            "description": "Absolute path to saved file (if savePath provided)"
+          },
+          "data": {
+            "type": "string",
+            "description": "Base64-encoded image data (if savePath not provided)"
+          },
+          "mimeType": {
+            "type": "string",
+            "description": "MIME type of the image"
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "width": { "type": "number" },
+              "height": { "type": "number" },
+              "format": { "type": "string" },
+              "fileSize": { "type": "number" },
+              "timestamp": { "type": "string" },
+              "display": { "type": "object" },
+              "piiMasking": { "type": "object" }
+            }
+          }
+        }
+      },
+      "examples": [
+        {
+          "name": "Capture primary display as PNG",
+          "input": {
+            "format": "png",
+            "savePath": "/app/screenshots/screenshot.png"
+          }
+        },
+        {
+          "name": "Capture with PII masking",
+          "input": {
+            "format": "png",
+            "enablePIIMasking": true
+          }
+        },
+        {
+          "name": "High-quality JPEG",
+          "input": {
+            "format": "jpeg",
+            "quality": 95,
+            "savePath": "/app/screenshots/high-quality.jpg"
+          }
+        }
+      ]
+    },
+    {
+      "name": "screenshot_capture_window",
+      "displayName": "Capture Window",
+      "description": "Capture specific application window by ID or title pattern",
+      "category": "capture",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "windowId": {
+            "type": "string",
+            "description": "Window identifier (use screenshot_list_windows to get IDs)"
+          },
+          "windowTitle": {
+            "type": "string",
+            "description": "Window title pattern (alternative to windowId)"
+          },
+          "includeFrame": {
+            "type": "boolean",
+            "description": "Include window frame and title bar",
+            "default": false
+          },
+          "format": {
+            "type": "string",
+            "enum": ["png", "jpeg", "webp", "bmp"],
+            "description": "Image format",
+            "default": "png"
+          },
+          "savePath": {
+            "type": "string",
+            "description": "File path to save screenshot (optional)"
+          }
+        },
+        "required": ["format"],
+        "oneOf": [{ "required": ["windowId"] }, { "required": ["windowTitle"] }]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string" },
+          "filePath": { "type": "string" },
+          "data": { "type": "string" },
+          "mimeType": { "type": "string" },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "width": { "type": "number" },
+              "height": { "type": "number" },
+              "format": { "type": "string" },
+              "window": { "type": "object" }
+            }
+          }
+        }
+      },
+      "examples": [
+        {
+          "name": "Capture VS Code window",
+          "input": {
+            "windowTitle": "Visual Studio Code",
+            "format": "png"
+          }
+        },
+        {
+          "name": "Capture with frame",
+          "input": {
+            "windowTitle": "Chrome",
+            "includeFrame": true,
+            "format": "png"
+          }
+        }
+      ]
+    },
+    {
+      "name": "screenshot_capture_region",
+      "displayName": "Capture Region",
+      "description": "Capture rectangular screen region with pixel-perfect accuracy",
+      "category": "capture",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number",
+            "minimum": 0,
+            "description": "X coordinate in pixels"
+          },
+          "y": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Y coordinate in pixels"
+          },
+          "width": {
+            "type": "number",
+            "minimum": 1,
+            "description": "Region width in pixels"
+          },
+          "height": {
+            "type": "number",
+            "minimum": 1,
+            "description": "Region height in pixels"
+          },
+          "format": {
+            "type": "string",
+            "enum": ["png", "jpeg", "webp", "bmp"],
+            "description": "Image format",
+            "default": "png"
+          },
+          "savePath": {
+            "type": "string",
+            "description": "File path to save screenshot (optional)"
+          }
+        },
+        "required": ["x", "y", "width", "height", "format"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string" },
+          "filePath": { "type": "string" },
+          "data": { "type": "string" },
+          "mimeType": { "type": "string" },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "width": { "type": "number" },
+              "height": { "type": "number" },
+              "format": { "type": "string" },
+              "region": { "type": "object" }
+            }
+          }
+        }
+      },
+      "examples": [
+        {
+          "name": "Capture top-left corner",
+          "input": {
+            "x": 0,
+            "y": 0,
+            "width": 800,
+            "height": 600,
+            "format": "png"
+          }
+        },
+        {
+          "name": "Capture specific region",
+          "input": {
+            "x": 100,
+            "y": 100,
+            "width": 1000,
+            "height": 800,
+            "format": "png"
+          }
+        }
+      ]
+    },
+    {
+      "name": "screenshot_list_displays",
+      "displayName": "List Displays",
+      "description": "List all connected displays with resolution, position, and primary indicator",
+      "category": "information",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string" },
+          "displays": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "name": { "type": "string" },
+                "resolution": {
+                  "type": "object",
+                  "properties": {
+                    "width": { "type": "number" },
+                    "height": { "type": "number" }
+                  }
+                },
+                "position": {
+                  "type": "object",
+                  "properties": {
+                    "x": { "type": "number" },
+                    "y": { "type": "number" }
+                  }
+                },
+                "isPrimary": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      },
+      "examples": [
+        {
+          "name": "List all displays",
+          "input": {}
+        }
+      ]
+    },
+    {
+      "name": "screenshot_list_windows",
+      "displayName": "List Windows",
+      "description": "List all visible windows with title, position, dimensions, and process information",
+      "category": "information",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string" },
+          "windows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "title": { "type": "string" },
+                "processName": { "type": "string" },
+                "pid": { "type": "number" },
+                "bounds": {
+                  "type": "object",
+                  "properties": {
+                    "x": { "type": "number" },
+                    "y": { "type": "number" },
+                    "width": { "type": "number" },
+                    "height": { "type": "number" }
+                  }
+                },
+                "isMinimized": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      },
+      "examples": [
+        {
+          "name": "List all windows",
+          "input": {}
+        }
+      ]
+    }
+  ]
+}
