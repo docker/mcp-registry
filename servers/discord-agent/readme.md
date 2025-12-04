@@ -1,150 +1,233 @@
-# Discord Agent MCP Server
+# Discord Agent
 
-Comprehensive Discord automation and management through the Model Context Protocol. This server provides 46+ tools for AI assistants to interact with Discord servers, including messaging, channel management, roles, moderation, and more.
+AI-powered Discord server management through natural language with Claude.
 
-## Features
+## Overview
 
-- **10 Messaging Tools**: Send, edit, delete messages, add reactions, manage pins
-- **10 Channel Tools**: Create, modify, delete channels (text, voice, forum, stage)
-- **3 Thread Tools**: Create, find, and archive forum threads
-- **6 Server Management Tools**: Server info, webhooks, invites, audit logs
-- **3 Member Tools**: Member info, list members, set nicknames
-- **6 Role Tools**: Assign, create, modify, delete roles
-- **5 Moderation Tools**: Kick, ban, timeout members
-- **Resources**: Guild listings and information
-- **Prompts**: Interactive moderation and announcement assistants
+Discord Agent is a production-ready MCP server that bridges Claude AI with Discord, enabling comprehensive server management through natural language. Instead of navigating Discord's interface or writing code, simply tell Claude what you want done in your Discord server.
 
-## Prerequisites
+Built with TypeScript and Discord.js, this server provides 71 tools covering every aspect of Discord server management - from basic messaging to advanced moderation, role management, scheduled events, and auto-moderation rules.
 
-Before using this server, you need:
+**Key Features:**
+- 71 comprehensive Discord management tools
+- Production-ready with robust error handling
+- Type-safe with full TypeScript and Zod validation
+- Structured logging with configurable levels
+- Supports stdio transport for Docker deployment
 
-1. **Discord Bot Token**
-   - Create a bot at [Discord Developer Portal](https://discord.com/developers/applications)
-   - Enable these Privileged Gateway Intents:
-     - Server Members Intent ✅
-     - Message Content Intent ✅
-   - Invite the bot to your server with appropriate permissions
+## Tools
 
-2. **Required Configuration**
-   - `DISCORD_TOKEN`: Your Discord bot token (required, secret)
+### Messaging (10 tools)
 
-3. **Optional Configuration**
-   - `TRANSPORT_MODE`: `http` or `stdio` (default: `http`)
-   - `HTTP_PORT`: Port for HTTP mode (default: `3000`)
-   - `LOG_LEVEL`: Logging level (default: `info`)
-   - `LOG_FORMAT`: `json` or `pretty` (default: `json`)
+- `send_message` - Send text messages to channels
+- `send_rich_message` - Send messages with rich embeds and formatting
+- `send_message_with_file` - Send messages with file attachments
+- `read_messages` - Retrieve message history
+- `edit_message` - Edit bot messages
+- `delete_message` - Delete messages
+- `bulk_delete_messages` - Delete multiple messages
+- `add_reaction` - Add emoji reactions
+- `pin_message` - Pin important messages
+- `unpin_message` - Unpin messages
 
-## Quick Start
+### Channels (10 tools)
 
-### 1. Create Discord Bot
+- `list_channels` - Get all channels organized by type
+- `get_channel_details` - Detailed channel information
+- `create_text_channel` - Create text channels
+- `create_voice_channel` - Create voice channels
+- `create_category` - Create channel categories
+- `create_forum_channel` - Create forum channels
+- `create_stage_channel` - Create stage channels
+- `modify_channel` - Update channel settings
+- `delete_channel` - Delete channels
+- `set_channel_permissions` - Manage channel permissions
 
-1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
-2. Create a new application and add a bot
-3. Copy the bot token
-4. Enable "Server Members Intent" and "Message Content Intent"
-5. Generate invite URL with bot permissions:
-   - Manage Channels, Manage Roles, Manage Messages
-   - Send Messages, Read Message History
-   - Manage Threads, Moderate Members
+### Threads (3 tools)
 
-### 2. Configure the Server
-
-When prompted for configuration:
-- **DISCORD_TOKEN**: Paste your bot token
-- Leave other settings as default or customize as needed
-
-### 3. Use with AI Assistant
-
-Once running, the server exposes 46+ tools that AI assistants can use:
-
-**Example Interactions:**
-- "Send a welcome message to the #general channel"
-- "List all channels in the server"
-- "Create a new forum channel called 'Q&A'"
-- "Give the @member role to user123"
-- "Show me the last 10 messages in #announcements"
-
-## Available Tools
-
-### Messaging
-- `send_message` - Send text messages
-- `send_rich_message` - Send formatted embeds
-- `send_message_with_file` - Send with attachments
-- `read_messages` - Get message history
-- `edit_message`, `delete_message`, `bulk_delete_messages`
-- `add_reaction`, `pin_message`, `unpin_message`
-
-### Channel Management
-- `list_channels`, `get_channel_details`
-- `create_text_channel`, `create_voice_channel`, `create_forum_channel`
-- `create_category`, `create_stage_channel`
-- `modify_channel`, `delete_channel`, `set_channel_permissions`
-
-### Threads
-- `find_threads` - Search forum threads
+- `find_threads` - Search and list forum threads
 - `create_thread` - Create new threads
-- `archive_thread` - Archive threads
+- `archive_thread` - Archive and lock threads
 
-### Server
-- `get_server_info` - Server details
+### Server Management (7 tools)
+
+- `get_server_info` - Server details and statistics
 - `modify_server` - Update server settings
-- `get_audit_logs` - View audit logs
-- `list_webhooks`, `create_webhook`
-- `get_invites`, `create_invite`
+- `get_audit_logs` - View audit log history
+- `list_webhooks` - List server webhooks
+- `create_webhook` - Create new webhooks
+- `get_invites` - List active invites
+- `create_invite` - Generate invite links
 
-### Members
-- `get_member_info` - Member details
-- `list_members` - List all members
-- `set_nickname` - Change nicknames
+### Members (3 tools)
 
-### Roles
-- `assign_role`, `remove_role`
-- `create_role`, `delete_role`, `modify_role`
-- `list_roles`, `get_role_info`
+- `get_member_info` - Member details and roles
+- `list_members` - List all server members
+- `set_nickname` - Change member nicknames
 
-### Moderation
+### Roles (7 tools)
+
+- `create_role` - Create new roles with permissions
+- `delete_role` - Remove roles
+- `modify_role` - Update role settings
+- `list_roles` - List all server roles
+- `get_role_info` - Detailed role information
+- `assign_role` - Add role to member
+- `remove_role` - Remove role from member
+
+### Moderation (6 tools)
+
 - `kick_member` - Remove member (can rejoin)
-- `ban_member`, `unban_member` - Ban management
-- `timeout_member`, `remove_timeout` - Temporary mutes
+- `ban_member` - Ban member (cannot rejoin)
+- `unban_member` - Remove ban
+- `timeout_member` - Temporarily mute member
+- `remove_timeout` - Remove timeout
 - `get_bans` - List banned users
 
-## Use Cases
+### Emojis (4 tools)
 
-- **Community Management**: Automate welcome messages, role assignments, channel creation
-- **Moderation**: AI-assisted moderation with timeout, kick, and ban capabilities
-- **Content Distribution**: Post announcements, updates, and embeds across channels
-- **Server Organization**: Create and manage channels, categories, and forum threads
-- **Member Support**: Answer questions, provide information, manage roles
-- **Event Management**: Create stage channels, manage voice channels, send invites
+- `list_guild_emojis` - List custom emojis
+- `create_emoji` - Upload custom emojis
+- `modify_emoji` - Update emoji settings
+- `delete_emoji` - Remove emojis
 
-## Security Notes
+### Stickers (4 tools)
 
-- **Bot Token Security**: Your Discord token is stored securely as a secret
-- **Permissions**: Bot can only perform actions it has permissions for
-- **Rate Limits**: Respects Discord's rate limits automatically
-- **Audit Trail**: All actions are logged in Discord's audit log
+- `list_guild_stickers` - List custom stickers
+- `create_sticker` - Upload custom stickers
+- `modify_sticker` - Update sticker settings
+- `delete_sticker` - Remove stickers
 
-## Architecture
+### Scheduled Events (6 tools)
 
-Built with:
-- **TypeScript** - Type-safe implementation
-- **Discord.js v14** - Official Discord API library
-- **MCP Protocol** - Standard AI assistant integration
-- **Docker** - Containerized deployment
-- **Structured Logging** - JSON-formatted logs for monitoring
+- `list_scheduled_events` - List upcoming events
+- `get_event_details` - Event information
+- `create_scheduled_event` - Create voice, stage, or external events
+- `modify_scheduled_event` - Update event details
+- `delete_scheduled_event` - Cancel events
+- `get_event_users` - List interested users
 
-## Support & Documentation
+### Auto-Moderation (5 tools)
 
-- **Full Documentation**: [GitHub README](https://github.com/aj-geddes/discord-agent-mcp#readme)
-- **Source Code**: [GitHub Repository](https://github.com/aj-geddes/discord-agent-mcp)
-- **Issues**: [GitHub Issues](https://github.com/aj-geddes/discord-agent-mcp/issues)
-- **Discord.js Docs**: [Discord.js Guide](https://discordjs.guide/)
-- **MCP Protocol**: [Model Context Protocol](https://modelcontextprotocol.io/)
+- `list_automod_rules` - List moderation rules
+- `get_automod_rule` - Rule details
+- `create_automod_rule` - Create keyword filters and spam detection
+- `modify_automod_rule` - Update rule settings
+- `delete_automod_rule` - Remove rules
 
-## License
+### Application Commands (6 tools)
 
-MIT License - See [LICENSE](https://github.com/aj-geddes/discord-agent-mcp/blob/main/LICENSE)
+- `list_application_commands` - List slash commands
+- `get_application_command` - Command details
+- `create_application_command` - Create slash commands
+- `modify_application_command` - Update commands
+- `delete_application_command` - Remove commands
+- `bulk_overwrite_commands` - Sync all commands
 
----
+## Configuration
 
-**Note**: This is a third-party MCP server and is not officially affiliated with Discord, Inc.
+### Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `DISCORD_TOKEN` | Yes | - | Discord bot token from [Discord Developer Portal](https://discord.com/developers/applications) |
+| `TRANSPORT_MODE` | No | `stdio` | Transport mode (stdio for Docker) |
+| `LOG_LEVEL` | No | `info` | Logging level: debug, info, warn, error |
+| `LOG_FORMAT` | No | `json` | Log format: json or pretty |
+
+### Secrets
+
+| Secret | Required | Description |
+|--------|----------|-------------|
+| `DISCORD_TOKEN` | Yes | Discord bot token with appropriate server permissions |
+
+### Required Bot Permissions
+
+The bot needs appropriate Discord permissions based on which tools you use:
+
+- **Basic**: Read Messages, Send Messages
+- **Moderation**: Kick Members, Ban Members, Moderate Members
+- **Management**: Manage Channels, Manage Roles, Manage Server
+- **Advanced**: Administrator (for full functionality)
+
+Create your bot at: https://discord.com/developers/applications
+
+## Usage Examples
+
+### Server Setup
+```
+"Set up a gaming community with channels for Minecraft, Valorant,
+general chat, and appropriate voice channels"
+```
+
+### Messaging
+```
+"Send a welcome message to the #general channel with an embed showing
+our server rules"
+```
+
+### Moderation
+```
+"Timeout user 123456789012345678 for 1 hour for spam"
+```
+
+```
+"Set up auto-moderation to block common spam phrases and timeout
+repeat offenders for 10 minutes"
+```
+
+### Events
+```
+"Create a voice event called 'Weekly Game Night' scheduled for
+Saturday at 8 PM EST in the Gaming voice channel"
+```
+
+### Role Management
+```
+"Create a 'Moderator' role with kick, ban, and message management
+permissions, then assign it to users Alice and Bob"
+```
+
+### Channel Organization
+```
+"Create a category called 'Voice Channels' and move all voice channels
+into it, then create a new voice channel called 'AFK Channel'"
+```
+
+## Security Best Practices
+
+1. **Never commit your Discord token** - Use environment variables or Docker secrets
+2. **Use least privilege** - Only grant the bot permissions it actually needs
+3. **Rotate tokens periodically** - Regenerate bot tokens every few months
+4. **Monitor audit logs** - Review bot actions regularly
+5. **Test in a development server** - Use a separate test server before production
+
+## Troubleshooting
+
+### Bot is not responding
+- Verify `DISCORD_TOKEN` is set correctly
+- Check bot has required permissions in Discord
+- Ensure bot is invited to the server
+
+### Permission errors
+- Bot needs appropriate Discord permissions for each tool
+- Check role hierarchy (bot's role must be higher than roles it manages)
+- Verify channel-specific permission overrides
+
+### Message sending fails
+- Check message length (max 2000 characters)
+- Verify channel exists and bot has access
+- Ensure bot has Send Messages permission
+
+### Tools not discoverable
+- Server supports stdio transport for tool discovery
+- No configuration required to list tools
+- If issues persist, check server logs with `LOG_LEVEL=debug`
+
+## Links
+
+- [Source Repository](https://github.com/aj-geddes/discord-agent-mcp)
+- [Documentation](https://aj-geddes.github.io/discord-agent-mcp/)
+- [Discord Developer Portal](https://discord.com/developers/applications)
+- [Issue Tracker](https://github.com/aj-geddes/discord-agent-mcp/issues)
+- [MCP Protocol](https://modelcontextprotocol.io/)
