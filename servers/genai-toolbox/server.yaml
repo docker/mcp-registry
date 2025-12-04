@@ -1,0 +1,42 @@
+name: genai-toolbox
+image: mcp/genai-toolbox
+type: server
+dynamic:
+  tools: true
+meta:
+  category: database
+  tags:
+    - database
+    - postgresql
+    - mysql
+    - bigquery
+    - sql
+    - ai-assistant
+    - observability
+about:
+  title: GenAI Toolbox for Databases
+  description: Open source MCP server for databases that simplifies AI agent access to database resources. Handles connection pooling, authentication, and observability with OpenTelemetry support. Supports PostgreSQL, MySQL, BigQuery, Cloud SQL, Spanner, and more. Enables natural language queries and context-aware code generation based on live database schemas.
+  icon: https://www.google.com/s2/favicons?domain=cloud.google.com&sz=64
+source:
+  project: https://github.com/googleapis/genai-toolbox
+  commit: 730ac6d22805fd50b4a675b74c1865f4e7689e7c
+run:
+  command:
+    - --stdio
+    - --log-level
+    - ERROR
+    - --tools-file
+    - /tmp/tools.yaml
+  volumes:
+    - "{{genai-toolbox.tools_file}}:/tmp/tools.yaml"
+config:
+  description: Configure database connections and tools using a tools.yaml file. See https://github.com/googleapis/genai-toolbox?tab=readme-ov-file#configuration for configuration details.
+  parameters:
+    type: object
+    properties:
+      tools_file:
+        type: string
+        title: "Tools Configuration File"
+        description: "Path to tools.yaml configuration file defining database sources, tools, toolsets, and prompts. See https://github.com/googleapis/genai-toolbox?tab=readme-ov-file#configuration"
+    required:
+      - tools_file

@@ -1,0 +1,95 @@
+name: Security Review (Changes)
+
+on:
+  workflow_dispatch:
+    inputs:
+      pull_request_number:
+        description: "Pull request number to review"
+        required: true
+        default: ""
+      agent:
+        description: "Reviewer agent"
+        required: false
+        type: choice
+        options:
+          - claude
+          - codex
+        default: claude
+      model:
+        description: "Optional reviewer model override."
+        required: false
+        default: ""
+      timeout_secs:
+        description: "Optional reviewer timeout in seconds (defaults to 1800)."
+        required: false
+        default: ""
+      force_review:
+        description: "Force re-review even if already completed for this commit"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: security-review-changes-${{ github.event.inputs.pull_request_number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    name: Dispatch Private Security Review
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Validate inputs
+        run: |
+          if [ -z "${{ github.event.inputs.pull_request_number }}" ]; then
+            echo "pull_request_number is required" >&2
+            exit 1
+          fi
+
+      - name: Parse reviewer repository
+        id: parse-repo
+        env:
+          REVIEWER_REPOSITORY: ${{ secrets.REVIEWER_REPOSITORY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${REVIEWER_REPOSITORY:-}" ]; then
+            echo "REVIEWER_REPOSITORY secret is required" >&2
+            exit 1
+          fi
+          echo "name=${REVIEWER_REPOSITORY#*/}" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.MCP_REGISTRY_BOT_APP_ID }}
+          private-key: ${{ secrets.MCP_REGISTRY_BOT_PRIVATE_KEY }}
+          owner: docker
+          repositories: ${{ steps.parse-repo.outputs.name }}
+
+      - name: Trigger private workflow
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          REVIEWER_REPOSITORY: ${{ secrets.REVIEWER_REPOSITORY }}
+        run: |
+          set -euo pipefail
+
+          payload=$(jq -n \
+            --arg pr "${{ github.event.inputs.pull_request_number }}" \
+            --arg agent "${{ github.event.inputs.agent || 'claude' }}" \
+            --arg model "${{ github.event.inputs.model }}" \
+            --arg timeout "${{ github.event.inputs.timeout_secs }}" \
+            --arg force "${{ github.event.inputs.force_review || 'false' }}" \
+            --arg source_repo "${{ github.repository }}" \
+            '{pull_request_number:$pr, agent:$agent, model:$model, timeout_secs:$timeout, force_review:$force, repository:$source_repo}'
+          )
+
+          curl -sSf -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${REVIEWER_REPOSITORY}/dispatches" \
+            -d "{\"event_type\":\"security-review\",\"client_payload\":${payload}}"
+
+          echo "Dispatched security review for PR #${{ github.event.inputs.pull_request_number }}"
