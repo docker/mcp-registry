@@ -50,10 +50,11 @@ type Server struct {
 }
 
 type Secret struct {
-	Name     string `yaml:"name" json:"name"`
-	Env      string `yaml:"env" json:"env"`
-	Example  string `yaml:"example,omitempty" json:"example,omitempty"`
-	Required *bool  `yaml:"required,omitempty" json:"required,omitempty"`
+	Name        string `yaml:"name" json:"name"`
+	Env         string `yaml:"env" json:"env"`
+	Example     string `yaml:"example,omitempty" json:"example,omitempty"`
+	Description string `yaml:"description,omitempty" json:"description,omitempty"`
+	Required    *bool  `yaml:"required,omitempty" json:"required,omitempty"`
 }
 
 // secret is an alias used to drop encoding methods to avoid infinite recursion.
