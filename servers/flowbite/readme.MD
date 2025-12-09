@@ -1,1 +1,1 @@
-https://flowbite.com/docs/getting-started/mcp/
+Docs: https://flowbite.com/docs/getting-started/mcp/
