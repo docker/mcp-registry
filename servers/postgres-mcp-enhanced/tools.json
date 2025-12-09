@@ -1,0 +1,650 @@
+[
+  {
+    "name": "list_schemas",
+    "description": "List all schemas in the database",
+    "arguments": []
+  },
+  {
+    "name": "list_objects",
+    "description": "List objects in a schema",
+    "arguments": [
+      {"name": "schema_name", "type": "string", "desc": "Schema name"},
+      {"name": "object_type", "type": "string", "desc": "Object type: 'table', 'view', 'sequence', or 'extension'"}
+    ]
+  },
+  {
+    "name": "get_object_details",
+    "description": "Show detailed information about a database object",
+    "arguments": [
+      {"name": "schema_name", "type": "string", "desc": "Schema name"},
+      {"name": "object_name", "type": "string", "desc": "Object name"},
+      {"name": "object_type", "type": "string", "desc": "Object type: 'table', 'view', 'sequence', or 'extension'"}
+    ]
+  },
+  {
+    "name": "explain_query",
+    "description": "Explains the execution plan for a SQL query, showing how the database will execute it and provides detailed cost estimates",
+    "arguments": [
+      {"name": "sql", "type": "string", "desc": "SQL query to explain"},
+      {"name": "analyze", "type": "boolean", "desc": "When True, actually runs the query for real execution statistics"},
+      {"name": "hypothetical_indexes", "type": "array", "desc": "List of hypothetical indexes to simulate"}
+    ]
+  },
+  {
+    "name": "execute_sql",
+    "description": "Execute any SQL query with parameter binding for security",
+    "arguments": [
+      {"name": "sql", "type": "string", "desc": "SQL query to run. Use %s for parameter placeholders"},
+      {"name": "params", "type": "array", "desc": "Parameters for the SQL query placeholders"}
+    ]
+  },
+  {
+    "name": "analyze_workload_indexes",
+    "description": "Analyze frequently executed queries in the database and recommend optimal indexes",
+    "arguments": [
+      {"name": "max_index_size_mb", "type": "integer", "desc": "Max index size in MB"},
+      {"name": "method", "type": "string", "desc": "Method to use for analysis: 'dta' or 'llm'"}
+    ]
+  },
+  {
+    "name": "analyze_query_indexes",
+    "description": "Analyze a list of SQL queries and recommend optimal indexes",
+    "arguments": [
+      {"name": "queries", "type": "array", "desc": "List of Query strings to analyze"},
+      {"name": "max_index_size_mb", "type": "integer", "desc": "Max index size in MB"},
+      {"name": "method", "type": "string", "desc": "Method to use for analysis: 'dta' or 'llm'"}
+    ]
+  },
+  {
+    "name": "analyze_db_health",
+    "description": "Analyzes database health including index, connection, vacuum, sequence, replication, buffer, and constraint checks",
+    "arguments": [
+      {"name": "health_type", "type": "string", "desc": "Valid values: index, connection, vacuum, sequence, replication, buffer, constraint, all"}
+    ]
+  },
+  {
+    "name": "get_top_queries",
+    "description": "Reports the slowest or most resource-intensive queries using data from pg_stat_statements extension",
+    "arguments": [
+      {"name": "sort_by", "type": "string", "desc": "Ranking criteria: 'total_time', 'mean_time', or 'resources'"},
+      {"name": "limit", "type": "integer", "desc": "Number of queries to return"}
+    ]
+  },
+  {
+    "name": "json_insert",
+    "description": "Insert or update JSONB data with validation",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Target table name"},
+      {"name": "json_column", "type": "string", "desc": "JSONB column name"},
+      {"name": "json_data", "type": "string", "desc": "JSON data to insert"},
+      {"name": "where_clause", "type": "string", "desc": "Optional WHERE clause for UPDATE"},
+      {"name": "where_params", "type": "array", "desc": "Parameters for WHERE clause"},
+      {"name": "validate", "type": "boolean", "desc": "Whether to validate JSON structure"}
+    ]
+  },
+  {
+    "name": "json_update",
+    "description": "Update JSON value by path, optionally creating path if missing",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Target table name"},
+      {"name": "json_column", "type": "string", "desc": "JSONB column name"},
+      {"name": "json_path", "type": "string", "desc": "JSON path (e.g., '{key,subkey}')"},
+      {"name": "new_value", "type": "any", "desc": "New value to set"},
+      {"name": "where_clause", "type": "string", "desc": "WHERE clause to identify rows"},
+      {"name": "where_params", "type": "array", "desc": "Parameters for WHERE clause"},
+      {"name": "create_if_missing", "type": "boolean", "desc": "Create path if it doesn't exist"}
+    ]
+  },
+  {
+    "name": "json_select",
+    "description": "Extract JSON data with multiple output formats",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "json_column", "type": "string", "desc": "JSONB column name"},
+      {"name": "json_path", "type": "string", "desc": "Optional path to extract"},
+      {"name": "where_clause", "type": "string", "desc": "Optional WHERE clause"},
+      {"name": "where_params", "type": "array", "desc": "Parameters for WHERE clause"},
+      {"name": "output_format", "type": "string", "desc": "Output format: 'json', 'text', 'array'"},
+      {"name": "limit", "type": "integer", "desc": "Maximum rows to return"}
+    ]
+  },
+  {
+    "name": "json_query",
+    "description": "Complex JSON filtering and aggregation using JSONPath",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "json_column", "type": "string", "desc": "JSONB column name"},
+      {"name": "json_path", "type": "string", "desc": "JSONPath query expression"},
+      {"name": "filter_expr", "type": "string", "desc": "Optional filter expression"},
+      {"name": "aggregate", "type": "string", "desc": "Optional aggregate function"},
+      {"name": "limit", "type": "integer", "desc": "Maximum rows to return"}
+    ]
+  },
+  {
+    "name": "json_validate_path",
+    "description": "Validate JSONPath expression with security checks",
+    "arguments": [
+      {"name": "json_path", "type": "string", "desc": "JSONPath expression to validate"},
+      {"name": "json_data", "type": "string", "desc": "Optional JSON data to test against"}
+    ]
+  },
+  {
+    "name": "json_merge",
+    "description": "Merge JSON objects with conflict resolution strategies",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Target table name"},
+      {"name": "json_column", "type": "string", "desc": "JSONB column name"},
+      {"name": "merge_data", "type": "string", "desc": "JSON data to merge"},
+      {"name": "where_clause", "type": "string", "desc": "WHERE clause to identify rows"},
+      {"name": "where_params", "type": "array", "desc": "Parameters for WHERE clause"},
+      {"name": "strategy", "type": "string", "desc": "Merge strategy: 'overwrite', 'keep_existing', 'concat_arrays'"}
+    ]
+  },
+  {
+    "name": "json_normalize",
+    "description": "Normalize Python-style JSON to valid JSON format",
+    "arguments": [
+      {"name": "json_data", "type": "string", "desc": "Python-style JSON string to normalize"}
+    ]
+  },
+  {
+    "name": "json_diff",
+    "description": "Compare two JSON structures and return differences",
+    "arguments": [
+      {"name": "json1", "type": "string", "desc": "First JSON object"},
+      {"name": "json2", "type": "string", "desc": "Second JSON object"}
+    ]
+  },
+  {
+    "name": "jsonb_index_suggest",
+    "description": "Suggest indexes for JSONB columns based on usage patterns",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Target table name"},
+      {"name": "json_column", "type": "string", "desc": "JSONB column name"},
+      {"name": "common_paths", "type": "array", "desc": "List of commonly queried paths"},
+      {"name": "analyze_usage", "type": "boolean", "desc": "Analyze query patterns"}
+    ]
+  },
+  {
+    "name": "json_security_scan",
+    "description": "Scan JSON data for potential security issues",
+    "arguments": [
+      {"name": "json_data", "type": "string", "desc": "JSON data to scan"},
+      {"name": "check_injection", "type": "boolean", "desc": "Check for SQL injection patterns"},
+      {"name": "check_xss", "type": "boolean", "desc": "Check for XSS patterns"}
+    ]
+  },
+  {
+    "name": "jsonb_stats",
+    "description": "Analyze JSON structure and generate statistics",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "json_column", "type": "string", "desc": "JSONB column name"},
+      {"name": "where_clause", "type": "string", "desc": "Optional WHERE clause"},
+      {"name": "where_params", "type": "array", "desc": "Parameters for WHERE clause"}
+    ]
+  },
+  {
+    "name": "text_similarity",
+    "description": "Find similar text using trigram similarity (requires pg_trgm extension)",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "text_column", "type": "string", "desc": "Text column name"},
+      {"name": "search_text", "type": "string", "desc": "Text to search for"},
+      {"name": "similarity_threshold", "type": "number", "desc": "Minimum similarity score (0-1)"},
+      {"name": "limit", "type": "integer", "desc": "Maximum results to return"}
+    ]
+  },
+  {
+    "name": "text_search_advanced",
+    "description": "Advanced full-text search with ranking",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "text_columns", "type": "array", "desc": "List of text columns to search"},
+      {"name": "search_query", "type": "string", "desc": "Search query (supports AND, OR, NOT)"},
+      {"name": "language", "type": "string", "desc": "Text search language configuration"},
+      {"name": "rank_normalization", "type": "integer", "desc": "Rank normalization (0-32)"},
+      {"name": "limit", "type": "integer", "desc": "Maximum results to return"}
+    ]
+  },
+  {
+    "name": "regex_extract_all",
+    "description": "Extract all pattern matches with capture groups using regex",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "text_column", "type": "string", "desc": "Text column name"},
+      {"name": "pattern", "type": "string", "desc": "Regular expression pattern"},
+      {"name": "flags", "type": "string", "desc": "Regex flags (g=global, i=case-insensitive)"},
+      {"name": "where_clause", "type": "string", "desc": "Optional WHERE clause"},
+      {"name": "where_params", "type": "array", "desc": "Parameters for WHERE clause"},
+      {"name": "limit", "type": "integer", "desc": "Maximum results to return"}
+    ]
+  },
+  {
+    "name": "fuzzy_match",
+    "description": "Find fuzzy matches using Levenshtein distance (requires fuzzystrmatch extension)",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "text_column", "type": "string", "desc": "Text column name"},
+      {"name": "search_text", "type": "string", "desc": "Text to search for"},
+      {"name": "max_distance", "type": "integer", "desc": "Maximum edit distance"},
+      {"name": "limit", "type": "integer", "desc": "Maximum results to return"}
+    ]
+  },
+  {
+    "name": "text_sentiment",
+    "description": "Basic sentiment analysis using keyword matching",
+    "arguments": [
+      {"name": "text", "type": "string", "desc": "Text to analyze"}
+    ]
+  },
+  {
+    "name": "stats_descriptive",
+    "description": "Calculate descriptive statistics (mean, median, mode, std dev) for numeric columns",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "column_name", "type": "string", "desc": "Numeric column to analyze"},
+      {"name": "where_clause", "type": "string", "desc": "Optional WHERE clause"},
+      {"name": "where_params", "type": "array", "desc": "Parameters for WHERE clause"}
+    ]
+  },
+  {
+    "name": "stats_percentiles",
+    "description": "Calculate percentiles and detect outliers using IQR method",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "column_name", "type": "string", "desc": "Numeric column to analyze"},
+      {"name": "percentiles", "type": "array", "desc": "List of percentiles (0-1 scale)"},
+      {"name": "detect_outliers", "type": "boolean", "desc": "Whether to detect outliers"},
+      {"name": "where_clause", "type": "string", "desc": "Optional WHERE clause"},
+      {"name": "where_params", "type": "array", "desc": "Parameters for WHERE clause"}
+    ]
+  },
+  {
+    "name": "stats_correlation",
+    "description": "Calculate correlation between two numeric columns (Pearson or Spearman)",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "column1", "type": "string", "desc": "First numeric column"},
+      {"name": "column2", "type": "string", "desc": "Second numeric column"},
+      {"name": "method", "type": "string", "desc": "Correlation method: 'pearson' or 'spearman'"},
+      {"name": "where_clause", "type": "string", "desc": "Optional WHERE clause"},
+      {"name": "where_params", "type": "array", "desc": "Parameters for WHERE clause"}
+    ]
+  },
+  {
+    "name": "stats_regression",
+    "description": "Calculate linear regression analysis with coefficients and R-squared",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "x_column", "type": "string", "desc": "Independent variable (X)"},
+      {"name": "y_column", "type": "string", "desc": "Dependent variable (Y)"},
+      {"name": "where_clause", "type": "string", "desc": "Optional WHERE clause"},
+      {"name": "where_params", "type": "array", "desc": "Parameters for WHERE clause"}
+    ]
+  },
+  {
+    "name": "stats_time_series",
+    "description": "Analyze time series data with aggregation and trend analysis",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "time_column", "type": "string", "desc": "Timestamp column"},
+      {"name": "value_column", "type": "string", "desc": "Value column to aggregate"},
+      {"name": "interval", "type": "string", "desc": "Time interval (e.g., '1 hour', '1 day')"},
+      {"name": "aggregation", "type": "string", "desc": "Aggregation function ('avg', 'sum', 'count', 'min', 'max')"},
+      {"name": "where_clause", "type": "string", "desc": "Optional WHERE clause"},
+      {"name": "where_params", "type": "array", "desc": "Parameters for WHERE clause"}
+    ]
+  },
+  {
+    "name": "stats_distribution",
+    "description": "Analyze data distribution with histogram and distribution fitting",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "column_name", "type": "string", "desc": "Numeric column to analyze"},
+      {"name": "bins", "type": "integer", "desc": "Number of bins for histogram"},
+      {"name": "where_clause", "type": "string", "desc": "Optional WHERE clause"},
+      {"name": "where_params", "type": "array", "desc": "Parameters for WHERE clause"}
+    ]
+  },
+  {
+    "name": "stats_hypothesis",
+    "description": "Perform hypothesis testing (t-test, z-test)",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "column_name", "type": "string", "desc": "Numeric column to test"},
+      {"name": "test_type", "type": "string", "desc": "Type of test: 't_test' or 'z_test'"},
+      {"name": "hypothesis_value", "type": "number", "desc": "Hypothesized mean value"},
+      {"name": "group_column", "type": "string", "desc": "Column for grouping (for two-sample tests)"},
+      {"name": "where_clause", "type": "string", "desc": "Optional WHERE clause"},
+      {"name": "where_params", "type": "array", "desc": "Parameters for WHERE clause"}
+    ]
+  },
+  {
+    "name": "stats_sampling",
+    "description": "Generate statistical samples from tables (random, systematic, stratified)",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "sample_size", "type": "integer", "desc": "Absolute number of rows to sample"},
+      {"name": "sample_percent", "type": "number", "desc": "Percentage of rows to sample (0-100)"},
+      {"name": "method", "type": "string", "desc": "Sampling method: 'random', 'systematic', 'stratified'"},
+      {"name": "where_clause", "type": "string", "desc": "Optional WHERE clause"},
+      {"name": "where_params", "type": "array", "desc": "Parameters for WHERE clause"}
+    ]
+  },
+  {
+    "name": "query_plan_compare",
+    "description": "Compare execution plans of two queries with cost analysis",
+    "arguments": [
+      {"name": "query1", "type": "string", "desc": "First SQL query"},
+      {"name": "query2", "type": "string", "desc": "Second SQL query"},
+      {"name": "params1", "type": "array", "desc": "Parameters for first query"},
+      {"name": "params2", "type": "array", "desc": "Parameters for second query"}
+    ]
+  },
+  {
+    "name": "performance_baseline",
+    "description": "Establish performance baselines for critical queries",
+    "arguments": [
+      {"name": "queries", "type": "array", "desc": "List of SQL queries to baseline"},
+      {"name": "iterations", "type": "integer", "desc": "Number of times to run each query"}
+    ]
+  },
+  {
+    "name": "slow_query_analyzer",
+    "description": "Analyze slow queries with optimization suggestions (requires pg_stat_statements)",
+    "arguments": [
+      {"name": "min_duration_ms", "type": "number", "desc": "Minimum query duration (milliseconds)"},
+      {"name": "limit", "type": "integer", "desc": "Maximum queries to return"}
+    ]
+  },
+  {
+    "name": "connection_pool_optimize",
+    "description": "Analyze connection pool and provide optimization recommendations",
+    "arguments": []
+  },
+  {
+    "name": "vacuum_strategy_recommend",
+    "description": "Analyze vacuum needs and recommend vacuum strategy",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Optional specific table to analyze"}
+    ]
+  },
+  {
+    "name": "partition_strategy_suggest",
+    "description": "Suggest partitioning strategy for large tables",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Table to analyze for partitioning"},
+      {"name": "partition_column", "type": "string", "desc": "Optional column to analyze"}
+    ]
+  },
+  {
+    "name": "vector_embed",
+    "description": "Generate embeddings for text data (requires pgvector extension)",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "text_column", "type": "string", "desc": "Column containing text to embed"},
+      {"name": "vector_column", "type": "string", "desc": "Column to store embeddings"},
+      {"name": "model", "type": "string", "desc": "Embedding model name"},
+      {"name": "batch_size", "type": "integer", "desc": "Number of rows to process per batch"},
+      {"name": "where_clause", "type": "string", "desc": "Optional WHERE clause"},
+      {"name": "where_params", "type": "array", "desc": "Parameters for WHERE clause"}
+    ]
+  },
+  {
+    "name": "vector_similarity",
+    "description": "Find similar vectors using cosine, L2, or inner product distance (requires pgvector)",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "vector_column", "type": "string", "desc": "Column containing vectors"},
+      {"name": "query_vector", "type": "array", "desc": "Query vector to find similar vectors"},
+      {"name": "distance_metric", "type": "string", "desc": "Distance metric: 'cosine', 'l2', 'inner_product'"},
+      {"name": "limit", "type": "integer", "desc": "Maximum results to return"},
+      {"name": "where_clause", "type": "string", "desc": "Optional WHERE clause"},
+      {"name": "where_params", "type": "array", "desc": "Parameters for WHERE clause"}
+    ]
+  },
+  {
+    "name": "vector_search",
+    "description": "Semantic search with ranking and distance threshold (requires pgvector)",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "vector_column", "type": "string", "desc": "Column containing vectors"},
+      {"name": "query_vector", "type": "array", "desc": "Query vector for semantic search"},
+      {"name": "distance_metric", "type": "string", "desc": "Distance metric: 'cosine', 'l2', 'inner_product'"},
+      {"name": "limit", "type": "integer", "desc": "Maximum results to return"},
+      {"name": "threshold", "type": "number", "desc": "Optional distance threshold"},
+      {"name": "return_columns", "type": "array", "desc": "Specific columns to return"},
+      {"name": "where_clause", "type": "string", "desc": "Optional WHERE clause"},
+      {"name": "where_params", "type": "array", "desc": "Parameters for WHERE clause"}
+    ]
+  },
+  {
+    "name": "vector_cluster",
+    "description": "K-means clustering for vector data",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "vector_column", "type": "string", "desc": "Column containing vectors"},
+      {"name": "num_clusters", "type": "integer", "desc": "Number of clusters (k)"},
+      {"name": "max_iterations", "type": "integer", "desc": "Maximum iterations for convergence"},
+      {"name": "distance_metric", "type": "string", "desc": "Distance metric: 'cosine', 'l2', 'inner_product'"}
+    ]
+  },
+  {
+    "name": "vector_index_optimize",
+    "description": "Optimize vector indexes (HNSW/IVFFlat) for performance (requires pgvector)",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "vector_column", "type": "string", "desc": "Column containing vectors"},
+      {"name": "index_type", "type": "string", "desc": "Index type: 'hnsw' or 'ivfflat'"},
+      {"name": "distance_metric", "type": "string", "desc": "Distance metric: 'cosine', 'l2', 'inner_product'"},
+      {"name": "index_options", "type": "object", "desc": "Index-specific options"}
+    ]
+  },
+  {
+    "name": "vector_dimension_reduce",
+    "description": "Dimensionality reduction for vector data",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "vector_column", "type": "string", "desc": "Column containing vectors"},
+      {"name": "target_dimensions", "type": "integer", "desc": "Target number of dimensions"},
+      {"name": "method", "type": "string", "desc": "Reduction method: 'pca' or 'random_projection'"}
+    ]
+  },
+  {
+    "name": "hybrid_search",
+    "description": "Hybrid search combining full-text and vector similarity (requires pgvector)",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "vector_column", "type": "string", "desc": "Column containing vectors"},
+      {"name": "text_columns", "type": "array", "desc": "Columns for full-text search"},
+      {"name": "query_vector", "type": "array", "desc": "Query vector for semantic search"},
+      {"name": "query_text", "type": "string", "desc": "Query text for full-text search"},
+      {"name": "vector_weight", "type": "number", "desc": "Weight for vector similarity (0-1)"},
+      {"name": "text_weight", "type": "number", "desc": "Weight for text relevance (0-1)"},
+      {"name": "distance_metric", "type": "string", "desc": "Distance metric"},
+      {"name": "language", "type": "string", "desc": "Text search language configuration"},
+      {"name": "limit", "type": "integer", "desc": "Maximum results to return"}
+    ]
+  },
+  {
+    "name": "vector_performance",
+    "description": "Vector query optimization and performance benchmarking (requires pgvector)",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "vector_column", "type": "string", "desc": "Column containing vectors"},
+      {"name": "query_vector", "type": "array", "desc": "Query vector for benchmarking"},
+      {"name": "distance_metric", "type": "string", "desc": "Distance metric"},
+      {"name": "test_limits", "type": "array", "desc": "List of limits to test"}
+    ]
+  },
+  {
+    "name": "geo_distance",
+    "description": "Calculate distance between geometries (requires PostGIS extension)",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "geometry_column", "type": "string", "desc": "Column containing geometry data"},
+      {"name": "reference_point", "type": "string", "desc": "Reference point in WKT format"},
+      {"name": "distance_type", "type": "string", "desc": "Distance unit: 'meters', 'kilometers', 'miles', 'feet'"},
+      {"name": "max_distance", "type": "number", "desc": "Maximum distance filter"},
+      {"name": "limit", "type": "integer", "desc": "Maximum results to return"},
+      {"name": "srid", "type": "integer", "desc": "Spatial reference system ID"}
+    ]
+  },
+  {
+    "name": "geo_within",
+    "description": "Point-in-polygon and geometric containment queries (requires PostGIS)",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "geometry_column", "type": "string", "desc": "Column containing geometry data"},
+      {"name": "boundary_geometry", "type": "string", "desc": "Boundary in WKT format"},
+      {"name": "geometry_type", "type": "string", "desc": "Type of boundary: 'polygon', 'multipolygon', 'circle'"},
+      {"name": "limit", "type": "integer", "desc": "Maximum results to return"},
+      {"name": "srid", "type": "integer", "desc": "Spatial reference system ID"}
+    ]
+  },
+  {
+    "name": "geo_buffer",
+    "description": "Create buffer zones around geometries (requires PostGIS)",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "geometry_column", "type": "string", "desc": "Column containing geometry data"},
+      {"name": "buffer_distance", "type": "number", "desc": "Buffer distance"},
+      {"name": "distance_unit", "type": "string", "desc": "Distance unit"},
+      {"name": "segments", "type": "integer", "desc": "Number of segments for buffer"},
+      {"name": "where_clause", "type": "string", "desc": "Optional WHERE clause"},
+      {"name": "where_params", "type": "array", "desc": "Parameters for WHERE clause"},
+      {"name": "limit", "type": "integer", "desc": "Maximum results to return"},
+      {"name": "srid", "type": "integer", "desc": "Spatial reference system ID"}
+    ]
+  },
+  {
+    "name": "geo_intersection",
+    "description": "Find geometric intersections (requires PostGIS)",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "geometry_column", "type": "string", "desc": "Column containing geometry data"},
+      {"name": "intersecting_geometry", "type": "string", "desc": "Geometry to test intersection (WKT format)"},
+      {"name": "return_intersection", "type": "boolean", "desc": "Return intersection geometry if True"},
+      {"name": "limit", "type": "integer", "desc": "Maximum results to return"},
+      {"name": "srid", "type": "integer", "desc": "Spatial reference system ID"}
+    ]
+  },
+  {
+    "name": "geo_index_optimize",
+    "description": "Optimize spatial indexes (GIST/BRIN/SP-GIST) for performance (requires PostGIS)",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "geometry_column", "type": "string", "desc": "Column containing geometry data"},
+      {"name": "index_type", "type": "string", "desc": "Index type: 'gist', 'brin', 'spgist'"},
+      {"name": "index_options", "type": "object", "desc": "Index-specific options"}
+    ]
+  },
+  {
+    "name": "geo_transform",
+    "description": "Transform geometries between coordinate systems (requires PostGIS)",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "geometry_column", "type": "string", "desc": "Column containing geometry data"},
+      {"name": "source_srid", "type": "integer", "desc": "Source spatial reference system ID"},
+      {"name": "target_srid", "type": "integer", "desc": "Target spatial reference system ID"},
+      {"name": "limit", "type": "integer", "desc": "Maximum results to return"}
+    ]
+  },
+  {
+    "name": "geo_cluster",
+    "description": "Spatial clustering using distance-based grouping (requires PostGIS)",
+    "arguments": [
+      {"name": "table_name", "type": "string", "desc": "Source table name"},
+      {"name": "geometry_column", "type": "string", "desc": "Column containing geometry data"},
+      {"name": "cluster_distance", "type": "number", "desc": "Maximum distance for clustering"},
+      {"name": "distance_unit", "type": "string", "desc": "Distance unit"},
+      {"name": "min_points", "type": "integer", "desc": "Minimum points to form a cluster"},
+      {"name": "limit", "type": "integer", "desc": "Maximum results to return"},
+      {"name": "srid", "type": "integer", "desc": "Spatial reference system ID"}
+    ]
+  },
+  {
+    "name": "backup_logical",
+    "description": "Generate logical backup plan with validation",
+    "arguments": [
+      {"name": "schema_name", "type": "string", "desc": "Schema to backup (None = all schemas)"},
+      {"name": "table_names", "type": "array", "desc": "Specific tables to backup"},
+      {"name": "include_data", "type": "boolean", "desc": "Include table data in backup plan"},
+      {"name": "include_schema", "type": "boolean", "desc": "Include schema definitions"},
+      {"name": "validate_after", "type": "boolean", "desc": "Validate backup strategy"}
+    ]
+  },
+  {
+    "name": "backup_physical",
+    "description": "Analyze physical backup readiness and configuration",
+    "arguments": [
+      {"name": "check_wal_archiving", "type": "boolean", "desc": "Check WAL archiving configuration"},
+      {"name": "check_replication_slots", "type": "boolean", "desc": "Check replication slot status"}
+    ]
+  },
+  {
+    "name": "restore_validate",
+    "description": "Validate database readiness for restore operations",
+    "arguments": [
+      {"name": "check_disk_space", "type": "boolean", "desc": "Check available disk space"},
+      {"name": "check_connections", "type": "boolean", "desc": "Check active database connections"},
+      {"name": "check_constraints", "type": "boolean", "desc": "Check constraint validity"}
+    ]
+  },
+  {
+    "name": "backup_schedule_optimize",
+    "description": "Optimize backup schedule based on database characteristics",
+    "arguments": [
+      {"name": "daily_change_rate_mb", "type": "number", "desc": "Estimated daily data change in MB"},
+      {"name": "backup_window_hours", "type": "integer", "desc": "Available backup window in hours"},
+      {"name": "retention_days", "type": "integer", "desc": "Required backup retention period"}
+    ]
+  },
+  {
+    "name": "monitor_real_time",
+    "description": "Monitor real-time database performance metrics",
+    "arguments": [
+      {"name": "include_queries", "type": "boolean", "desc": "Include currently running queries"},
+      {"name": "include_locks", "type": "boolean", "desc": "Include lock information"},
+      {"name": "include_io", "type": "boolean", "desc": "Include I/O statistics"},
+      {"name": "limit", "type": "integer", "desc": "Maximum number of items per category"}
+    ]
+  },
+  {
+    "name": "alert_threshold_set",
+    "description": "Analyze metrics against alert thresholds",
+    "arguments": [
+      {"name": "metric_type", "type": "string", "desc": "Type of metric: 'connection_count', 'cache_hit_ratio', 'transaction_age', 'replication_lag', 'disk_usage'"},
+      {"name": "warning_threshold", "type": "number", "desc": "Warning level threshold"},
+      {"name": "critical_threshold", "type": "number", "desc": "Critical level threshold"},
+      {"name": "check_current", "type": "boolean", "desc": "Check current value against thresholds"}
+    ]
+  },
+  {
+    "name": "capacity_planning",
+    "description": "Analyze database growth and project future capacity needs",
+    "arguments": [
+      {"name": "forecast_days", "type": "integer", "desc": "Number of days to forecast ahead"},
+      {"name": "include_table_growth", "type": "boolean", "desc": "Include table-level growth analysis"},
+      {"name": "include_index_growth", "type": "boolean", "desc": "Include index-level growth analysis"}
+    ]
+  },
+  {
+    "name": "resource_usage_analyze",
+    "description": "Analyze database resource usage patterns (CPU/Memory/IO)",
+    "arguments": [
+      {"name": "include_cpu", "type": "boolean", "desc": "Include CPU usage analysis"},
+      {"name": "include_memory", "type": "boolean", "desc": "Include memory/buffer usage analysis"},
+      {"name": "include_io", "type": "boolean", "desc": "Include I/O pattern analysis"}
+    ]
+  },
+  {
+    "name": "replication_monitor",
+    "description": "Monitor replication status and lag",
+    "arguments": [
+      {"name": "include_slots", "type": "boolean", "desc": "Include replication slot information"},
+      {"name": "include_wal_status", "type": "boolean", "desc": "Include WAL sender/receiver status"}
+    ]
+  }
+]

@@ -1,0 +1,56 @@
+name: postgres-mcp-enhanced
+image: writenotenow/postgres-mcp-enhanced:v1.2.0
+type: server
+
+meta:
+  category: database
+  tags:
+    - database
+    - postgresql
+    - postgres
+    - pgvector
+    - postgis
+    - semantic-search
+    - geospatial
+    - statistics
+    - analytics
+    - performance
+    - monitoring
+    - backup
+    - ai-native
+    - enterprise
+
+about:
+  title: PostgreSQL MCP Server - Enhanced
+  description: |
+    Enterprise-grade PostgreSQL MCP server with 63 specialized tools, 10 intelligent resources, 
+    and 10 guided prompts for AI-native database operations. Features comprehensive security 
+    (SQL injection prevention, dual security modes), real-time performance monitoring via 
+    pg_stat_statements, AI-powered index tuning with HypoPG, vector/semantic search with pgvector, 
+    and geospatial operations with PostGIS.
+  icon: https://www.postgresql.org/media/img/about/press/elephant.png
+
+source:
+  project: https://github.com/neverinfamous/postgres-mcp
+
+config:
+  description: Configure the connection to your PostgreSQL database
+  secrets:
+    - name: postgres-mcp-enhanced.database_uri
+      env: DATABASE_URI
+      example: postgresql://user:password@localhost:5432/database
+  env:
+    - name: POSTGRES_MCP_TOOL_FILTER
+      example: "-vector,-geo"
+      value: "{{postgres-mcp-enhanced.tool_filter}}"
+  parameters:
+    type: object
+    properties:
+      database_uri:
+        type: string
+        description: PostgreSQL connection URI (required)
+      tool_filter:
+        type: string
+        description: "Optional tool filter to reduce exposed tools (e.g., '-vector,-geo' to disable vector and geo tools)"
+    required:
+      - database_uri
