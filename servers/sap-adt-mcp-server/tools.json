@@ -1,0 +1,294 @@
+[
+  {
+    "name": "connect_to_sap",
+    "description": "Initialize connection to SAP system via ADT. Must be called before using any other tools.",
+    "arguments": [
+      {
+        "name": "sap_host",
+        "type": "string",
+        "desc": "SAP host URL (e.g., https://your-sap-system.com)"
+      },
+      {
+        "name": "username",
+        "type": "string",
+        "desc": "SAP username"
+      },
+      {
+        "name": "password",
+        "type": "string",
+        "desc": "SAP password"
+      },
+      {
+        "name": "client",
+        "type": "string",
+        "desc": "SAP client number (default: 110)"
+      }
+    ]
+  },
+  {
+    "name": "search_object",
+    "description": "Search for SAP objects by name or pattern.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Search query (object name or pattern, e.g., ZCL_*, Z_MY_PROG)"
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "desc": "Maximum number of results to return (default: 10)"
+      }
+    ]
+  },
+  {
+    "name": "get_object_source",
+    "description": "Get source code of an SAP object.",
+    "arguments": [
+      {
+        "name": "object_uri",
+        "type": "string",
+        "desc": "URI of the object"
+      },
+      {
+        "name": "version",
+        "type": "string",
+        "desc": "Version to retrieve - 'active' or 'inactive' (default: active)"
+      }
+    ]
+  },
+  {
+    "name": "get_object_structure",
+    "description": "Get the structure of an SAP object (includes, methods, attributes, etc.).",
+    "arguments": [
+      {
+        "name": "object_uri",
+        "type": "string",
+        "desc": "URI of the object (e.g., /sap/bc/adt/oo/classes/zcl_my_class)"
+      }
+    ]
+  },
+  {
+    "name": "create_object",
+    "description": "Create a new SAP object using ADT endpoints.",
+    "arguments": [
+      {
+        "name": "object_type",
+        "type": "string",
+        "desc": "Type of object to create (e.g., PROG/P, CLAS/OC, INTF/OI, FUGR/F, TABL/DT, DDLS/DF)"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the object to create (e.g., Z_MY_PROGRAM, ZCL_MY_CLASS)"
+      },
+      {
+        "name": "package",
+        "type": "string",
+        "desc": "Parent package or function group (e.g., $TMP for local objects, or ZPACKAGE)"
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Description of the object"
+      }
+    ]
+  },
+  {
+    "name": "get_creatable_object_types",
+    "description": "Get list of all SAP object types that can be created via ADT.",
+    "arguments": []
+  },
+  {
+    "name": "lock_object",
+    "description": "Lock an SAP object for editing. Must be called before modifying object source code.",
+    "arguments": [
+      {
+        "name": "object_uri",
+        "type": "string",
+        "desc": "URI of the object (obtained from search_object)"
+      }
+    ]
+  },
+  {
+    "name": "unlock_object",
+    "description": "Unlock an SAP object after editing.",
+    "arguments": [
+      {
+        "name": "object_uri",
+        "type": "string",
+        "desc": "URI of the object"
+      },
+      {
+        "name": "lock_handle",
+        "type": "string",
+        "desc": "Lock handle obtained from lock_object"
+      }
+    ]
+  },
+  {
+    "name": "set_object_source",
+    "description": "Update source code of an SAP object. Object must be locked first using lock_object.",
+    "arguments": [
+      {
+        "name": "object_uri",
+        "type": "string",
+        "desc": "URI of the object"
+      },
+      {
+        "name": "source_code",
+        "type": "string",
+        "desc": "New source code"
+      },
+      {
+        "name": "lock_handle",
+        "type": "string",
+        "desc": "Lock handle from lock_object"
+      }
+    ]
+  },
+  {
+    "name": "activate_object",
+    "description": "Activate an SAP object after modifications.",
+    "arguments": [
+      {
+        "name": "object_name",
+        "type": "string",
+        "desc": "Name of the object"
+      },
+      {
+        "name": "object_uri",
+        "type": "string",
+        "desc": "URI of the object"
+      }
+    ]
+  },
+  {
+    "name": "delete_object",
+    "description": "Delete an SAP object. Object must be locked first.",
+    "arguments": [
+      {
+        "name": "object_uri",
+        "type": "string",
+        "desc": "URI of the object"
+      },
+      {
+        "name": "lock_handle",
+        "type": "string",
+        "desc": "Lock handle from lock_object"
+      }
+    ]
+  },
+  {
+    "name": "syntax_check",
+    "description": "Perform syntax check on ABAP source code.",
+    "arguments": [
+      {
+        "name": "object_uri",
+        "type": "string",
+        "desc": "URI of the object"
+      },
+      {
+        "name": "include_uri",
+        "type": "string",
+        "desc": "URI of the include (usually same as object_uri for simple objects)"
+      },
+      {
+        "name": "source_code",
+        "type": "string",
+        "desc": "Source code to check"
+      },
+      {
+        "name": "version",
+        "type": "string",
+        "desc": "Version to check - 'active' or 'inactive' (default: inactive)"
+      }
+    ]
+  },
+  {
+    "name": "format_source_code",
+    "description": "Format ABAP source code using SAP's pretty printer.",
+    "arguments": [
+      {
+        "name": "source_code",
+        "type": "string",
+        "desc": "ABAP source code to format"
+      }
+    ]
+  },
+  {
+    "name": "run_unit_test",
+    "description": "Run ABAP unit tests for a given object.",
+    "arguments": [
+      {
+        "name": "object_uri",
+        "type": "string",
+        "desc": "URI of the object (e.g., /sap/bc/adt/oo/classes/zcl_my_class)"
+      }
+    ]
+  },
+  {
+    "name": "create_unit_test_include",
+    "description": "Create a test class include for a given ABAP class.",
+    "arguments": [
+      {
+        "name": "class_name",
+        "type": "string",
+        "desc": "Name of the ABAP class (e.g., ZCL_MY_CLASS)"
+      },
+      {
+        "name": "lock_handle",
+        "type": "string",
+        "desc": "Lock handle from lock_sap_object"
+      }
+    ]
+  },
+  {
+    "name": "transport_check",
+    "description": "Perform a transport check for an SAP object. Returns structured data with available transport requests and object metadata.",
+    "arguments": [
+      {
+        "name": "object_uri",
+        "type": "string",
+        "desc": "URI of the object to check (e.g., /sap/bc/adt/oo/classes/zcl_test/source/main)"
+      }
+    ]
+  },
+  {
+    "name": "list_transports",
+    "description": "List transport requests from SAP system. Fetches transport requests based on user's saved configuration in Eclipse ADT.",
+    "arguments": [
+      {
+        "name": "targets",
+        "type": "boolean",
+        "desc": "Include target system information (default: True)"
+      }
+    ]
+  },
+  {
+    "name": "create_transport_and_assign",
+    "description": "Create a new transport request and assign an object to it. Creates a new workbench transport request for transporting object modifications.",
+    "arguments": [
+      {
+        "name": "devclass",
+        "type": "string",
+        "desc": "Development class/package (e.g., ZSAP_LLM_API)"
+      },
+      {
+        "name": "request_text",
+        "type": "string",
+        "desc": "Description for the transport (e.g., 'Bug fix for API')"
+      },
+      {
+        "name": "ref",
+        "type": "string",
+        "desc": "Reference URI of the object (e.g., /sap/bc/adt/oo/classes/zcl_test/source/main)"
+      },
+      {
+        "name": "operation",
+        "type": "string",
+        "desc": "Operation type (optional, usually empty)"
+      }
+    ]
+  }
+]
