@@ -45,6 +45,22 @@ All MCP servers in this registry must:
 
 _**Non-compliant servers will be reviewed and may be removed from the registry.**_
 
+## ❓ Frequently Asked Questions
+
+### How do I update my MCP server to a new version?
+
+**For Docker-built images** (`image: mcp/...`): An automated system checks for updates daily and creates pull requests automatically. Just push new commits to your repository, and the system handles the rest. See [CONTRIBUTING.md](CONTRIBUTING.md#updating-your-mcp-server) for details.
+
+**For custom images**: Manually update the `source.commit` field in your `server.yaml` and create a PR.
+
+### How long does it take for my updated image to be available?
+
+After a pin update PR is merged, the new image is typically built and published within 24 hours. This includes building, signing, generating provenance/SBOM, and publishing to Docker Hub.
+
+### Why hasn't the automated system created a PR for my new commits?
+
+The automated system runs daily at 5 AM UTC. If you need an immediate update, you can manually create a PR to update the commit hash. Also, automated updates only work for Docker-built images hosted on GitHub.
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
