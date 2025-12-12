@@ -1,0 +1,174 @@
+[
+  {
+    "name": "create_entry",
+    "description": "Create a new journal entry with context and tags (v2.1.0: GitHub Actions support)",
+    "arguments": [
+      {"name": "content", "type": "string", "desc": "The journal entry content", "required": true},
+      {"name": "is_personal", "type": "boolean", "desc": "Whether this is a personal entry"},
+      {"name": "entry_type", "type": "string", "desc": "Type of journal entry"},
+      {"name": "tags", "type": "array", "desc": "Tags for the entry"},
+      {"name": "significance_type", "type": "string", "desc": "Type of significance (milestone, breakthrough, etc.)"},
+      {"name": "auto_context", "type": "boolean", "desc": "Auto-capture Git and GitHub context"},
+      {"name": "share_with_team", "type": "boolean", "desc": "Share entry via Git-synced team database"},
+      {"name": "project_number", "type": "integer", "desc": "GitHub Project number"},
+      {"name": "project_item_id", "type": "integer", "desc": "GitHub Project item ID"},
+      {"name": "github_project_url", "type": "string", "desc": "GitHub Project URL"},
+      {"name": "project_owner", "type": "string", "desc": "GitHub Project owner (username or org)"},
+      {"name": "project_owner_type", "type": "string", "desc": "Project owner type (user or org)"},
+      {"name": "issue_number", "type": "integer", "desc": "GitHub Issue number (auto-detected from branch)"},
+      {"name": "issue_url", "type": "string", "desc": "GitHub Issue URL"},
+      {"name": "pr_number", "type": "integer", "desc": "GitHub PR number (auto-detected from branch)"},
+      {"name": "pr_url", "type": "string", "desc": "GitHub Pull Request URL"},
+      {"name": "pr_status", "type": "string", "desc": "PR status (draft, open, merged, closed)"},
+      {"name": "workflow_run_id", "type": "integer", "desc": "GitHub Actions workflow run ID"},
+      {"name": "workflow_name", "type": "string", "desc": "GitHub Actions workflow name"},
+      {"name": "workflow_status", "type": "string", "desc": "Workflow run status (queued, in_progress, completed)"}
+    ]
+  },
+  {
+    "name": "search_entries",
+    "description": "Search journal entries with optional filters for GitHub Projects, Issues, PRs, and Actions",
+    "arguments": [
+      {"name": "query", "type": "string", "desc": "Full-text search query"},
+      {"name": "is_personal", "type": "boolean", "desc": "Filter by personal entries"},
+      {"name": "limit", "type": "integer", "desc": "Maximum number of results"},
+      {"name": "project_number", "type": "integer", "desc": "Filter by GitHub Project number"},
+      {"name": "issue_number", "type": "integer", "desc": "Filter by GitHub Issue number"},
+      {"name": "pr_number", "type": "integer", "desc": "Filter by GitHub PR number"},
+      {"name": "pr_status", "type": "string", "desc": "Filter by PR status"},
+      {"name": "workflow_run_id", "type": "integer", "desc": "Filter by workflow run ID"}
+    ]
+  },
+  {
+    "name": "get_recent_entries",
+    "description": "Get recent journal entries",
+    "arguments": [
+      {"name": "limit", "type": "integer", "desc": "Maximum number of entries to return"},
+      {"name": "is_personal", "type": "boolean", "desc": "Filter by personal entries"}
+    ]
+  },
+  {
+    "name": "get_entry_by_id",
+    "description": "Get a specific journal entry by ID with full details",
+    "arguments": [
+      {"name": "entry_id", "type": "integer", "desc": "ID of the entry to retrieve", "required": true},
+      {"name": "include_relationships", "type": "boolean", "desc": "Include related entries"}
+    ]
+  },
+  {
+    "name": "list_tags",
+    "description": "List all available tags with usage counts",
+    "arguments": []
+  },
+  {
+    "name": "semantic_search",
+    "description": "Perform semantic/vector search on journal entries using sentence-transformers",
+    "arguments": [
+      {"name": "query", "type": "string", "desc": "Search query for semantic similarity", "required": true},
+      {"name": "limit", "type": "integer", "desc": "Maximum number of results"},
+      {"name": "similarity_threshold", "type": "number", "desc": "Minimum similarity score (0.0-1.0)"},
+      {"name": "is_personal", "type": "boolean", "desc": "Filter by personal entries"}
+    ]
+  },
+  {
+    "name": "search_by_date_range",
+    "description": "Search journal entries within a date range with optional filters",
+    "arguments": [
+      {"name": "start_date", "type": "string", "desc": "Start date (YYYY-MM-DD)", "required": true},
+      {"name": "end_date", "type": "string", "desc": "End date (YYYY-MM-DD)", "required": true},
+      {"name": "is_personal", "type": "boolean", "desc": "Filter by personal entries"},
+      {"name": "entry_type", "type": "string", "desc": "Filter by entry type"},
+      {"name": "tags", "type": "array", "desc": "Filter by tags"},
+      {"name": "project_number", "type": "integer", "desc": "Filter by GitHub Project number"},
+      {"name": "issue_number", "type": "integer", "desc": "Filter by GitHub Issue number"},
+      {"name": "pr_number", "type": "integer", "desc": "Filter by GitHub PR number"},
+      {"name": "workflow_run_id", "type": "integer", "desc": "Filter by workflow run ID"}
+    ]
+  },
+  {
+    "name": "get_statistics",
+    "description": "Get journal statistics and analytics with optional project breakdown",
+    "arguments": [
+      {"name": "start_date", "type": "string", "desc": "Start date (YYYY-MM-DD)"},
+      {"name": "end_date", "type": "string", "desc": "End date (YYYY-MM-DD)"},
+      {"name": "group_by", "type": "string", "desc": "Group statistics by period (day, week, month)"},
+      {"name": "project_breakdown", "type": "boolean", "desc": "Include breakdown by GitHub Project"}
+    ]
+  },
+  {
+    "name": "get_cross_project_insights",
+    "description": "Analyze patterns across all GitHub Projects tracked in journal entries",
+    "arguments": [
+      {"name": "start_date", "type": "string", "desc": "Start date (YYYY-MM-DD)"},
+      {"name": "end_date", "type": "string", "desc": "End date (YYYY-MM-DD)"},
+      {"name": "min_entries", "type": "integer", "desc": "Minimum entries to include project"}
+    ]
+  },
+  {
+    "name": "link_entries",
+    "description": "Create a relationship between two journal entries",
+    "arguments": [
+      {"name": "from_entry_id", "type": "integer", "desc": "Source entry ID", "required": true},
+      {"name": "to_entry_id", "type": "integer", "desc": "Target entry ID", "required": true},
+      {"name": "relationship_type", "type": "string", "desc": "Type of relationship (evolves_from, references, implements, clarifies, response_to)"},
+      {"name": "description", "type": "string", "desc": "Optional description of the relationship"}
+    ]
+  },
+  {
+    "name": "visualize_relationships",
+    "description": "Generate a Mermaid diagram visualization of entry relationships",
+    "arguments": [
+      {"name": "entry_id", "type": "integer", "desc": "Specific entry ID to visualize (shows connected entries)"},
+      {"name": "tags", "type": "array", "desc": "Filter entries by tags"},
+      {"name": "depth", "type": "integer", "desc": "Relationship traversal depth (1-3)"},
+      {"name": "limit", "type": "integer", "desc": "Maximum number of entries to include"}
+    ]
+  },
+  {
+    "name": "export_entries",
+    "description": "Export journal entries to JSON or Markdown format",
+    "arguments": [
+      {"name": "format", "type": "string", "desc": "Export format (json or markdown)"},
+      {"name": "start_date", "type": "string", "desc": "Start date (YYYY-MM-DD)"},
+      {"name": "end_date", "type": "string", "desc": "End date (YYYY-MM-DD)"},
+      {"name": "tags", "type": "array", "desc": "Filter by tags"},
+      {"name": "entry_types", "type": "array", "desc": "Filter by entry types"}
+    ]
+  },
+  {
+    "name": "update_entry",
+    "description": "Update an existing journal entry",
+    "arguments": [
+      {"name": "entry_id", "type": "integer", "desc": "ID of the entry to update", "required": true},
+      {"name": "content", "type": "string", "desc": "New content for the entry"},
+      {"name": "entry_type", "type": "string", "desc": "Update entry type"},
+      {"name": "tags", "type": "array", "desc": "Replace tags"},
+      {"name": "is_personal", "type": "boolean", "desc": "Update personal flag"}
+    ]
+  },
+  {
+    "name": "delete_entry",
+    "description": "Delete a journal entry (soft delete by default, with permanent option)",
+    "arguments": [
+      {"name": "entry_id", "type": "integer", "desc": "ID of the entry to delete", "required": true},
+      {"name": "permanent", "type": "boolean", "desc": "Permanently delete (true) or soft delete (false)"}
+    ]
+  },
+  {
+    "name": "test_simple",
+    "description": "Simple test tool that returns a message (useful for connectivity testing)",
+    "arguments": [
+      {"name": "message", "type": "string", "desc": "Message to echo back"}
+    ]
+  },
+  {
+    "name": "create_entry_minimal",
+    "description": "Minimal entry creation without context or tags (fast insertion)",
+    "arguments": [
+      {"name": "content", "type": "string", "desc": "The journal entry content", "required": true},
+      {"name": "project_number", "type": "integer", "desc": "GitHub Project number"},
+      {"name": "project_item_id", "type": "integer", "desc": "GitHub Project item ID"},
+      {"name": "github_project_url", "type": "string", "desc": "GitHub Project URL"}
+    ]
+  }
+]
