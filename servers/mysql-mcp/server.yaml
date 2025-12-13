@@ -1,0 +1,41 @@
+name: mysql-mcp
+image: mcp/mysql-mcp
+type: server
+meta:
+  category: database
+  tags:
+    - mysql
+    - database
+    - sql
+about:
+  title: MySQL MCP Server
+  description: Enterprise-grade MySQL MCP Server with 106 specialized tools for database operations, JSON, text search, performance analysis, replication, and administration.
+  icon: https://avatars.githubusercontent.com/u/2452804?s=200&v=4
+source:
+  project: https://github.com/neverinfamous/mysql-mcp
+  branch: main
+  commit: c76e40070e7d65cb2fe97126bc5bfaa62d589f73
+run:
+  command:
+    - --transport
+    - stdio
+    - --mysql
+    - $MYSQL_URL
+config:
+  description: Configure MySQL database connection
+  secrets:
+    - name: mysql-mcp.mysql_url
+      env: MYSQL_URL
+      example: mysql://user:password@host.docker.internal:3306/database
+      description: MySQL connection URL (use host.docker.internal for local MySQL)
+  env:
+    - name: MYSQL_POOL_SIZE
+      example: "10"
+      value: "{{mysql-mcp.pool_size}}"
+  parameters:
+    type: object
+    properties:
+      pool_size:
+        type: string
+        description: Connection pool size (default 10)
+        
