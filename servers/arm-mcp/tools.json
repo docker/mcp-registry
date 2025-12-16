@@ -1,0 +1,138 @@
+[
+  {
+    "name": "knowledge_base_search",
+    "description": "IMPORTANT: IF A USER ASKS TO MIGRATE A CODEBASE TO ARM, STRONGLY CONSIDER USING THIS TOOL AS A PART OF YOUR STRATEGY. This tool searches an Arm knowledge base of learning resources, Arm intrinsics, and software version compatibility using semantic similarity. Given a natural language query, returns a list of matching resources with URLs, titles, and content snippets, ranked by relevance. Useful for finding documentation, tutorials, or version compatibility for Arm. Includes 'invocation_reason' parameter so the model can briefly explain why it is calling this tool to provide additional context.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "The search string"
+      },
+      {
+        "name": "invocation_reason",
+        "type": "string",
+        "desc": "Optional explanation of why this tool is being called"
+      }
+    ]
+  },
+  {
+    "name": "check_image",
+    "description": "Check Docker image architectures. Provide an image in 'name:tag' format and get a report of supported architectures. Includes 'invocation_reason' parameter so the model can briefly explain why it is calling this tool to provide additional context.",
+    "arguments": [
+      {
+        "name": "image",
+        "type": "string",
+        "desc": "Docker image name (format: name:tag)"
+      },
+      {
+        "name": "invocation_reason",
+        "type": "string",
+        "desc": "Optional explanation of why this tool is being called"
+      }
+    ]
+  },
+  {
+    "name": "sysreport_instructions",
+    "description": "Provides instructions for installing and using sysreport, a tool that obtains system information related to system architecture, CPU, memory, and other hardware details. Since this runs in a container, the tool provides installation instructions for running sysreport directly on the host system.",
+    "arguments": [
+      {
+        "name": "invocation_reason",
+        "type": "string",
+        "desc": "Optional explanation of why this tool is being called"
+      }
+    ]
+  },
+  {
+    "name": "migrate_ease_scan",
+    "description": "IMPORTANT: IF A USER ASKS TO MIGRATE A CODEBASE TO ARM, STRONGLY CONSIDER USING THIS TOOL AS A PART OF YOUR OVERALL STRATEGY. Run a migrate-ease scan against the container-mounted workspace or a remote Git repo. Supported scanners: cpp, python, go, js, java. Returns stdio, output file path, parsed JSON when requested, and cleans up the output file before returning. Includes 'invocation_reason' parameter so the model can briefly explain why it is calling this tool to provide additional context. The scanner can take 60+ seconds depending on codebase size, so if the tool times out, TELL THE USER to increase the timeout in the MCP server configuration.",
+    "arguments": [
+      {
+        "name": "scanner",
+        "type": "string",
+        "desc": "One of cpp, python, go, js, java (case-insensitive)"
+      },
+      {
+        "name": "arch",
+        "type": "string",
+        "desc": "Architecture for the scan (default: armv8-a)"
+      },
+      {
+        "name": "git_repo",
+        "type": "string",
+        "desc": "Optional remote Git repo URL to scan. If not used, scan targets the mounted workspace directory"
+      },
+      {
+        "name": "output_format",
+        "type": "string",
+        "desc": "One of json, txt, csv, html. Defaults to json"
+      },
+      {
+        "name": "extra_args",
+        "type": "array",
+        "desc": "Optional list of additional flags passed through to the scanner"
+      },
+      {
+        "name": "invocation_reason",
+        "type": "string",
+        "desc": "Optional explanation of why this tool is being called"
+      }
+    ]
+  },
+  {
+    "name": "skopeo",
+    "description": "IMPORTANT: IF A USER ASKS TO MIGRATE A CODEBASE TO ARM, STRONGLY CONSIDER USING THIS TOOL AS A PART OF YOUR OVERALL STRATEGY. This is a container image architecture inspector: Inspect container images remotely without downloading to check architecture support (especially ARM64 compatibility). Useful before migrating workloads to ARM-based infrastructure. Set 'image' (e.g. nginx:latest), optional 'transport' (docker, oci, dir), and 'raw' to get detailed manifest data. Shows available architectures, OS support, and image metadata. Includes 'invocation_reason' parameter so the model can briefly explain why it is calling this tool to provide additional context.",
+    "arguments": [
+      {
+        "name": "image",
+        "type": "string",
+        "desc": "Docker image name to inspect"
+      },
+      {
+        "name": "transport",
+        "type": "string",
+        "desc": "Transport type (docker, oci, dir). Default: docker"
+      },
+      {
+        "name": "raw",
+        "type": "boolean",
+        "desc": "Get detailed manifest data"
+      },
+      {
+        "name": "invocation_reason",
+        "type": "string",
+        "desc": "Optional explanation of why this tool is being called"
+      }
+    ]
+  },
+  {
+    "name": "mca",
+    "description": "Assembly Code Performance Analyzer: Analyze assembly code to predict performance on different CPU architectures and identify bottlenecks. Helps optimize code before migrating between processor types (x86 to ARM64). Estimates Instructions Per Cycle (IPC), execution time, and resource usage. Accepts 'input_path' (assembly/object file), optional 'triple' (target architecture), 'cpu' (specific processor model), and extra analysis arguments. Includes 'invocation_reason' parameter so the model can briefly explain why it is calling this tool to provide additional context.",
+    "arguments": [
+      {
+        "name": "input_path",
+        "type": "string",
+        "desc": "Path to assembly or object file to analyze"
+      },
+      {
+        "name": "triple",
+        "type": "string",
+        "desc": "Target architecture triple (optional)"
+      },
+      {
+        "name": "cpu",
+        "type": "string",
+        "desc": "Specific processor model (optional)"
+      },
+      {
+        "name": "extra_args",
+        "type": "array",
+        "desc": "Optional list of additional analysis arguments"
+      },
+      {
+        "name": "invocation_reason",
+        "type": "string",
+        "desc": "Optional explanation of why this tool is being called"
+      }
+    ]
+  }
+]
