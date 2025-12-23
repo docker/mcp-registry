@@ -1,0 +1,41 @@
+name: jenkins
+image: mcp/jenkins
+type: server
+meta:
+  category: devops
+  tags:
+    - jenkins
+    - ci-cd
+    - devops
+about:
+  title: Jenkins
+  description: Interact with Jenkins CI/CD server - manage jobs, trigger builds, retrieve logs, and monitor pipelines
+  icon: https://www.jenkins.io/images/logos/jenkins/jenkins.svg
+source:
+  project: https://github.com/lanbaoshen/mcp-jenkins
+  commit: a15d6887310a4bb3d11a8760881ba3df658c70c0
+  dockerfile: docker/Dockerfile
+run:
+  command:
+    - --jenkins-url
+    - "{{jenkins.url}}"
+    - --jenkins-username
+    - "{{jenkins.username}}"
+    - --jenkins-password
+    - "$JENKINS_PASSWORD"
+config:
+  description: Configure the connection to your Jenkins server
+  secrets:
+    - name: jenkins.api_token
+      env: JENKINS_PASSWORD
+      example: YOUR_JENKINS_API_TOKEN
+  parameters:
+    type: object
+    properties:
+      url:
+        type: string
+      username:
+        type: string
+    required:
+      - url
+      - username
