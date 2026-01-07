@@ -1,0 +1,264 @@
+name: Auto-merge Pin Upgrade PRs
+
+# This workflow automatically merges pin upgrade PRs for allowlisted servers
+# when all required checks pass. It triggers when the CI workflow completes.
+
+on:
+  workflow_run:
+    workflows: ["Code and Server Validation"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+jobs:
+  auto-merge:
+    name: Auto-merge allowlisted servers
+    runs-on: ubuntu-latest
+    # Only run if the CI workflow succeeded
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request'
+
+    steps:
+      - name: Create GitHub auth token for mcp-registry-bot from GitHub App
+        id: docker-mcp-registry-bot-auth
+        uses: actions/create-github-app-token@af35edadc00be37caa72ed9f3e6d5f7801bfdf09 # v1.11.7
+        with:
+          app-id: ${{ vars.MCP_REGISTRY_BOT_APP_ID }}
+          private-key: ${{ secrets.MCP_REGISTRY_BOT_PRIVATE_KEY }}
+          owner: docker
+          repositories: |
+            mcp-registry
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get PR number and details from workflow run
+        id: pr
+        env:
+          GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
+        run: |
+          # Get the PR number from the workflow run
+          pr_number=$(gh api "/repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}" \
+            --jq '.pull_requests[0].number // empty')
+
+          if [ -z "$pr_number" ]; then
+            echo "No PR associated with this workflow run. Exiting."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
+
+          # Get PR details
+          pr_json=$(gh pr view "$pr_number" --json author,headRefName,title,state,isDraft,labels)
+
+          author=$(echo "$pr_json" | jq -r '.author.login')
+          branch=$(echo "$pr_json" | jq -r '.headRefName')
+          title=$(echo "$pr_json" | jq -r '.title')
+          state=$(echo "$pr_json" | jq -r '.state')
+          is_draft=$(echo "$pr_json" | jq -r '.isDraft')
+          labels=$(echo "$pr_json" | jq -r '.labels[].name' | tr '\n' ',' | sed 's/,$//')
+
+          echo "author=$author" >> "$GITHUB_OUTPUT"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          echo "title=$title" >> "$GITHUB_OUTPUT"
+          echo "state=$state" >> "$GITHUB_OUTPUT"
+          echo "is_draft=$is_draft" >> "$GITHUB_OUTPUT"
+          echo "labels=$labels" >> "$GITHUB_OUTPUT"
+
+          echo "PR #$pr_number: $title"
+          echo "Author: $author"
+          echo "Branch: $branch"
+          echo "State: $state"
+          echo "Draft: $is_draft"
+          echo "Labels: $labels"
+
+      - name: Validate this is a pin upgrade PR from the bot
+        id: validate
+        if: steps.pr.outputs.skip != 'true'
+        run: |
+          author="${{ steps.pr.outputs.author }}"
+          branch="${{ steps.pr.outputs.branch }}"
+          title="${{ steps.pr.outputs.title }}"
+          state="${{ steps.pr.outputs.state }}"
+          is_draft="${{ steps.pr.outputs.is_draft }}"
+          labels="${{ steps.pr.outputs.labels }}"
+
+          # Check if PR is from mcp-registry-bot
+          if [ "$author" != "mcp-registry-bot[bot]" ]; then
+            echo "PR is not from mcp-registry-bot. Author: $author. Skipping auto-merge."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Check if branch matches pattern automation/update-pin-{SERVER}
+          if [[ ! "$branch" =~ ^automation/update-pin-(.+)$ ]]; then
+            echo "Branch does not match pin upgrade pattern: $branch. Skipping auto-merge."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          server="${BASH_REMATCH[1]}"
+          echo "server=$server" >> "$GITHUB_OUTPUT"
+          echo "Detected server: $server"
+
+          # Check if title matches expected pattern
+          expected_title="chore: update pin for $server"
+          if [ "$title" != "$expected_title" ]; then
+            echo "Title does not match expected pattern. Expected: '$expected_title', Got: '$title'. Skipping auto-merge."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Check if PR is still open
+          if [ "$state" != "OPEN" ]; then
+            echo "PR is not open (state: $state). Skipping auto-merge."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Check if PR is a draft
+          if [ "$is_draft" == "true" ]; then
+            echo "PR is a draft. Skipping auto-merge."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Check for skip-auto-merge label
+          if echo ",$labels," | grep -q ",skip-auto-merge,"; then
+            echo "PR has 'skip-auto-merge' label. Skipping auto-merge."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "PR validation passed for server: $server"
+
+      - name: Load allowlist
+        id: allowlist
+        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true'
+        run: |
+          allowlist_file=".github/auto-merge-allowlist.yaml"
+
+          if [ ! -f "$allowlist_file" ]; then
+            echo "Allowlist file not found: $allowlist_file. Skipping auto-merge."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Extract server list from YAML (handle comments and whitespace)
+          servers=$(grep -E "^  - " "$allowlist_file" | sed 's/^  - //' | sed 's/#.*//' | tr -d ' ' | tr '\n' ',' | sed 's/,$//')
+
+          if [ -z "$servers" ]; then
+            echo "Allowlist is empty. No servers configured for auto-merge."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "servers=$servers" >> "$GITHUB_OUTPUT"
+          echo "Allowlisted servers: $servers"
+
+      - name: Check if server is allowlisted
+        id: check
+        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true'
+        run: |
+          server="${{ steps.validate.outputs.server }}"
+          servers="${{ steps.allowlist.outputs.servers }}"
+
+          # Check if server is in the allowlist (case-insensitive)
+          server_lc=$(echo "$server" | tr '[:upper:]' '[:lower:]')
+          servers_lc=$(echo "$servers" | tr '[:upper:]' '[:lower:]')
+
+          if ! echo ",$servers_lc," | grep -q ",$server_lc,"; then
+            echo "Server '$server' is not in the allowlist. Skipping auto-merge."
+            echo "Allowlisted servers: $servers"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Server '$server' is allowlisted for auto-merge."
+
+      - name: Verify all checks passed
+        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true' && steps.check.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
+        run: |
+          pr_number="${{ steps.pr.outputs.pr_number }}"
+
+          # Get all check runs for the PR's head SHA
+          head_sha=$(gh pr view "$pr_number" --json headRefOid --jq '.headRefOid')
+
+          echo "Checking status for commit: $head_sha"
+
+          # Get all check runs and their conclusions
+          check_runs=$(gh api "/repos/${{ github.repository }}/commits/$head_sha/check-runs" --jq '.check_runs')
+
+          total_checks=$(echo "$check_runs" | jq 'length')
+          echo "Total check runs: $total_checks"
+
+          if [ "$total_checks" -eq 0 ]; then
+            echo "No check runs found for this commit. This is unexpected. Skipping auto-merge."
+            exit 1
+          fi
+
+          # Check if any checks are not successful
+          failed_checks=$(echo "$check_runs" | jq -r '.[] | select(.conclusion != "success" and .conclusion != "skipped" and .conclusion != null) | .name')
+          pending_checks=$(echo "$check_runs" | jq -r '.[] | select(.status != "completed") | .name')
+
+          if [ -n "$failed_checks" ]; then
+            echo "Some checks have not passed:"
+            echo "$failed_checks"
+            echo "Skipping auto-merge."
+            exit 1
+          fi
+
+          if [ -n "$pending_checks" ]; then
+            echo "Some checks are still pending:"
+            echo "$pending_checks"
+            echo "Skipping auto-merge."
+            exit 1
+          fi
+
+          echo "All checks have passed successfully."
+
+      - name: Comment on PR before merging
+        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true' && steps.check.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
+        run: |
+          pr_number="${{ steps.pr.outputs.pr_number }}"
+          server="${{ steps.validate.outputs.server }}"
+
+          gh pr comment "$pr_number" --body "✅ **Auto-merging pin upgrade PR**
+
+Server \`$server\` is in the allowlist and all required checks have passed.
+
+This PR will be automatically merged."
+
+      - name: Merge PR
+        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true' && steps.check.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
+        run: |
+          pr_number="${{ steps.pr.outputs.pr_number }}"
+
+          # Use squash merge to keep history clean
+          gh pr merge "$pr_number" --squash --auto
+
+          echo "Successfully merged PR #$pr_number"
+
+      - name: Handle merge failure
+        if: failure() && steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
+        run: |
+          pr_number="${{ steps.pr.outputs.pr_number }}"
+
+          if [ -n "$pr_number" ]; then
+            gh pr comment "$pr_number" --body "⚠️ **Auto-merge failed**
+
+An error occurred while attempting to automatically merge this PR. Manual review and merge may be required.
+
+Check the [workflow run logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details."
+          fi
