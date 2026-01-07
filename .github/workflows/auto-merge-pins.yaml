@@ -78,36 +78,18 @@ jobs:
       - name: Validate this is a pin upgrade PR from the bot
         id: validate
         if: steps.pr.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
         run: |
           author="${{ steps.pr.outputs.author }}"
-          branch="${{ steps.pr.outputs.branch }}"
-          title="${{ steps.pr.outputs.title }}"
           state="${{ steps.pr.outputs.state }}"
           is_draft="${{ steps.pr.outputs.is_draft }}"
           labels="${{ steps.pr.outputs.labels }}"
+          pr_number="${{ steps.pr.outputs.pr_number }}"
 
           # Check if PR is from mcp-registry-bot
           if [ "$author" != "mcp-registry-bot[bot]" ]; then
             echo "PR is not from mcp-registry-bot. Author: $author. Skipping auto-merge."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          # Check if branch matches pattern automation/update-pin-{SERVER}
-          if [[ ! "$branch" =~ ^automation/update-pin-(.+)$ ]]; then
-            echo "Branch does not match pin upgrade pattern: $branch. Skipping auto-merge."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          server="${BASH_REMATCH[1]}"
-          echo "server=$server" >> "$GITHUB_OUTPUT"
-          echo "Detected server: $server"
-
-          # Check if title matches expected pattern
-          expected_title="chore: update pin for $server"
-          if [ "$title" != "$expected_title" ]; then
-            echo "Title does not match expected pattern. Expected: '$expected_title', Got: '$title'. Skipping auto-merge."
             echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -133,7 +115,31 @@ jobs:
             exit 0
           fi
 
-          echo "PR validation passed for server: $server"
+          # Extract server name from changed files (more reliable than branch name)
+          # Pin update PRs typically modify servers/{server-name}/ files
+          changed_files=$(gh pr view "$pr_number" --json files --jq '.files[].path')
+
+          # Find unique server directories that were modified
+          servers=$(echo "$changed_files" | grep '^servers/' | cut -d'/' -f2 | sort -u)
+          server_count=$(echo "$servers" | grep -v '^$' | wc -l | tr -d ' ')
+
+          if [ "$server_count" -eq 1 ]; then
+            server=$(echo "$servers" | grep -v '^$')
+            echo "server=$server" >> "$GITHUB_OUTPUT"
+            echo "Detected server from changed files: $server"
+          elif [ "$server_count" -gt 1 ]; then
+            echo "Multiple servers detected in PR changes: $servers"
+            echo "Pin update PRs should only modify one server. Skipping auto-merge."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          else
+            echo "No server directories found in changed files."
+            echo "Could not determine server name. Skipping auto-merge."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "PR validation passed"
 
       - name: Load allowlist
         id: allowlist

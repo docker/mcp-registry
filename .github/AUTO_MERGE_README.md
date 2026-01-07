@@ -11,6 +11,17 @@ This repository automatically merges pin upgrade PRs for allowlisted servers whe
 3. **Auto-Merge Triggers**: If all checks pass and the server is allowlisted, the PR is automatically merged
 4. **Manual Override**: Add the `skip-auto-merge` label to prevent auto-merge on specific PRs
 
+### Validation Steps
+
+The workflow validates:
+- ✅ PR is from `mcp-registry-bot[bot]` account (critical security control)
+- ✅ PR modifies exactly one server directory in `servers/{server-name}/`
+- ✅ Server name extracted from changed files is in the allowlist
+- ✅ PR is open (not closed/merged)
+- ✅ PR is not a draft
+- ✅ No `skip-auto-merge` label present
+- ✅ ALL GitHub checks have passed (including security reviews)
+
 ## Workflow Files
 
 - `.github/workflows/auto-merge-pins.yaml` - Main auto-merge workflow
@@ -88,11 +99,14 @@ When auto-merge runs:
 ### PR Not Auto-Merging
 
 Check:
-1. Is the server in `.github/auto-merge-allowlist.yaml`?
-2. Did all checks pass (including security review)?
-3. Is the PR from `mcp-registry-bot[bot]`?
-4. Does the branch match `automation/update-pin-{SERVER}`?
-5. Is there a `skip-auto-merge` label?
+1. Is the PR from `mcp-registry-bot[bot]`?
+2. Does the PR modify exactly one server directory under `servers/`?
+3. Is the server in `.github/auto-merge-allowlist.yaml`?
+4. Did all checks pass (including security review)?
+5. Is the PR open (not closed/merged) and not a draft?
+6. Is there a `skip-auto-merge` label?
+
+**Note**: The server name is automatically extracted from the changed file paths (e.g., `servers/redis/...`), not from branch names or PR titles.
 
 ### Disabling Auto-Merge
 
