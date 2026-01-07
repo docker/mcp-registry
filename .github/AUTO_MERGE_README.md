@@ -8,8 +8,17 @@ This repository automatically merges pin upgrade PRs for allowlisted servers whe
 
 1. **Pin Update Created**: The `mcp-registry-bot` creates a PR to update a server's pinned version
 2. **CI Runs**: All checks run (CodeQL, security review, validation)
-3. **Auto-Merge Triggers**: If all checks pass and the server is allowlisted, the PR is automatically merged
-4. **Manual Override**: Add the `skip-auto-merge` label to prevent auto-merge on specific PRs
+3. **Auto-Merge Triggers**: When any key workflow completes, the auto-merge workflow evaluates the PR
+4. **Waits for Checks**: If checks are pending, polls for up to 30 minutes waiting for them to complete
+5. **Merges When Ready**: If all checks pass and the server is allowlisted, the PR is automatically merged
+6. **Manual Override**: Add the `skip-auto-merge` label to prevent auto-merge on specific PRs
+
+### Retry Logic
+
+The workflow triggers on multiple workflow completions (CI, Security Review Trigger, Security Review Changes). This ensures:
+- If checks complete at different times, the workflow re-evaluates
+- If the workflow times out waiting, it will retry when another check completes
+- No permanent "stuck" state due to timing issues
 
 ### Validation Steps
 
@@ -93,6 +102,9 @@ When auto-merge runs:
 - ✅ Success: PR is merged with a comment
 - ⚠️ Failure: PR gets a comment with error details
 - ⏭️ Skipped: PR doesn't meet criteria (wrong author, not allowlisted, checks failed)
+- ⏳ Waiting: Workflow polls for up to 30 minutes if checks are pending
+
+**Note**: The workflow may run multiple times per PR as different checks complete. Concurrency controls prevent duplicate merge attempts.
 
 ## Troubleshooting
 

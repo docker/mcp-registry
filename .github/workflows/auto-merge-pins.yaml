@@ -1,12 +1,21 @@
 name: Auto-merge Pin Upgrade PRs
 
 # This workflow automatically merges pin upgrade PRs for allowlisted servers
-# when all required checks pass. It triggers when the CI workflow completes.
+# when all required checks pass. It triggers when key workflows complete.
+# Multiple workflow triggers ensure re-evaluation if checks complete at different times.
 
 on:
   workflow_run:
-    workflows: ["Code and Server Validation"]
+    workflows:
+      - "ci"  # Code and Server Validation job
+      - "Security Review Trigger"
+      - "Security Review (Changes)"
     types: [completed]
+
+# Prevent multiple concurrent auto-merge attempts for the same PR
+concurrency:
+  group: auto-merge-${{ github.event.workflow_run.pull_requests[0].number }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -197,36 +206,58 @@ jobs:
 
           echo "Checking status for commit: $head_sha"
 
-          # Get all check runs and their conclusions
-          check_runs=$(gh api "/repos/${{ github.repository }}/commits/$head_sha/check-runs" --jq '.check_runs')
+          # Wait for pending checks to complete (up to 30 minutes)
+          max_wait_seconds=1800  # 30 minutes
+          poll_interval=30       # Check every 30 seconds
+          elapsed=0
 
-          total_checks=$(echo "$check_runs" | jq 'length')
-          echo "Total check runs: $total_checks"
+          while [ $elapsed -lt $max_wait_seconds ]; do
+            # Get all check runs and their conclusions
+            check_runs=$(gh api "/repos/${{ github.repository }}/commits/$head_sha/check-runs" --jq '.check_runs')
 
-          if [ "$total_checks" -eq 0 ]; then
-            echo "No check runs found for this commit. This is unexpected. Skipping auto-merge."
-            exit 1
-          fi
+            total_checks=$(echo "$check_runs" | jq 'length')
+            echo "Total check runs: $total_checks"
 
-          # Check if any checks are not successful
-          failed_checks=$(echo "$check_runs" | jq -r '.[] | select(.conclusion != "success" and .conclusion != "skipped" and .conclusion != null) | .name')
-          pending_checks=$(echo "$check_runs" | jq -r '.[] | select(.status != "completed") | .name')
+            if [ "$total_checks" -eq 0 ]; then
+              echo "No check runs found for this commit. Waiting for checks to start..."
+              sleep $poll_interval
+              elapsed=$((elapsed + poll_interval))
+              continue
+            fi
 
-          if [ -n "$failed_checks" ]; then
-            echo "Some checks have not passed:"
-            echo "$failed_checks"
-            echo "Skipping auto-merge."
-            exit 1
-          fi
+            # Check if any checks failed
+            failed_checks=$(echo "$check_runs" | jq -r '.[] | select(.conclusion != "success" and .conclusion != "skipped" and .conclusion != null) | .name')
 
-          if [ -n "$pending_checks" ]; then
-            echo "Some checks are still pending:"
+            if [ -n "$failed_checks" ]; then
+              echo "Some checks have failed:"
+              echo "$failed_checks"
+              echo "Skipping auto-merge."
+              exit 1
+            fi
+
+            # Check if any checks are still pending
+            pending_checks=$(echo "$check_runs" | jq -r '.[] | select(.status != "completed") | .name')
+
+            if [ -z "$pending_checks" ]; then
+              echo "All checks have passed successfully!"
+              exit 0
+            fi
+
+            # Checks are still pending
+            pending_count=$(echo "$pending_checks" | wc -l | tr -d ' ')
+            echo "Waiting for $pending_count pending checks to complete:"
             echo "$pending_checks"
-            echo "Skipping auto-merge."
-            exit 1
-          fi
+            echo "Elapsed: ${elapsed}s / ${max_wait_seconds}s"
 
-          echo "All checks have passed successfully."
+            sleep $poll_interval
+            elapsed=$((elapsed + poll_interval))
+          done
+
+          # Timeout reached
+          echo "Timeout reached after ${max_wait_seconds}s. Some checks are still pending:"
+          echo "$pending_checks"
+          echo "Skipping auto-merge. The workflow may re-trigger when other checks complete."
+          exit 1
 
       - name: Comment on PR before merging
         if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true' && steps.check.outputs.skip != 'true'
