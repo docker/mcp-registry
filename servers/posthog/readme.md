@@ -16,8 +16,8 @@ The PostHog MCP server provides AI agents with access to PostHog's product analy
 ## Documentation
 
 - [PostHog MCP Documentation](https://posthog.com/docs/model-context-protocol)
-- [GitHub Repository](https://github.com/PostHog/mcp)
+- [GitHub Repository](https://github.com/PostHog/posthog/tree/master/services/mcp)
 
 ## Authentication
 
-You need a PostHog Personal API Key to use this MCP server. You can create one in your [PostHog account settings](https://app.posthog.com/settings/user-api-keys).
+You need a PostHog Personal API Key to use this MCP server. Create one at [PostHog API Keys](https://us.posthog.com/settings/user-api-keys) using the "MCP Server" preset.
