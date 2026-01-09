@@ -1,15 +1,11 @@
 name: Auto-merge Pin Upgrade PRs
 
 # This workflow automatically merges pin upgrade PRs for allowlisted servers
-# when all required checks pass. It triggers when key workflows complete.
-# Multiple workflow triggers ensure re-evaluation if checks complete at different times.
+# when all required checks pass. It triggers whenever any check run completes,
+# ensuring the workflow re-evaluates as each check finishes.
 
 on:
-  workflow_run:
-    workflows:
-      - "ci"  # Code and Server Validation job
-      - "Security Review Trigger"
-      - "Security Review (Changes)"
+  check_run:
     types: [completed]
   workflow_dispatch:
     inputs:
@@ -20,7 +16,7 @@ on:
 
 # Prevent multiple concurrent auto-merge attempts for the same PR
 concurrency:
-  group: auto-merge-${{ github.event.workflow_run.pull_requests[0].number || inputs.pr_number }}
+  group: auto-merge-${{ github.event.check_run.pull_requests[0].number || inputs.pr_number }}
   cancel-in-progress: false
 
 permissions:
@@ -32,10 +28,10 @@ jobs:
   auto-merge:
     name: Auto-merge allowlisted servers
     runs-on: ubuntu-latest
-    # Only run if workflow_run succeeded, or if manually triggered via workflow_dispatch
+    # Only run if check_run succeeded and has associated PRs, or if manually triggered
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request')
+      (github.event.check_run.conclusion == 'success' && github.event.check_run.pull_requests[0] != null)
 
     steps:
       - name: Create GitHub auth token for mcp-registry-bot from GitHub App
@@ -56,21 +52,22 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
         run: |
-          # Get the PR number from workflow_dispatch input or workflow_run event
+          # Get the PR number from workflow_dispatch input or check_run event
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             pr_number="${{ inputs.pr_number }}"
             echo "Using PR number from manual trigger: $pr_number"
           else
-            # Get the PR number from the workflow run
-            pr_number=$(gh api "/repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}" \
-              --jq '.pull_requests[0].number // empty')
+            # Get the PR number from the check_run event payload
+            pr_number="${{ github.event.check_run.pull_requests[0].number }}"
 
-            if [ -z "$pr_number" ]; then
-              echo "No PR associated with this workflow run. Exiting."
+            if [ -z "$pr_number" ] || [ "$pr_number" = "null" ]; then
+              echo "No PR associated with this check run. Exiting."
               echo "skip=true" >> "$GITHUB_OUTPUT"
               exit 0
             fi
-            echo "Using PR number from workflow run: $pr_number"
+
+            echo "Using PR number from check run: $pr_number"
+            echo "Check run: ${{ github.event.check_run.name }} - ${{ github.event.check_run.conclusion }}"
           fi
 
           echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
