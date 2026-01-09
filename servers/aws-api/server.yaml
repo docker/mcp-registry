@@ -13,9 +13,6 @@ source:
   project: https://github.com/awslabs/mcp
   commit: 7bace1f81455088b6690a44e99cabb602259ddf7
   directory: src/aws-api-mcp-server
-run:
-  volumes:
-    - "{{aws-api.aws_dir}}:/app/.aws"
 config:
   description: Configure AWS credentials and API access settings
   secrets:
@@ -25,6 +22,12 @@ config:
     - name: aws-api.aws_session_token
       env: AWS_SESSION_TOKEN
       example: your-aws-session-token
+    - name: aws-api.aws_container_authorization_token
+      env: AWS_CONTAINER_AUTHORIZATION_TOKEN
+      example: your-container-authorization-token
+    - name: aws-api.aws_container_credentials_full_uri
+      env: AWS_CONTAINER_CREDENTIALS_FULL_URI
+      example: http://localhost:9911/api/credentials
   env:
     - name: AWS_REGION
       example: us-east-1
@@ -38,9 +41,6 @@ config:
   parameters:
     type: object
     properties:
-      aws_dir:
-        type: string
-        description: Path to the AWS configuration directory (e.g. ~/.aws). Used for AWS CLI authentication.
       aws_region:
         type: string
         default: us-east-1
