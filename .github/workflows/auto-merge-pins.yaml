@@ -279,11 +279,14 @@ jobs:
           pr_number="${{ steps.pr.outputs.pr_number }}"
           server="${{ steps.validate.outputs.server }}"
 
-          gh pr comment "$pr_number" --body "✅ **Auto-merging pin upgrade PR**
+          gh pr comment "$pr_number" --body "$(cat <<EOF
+✅ **Auto-merging pin upgrade PR**
 
 Server \`$server\` is in the allowlist and all required checks have passed.
 
-This PR will be automatically merged."
+This PR will be automatically merged.
+EOF
+)"
 
       - name: Merge PR
         if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true' && steps.check.outputs.skip != 'true'
@@ -305,9 +308,12 @@ This PR will be automatically merged."
           pr_number="${{ steps.pr.outputs.pr_number }}"
 
           if [ -n "$pr_number" ]; then
-            gh pr comment "$pr_number" --body "⚠️ **Auto-merge failed**
+            gh pr comment "$pr_number" --body "$(cat <<EOF
+⚠️ **Auto-merge failed**
 
 An error occurred while attempting to automatically merge this PR. Manual review and merge may be required.
 
-Check the [workflow run logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details."
+Check the [workflow run logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
+EOF
+)"
           fi
