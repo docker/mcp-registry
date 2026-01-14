@@ -56,13 +56,13 @@ jobs:
           CHECK_RUN_PR_NUMBER: ${{ github.event.check_run.pull_requests[0].number }}
           CHECK_RUN_NAME: ${{ github.event.check_run.name }}
           CHECK_RUN_CONCLUSION: ${{ github.event.check_run.conclusion }}
-        run: .github/scripts/get-pr-details.sh
+        run: .github/pin-upgrade-auto-merge-helper-scripts/get-pr-details.sh
 
       - name: Validate PR is from bot and ready for merge
         id: validate
         if: steps.pr.outputs.skip != 'true'
         run: |
-          .github/scripts/validate-pr.sh \
+          .github/pin-upgrade-auto-merge-helper-scripts/validate-pr.sh \
             "${{ steps.pr.outputs.author }}" \
             "${{ steps.pr.outputs.state }}" \
             "${{ steps.pr.outputs.is_draft }}" \
@@ -74,19 +74,19 @@ jobs:
         if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
-        run: .github/scripts/extract-server.sh "${{ steps.pr.outputs.pr_number }}"
+        run: .github/pin-upgrade-auto-merge-helper-scripts/extract-server.sh "${{ steps.pr.outputs.pr_number }}"
 
       - name: Check if server is in allowlist
         id: allowlist
         if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true'
-        run: .github/scripts/check-allowlist.sh "${{ steps.extract.outputs.server }}"
+        run: .github/pin-upgrade-auto-merge-helper-scripts/check-allowlist.sh "${{ steps.extract.outputs.server }}"
 
       - name: Wait for all checks to pass
         if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
         run: |
-          .github/scripts/wait-for-checks.sh \
+          .github/pin-upgrade-auto-merge-helper-scripts/wait-for-checks.sh \
             "${{ steps.pr.outputs.pr_number }}" \
             "${{ github.repository }}"
 
