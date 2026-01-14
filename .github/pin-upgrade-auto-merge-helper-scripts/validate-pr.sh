@@ -5,7 +5,6 @@ author="$1"
 state="$2"
 is_draft="$3"
 labels="$4"
-pr_number="$5"
 
 # Check if PR is from mcp-registry-bot
 if [ "$author" != "mcp-registry-bot[bot]" ]; then

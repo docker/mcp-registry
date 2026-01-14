@@ -66,8 +66,7 @@ jobs:
             "${{ steps.pr.outputs.author }}" \
             "${{ steps.pr.outputs.state }}" \
             "${{ steps.pr.outputs.is_draft }}" \
-            "${{ steps.pr.outputs.labels }}" \
-            "${{ steps.pr.outputs.pr_number }}"
+            "${{ steps.pr.outputs.labels }}"
 
       - name: Extract server name from changed files
         id: extract
@@ -82,6 +81,7 @@ jobs:
         run: .github/pin-upgrade-auto-merge-helper-scripts/check-allowlist.sh "${{ steps.extract.outputs.server }}"
 
       - name: Wait for all checks to pass
+        id: checks
         if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
@@ -91,7 +91,7 @@ jobs:
             "${{ github.repository }}"
 
       - name: Comment on PR before merging
-        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true'
+        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true' && steps.checks.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
         run: |
@@ -108,7 +108,7 @@ EOF
 )"
 
       - name: Merge PR
-        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true'
+        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true' && steps.checks.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
         run: |

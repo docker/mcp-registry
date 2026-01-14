@@ -17,6 +17,7 @@ echo "Total check runs: $total_checks"
 
 if [ "$total_checks" -eq 0 ]; then
   echo "No check runs found for this commit yet. Will retry when checks start."
+  echo "skip=true" >> "$GITHUB_OUTPUT"
   exit 0
 fi
 
@@ -78,4 +79,5 @@ fi
 
 echo ""
 echo "Checks still pending. Workflow will re-trigger when next check completes."
+echo "skip=true" >> "$GITHUB_OUTPUT"
 exit 0
