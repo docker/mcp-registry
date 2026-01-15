@@ -6,8 +6,8 @@ state="$2"
 is_draft="$3"
 labels="$4"
 
-# Check if PR is from mcp-registry-bot
-if [ "$author" != "mcp-registry-bot[bot]" ]; then
+# Check if PR is from mcp-registry-bot (accepts both app/ and [bot] formats)
+if [ "$author" != "app/mcp-registry-bot" ] && [ "$author" != "mcp-registry-bot[bot]" ]; then
   echo "PR is not from mcp-registry-bot. Author: $author. Skipping auto-merge."
   echo "skip=true" >> "$GITHUB_OUTPUT"
   exit 0
