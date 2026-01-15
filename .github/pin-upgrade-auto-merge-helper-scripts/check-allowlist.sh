@@ -11,7 +11,7 @@ if [ ! -f "$allowlist_file" ]; then
 fi
 
 # Extract server list from YAML (handle comments and whitespace)
-servers=$(grep -E "^  - " "$allowlist_file" | sed 's/^  - //' | sed 's/#.*//' | tr -d ' ' | tr '\n' ',' | sed 's/,$//')
+servers=$(grep -E "^[[:space:]]+-" "$allowlist_file" | sed 's/^[[:space:]]*-[[:space:]]*//' | sed 's/#.*//' | tr -d ' ' | tr '\n' ',' | sed 's/,$//')
 
 if [ -z "$servers" ]; then
   echo "Allowlist is empty. No servers configured for auto-merge."
