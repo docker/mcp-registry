@@ -1,4 +1,4 @@
-# 🐳 Official Docker MCP Registry
+# 🐳 Official Docker MCP Registry.
 
 Welcome to the Official Docker MCP (Model Context Protocol) Registry! This repository serves as a curated catalog of MCP servers that can be easily discovered, deployed, and integrated with any MCP Client and compatible with Docker tooling. 
 
