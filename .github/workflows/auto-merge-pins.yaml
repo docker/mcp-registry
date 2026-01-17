@@ -90,13 +90,6 @@ jobs:
             "${{ steps.pr.outputs.pr_number }}" \
             "${{ github.repository }}"
 
-      - name: Approve PR
-        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true' && steps.checks.outputs.skip != 'true'
-        env:
-          GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
-        run: |
-          gh pr review "${{ steps.pr.outputs.pr_number }}" --approve --body "All checks passed and server is in allowlist. Auto-approving for merge."
-
       - name: Comment on PR before merging
         if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true' && steps.checks.outputs.skip != 'true'
         env:
@@ -107,17 +100,24 @@ jobs:
             "${{ steps.pr.outputs.pr_number }}" \
             "${{ steps.extract.outputs.server }}"
 
-      - name: Merge PR
+      - name: Enable auto-merge
         if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true' && steps.checks.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
         run: |
           pr_number="${{ steps.pr.outputs.pr_number }}"
 
-          # Use squash merge with auto flag to queue for merge after requirements met
+          # Enable auto-merge - PR will merge automatically once all requirements are met
           gh pr merge "$pr_number" --squash --auto
 
           echo "Successfully enabled auto-merge for PR #$pr_number"
+
+      - name: Approve PR
+        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true' && steps.checks.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
+        run: |
+          gh pr review "${{ steps.pr.outputs.pr_number }}" --approve --body "All checks passed and server is in allowlist. Auto-approving for merge."
 
       - name: Handle merge failure
         if: failure() && steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true'
