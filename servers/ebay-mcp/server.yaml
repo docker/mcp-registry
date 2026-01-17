@@ -1,0 +1,55 @@
+name: ebay-mcp
+image: mcp/ebay-mcp
+type: server
+meta:
+  category: ecommerce
+  tags:
+    - ebay
+    - shopping
+    - marketplace
+about:
+  title: EBAY Sell API
+  description: >
+    MCP server providing 230+ tools for eBay Sell APIs, including inventory management,
+    order fulfillment, marketing campaigns, analytics, and token management with automatic
+    rate-limit handling and OAuth 2.0 support. Published as the npm package
+    https://www.npmjs.com/package/ebay-mcp.
+  icon: https://www.google.com/s2/favicons?domain=ebay.com&sz=64
+source:
+  project: https://github.com/YosefHayim/ebay-mcp
+  commit: 1f0f7a08d86142623e71e7c91164348f7e841b02
+config:
+  description: Configure eBay API credentials and environment for the eBay MCP server. Requires an eBay Developer account and Sell API access.
+  secrets:
+    - name: ebay-mcp.client_id
+      env: EBAY_CLIENT_ID
+      example: YOUR_EBAY_CLIENT_ID
+    - name: ebay-mcp.client_secret
+      env: EBAY_CLIENT_SECRET
+      example: YOUR_EBAY_CLIENT_SECRET
+    - name: ebay-mcp.user_refresh_token
+      env: EBAY_USER_REFRESH_TOKEN
+      example: YOUR_EBAY_USER_REFRESH_TOKEN
+      description: User refresh token for higher rate limits (10k-50k requests/day) after completing the OAuth flow.
+  env:
+    - name: EBAY_ENVIRONMENT
+      example: sandbox
+      value: "{{ebay-mcp.environment}}"
+    - name: EBAY_REDIRECT_URI
+      example: your_runame_from_ebay_developer_portal
+      value: "{{ebay-mcp.redirect_uri}}"
+  parameters:
+    type: object
+    properties:
+      environment:
+        type: string
+        description: eBay API environment
+        enum:
+          - sandbox
+          - production
+        default: sandbox
+      redirect_uri:
+        type: string
+        description: eBay redirect URI (RuName) configured in the eBay Developer Portal
+    required:
+      - environment
