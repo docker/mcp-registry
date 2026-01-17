@@ -90,6 +90,13 @@ jobs:
             "${{ steps.pr.outputs.pr_number }}" \
             "${{ github.repository }}"
 
+      - name: Approve PR
+        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true' && steps.checks.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
+        run: |
+          gh pr review "${{ steps.pr.outputs.pr_number }}" --approve --body "All checks passed and server is in allowlist. Auto-approving for merge."
+
       - name: Comment on PR before merging
         if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true' && steps.checks.outputs.skip != 'true'
         env:
@@ -107,10 +114,10 @@ jobs:
         run: |
           pr_number="${{ steps.pr.outputs.pr_number }}"
 
-          # Use squash merge to keep history clean
-          gh pr merge "$pr_number" --squash
+          # Use squash merge with auto flag to queue for merge after requirements met
+          gh pr merge "$pr_number" --squash --auto
 
-          echo "Successfully merged PR #$pr_number"
+          echo "Successfully enabled auto-merge for PR #$pr_number"
 
       - name: Handle merge failure
         if: failure() && steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true'
