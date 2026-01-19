@@ -33,7 +33,7 @@ Use the public demo server to test immediately:
 
 Restart Claude and try: **"Start a daily reflection session"**
 
-> **Demo limits:** 5 sessions/day, basic journeys only. Your data stays private via session-based isolation.
+> Sessions automatically persist locally on your machine (v1.0.4+). No account required.
 
 ### For ChatGPT
 
@@ -122,10 +122,12 @@ await mcp.call('resume_session', { userId: 'user_123' });
 
 ## Features
 
-### Persistent Memory
-- **Session state**: Conversations survive browser closes, app restarts, device switches
+### Persistent Memory (New in v1.0.4!)
+- **Zero-config persistence**: Sessions automatically saved locally to `~/.couchloop-mcp/identity.json`
+- **Session state**: Conversations survive browser closes, app restarts on the same machine
 - **Checkpoints**: Save progress at key moments in multi-step workflows
 - **Insights**: Capture and retrieve important user reflections over time
+- **No signup required**: Works immediately, no account needed for local persistence
 
 ### Safety Checks
 - **Fact-checking**: Catches fabricated information and unsupported claims
@@ -171,7 +173,7 @@ Pre-built workflows for common use cases:
 
 | Mode | Access | Limits | Best For |
 |------|--------|--------|----------|
-| **Demo** | Public server, no signup | 5 sessions/day, basic journeys | Testing, evaluation |
+| **Demo** | Public server, no signup | Unlimited sessions with local persistence | Testing, evaluation |
 | **Production** | API key from couchloop.com | Unlimited sessions, custom journeys | Production apps |
 
 ## Use Cases
