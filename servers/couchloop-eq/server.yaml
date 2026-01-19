@@ -1,0 +1,69 @@
+name: couchloop-eq
+description: CouchLoop EQ - Behavioral governance layer for LLMs that monitors for hallucination, inconsistency, and tone drift while managing stateful AI conversations
+homepage: https://github.com/wisenbergg/couchloop-mcp
+author: Greg Wisenberg
+categories:
+  - ai-safety
+  - conversation
+  - state-management
+  - memory
+  - wellness
+tags:
+  - hallucination-detection
+  - ai-governance
+  - chatgpt
+  - claude
+  - llm-safety
+  - behavioral-governance
+  - session-management
+  - checkpoint-system
+  - journey-tracking
+license: MIT
+runtime: docker
+sdk: typescript
+transport:
+  - stdio
+  - sse
+configuration:
+  env:
+    - name: DATABASE_URL
+      description: PostgreSQL connection string for session and checkpoint storage
+      required: true
+    - name: SUPABASE_URL
+      description: Supabase project URL
+      required: true
+    - name: SUPABASE_ANON_KEY
+      description: Supabase anonymous key
+      required: true
+    - name: SHRINK_CHAT_API_KEY
+      description: API key for shrink-chat backend integration (for therapeutic features)
+      required: false
+    - name: JWT_SECRET
+      description: Secret key for JWT token generation (min 32 characters)
+      required: true
+    - name: NODE_ENV
+      description: Environment mode (development/staging/production)
+      required: false
+      default: production
+build:
+  dockerfile: Dockerfile
+  context: .
+  args:
+    NODE_VERSION: "20"
+container:
+  port: 3000
+  healthcheck:
+    endpoint: /health
+    interval: 30s
+    timeout: 3s
+    retries: 3
+deployment:
+  memory: 512
+  cpu: 0.5
+  instances:
+    min: 1
+    max: 3
+repository: https://github.com/wisenbergg/couchloop-mcp
+documentation: https://github.com/wisenbergg/couchloop-mcp/blob/main/README.md
+support: https://github.com/wisenbergg/couchloop-mcp/issues
+version: 1.0.2
