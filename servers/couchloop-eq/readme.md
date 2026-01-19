@@ -18,17 +18,14 @@ AI assistants forget everything between sessions. Users repeat context, lose pro
 
 Use the public demo server to test immediately:
 
-**For Claude Desktop**, add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+**For Claude Desktop** (requires Claude Desktop v0.7.0+), add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "couchloop-eq": {
-      "command": "npx",
-      "args": ["-y", "couchloop-eq-mcp"],
-      "env": {
-        "COUCHLOOP_SERVER": "https://couchloop-mcp-production.up.railway.app/mcp"
-      }
+      "url": "https://couchloop-mcp-production.up.railway.app/mcp",
+      "transport": "sse"
     }
   }
 }
