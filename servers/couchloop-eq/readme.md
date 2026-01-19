@@ -61,14 +61,14 @@ Add to Claude Desktop config:
     "couchloop-eq": {
       "command": "couchloop-eq-mcp",
       "env": {
-        "COUCHLOOP_API_KEY": "your-api-key"
+        "COUCHLOOP_SERVER": "https://couchloopchat.com"
       }
     }
   }
 }
 ```
 
-**Get your API key:** [couchloop.com/signup](https://couchloop.com/signup)
+**New in v1.0.4**: Sessions automatically persist locally to `~/.couchloop-mcp/identity.json`
 
 ## How It Works
 
@@ -174,7 +174,7 @@ Pre-built workflows for common use cases:
 | Mode | Access | Limits | Best For |
 |------|--------|--------|----------|
 | **Demo** | Public server, no signup | Unlimited sessions with local persistence | Testing, evaluation |
-| **Production** | API key from couchloop.com | Unlimited sessions, custom journeys | Production apps |
+| **Self-hosted** | Run locally with npm | Unlimited sessions with local persistence | Production apps |
 
 ## Use Cases
 
@@ -184,14 +184,14 @@ Pre-built workflows for common use cases:
 - **Compliance-sensitive apps**: Add safety validation for financial, legal, or healthcare AI
 - **Multi-session workflows**: Any AI interaction that spans days, devices, or interruptions
 
-> **Building wellness or therapeutic apps?** See our [wellness integration guide](https://couchloop.com/docs/wellness) for purpose-built journeys and crisis detection features.
+> **Building wellness or therapeutic apps?** CouchLoop EQ includes purpose-built journeys and crisis detection features.
 
 
 ## Support
 
 - **Issues**: [github.com/wisenbergg/couchloop-mcp/issues](https://github.com/wisenbergg/couchloop-mcp/issues)
 - **Email**: support@couchloop.com
-- **Docs**: [couchloop.com/docs](https://couchloop.com/docs)
+- **Documentation**: [github.com/wisenbergg/couchloop-mcp](https://github.com/wisenbergg/couchloop-mcp)
 
 ## License
 
