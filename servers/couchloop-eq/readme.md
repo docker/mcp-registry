@@ -1,202 +1,199 @@
-# CouchLoop EQ MCP Server
+# CouchLoop EQ — MCP Server
 
-## Overview
+Your AI remembers conversations. Add persistent memory and safety checks to Claude and ChatGPT.
 
-CouchLoop EQ is a behavioral governance layer for Large Language Models (LLMs) that monitors for hallucination, inconsistency, tone drift, and unsafe reasoning patterns. It provides stateful conversation management with session persistence, progress checkpoints, and guided journeys - enabling AI agents like ChatGPT and Claude to maintain context across interruptions and window changes.
+<p align="center">
+  <img src="https://raw.githubusercontent.com/wisenbergg/couchloop-mcp/master/assets/logo/couchloop_EQ-IconLogo.png" alt="CouchLoop EQ" width="120" />
+</p>
 
-## Key Features
+## The Problem
 
-### 🛡️ Behavioral Governance
-- **Hallucination Detection**: Monitors AI responses for factual consistency
-- **Tone Drift Prevention**: Ensures consistent emotional tone throughout conversations
-- **Crisis Detection**: Identifies critical mental health signals and triggers appropriate responses
-- **Unsafe Reasoning Detection**: Catches potentially harmful logical patterns
+AI assistants forget everything between sessions. Users repeat context, lose progress on multi-step workflows, and get inconsistent responses. Worse, LLMs can hallucinate, contradict themselves, or drift into harmful territory without guardrails.
 
-### 💾 Session Management
-- **Stateful Conversations**: Maintains context across multiple interactions
-- **Cross-Window Persistence**: Sessions survive browser refreshes and tab changes
-- **Resume Capability**: Pick up conversations exactly where you left off
-- **Progress Checkpoints**: Save key moments and insights during conversations
+**CouchLoop EQ fixes this.** It's an MCP server that gives your AI persistent memory, progress tracking, and automatic safety validation.
 
-### 🎯 Guided Journeys
-- **Pre-built Experiences**: Structured therapeutic journeys (daily reflection, gratitude, CBT exercises)
-- **Step-by-Step Progression**: Advance through curated conversation flows
-- **Optional Paths**: Skip or customize journey steps based on user needs
-- **Journey Memory**: Track progress across multiple journey sessions
+## Quick Start (30 seconds)
 
-### 🧠 Memory & Insights
-- **User Context**: Builds understanding of user patterns and preferences
-- **Insight Capture**: Save and retrieve meaningful realizations from conversations
-- **Session History**: Access past conversations and checkpoints
-- **Personalization**: Adapts responses based on accumulated user context
+### Try Without Signup
 
-## Quick Start
+Use the public demo server to test immediately:
 
-### Using with Docker Desktop MCP Toolkit
+**For Claude Desktop**, add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
-1. **Install from Docker Registry** (coming soon):
+```json
+{
+  "mcpServers": {
+    "couchloop-eq": {
+      "command": "npx",
+      "args": ["-y", "couchloop-eq-mcp"],
+      "env": {
+        "COUCHLOOP_SERVER": "https://couchloop-mcp-production.up.railway.app/mcp"
+      }
+    }
+  }
+}
+```
+
+Restart Claude and try: **"Start a daily reflection session"**
+
+> **Demo limits:** 5 sessions/day, basic journeys only. Your data stays private via session-based isolation.
+
+### For ChatGPT
+
+1. Open ChatGPT → Settings → Developer Mode
+2. Add MCP connector:
+   - **URL**: `https://couchloop-mcp-production.up.railway.app/mcp`
+   - **Auth**: None required
+3. Try: **"List available journeys"**
+
+> **Note**: ChatGPT MCP support is in beta—expect occasional disconnects.
+
+## Production Setup
+
+For unlimited sessions and custom journeys:
+
 ```bash
-docker pull docker/mcp-couchloop:latest
+npm install -g couchloop-eq-mcp
 ```
 
-2. **Configure Environment Variables**:
-Create a `.env` file with required configuration:
-```env
-DATABASE_URL=postgresql://user:password@host:5432/dbname
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-JWT_SECRET=your-secret-key-min-32-chars
+Add to Claude Desktop config:
+
+```json
+{
+  "mcpServers": {
+    "couchloop-eq": {
+      "command": "couchloop-eq-mcp",
+      "env": {
+        "COUCHLOOP_API_KEY": "your-api-key"
+      }
+    }
+  }
+}
 ```
 
-3. **Run the Container**:
-```bash
-docker run -d \
-  --name couchloop-mcp \
-  --env-file .env \
-  -p 3000:3000 \
-  docker/mcp-couchloop:latest
+**Get your API key:** [couchloop.com/signup](https://couchloop.com/signup)
+
+## How It Works
+
+CouchLoop runs as an MCP server between your AI client and its responses. It intercepts messages, applies safety checks, and manages session state.
+
+```
+┌─────────────────┐
+│ Claude Desktop  │
+│   or ChatGPT    │
+└────────┬────────┘
+         │ MCP Protocol
+         ▼
+┌─────────────────┐
+│ CouchLoop EQ    │
+│  ┌───────────┐  │
+│  │  Safety   │  │ ← Fact-checking, tone monitoring
+│  │  Layer    │  │
+│  └───────────┘  │
+│  ┌───────────┐  │
+│  │  Session  │  │ ← State persistence, checkpoints
+│  │  Manager  │  │
+│  └───────────┘  │
+│  ┌───────────┐  │
+│  │  Journey  │  │ ← Guided workflows, templates
+│  │  Engine   │  │
+│  └───────────┘  │
+└─────────────────┘
 ```
 
-4. **Connect via MCP**:
-The server exposes MCP protocol on stdio and HTTP endpoints on port 3000.
+### Code Example
+
+```javascript
+import { MCPClient } from '@modelcontextprotocol/sdk';
+
+const mcp = new MCPClient({ server: 'couchloop-eq' });
+
+// Start a guided session
+const session = await mcp.call('create_session', {
+  journey: 'daily-reflection',
+  userId: 'user_123'
+});
+// → Returns session ID and first prompt
+
+// User completes session, days pass...
+
+// Resume with full context restored
+await mcp.call('resume_session', { userId: 'user_123' });
+// → "Last time you mentioned feeling energized in the mornings.
+//    How has that been this week?"
+```
+
+## Features
+
+### Persistent Memory
+- **Session state**: Conversations survive browser closes, app restarts, device switches
+- **Checkpoints**: Save progress at key moments in multi-step workflows
+- **Insights**: Capture and retrieve important user reflections over time
+
+### Safety Checks
+- **Fact-checking**: Catches fabricated information and unsupported claims
+- **Consistency tracking**: Flags contradictions across the conversation
+- **Conversation boundaries**: Detects manipulation patterns and harmful suggestions
+- **Tone stability**: Maintains consistent personality without emotional drift
+
+### Guided Journeys
+Pre-built workflows for common use cases:
+
+| Journey | Duration | Description |
+|---------|----------|-------------|
+| Daily Reflection | 5 min | Brief check-in to process your day |
+| Gratitude Practice | 3 min | Notice and name things you appreciate |
+| Weekly Review | 10 min | Look back and set intentions |
 
 ## Available Tools
 
-### Session Management
-- `create_session` - Start a new conversation session or guided journey
-- `resume_session` - Continue a previously paused session
-- `save_checkpoint` - Capture progress or important moments
+| Tool | Description | Returns |
+|------|-------------|---------|
+| `create_session` | Start new session, optionally with a guided journey | Session ID, initial prompt |
+| `resume_session` | Continue previous session with context restored | Last checkpoint, next prompt |
+| `send_message` | Send a message with safety validation | Validated response |
+| `save_checkpoint` | Save progress at a key moment | Checkpoint ID |
+| `get_checkpoints` | Retrieve all checkpoints for a session | Array of checkpoints |
+| `list_journeys` | List available guided journeys | Journey definitions |
+| `get_journey_status` | Get current progress in a journey | Step number, completion % |
+| `save_insight` | Capture a meaningful user insight | Insight ID |
+| `get_insights` | Retrieve saved insights | Array of insights with timestamps |
+| `get_user_context` | Get user's insights, patterns, and history | Context summary for personalization |
 
-### Communication
-- `send_message` - Send messages through the therapeutic AI stack with safety checks
-- `get_checkpoints` - Retrieve saved checkpoints from a session
+## Example Usage
 
-### Journey Navigation
-- `list_journeys` - View available guided experiences
-- `get_journey_status` - Check progress in current journey
+```
+"Start a daily reflection session"
+"Resume my last session"
+"Save this insight: I notice I'm more energized in the mornings"
+"What insights have I saved?"
+"How far am I in this journey?"
+```
 
-### Insights & Memory
-- `save_insight` - Capture meaningful realizations
-- `get_insights` - Retrieve user insights and patterns
-- `get_user_context` - Get personalized context for tailored responses
+## Authentication
+
+| Mode | Access | Limits | Best For |
+|------|--------|--------|----------|
+| **Demo** | Public server, no signup | 5 sessions/day, basic journeys | Testing, evaluation |
+| **Production** | API key from couchloop.com | Unlimited sessions, custom journeys | Production apps |
 
 ## Use Cases
 
-### For AI Platforms (ChatGPT, Claude)
-- Enable persistent memory across chat sessions
-- Add therapeutic conversation capabilities
-- Implement safety guardrails for sensitive topics
-- Provide structured conversation flows
+- **Customer support agents**: Maintain conversation history across tickets and channels
+- **Onboarding flows**: Guide users through multi-step setup with progress tracking
+- **AI assistants with memory**: Remember user preferences, past decisions, and context
+- **Compliance-sensitive apps**: Add safety validation for financial, legal, or healthcare AI
+- **Multi-session workflows**: Any AI interaction that spans days, devices, or interruptions
 
-### For Wellness Applications
-- Mental health support chatbots
-- Guided meditation and reflection tools
-- Mood tracking and journaling assistants
-- Crisis intervention systems
+> **Building wellness or therapeutic apps?** See our [wellness integration guide](https://couchloop.com/docs/wellness) for purpose-built journeys and crisis detection features.
 
-### For Developers
-- Add behavioral governance to any LLM integration
-- Implement session persistence for conversational AI
-- Build safety layers for production AI deployments
-- Create guided conversation experiences
-
-## Configuration
-
-### Required Environment Variables
-- `DATABASE_URL`: PostgreSQL connection string
-- `SUPABASE_URL`: Your Supabase project URL
-- `SUPABASE_ANON_KEY`: Supabase anonymous key
-- `JWT_SECRET`: Secret for JWT tokens (min 32 characters)
-
-### Optional Environment Variables
-- `SHRINK_CHAT_API_KEY`: API key for therapeutic backend integration
-- `NODE_ENV`: Environment mode (development/staging/production)
-- `LOG_LEVEL`: Logging verbosity (debug/info/warn/error)
-
-## Architecture
-
-CouchLoop implements a three-layer architecture:
-
-1. **MCP Protocol Layer**: Handles tool/resource requests from AI agents
-2. **Governance Engine**: Monitors and evaluates AI behavior
-3. **Persistence Layer**: PostgreSQL database for sessions, checkpoints, and insights
-
-The server can operate in two modes:
-- **Standalone**: Direct MCP integration with your AI agent
-- **Pass-through**: Routes messages through shrink-chat backend for additional therapeutic features
-
-## Database Setup
-
-1. **Initialize Schema**:
-```bash
-npm run db:push
-```
-
-2. **Seed Journey Definitions**:
-```bash
-npm run db:seed
-```
-
-3. **View Database** (development):
-```bash
-npm run db:studio
-```
-
-## Security Considerations
-
-- All sessions are user-scoped with JWT authentication
-- OAuth flow for secure user identification
-- Encrypted storage for sensitive checkpoint data
-- Rate limiting on API endpoints
-- Input validation on all tools
-
-## Performance
-
-- Supports 100+ concurrent sessions
-- Sub-100ms checkpoint save/retrieve
-- Automatic session cleanup after 30 days
-- Optimized for ChatGPT's 5-second timeout requirements
-
-## Development
-
-### Building from Source
-```bash
-git clone https://github.com/wisenbergg/couchloop-mcp.git
-cd couchloop-mcp
-npm install
-npm run build
-npm start
-```
-
-### Running Tests
-```bash
-npm test
-```
-
-### Development Mode
-```bash
-npm run dev
-```
 
 ## Support
 
-- **Documentation**: https://github.com/wisenbergg/couchloop-mcp
-- **Issues**: https://github.com/wisenbergg/couchloop-mcp/issues
-- **Email**: greg@couchloop.com
+- **Issues**: [github.com/wisenbergg/couchloop-mcp/issues](https://github.com/wisenbergg/couchloop-mcp/issues)
+- **Email**: support@couchloop.com
+- **Docs**: [couchloop.com/docs](https://couchloop.com/docs)
 
 ## License
 
-MIT - See [LICENSE](https://github.com/wisenbergg/couchloop-mcp/blob/main/LICENSE) for details
-
-## Contributing
-
-Contributions are welcome! Please see our [Contributing Guide](https://github.com/wisenbergg/couchloop-mcp/blob/main/CONTRIBUTING.md) for details.
-
-## Roadmap
-
-- [ ] Multi-language support
-- [ ] Advanced crisis detection models
-- [ ] Voice conversation support
-- [ ] Mobile SDK
-- [ ] Real-time collaboration features
-- [ ] Advanced analytics dashboard
+MIT
