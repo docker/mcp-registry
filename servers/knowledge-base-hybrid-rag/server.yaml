@@ -1,0 +1,81 @@
+name: knowledge-base-hybrid-rag
+image: mcp/knowledge-base-hybrid-rag
+type: server
+meta:
+  category: database
+  tags:
+    - database
+    - rag
+    - knowledge-graph
+    - vector-search
+    - postgresql
+    - hybrid-search
+    - semantic-search
+    - ai
+about:
+  title: Knowledge Base Hybrid RAG
+  description: A powerful MCP server providing 37 tools for Hybrid RAG (Retrieval-Augmented Generation) with PostgreSQL/pgvector. Features include semantic + keyword search, LLM-based reranking (+5-10% accuracy), in-memory caching (2-3x speed), Knowledge Graph with entity extraction, conversational memory, multiple chunking strategies, and search quality evaluation metrics (Precision, Recall, F1, MRR).
+  icon: https://www.google.com/s2/favicons?domain=github.com&sz=64
+source:
+  project: https://github.com/hwandam77/Knowledge-Base-Hybrid-RAG
+  branch: main
+config:
+  description: Configure PostgreSQL database and Ollama LLM connection for Knowledge Base RAG
+  secrets:
+    - name: knowledge-base-hybrid-rag.db_password
+      env: DB_PASSWORD
+      example: your_secure_password
+  env:
+    - name: DB_HOST
+      example: "10.5.5.10"
+      value: "{{knowledge-base-hybrid-rag.db_host}}"
+    - name: DB_PORT
+      example: "5432"
+      value: "{{knowledge-base-hybrid-rag.db_port}}"
+    - name: DB_NAME
+      example: "knowledge_base_db"
+      value: "{{knowledge-base-hybrid-rag.db_name}}"
+    - name: DB_USER
+      example: "postgres"
+      value: "{{knowledge-base-hybrid-rag.db_user}}"
+    - name: LOCAL_OLLAMA_URL
+      example: "http://host.docker.internal:11434"
+      value: "{{knowledge-base-hybrid-rag.ollama_url}}"
+    - name: EMBEDDING_MODEL
+      example: "qwen3-embedding:0.6b"
+      value: "{{knowledge-base-hybrid-rag.embedding_model}}"
+    - name: LLM_MODEL
+      example: "gemma3:12b"
+      value: "{{knowledge-base-hybrid-rag.llm_model}}"
+    - name: KB_PROJECT
+      example: "default"
+      value: "{{knowledge-base-hybrid-rag.kb_project}}"
+  parameters:
+    type: object
+    properties:
+      db_host:
+        type: string
+        description: PostgreSQL host address
+      db_port:
+        type: string
+        description: PostgreSQL port
+      db_name:
+        type: string
+        description: Database name
+      db_user:
+        type: string
+        description: Database username
+      ollama_url:
+        type: string
+        description: Ollama API endpoint URL
+      embedding_model:
+        type: string
+        description: Ollama embedding model name
+      llm_model:
+        type: string
+        description: Ollama LLM model name
+      kb_project:
+        type: string
+        description: Project isolation key
+    required:
+      - db_host
