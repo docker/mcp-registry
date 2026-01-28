@@ -5,10 +5,49 @@ meta:
   category: devops
   tags:
     - devops
+    - ros2
+    - robotics
 about:
-  title: WiseVision ROS2
+  title: WiseVision ROS2 MCP Server
   description: Python server implementing Model Context Protocol (MCP) for ROS2.
   icon: https://avatars.githubusercontent.com/u/85994630?v=4
 source:
   project: https://github.com/wise-vision/mcp_server_ros_2
-  commit: 95ee6d8832c787ef1e10a7b9dfef8b06cac05e74
+run:
+  volumes:
+    - '{{ros2.custom_msgs_path}}:/app/custom_msgs'
+config:
+  description: Configure ROS2 MCP Server with custom messages and prompts
+  env:
+    - name: MCP_CUSTOM_PROMPTS
+      example: "false"
+      value: '{{ros2.custom_prompts}}'
+    - name: MCP_PROMPTS_LOCAL
+      example: "false"
+      value: '{{ros2.prompts_local}}'
+    - name: MCP_PROMPTS_PATH
+      example: /app/ros2_mcp_prompts
+      value: '{{ros2.prompts_path}}'
+    - name: MCP_PROMPTS_MODULE
+      example: extension_prompts
+      value: '{{ros2.prompts_module}}'
+  parameters:
+    type: object
+    properties:
+      custom_msgs_path:
+        type: string
+        description: Path to custom messages directory on host
+      custom_prompts:
+        type: string
+        description: Enable custom prompts (true/false)
+      prompts_local:
+        type: string
+        description: Use local prompts (true/false)
+      prompts_path:
+        type: string
+        description: Path to custom prompts directory inside container
+      prompts_module:
+        type: string
+        description: Name of the prompts module
+
+
