@@ -1,4 +1,4 @@
-# <img src="icon.svg" width="32" height="32" align="center" /> Python Code Sandbox
+﻿# <img src="icon.svg" width="32" height="32" align="center" /> Python Code Sandbox
 
 A secure and isolated Python execution environment implemented as an MCP server using Docker.
 
@@ -25,7 +25,7 @@ Add to your Claude Desktop config:
       "args": [
         "run", "-i", "--rm",
         "-v", "/var/run/docker.sock:/var/run/docker.sock",
-        "ghcr.io/li-xiu-qi/python-code-sandbox-mcp"
+        "aixiaoke/python-code-sandbox-mcp:latest"
       ]
     }
   }
@@ -44,4 +44,5 @@ Add to your Claude Desktop config:
 - [API Reference](https://github.com/li-xiu-qi/python-code-sandbox-mcp/blob/main/docs/en/API.md)
 
 ## Version
-Current: v0.2.0
+Current: v0.2.2
+
