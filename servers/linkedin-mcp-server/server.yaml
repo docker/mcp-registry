@@ -1,5 +1,5 @@
 name: linkedin-mcp-server
-image: stickerdaniel/linkedin-mcp-server:1.4.0
+image: stickerdaniel/linkedin-mcp-server:2.2.1
 type: server
 meta:
   category: business
@@ -16,21 +16,27 @@ about:
   icon: https://raw.githubusercontent.com/stickerdaniel/linkedin-mcp-server/main/assets/icons/linkedin.svg
 source:
   project: https://github.com/stickerdaniel/linkedin-mcp-server
-  commit: c54e3fa518d2b5cd827262159771b9d85a6eae13
+  commit: 58376cada70c7a73b80694dca645a5bcd92bd18e
 config:
-  description: Configure LinkedIn authentication and optional user agent
+  description: Configure LinkedIn authentication and optional settings
   secrets:
     - name: linkedin-mcp-server.cookie
       env: LINKEDIN_COOKIE
       example: AQETADxR7bsCqpZlAAACm-lNHKAAA...
-      description: See the [Getting the LinkedIn Cookie](https://github.com/stickerdaniel/linkedin-mcp-server?tab=readme-ov-file#getting-the-linkedin-cookie) section in the documentation
+      description: See [Cookie Authentication](https://github.com/stickerdaniel/linkedin-mcp-server#option-1-cookie-authentication-simplest) in the documentation
   env:
     - name: USER_AGENT
       example: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
       value: "{{linkedin-mcp-server.user_agent}}"
+    - name: TIMEOUT
+      example: "10000"
+      value: "{{linkedin-mcp-server.timeout}}"
   parameters:
     type: object
     properties:
       user_agent:
         type: string
-        description: Custom user agent string (optional, helps avoid detection and cookie login issues)
+        description: Custom user agent string (optional, helps avoid detection)
+      timeout:
+        type: integer
+        description: Browser timeout in milliseconds (default 5000, increase for slow connections)
