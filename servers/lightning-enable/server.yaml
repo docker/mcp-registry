@@ -1,0 +1,49 @@
+name: lightning-enable
+image: lightningenable/mcp
+type: server
+meta:
+  category: finance
+  tags:
+    - lightning
+    - bitcoin
+    - payments
+    - l402
+    - wallet
+about:
+  title: Lightning Enable
+  description: Pay Lightning invoices and access L402-protected APIs from AI agents. The payment layer for the agentic internet.
+  icon: https://lightningenable.com/images/icon-192.png
+source:
+  project: https://github.com/refined-element/lightning-enable
+  directory: mcp/python/lightning-enable-mcp
+config:
+  description: Configure your Lightning wallet connection
+  secrets:
+    - name: lightning-enable.nwc_connection_string
+      env: NWC_CONNECTION_STRING
+      example: nostr+walletconnect://...
+    - name: lightning-enable.opennode_api_key
+      env: OPENNODE_API_KEY
+      example: YOUR_OPENNODE_API_KEY
+    - name: lightning-enable.strike_api_key
+      env: STRIKE_API_KEY
+      example: YOUR_STRIKE_API_KEY
+    - name: lightning-enable.api_key
+      env: LIGHTNING_ENABLE_API_KEY
+      example: YOUR_API_KEY_FOR_L402_FEATURES
+  env:
+    - name: L402_MAX_SATS_PER_REQUEST
+      example: "1000"
+      value: "{{lightning-enable.max_sats_per_request}}"
+    - name: L402_MAX_SATS_PER_SESSION
+      example: "10000"
+      value: "{{lightning-enable.max_sats_per_session}}"
+  parameters:
+    type: object
+    properties:
+      max_sats_per_request:
+        type: string
+        default: "1000"
+      max_sats_per_session:
+        type: string
+        default: "10000"
