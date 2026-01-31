@@ -19,8 +19,10 @@ The payment layer for AI agents. Pay Lightning invoices, manage spending budgets
 
 | Tier | Price | Tools |
 |------|-------|-------|
-| FREE | $0 | pay_invoice, check_wallet_balance, get_payment_history, get_budget_status |
+| FREE | $0 | pay_invoice, check_wallet_balance, get_payment_history, get_budget_status, get_all_balances, create_invoice, check_invoice_status, exchange_currency*, get_btc_price* |
 | PAID | 6,000 sats one-time | access_l402_resource, pay_l402_challenge |
+
+*Strike wallet only
 
 ## Documentation
 
