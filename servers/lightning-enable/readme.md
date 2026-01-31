@@ -36,4 +36,4 @@ The payment layer for AI agents. Pay Lightning invoices, manage spending budgets
 - **GitHub**: https://github.com/refined-element/lightning-enable
 - **PyPI**: https://pypi.org/project/lightning-enable-mcp
 - **NuGet**: https://nuget.org/packages/LightningEnable.Mcp
-- **Docker**: https://hub.docker.com/r/lightningenable/mcp
+- **Docker**: https://hub.docker.com/r/refinedelement/lightning-enable-mcp
