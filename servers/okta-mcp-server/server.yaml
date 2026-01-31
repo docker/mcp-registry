@@ -1,0 +1,61 @@
+name: okta-mcp-server
+image: mcp/okta-mcp-server
+type: server
+meta:
+  category: ai
+  tags:
+    - ai
+    - okta
+    - identity
+    - access-management
+    - security
+    - authentication
+    - audit
+    - compliance
+    - enterprise
+about:
+  title: Okta
+  description: Okta MCP Server
+  icon: https://avatars.githubusercontent.com/u/362460?v=4
+source:
+  project: https://github.com/okta/okta-mcp-server
+  commit: 9a7e9092063d776dffd86ebd7529c957ca439380
+run:
+  volumes:
+    - "{{okta-mcp-server.}}:/root/.local/share/python_keyring"
+    - "{{okta-mcp-server.}}:/app/logs"
+config:
+  description: Configure the connection to Okta MCP Server
+  secrets:
+    - name: okta-mcp-server.OKTA_PRIVATE_KEY
+      env: OKTA_ORG_URL
+      example: <OKTA_ORG_URL>
+  env:
+    - name: OKTA_CLIENT_ID
+      example: 0oa12345bcde
+      value: "{{okta-mcp-server.okta_client_id}}"
+    - name: OKTA_SCOPES
+      example: okta.users.read okta.groups.read
+      value: "{{okta-mcp-server.okta_scopes}}"
+    - name: OKTA_KEY_ID
+      example: 0oa12345bcde
+      value: "{{okta-mcp-server.okta_key_id}}"
+    - name: OKTA_LOG_LEVEL
+      example: DEBUG
+      value: "{{okta-mcp-server.okta_log_level}}"
+    - name: OKTA_LOG_FILE
+      example: /app/logs/okta.log
+      value: "{{okta-mcp-server.okta_log_file}}"
+  parameters:
+    type: object
+    properties:
+      oktaclientid:
+        type: string
+      oktascopes:
+        type: string
+      oktakeyid:
+        type: string
+      oktaloglevel:
+        type: string
+      oktalogfile:
+        type: string
