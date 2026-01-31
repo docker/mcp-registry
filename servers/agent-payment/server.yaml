@@ -1,0 +1,58 @@
+name: agent-payment
+image: mcp/agent-payment
+type: server
+meta:
+  category: finance
+  tags:
+    - payments
+    - blockchain
+    - usdc
+    - stablecoin
+    - base
+    - budget-control
+    - ai-agents
+    - automation
+about:
+  title: AgentPMT - AI Agent Payment System
+  description: Secure USDC payments for AI agents on Base blockchain with budget controls and instant settlement. Enable AI agents to make real-world payments autonomously.
+  icon: https://agentpmt.com/favicon.ico
+source:
+  project: https://github.com/Abraxas1010/agent-payment-mcp
+network:
+  hosts:
+    - api.agentpmt.com:443
+config:
+  description: |
+    Configure your AgentPMT API credentials to enable payment capabilities.
+
+    Get your API credentials from https://agentpmt.com:
+    1. Sign up for an AgentPMT account
+    2. Create an API key from your dashboard
+    3. Create a budget key to control spending limits
+
+    The server dynamically loads available payment tools from the AgentPMT marketplace
+    based on your account configuration and budget allocation.
+  secrets:
+    - name: agent-payment.api_key
+      env: AGENT_PAYMENT_API_KEY
+      example: your-api-key-here
+    - name: agent-payment.budget_key
+      env: AGENT_PAYMENT_BUDGET_KEY
+      example: your-budget-key-here
+  env:
+    - name: AGENT_PAYMENT_API_KEY
+      value: '{{agent-payment.api_key}}'
+    - name: AGENT_PAYMENT_BUDGET_KEY
+      value: '{{agent-payment.budget_key}}'
+  parameters:
+    type: object
+    properties:
+      api_key:
+        type: string
+        description: Your AgentPMT API key for authentication
+      budget_key:
+        type: string
+        description: Your AgentPMT budget key for spending control
+    required:
+      - api_key
+      - budget_key
