@@ -1,0 +1,96 @@
+name: snowflake
+image: mcp/snowflake
+type: server
+dynamic:
+  tools: true
+meta:
+  category: database
+  tags:
+    - snowflake
+    - database
+    - data-warehouse
+    - ai
+    - cortex
+about:
+  title: Snowflake Cortex AI
+  description: Integrate Snowflake Cortex AI capabilities including Cortex Search for RAG applications, Cortex Analyst for semantic querying, Cortex Agent for data orchestration, and SQL execution with permission controls.
+  icon: https://www.google.com/s2/favicons?domain=snowflake.com&sz=64
+source:
+  project: https://github.com/Snowflake-Labs/mcp
+  commit: 0a358969baf5f07260614d33426bd4fd76a5adee
+  dockerfile: docker/server/Dockerfile
+run:
+  command:
+    - mcp-server-snowflake
+    - --service-config-file
+    - /app/services/configuration.yaml
+    - --transport
+    - stdio
+    - --authenticator
+    - "{{snowflake.authenticator}}"
+    - --connection-name
+    - "{{snowflake.connection_name}}"
+  volumes:
+    - "{{snowflake.config_file}}:/app/services/configuration.yaml"
+config:
+  description: Configure Snowflake authentication and service settings. Supports both password and keypair authentication methods. You must provide a configuration.yaml file to configure which Cortex services and permissions are available. See https://github.com/Snowflake-Labs/mcp/blob/main/services/configuration.yaml for an example configuration file.
+  secrets:
+    - name: snowflake.account
+      env: SNOWFLAKE_ACCOUNT
+      example: your_account_identifier
+    - name: snowflake.user
+      env: SNOWFLAKE_USER
+      example: your_username
+    - name: snowflake.password
+      env: SNOWFLAKE_PASSWORD
+      example: your_password
+    - name: snowflake.private_key
+      env: SNOWFLAKE_PRIVATE_KEY
+      example: "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+    - name: snowflake.private_key_file_pwd
+      env: SNOWFLAKE_PRIVATE_KEY_FILE_PWD
+      example: your_private_key_password
+    - name: snowflake.passcode
+      env: SNOWFLAKE_PASSCODE
+      example: "123456"
+  env:
+    - name: SNOWFLAKE_ROLE
+      example: ""
+      value: "{{snowflake.role}}"
+    - name: SNOWFLAKE_WAREHOUSE
+      example: ""
+      value: "{{snowflake.warehouse}}"
+    - name: SNOWFLAKE_PRIVATE_KEY_FILE
+      example: ""
+      value: "{{snowflake.private_key_file}}"
+    - name: SNOWFLAKE_HOST
+      example: ""
+      value: "{{snowflake.host}}"
+  parameters:
+    type: object
+    properties:
+      config_file:
+        type: string
+        title: "Service Configuration File"
+        description: "Path to configuration.yaml file defining Cortex services (Agent, Search, Analyst), permissions, and SQL statement controls. See https://github.com/Snowflake-Labs/mcp/blob/main/services/configuration.yaml for an example."
+      role:
+        type: string
+        description: Snowflake role to use (optional)
+      warehouse:
+        type: string
+        description: Snowflake warehouse to use (optional)
+      private_key_file:
+        type: string
+        description: Path to private key file for keypair authentication (optional)
+      host:
+        type: string
+        description: Snowflake host URL (optional)
+      authenticator:
+        type: string
+        description: Authentication type (default is 'snowflake', also supports 'externalbrowser', 'oauth', 'snowflake_jwt')
+        default: snowflake
+      connection_name:
+        type: string
+        description: Name of connection from connections.toml file (optional)
+    required:
+      - config_file
