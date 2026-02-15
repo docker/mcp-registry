@@ -1,6 +1,7 @@
 name: serena
 image: mcp/serena
 type: server
+longLived: true
 meta:
   category: development
   tags:
@@ -21,10 +22,21 @@ source:
   project: https://github.com/oraios/serena
   commit: 15f60a0b1f3dfc8f653b15a0057c3baf55447a4b
 run:
+  command:
+    - --transport
+    - "{{serena.transport}}"
+    - --host
+    - "0.0.0.0"
+    - --port
+    - "{{serena.port}}"
   volumes:
     - "{{serena.project_path|volume-target}}:/workspace"
+  ports:
+    - "{{serena.port}}:{{serena.port}}"
 config:
-  description: Configure the path to the project you want Serena to work on
+  description: >
+    Configure Serena's project path and transport mode.
+    Defaults to SSE transport so the same running instance can switch between projects.
   parameters:
     type: object
     properties:
@@ -32,5 +44,17 @@ config:
         type: string
         description: Path to the project directory for Serena to analyze
         default: /Users/demo/sources
+      transport:
+        type: string
+        description: "Transport protocol for the MCP server (sse allows switching projects with the same instance)"
+        enum:
+          - sse
+          - stdio
+          - streamable-http
+        default: sse
+      port:
+        type: string
+        description: "Listen port for the MCP server (used with sse and streamable-http transports)"
+        default: "8000"
     required:
       - project_path
