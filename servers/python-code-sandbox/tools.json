@@ -1,0 +1,71 @@
+[
+  {
+    "name": "run_python_ephemeral",
+    "description": "Run Python code in a brand-new disposable container and return stdout/stderr + generated files.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "code": { "type": "string", "description": "Python source code to execute" },
+        "dependencies": { "type": "array", "items": { "type": "string" }, "description": "Pip packages to install" }
+      },
+      "required": ["code"]
+    }
+  },
+  {
+    "name": "sandbox_initialize",
+    "description": "Start a fresh sandbox container and return its ID.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "image": { "type": "string", "description": "Docker image for the sandbox (default: python:3.11-slim)" }
+      }
+    }
+  },
+  {
+    "name": "run_python",
+    "description": "Execute Python code inside an existing sandbox session.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "container_id": { "type": "string", "description": "The ID of the running sandbox" },
+        "code": { "type": "string", "description": "Python source code to run" },
+        "dependencies": { "type": "array", "items": { "type": "string" }, "description": "Pip packages to install" }
+      },
+      "required": ["container_id", "code"]
+    }
+  },
+  {
+    "name": "search_pypi_packages",
+    "description": "Search for packages on PyPI to find exact dependency names.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": { "type": "string", "description": "Search term" }
+      },
+      "required": ["query"]
+    }
+  },
+  {
+    "name": "sandbox_exec",
+    "description": "Run raw shell commands inside the sandbox.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "container_id": { "type": "string", "description": "The ID of the running sandbox" },
+        "commands": { "type": "array", "items": { "type": "string" }, "description": "List of shell commands" }
+      },
+      "required": ["container_id", "commands"]
+    }
+  },
+  {
+    "name": "sandbox_stop",
+    "description": "Terminate and remove a persistent sandbox container.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "container_id": { "type": "string", "description": "The ID of the sandbox to stop" }
+      },
+      "required": ["container_id"]
+    }
+  }
+]
