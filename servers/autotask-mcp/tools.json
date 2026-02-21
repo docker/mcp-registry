@@ -1,0 +1,442 @@
+[
+  {
+    "name": "autotask_test_connection",
+    "description": "Test the connection to Autotask API",
+    "arguments": []
+  },
+  {
+    "name": "autotask_search_companies",
+    "description": "Search for companies in Autotask. Returns 25 results per page by default. Use page parameter for more results.",
+    "arguments": [
+      {"name": "searchTerm", "type": "string", "desc": "Search term for company name"},
+      {"name": "isActive", "type": "boolean", "desc": "Filter by active status"},
+      {"name": "page", "type": "number", "desc": "Page number for pagination (default: 1)"},
+      {"name": "pageSize", "type": "number", "desc": "Results per page (default: 25, max: 200)"}
+    ]
+  },
+  {
+    "name": "autotask_create_company",
+    "description": "Create a new company in Autotask",
+    "arguments": [
+      {"name": "companyName", "type": "string", "desc": "Company name"},
+      {"name": "companyType", "type": "number", "desc": "Company type ID"},
+      {"name": "phone", "type": "string", "desc": "Company phone number"},
+      {"name": "address1", "type": "string", "desc": "Company address line 1"},
+      {"name": "city", "type": "string", "desc": "Company city"},
+      {"name": "state", "type": "string", "desc": "Company state/province"},
+      {"name": "postalCode", "type": "string", "desc": "Company postal/ZIP code"},
+      {"name": "ownerResourceID", "type": "number", "desc": "Owner resource ID"},
+      {"name": "isActive", "type": "boolean", "desc": "Whether the company is active"}
+    ]
+  },
+  {
+    "name": "autotask_update_company",
+    "description": "Update an existing company in Autotask",
+    "arguments": [
+      {"name": "id", "type": "number", "desc": "Company ID to update"},
+      {"name": "companyName", "type": "string", "desc": "Company name"},
+      {"name": "phone", "type": "string", "desc": "Company phone number"},
+      {"name": "address1", "type": "string", "desc": "Company address line 1"},
+      {"name": "city", "type": "string", "desc": "Company city"},
+      {"name": "state", "type": "string", "desc": "Company state/province"},
+      {"name": "postalCode", "type": "string", "desc": "Company postal/ZIP code"},
+      {"name": "isActive", "type": "boolean", "desc": "Whether the company is active"}
+    ]
+  },
+  {
+    "name": "autotask_search_contacts",
+    "description": "Search for contacts in Autotask. Returns 25 results per page by default. Use page parameter for more results.",
+    "arguments": [
+      {"name": "searchTerm", "type": "string", "desc": "Search term for contact name or email"},
+      {"name": "companyID", "type": "number", "desc": "Filter by company ID"},
+      {"name": "isActive", "type": "number", "desc": "Filter by active status (1=active, 0=inactive)"},
+      {"name": "page", "type": "number", "desc": "Page number for pagination (default: 1)"},
+      {"name": "pageSize", "type": "number", "desc": "Results per page (default: 25, max: 200)"}
+    ]
+  },
+  {
+    "name": "autotask_create_contact",
+    "description": "Create a new contact in Autotask",
+    "arguments": [
+      {"name": "companyID", "type": "number", "desc": "Company ID for the contact"},
+      {"name": "firstName", "type": "string", "desc": "Contact first name"},
+      {"name": "lastName", "type": "string", "desc": "Contact last name"},
+      {"name": "emailAddress", "type": "string", "desc": "Contact email address"},
+      {"name": "phone", "type": "string", "desc": "Contact phone number"},
+      {"name": "title", "type": "string", "desc": "Contact job title"}
+    ]
+  },
+  {
+    "name": "autotask_search_tickets",
+    "description": "Search for tickets in Autotask. Returns 25 results per page by default. Use get_ticket_details for full data on a specific ticket.",
+    "arguments": [
+      {"name": "searchTerm", "type": "string", "desc": "Search by ticket number prefix"},
+      {"name": "companyID", "type": "number", "desc": "Filter by company ID"},
+      {"name": "status", "type": "number", "desc": "Filter by ticket status ID (omit for all open tickets)"},
+      {"name": "assignedResourceID", "type": "number", "desc": "Filter by assigned resource ID"},
+      {"name": "unassigned", "type": "boolean", "desc": "Set to true to find unassigned tickets"},
+      {"name": "createdAfter", "type": "string", "desc": "Filter tickets created on or after this date (ISO format)"},
+      {"name": "createdBefore", "type": "string", "desc": "Filter tickets created on or before this date (ISO format)"},
+      {"name": "lastActivityAfter", "type": "string", "desc": "Filter tickets with activity on or after this date (ISO format)"},
+      {"name": "page", "type": "number", "desc": "Page number for pagination (default: 1)"},
+      {"name": "pageSize", "type": "number", "desc": "Results per page (default: 25, max: 500)"}
+    ]
+  },
+  {
+    "name": "autotask_get_ticket_details",
+    "description": "Get detailed information for a specific ticket by ID",
+    "arguments": [
+      {"name": "ticketID", "type": "number", "desc": "Ticket ID to retrieve"},
+      {"name": "fullDetails", "type": "boolean", "desc": "Whether to return full ticket details (default: false)"}
+    ]
+  },
+  {
+    "name": "autotask_create_ticket",
+    "description": "Create a new ticket in Autotask",
+    "arguments": [
+      {"name": "companyID", "type": "number", "desc": "Company ID for the ticket"},
+      {"name": "title", "type": "string", "desc": "Ticket title"},
+      {"name": "description", "type": "string", "desc": "Ticket description"},
+      {"name": "status", "type": "number", "desc": "Ticket status ID"},
+      {"name": "priority", "type": "number", "desc": "Ticket priority ID"},
+      {"name": "assignedResourceID", "type": "number", "desc": "Assigned resource ID"},
+      {"name": "contactID", "type": "number", "desc": "Contact ID for the ticket"}
+    ]
+  },
+  {
+    "name": "autotask_create_time_entry",
+    "description": "Create a time entry in Autotask",
+    "arguments": [
+      {"name": "ticketID", "type": "number", "desc": "Ticket ID for the time entry"},
+      {"name": "taskID", "type": "number", "desc": "Task ID for the time entry (optional, for project work)"},
+      {"name": "resourceID", "type": "number", "desc": "Resource ID (user) logging the time"},
+      {"name": "dateWorked", "type": "string", "desc": "Date worked (YYYY-MM-DD format)"},
+      {"name": "startDateTime", "type": "string", "desc": "Start date/time (ISO format)"},
+      {"name": "endDateTime", "type": "string", "desc": "End date/time (ISO format)"},
+      {"name": "hoursWorked", "type": "number", "desc": "Number of hours worked"},
+      {"name": "summaryNotes", "type": "string", "desc": "Summary notes for the time entry"},
+      {"name": "internalNotes", "type": "string", "desc": "Internal notes for the time entry"}
+    ]
+  },
+  {
+    "name": "autotask_search_projects",
+    "description": "Search for projects in Autotask. Returns 25 results per page by default.",
+    "arguments": [
+      {"name": "searchTerm", "type": "string", "desc": "Search term for project name"},
+      {"name": "companyID", "type": "number", "desc": "Filter by company ID"},
+      {"name": "status", "type": "number", "desc": "Filter by project status"},
+      {"name": "projectLeadResourceID", "type": "number", "desc": "Filter by project lead resource ID"},
+      {"name": "page", "type": "number", "desc": "Page number for pagination (default: 1)"},
+      {"name": "pageSize", "type": "number", "desc": "Results per page (default: 25, max: 100)"}
+    ]
+  },
+  {
+    "name": "autotask_create_project",
+    "description": "Create a new project in Autotask",
+    "arguments": [
+      {"name": "companyID", "type": "number", "desc": "Company ID for the project"},
+      {"name": "projectName", "type": "string", "desc": "Project name"},
+      {"name": "description", "type": "string", "desc": "Project description"},
+      {"name": "status", "type": "number", "desc": "Project status (1=New, 2=In Progress, 5=Complete)"},
+      {"name": "startDate", "type": "string", "desc": "Project start date (YYYY-MM-DD)"},
+      {"name": "endDate", "type": "string", "desc": "Project end date (YYYY-MM-DD)"},
+      {"name": "projectLeadResourceID", "type": "number", "desc": "Project manager resource ID"},
+      {"name": "estimatedHours", "type": "number", "desc": "Estimated hours for the project"}
+    ]
+  },
+  {
+    "name": "autotask_search_resources",
+    "description": "Search for resources (users) in Autotask. Returns 25 results per page by default.",
+    "arguments": [
+      {"name": "searchTerm", "type": "string", "desc": "Search term for resource name or email"},
+      {"name": "isActive", "type": "boolean", "desc": "Filter by active status"},
+      {"name": "resourceType", "type": "number", "desc": "Filter by resource type (1=Employee, 2=Contractor, 3=Temporary)"},
+      {"name": "page", "type": "number", "desc": "Page number for pagination (default: 1)"},
+      {"name": "pageSize", "type": "number", "desc": "Results per page (default: 25, max: 500)"}
+    ]
+  },
+  {
+    "name": "autotask_get_ticket_note",
+    "description": "Get a specific ticket note by ticket ID and note ID",
+    "arguments": [
+      {"name": "ticketId", "type": "number", "desc": "The ticket ID"},
+      {"name": "noteId", "type": "number", "desc": "The note ID to retrieve"}
+    ]
+  },
+  {
+    "name": "autotask_search_ticket_notes",
+    "description": "Search for notes on a specific ticket",
+    "arguments": [
+      {"name": "ticketId", "type": "number", "desc": "The ticket ID to search notes for"},
+      {"name": "pageSize", "type": "number", "desc": "Number of results to return (default: 25, max: 100)"}
+    ]
+  },
+  {
+    "name": "autotask_create_ticket_note",
+    "description": "Create a new note for a ticket",
+    "arguments": [
+      {"name": "ticketId", "type": "number", "desc": "The ticket ID to add the note to"},
+      {"name": "title", "type": "string", "desc": "Note title"},
+      {"name": "description", "type": "string", "desc": "Note content"},
+      {"name": "noteType", "type": "number", "desc": "Note type (1=General, 2=Appointment, 3=Task, 4=Ticket, 5=Project, 6=Opportunity)"},
+      {"name": "publish", "type": "number", "desc": "Publish level (1=Internal Only, 2=All Autotask Users, 3=Everyone)"}
+    ]
+  },
+  {
+    "name": "autotask_get_project_note",
+    "description": "Get a specific project note by project ID and note ID",
+    "arguments": [
+      {"name": "projectId", "type": "number", "desc": "The project ID"},
+      {"name": "noteId", "type": "number", "desc": "The note ID to retrieve"}
+    ]
+  },
+  {
+    "name": "autotask_search_project_notes",
+    "description": "Search for notes on a specific project",
+    "arguments": [
+      {"name": "projectId", "type": "number", "desc": "The project ID to search notes for"},
+      {"name": "pageSize", "type": "number", "desc": "Number of results to return (default: 25, max: 100)"}
+    ]
+  },
+  {
+    "name": "autotask_create_project_note",
+    "description": "Create a new note for a project",
+    "arguments": [
+      {"name": "projectId", "type": "number", "desc": "The project ID to add the note to"},
+      {"name": "title", "type": "string", "desc": "Note title"},
+      {"name": "description", "type": "string", "desc": "Note content"},
+      {"name": "noteType", "type": "number", "desc": "Note type (1=General, 2=Appointment, 3=Task, 4=Ticket, 5=Project, 6=Opportunity)"}
+    ]
+  },
+  {
+    "name": "autotask_get_company_note",
+    "description": "Get a specific company note by company ID and note ID",
+    "arguments": [
+      {"name": "companyId", "type": "number", "desc": "The company ID"},
+      {"name": "noteId", "type": "number", "desc": "The note ID to retrieve"}
+    ]
+  },
+  {
+    "name": "autotask_search_company_notes",
+    "description": "Search for notes on a specific company",
+    "arguments": [
+      {"name": "companyId", "type": "number", "desc": "The company ID to search notes for"},
+      {"name": "pageSize", "type": "number", "desc": "Number of results to return (default: 25, max: 100)"}
+    ]
+  },
+  {
+    "name": "autotask_create_company_note",
+    "description": "Create a new note for a company",
+    "arguments": [
+      {"name": "companyId", "type": "number", "desc": "The company ID to add the note to"},
+      {"name": "title", "type": "string", "desc": "Note title"},
+      {"name": "description", "type": "string", "desc": "Note content"},
+      {"name": "actionType", "type": "number", "desc": "Action type for the note"}
+    ]
+  },
+  {
+    "name": "autotask_get_ticket_attachment",
+    "description": "Get a specific ticket attachment by ticket ID and attachment ID",
+    "arguments": [
+      {"name": "ticketId", "type": "number", "desc": "The ticket ID"},
+      {"name": "attachmentId", "type": "number", "desc": "The attachment ID to retrieve"},
+      {"name": "includeData", "type": "boolean", "desc": "Whether to include base64 encoded file data (default: false)"}
+    ]
+  },
+  {
+    "name": "autotask_search_ticket_attachments",
+    "description": "Search for attachments on a specific ticket",
+    "arguments": [
+      {"name": "ticketId", "type": "number", "desc": "The ticket ID to search attachments for"},
+      {"name": "pageSize", "type": "number", "desc": "Number of results to return (default: 10, max: 50)"}
+    ]
+  },
+  {
+    "name": "autotask_get_expense_report",
+    "description": "Get a specific expense report by ID",
+    "arguments": [
+      {"name": "reportId", "type": "number", "desc": "The expense report ID to retrieve"}
+    ]
+  },
+  {
+    "name": "autotask_search_expense_reports",
+    "description": "Search for expense reports with optional filters",
+    "arguments": [
+      {"name": "submitterId", "type": "number", "desc": "Filter by submitter resource ID"},
+      {"name": "status", "type": "number", "desc": "Filter by status (1=New, 2=Submitted, 3=Approved, 4=Paid, 5=Rejected, 6=InReview)"},
+      {"name": "pageSize", "type": "number", "desc": "Number of results to return (default: 25, max: 100)"}
+    ]
+  },
+  {
+    "name": "autotask_create_expense_report",
+    "description": "Create a new expense report",
+    "arguments": [
+      {"name": "name", "type": "string", "desc": "Expense report name"},
+      {"name": "description", "type": "string", "desc": "Expense report description"},
+      {"name": "submitterId", "type": "number", "desc": "The resource ID of the submitter"},
+      {"name": "weekEndingDate", "type": "string", "desc": "Week ending date (YYYY-MM-DD format)"}
+    ]
+  },
+  {
+    "name": "autotask_get_quote",
+    "description": "Get a specific quote by ID",
+    "arguments": [
+      {"name": "quoteId", "type": "number", "desc": "The quote ID to retrieve"}
+    ]
+  },
+  {
+    "name": "autotask_search_quotes",
+    "description": "Search for quotes with optional filters",
+    "arguments": [
+      {"name": "companyId", "type": "number", "desc": "Filter by company ID"},
+      {"name": "contactId", "type": "number", "desc": "Filter by contact ID"},
+      {"name": "opportunityId", "type": "number", "desc": "Filter by opportunity ID"},
+      {"name": "searchTerm", "type": "string", "desc": "Search term for quote name or description"},
+      {"name": "pageSize", "type": "number", "desc": "Number of results to return (default: 25, max: 100)"}
+    ]
+  },
+  {
+    "name": "autotask_create_quote",
+    "description": "Create a new quote",
+    "arguments": [
+      {"name": "name", "type": "string", "desc": "Quote name"},
+      {"name": "description", "type": "string", "desc": "Quote description"},
+      {"name": "companyId", "type": "number", "desc": "Company ID for the quote"},
+      {"name": "contactId", "type": "number", "desc": "Contact ID for the quote"},
+      {"name": "opportunityId", "type": "number", "desc": "Associated opportunity ID"},
+      {"name": "effectiveDate", "type": "string", "desc": "Effective date (YYYY-MM-DD format)"},
+      {"name": "expirationDate", "type": "string", "desc": "Expiration date (YYYY-MM-DD format)"}
+    ]
+  },
+  {
+    "name": "autotask_search_configuration_items",
+    "description": "Search for configuration items in Autotask with optional filters",
+    "arguments": [
+      {"name": "searchTerm", "type": "string", "desc": "Search term for configuration item name"},
+      {"name": "companyID", "type": "number", "desc": "Filter by company ID"},
+      {"name": "isActive", "type": "boolean", "desc": "Filter by active status"},
+      {"name": "productID", "type": "number", "desc": "Filter by product ID"},
+      {"name": "pageSize", "type": "number", "desc": "Number of results to return (default: 25, max: 500)"}
+    ]
+  },
+  {
+    "name": "autotask_search_contracts",
+    "description": "Search for contracts in Autotask with optional filters",
+    "arguments": [
+      {"name": "searchTerm", "type": "string", "desc": "Search term for contract name"},
+      {"name": "companyID", "type": "number", "desc": "Filter by company ID"},
+      {"name": "status", "type": "number", "desc": "Filter by contract status (1=In Effect, 3=Terminated)"},
+      {"name": "pageSize", "type": "number", "desc": "Number of results to return (default: 25, max: 500)"}
+    ]
+  },
+  {
+    "name": "autotask_search_invoices",
+    "description": "Search for invoices in Autotask with optional filters",
+    "arguments": [
+      {"name": "companyID", "type": "number", "desc": "Filter by company ID"},
+      {"name": "invoiceNumber", "type": "string", "desc": "Filter by invoice number"},
+      {"name": "isVoided", "type": "boolean", "desc": "Filter by voided status"},
+      {"name": "pageSize", "type": "number", "desc": "Number of results to return (default: 25, max: 500)"}
+    ]
+  },
+  {
+    "name": "autotask_search_tasks",
+    "description": "Search for tasks in Autotask. Returns 25 results per page by default.",
+    "arguments": [
+      {"name": "searchTerm", "type": "string", "desc": "Search term for task title"},
+      {"name": "projectID", "type": "number", "desc": "Filter by project ID"},
+      {"name": "status", "type": "number", "desc": "Filter by task status (1=New, 2=In Progress, 5=Complete)"},
+      {"name": "assignedResourceID", "type": "number", "desc": "Filter by assigned resource ID"},
+      {"name": "page", "type": "number", "desc": "Page number for pagination (default: 1)"},
+      {"name": "pageSize", "type": "number", "desc": "Results per page (default: 25, max: 100)"}
+    ]
+  },
+  {
+    "name": "autotask_create_task",
+    "description": "Create a new task in Autotask",
+    "arguments": [
+      {"name": "projectID", "type": "number", "desc": "Project ID for the task"},
+      {"name": "title", "type": "string", "desc": "Task title"},
+      {"name": "description", "type": "string", "desc": "Task description"},
+      {"name": "status", "type": "number", "desc": "Task status (1=New, 2=In Progress, 5=Complete)"},
+      {"name": "assignedResourceID", "type": "number", "desc": "Assigned resource ID"},
+      {"name": "estimatedHours", "type": "number", "desc": "Estimated hours for the task"},
+      {"name": "startDateTime", "type": "string", "desc": "Task start date/time (ISO format)"},
+      {"name": "endDateTime", "type": "string", "desc": "Task end date/time (ISO format)"}
+    ]
+  },
+  {
+    "name": "autotask_list_queues",
+    "description": "List all available ticket queues in Autotask. Use this to find queue IDs for filtering tickets by queue.",
+    "arguments": []
+  },
+  {
+    "name": "autotask_list_ticket_statuses",
+    "description": "List all available ticket statuses in Autotask. Use this to find status values for filtering or creating tickets.",
+    "arguments": []
+  },
+  {
+    "name": "autotask_list_ticket_priorities",
+    "description": "List all available ticket priorities in Autotask. Use this to find priority values for filtering or creating tickets.",
+    "arguments": []
+  },
+  {
+    "name": "autotask_get_field_info",
+    "description": "Get field definitions for an Autotask entity type, including picklist values. Useful for discovering valid values for any picklist field.",
+    "arguments": [
+      {"name": "entityType", "type": "string", "desc": "The Autotask entity type (e.g., Tickets, Companies, Contacts, Projects)"},
+      {"name": "fieldName", "type": "string", "desc": "Optional: filter to a specific field name"}
+    ]
+  },
+  {
+    "name": "autotask_search_billing_items",
+    "description": "Search for billing items in Autotask. Billing items represent approved and posted billable items from the Approve and Post workflow.",
+    "arguments": [
+      {"name": "companyId", "type": "number", "desc": "Filter by company ID"},
+      {"name": "ticketId", "type": "number", "desc": "Filter by ticket ID"},
+      {"name": "projectId", "type": "number", "desc": "Filter by project ID"},
+      {"name": "contractId", "type": "number", "desc": "Filter by contract ID"},
+      {"name": "invoiceId", "type": "number", "desc": "Filter by invoice ID"},
+      {"name": "postedAfter", "type": "string", "desc": "Filter items posted on or after this date (ISO format)"},
+      {"name": "postedBefore", "type": "string", "desc": "Filter items posted on or before this date (ISO format)"},
+      {"name": "page", "type": "number", "desc": "Page number for pagination (default: 1)"},
+      {"name": "pageSize", "type": "number", "desc": "Results per page (default: 25, max: 500)"}
+    ]
+  },
+  {
+    "name": "autotask_get_billing_item",
+    "description": "Get detailed information for a specific billing item by ID",
+    "arguments": [
+      {"name": "billingItemId", "type": "number", "desc": "The billing item ID to retrieve"}
+    ]
+  },
+  {
+    "name": "autotask_search_billing_item_approval_levels",
+    "description": "Search for billing item approval levels. These describe multi-level approval records for Autotask time entries.",
+    "arguments": [
+      {"name": "timeEntryId", "type": "number", "desc": "Filter by time entry ID"},
+      {"name": "approvalResourceId", "type": "number", "desc": "Filter by approver resource ID"},
+      {"name": "approvalLevel", "type": "number", "desc": "Filter by approval level (1, 2, 3, etc.)"},
+      {"name": "approvedAfter", "type": "string", "desc": "Filter approvals on or after this date (ISO format)"},
+      {"name": "approvedBefore", "type": "string", "desc": "Filter approvals on or before this date (ISO format)"},
+      {"name": "page", "type": "number", "desc": "Page number for pagination (default: 1)"},
+      {"name": "pageSize", "type": "number", "desc": "Results per page (default: 25, max: 500)"}
+    ]
+  },
+  {
+    "name": "autotask_search_time_entries",
+    "description": "Search for time entries in Autotask. Use approvalStatus=unapproved to find entries not yet posted.",
+    "arguments": [
+      {"name": "resourceId", "type": "number", "desc": "Filter by resource (user) ID"},
+      {"name": "ticketId", "type": "number", "desc": "Filter by ticket ID"},
+      {"name": "projectId", "type": "number", "desc": "Filter by project ID"},
+      {"name": "taskId", "type": "number", "desc": "Filter by task ID"},
+      {"name": "approvalStatus", "type": "string", "desc": "Filter by approval status: unapproved, approved, or all (default)"},
+      {"name": "billable", "type": "boolean", "desc": "Filter by billable status"},
+      {"name": "dateWorkedAfter", "type": "string", "desc": "Filter entries worked on or after this date (ISO format)"},
+      {"name": "dateWorkedBefore", "type": "string", "desc": "Filter entries worked on or before this date (ISO format)"},
+      {"name": "page", "type": "number", "desc": "Page number for pagination (default: 1)"},
+      {"name": "pageSize", "type": "number", "desc": "Results per page (default: 25, max: 500)"}
+    ]
+  }
+]
