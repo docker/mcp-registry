@@ -1,8 +1,8 @@
 name: Auto-merge Pin Upgrade PRs
 
-# This workflow automatically merges pin upgrade PRs for allowlisted servers
-# when all required checks pass. It triggers whenever any check run completes,
-# ensuring the workflow re-evaluates as each check finishes.
+# This workflow automatically merges pin upgrade PRs when all required checks
+# pass. It triggers whenever any check run completes, ensuring the workflow
+# re-evaluates as each check finishes.
 
 on:
   check_run:
@@ -26,7 +26,7 @@ permissions:
 
 jobs:
   auto-merge:
-    name: Auto-merge allowlisted servers
+    name: Auto-merge pin upgrades
     runs-on: ubuntu-latest
     # Only run if check_run succeeded and has associated PRs, or if manually triggered
     if: |
@@ -75,14 +75,9 @@ jobs:
           GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
         run: .github/pin-upgrade-auto-merge-helper-scripts/extract-server.sh "${{ steps.pr.outputs.pr_number }}"
 
-      - name: Check if server is in allowlist
-        id: allowlist
-        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true'
-        run: .github/pin-upgrade-auto-merge-helper-scripts/check-allowlist.sh "${{ steps.extract.outputs.server }}"
-
       - name: Wait for all checks to pass
         id: checks
-        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true'
+        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
         run: |
@@ -91,7 +86,7 @@ jobs:
             "${{ github.repository }}"
 
       - name: Comment on PR before merging
-        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true' && steps.checks.outputs.skip != 'true'
+        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.checks.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
         run: |
@@ -101,7 +96,7 @@ jobs:
             "${{ steps.extract.outputs.server }}"
 
       - name: Merge PR
-        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.allowlist.outputs.skip != 'true' && steps.checks.outputs.skip != 'true'
+        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.checks.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
         run: |
