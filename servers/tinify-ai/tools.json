@@ -1,0 +1,70 @@
+[
+  {
+    "name": "optimize_image",
+    "description": "Optimize an image: smart lossy compression (typically 60-80% size reduction), optional resize/upscale/format conversion, and AI-generated SEO metadata. Accepts absolute local file paths or remote URLs. Supported formats: JPG, PNG, WebP, AVIF, HEIC, TIFF, BMP (max 50 MB). Each call costs 3 credits + 1 if SEO tags enabled. Free tier: 20 credits/day, no signup.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "string",
+          "description": "Absolute local file path or remote URL of the image to optimize."
+        },
+        "output_path": {
+          "type": "string",
+          "description": "Where to save. Accepts a file path or directory ending in /. If omitted, saves next to the original."
+        },
+        "output_format": {
+          "type": "string",
+          "enum": ["original", "jpeg", "png", "webp"],
+          "description": "Output format. Defaults to 'original' (keep input format)."
+        },
+        "output_width_px": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Target width in pixels. Set only width for proportional resize."
+        },
+        "output_height_px": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Target height in pixels. Set only height for proportional resize."
+        },
+        "output_upscale_factor": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 10,
+          "description": "Upscale factor (e.g., 2.0 for 2x, 4.0 for 4x). Triggers AI upscaling."
+        },
+        "output_resize_behavior": {
+          "type": "string",
+          "enum": ["pad", "crop"],
+          "description": "When both width and height are set: 'pad' adds white padding (default), 'crop' smart-crops."
+        },
+        "output_seo_tag_gen": {
+          "type": "boolean",
+          "description": "Generate SEO metadata (alt text, keywords, filename). Costs 1 extra credit. Default: true."
+        }
+      },
+      "required": ["input"]
+    }
+  },
+  {
+    "name": "login",
+    "description": "Log in to your Tinify account via browser to unlock more credits. Free: 50 credits/day. Pro: 3,000/month. Max: 10,000/month.",
+    "inputSchema": { "type": "object", "properties": {} }
+  },
+  {
+    "name": "logout",
+    "description": "Log out of your Tinify account. Reverts to guest session (20 free credits/day).",
+    "inputSchema": { "type": "object", "properties": {} }
+  },
+  {
+    "name": "status",
+    "description": "Check your Tinify account status: login state, tier, credits remaining, and credit reset time.",
+    "inputSchema": { "type": "object", "properties": {} }
+  },
+  {
+    "name": "upgrade",
+    "description": "Open the Tinify pricing page in your browser to upgrade your plan for more credits.",
+    "inputSchema": { "type": "object", "properties": {} }
+  }
+]
