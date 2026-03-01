@@ -1,0 +1,67 @@
+name: scaffold
+image: mcp/scaffold
+type: server
+meta:
+  category: devops
+  tags:
+    - scaffold
+    - tools
+    - rag
+    - repository-level
+    - context-fetching
+    - large-codebase
+about:
+  title: Scaffold
+  description: Specialized RAG system that transforms codebase into living knowledge graph, capturing structural relationships between files, classes and functions.
+  icon: https://raw.githubusercontent.com/Beer-Bears/scaffold/main/docs/img/scaffold-square.jpg
+source:
+  project: https://github.com/Beer-Bears/scaffold
+  branch: main
+run:
+  volumes:
+    - '{{scaffold.project_path}}:/app/codebase'
+config:
+  description: Scaffold MCP Config 
+  env:
+    - name: CHROMA_SERVER_HOST
+      example: localhost
+      value: '{{scaffold.chroma_server_host}}'
+    - name: CHROMA_SERVER_PORT
+      example: 8000
+      value: '{{scaffold.chroma_server_port}}'
+    - name: CHROMA_COLLECTION_NAME
+      example: scaffold_data
+      value: '{{scaffold.chroma_collection_name}}'
+    - name: NEO4J_USER
+      example: neo4j
+      value: '{{scaffold.neo4j_user}}'
+    - name: NEO4J_PASSWORD
+      example: password
+      value: '{{scaffold.neo4j_password}}'
+    - name: NEO4J_URI
+      example: bolt://neo4j:password@scaffold-neo4j:7687
+      value: '{{scaffold.neo4j_uri}}'
+  parameters:
+    type: object
+    properties:
+      chroma_server_host:
+        type: string
+      chroma_server_port:
+        type: number
+      neo4j_user:
+        type: string
+      neo4j_password:
+        type: string
+      neo4j_uri:
+        type: string
+      project_path:
+        type: string
+        default:
+          $HOME/absolute_project_path
+    required:
+      - chroma_server_host
+      - chroma_server_port
+      - neo4j_user
+      - neo4j_password
+      - neo4j_uri
+      - project_path
