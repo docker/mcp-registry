@@ -1,0 +1,100 @@
+name: incident-triage-mcp
+image: mcp/incident-triage-mcp
+type: server
+
+meta:
+  category: devops
+  tags:
+    - incident-response
+    - observability
+    - workflow
+    - jira
+    - airflow
+
+about:
+  title: Incident Triage
+  description: >-
+    Evidence-driven incident triage tools with safe actions, ticketing,
+    notifications, and optional Airflow orchestration.
+  icon: https://raw.githubusercontent.com/felixkwasisarpong/incident-triage-mcp/main/docs/assets/icon.png
+
+source:
+  project: https://github.com/felixkwasisarpong/incident-triage-mcp
+  branch: main
+  commit: eeb1d95857b71fd7bced8575ea4a559417d211c9
+
+run:
+  command:
+    - incident-triage-mcp
+    - --transport=stdio
+  env:
+    WORKFLOW_BACKEND: none
+    EVIDENCE_BACKEND: fs
+    EVIDENCE_DIR: /evidence
+    RUNBOOKS_DIR: /runbooks
+    JIRA_PROVIDER: mock
+    BUNDLE_ONLY_MODE: "true"
+
+config:
+  description: >-
+    Configure optional workflow, ticketing, and notification integrations. Safe
+    defaults run standalone with mock Jira and local filesystem evidence.
+  secrets:
+    - name: incident-triage-mcp.jira-api-token
+      env: JIRA_API_TOKEN
+      example: atlassian_api_token_here
+      description: Jira Cloud API token when JIRA_PROVIDER=cloud.
+      required: false
+    - name: incident-triage-mcp.confirm-token
+      env: CONFIRM_TOKEN
+      example: change-me-confirm-token
+      description: Confirmation token for live safe actions.
+      required: false
+    - name: incident-triage-mcp.airflow-password
+      env: AIRFLOW_PASSWORD
+      example: airflow_password_here
+      description: Airflow API password when WORKFLOW_BACKEND=airflow.
+      required: false
+    - name: incident-triage-mcp.slack-webhook-url
+      env: SLACK_WEBHOOK_URL
+      example: https://hooks.slack.com/services/XXX/YYY/ZZZ
+      description: Slack incoming webhook URL.
+      required: false
+    - name: incident-triage-mcp.teams-webhook-url
+      env: TEAMS_WEBHOOK_URL
+      example: https://outlook.office.com/webhook/...
+      description: Teams incoming webhook URL.
+      required: false
+  env:
+    - name: WORKFLOW_BACKEND
+      example: airflow
+    - name: EVIDENCE_BACKEND
+      example: s3
+    - name: EVIDENCE_DIR
+      example: /evidence
+    - name: RUNBOOKS_DIR
+      example: /runbooks
+    - name: BUNDLE_ONLY_MODE
+      example: "true"
+    - name: AIRFLOW_BASE_URL
+      example: https://airflow.example.com
+    - name: AIRFLOW_USERNAME
+      example: admin
+    - name: AIRFLOW_API_VERSION
+      example: v2
+    - name: AIRFLOW_AUTH_MODE
+      example: token
+    - name: JIRA_PROVIDER
+      example: cloud
+    - name: JIRA_BASE_URL
+      example: https://your-org.atlassian.net
+    - name: JIRA_EMAIL
+      example: you@example.com
+    - name: JIRA_PROJECT_KEY
+      example: INC
+    - name: JIRA_ISSUE_TYPE
+      example: Task
+    - name: SLACK_DEFAULT_CHANNEL
+      example: "#incident-triage"
+    - name: TEAMS_DEFAULT_CHANNEL
+      example: Incident Triage
