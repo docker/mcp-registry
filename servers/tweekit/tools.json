@@ -1,0 +1,179 @@
+[
+  {
+    "name": "convert",
+    "description": "Eliminates agentic workflow blockers by converting any file format to AI-compatible output on-demand. Optimizes media for websites, documents, and applications. Supports 400+ input formats including legacy Office docs (DOC, XLS, PPT), modern Office (DOCX, XLSX, PPTX), Adobe files (PSD, AI, INDD), CAD formats (DWG, DXF), images (TIFF, RAW, EPS), and more. Can resize, crop, and apply transformations during conversion for instant optimization.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "apiKey": {
+          "type": "string",
+          "description": "TweekIT API key (falls back to TWEEKIT_API_KEY env var if omitted)"
+        },
+        "apiSecret": {
+          "type": "string",
+          "description": "TweekIT API secret (falls back to TWEEKIT_API_SECRET env var if omitted)"
+        },
+        "inext": {
+          "type": "string",
+          "description": "Input file extension (e.g., 'doc', 'xls', 'psd', 'dwg', 'tiff')"
+        },
+        "outfmt": {
+          "type": "string",
+          "description": "Desired output format: 'pdf', 'png', 'jpg', 'webp', 'gif', 'bmp', 'tiff'"
+        },
+        "blob": {
+          "type": "string",
+          "description": "Base64-encoded file data"
+        },
+        "noRasterize": {
+          "type": "boolean",
+          "description": "If true and outfmt is 'pdf', converts text documents to PDF without rasterizing (preserves text). Default: false"
+        },
+        "width": {
+          "type": "integer",
+          "description": "Desired width in pixels for optimization (0 = no resize). Default: 0"
+        },
+        "height": {
+          "type": "integer",
+          "description": "Desired height in pixels for optimization (0 = no resize). Default: 0"
+        },
+        "x1": {
+          "type": "integer",
+          "description": "Crop coordinate: left edge (negative = add padding). Default: 0"
+        },
+        "y1": {
+          "type": "integer",
+          "description": "Crop coordinate: top edge (negative = add padding). Default: 0"
+        },
+        "x2": {
+          "type": "integer",
+          "description": "Crop coordinate: right edge (>width = add padding). Default: 0"
+        },
+        "y2": {
+          "type": "integer",
+          "description": "Crop coordinate: bottom edge (>height = add padding). Default: 0"
+        },
+        "page": {
+          "type": "integer",
+          "description": "Page number to convert (for multi-page documents). Default: 1"
+        },
+        "alpha": {
+          "type": "boolean",
+          "description": "Preserve alpha channel if output format supports it. Default: true"
+        },
+        "bgColor": {
+          "type": "string",
+          "description": "Background color for padding or transparent areas (hex format, e.g., 'FFFFFF' or '#FFFFFF'). Default: '000000'"
+        }
+      },
+      "required": ["inext", "outfmt", "blob"]
+    }
+  },
+  {
+    "name": "convert_url",
+    "description": "Download and convert files from URLs on-demand, removing agentic workflow blockers. Optimizes media content for websites and applications without manual download steps. All conversion and optimization options from 'convert' tool are available. Perfect for processing web content or remote files instantly.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "apiKey": {
+          "type": "string",
+          "description": "TweekIT API key (falls back to TWEEKIT_API_KEY env var if omitted)"
+        },
+        "apiSecret": {
+          "type": "string",
+          "description": "TweekIT API secret (falls back to TWEEKIT_API_SECRET env var if omitted)"
+        },
+        "url": {
+          "type": "string",
+          "description": "HTTPS or HTTP URL pointing to the source file"
+        },
+        "outfmt": {
+          "type": "string",
+          "description": "Desired output format: 'pdf', 'png', 'jpg', 'webp', 'gif', 'bmp', 'tiff'"
+        },
+        "inext": {
+          "type": "string",
+          "description": "Optional: override input extension detection. If omitted, deduced from URL or content-type header"
+        },
+        "noRasterize": {
+          "type": "boolean",
+          "description": "If true and outfmt is 'pdf', converts text documents to PDF without rasterizing"
+        },
+        "width": {
+          "type": "integer",
+          "description": "Desired width in pixels for optimization"
+        },
+        "height": {
+          "type": "integer",
+          "description": "Desired height in pixels for optimization"
+        },
+        "page": {
+          "type": "integer",
+          "description": "Page number for multi-page documents"
+        },
+        "bgColor": {
+          "type": "string",
+          "description": "Background color (hex format)"
+        },
+        "fetchHeaders": {
+          "type": "object",
+          "description": "Optional HTTP headers to include when downloading (e.g., Authorization headers)"
+        }
+      },
+      "required": ["url", "outfmt"]
+    }
+  },
+  {
+    "name": "doctype",
+    "description": "Check if a file format is supported or list all 400+ supported input formats. Use this to validate file types before conversion or to discover what formats TweekIT can handle. Prevents workflow failures from unsupported formats.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "apiKey": {
+          "type": "string",
+          "description": "TweekIT API key (falls back to TWEEKIT_API_KEY env var if omitted)"
+        },
+        "apiSecret": {
+          "type": "string",
+          "description": "TweekIT API secret (falls back to TWEEKIT_API_SECRET env var if omitted)"
+        },
+        "extension": {
+          "type": "string",
+          "description": "File extension to check (e.g., 'doc', 'psd'), or use '*' to list all supported formats. Default: '*'"
+        }
+      }
+    }
+  },
+  {
+    "name": "search",
+    "description": "Perform a web search using DuckDuckGo to find public documents or images. Returns URLs that can be passed to 'convert_url' for on-demand processing and optimization. Useful for finding files to convert or gathering document links for agentic workflows.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "Search query string"
+        },
+        "max_results": {
+          "type": "integer",
+          "description": "Maximum number of results to return (default: 5, max: 10)"
+        }
+      },
+      "required": ["query"]
+    }
+  },
+  {
+    "name": "fetch",
+    "description": "Fetch content from a URL and return it in an appropriate format based on content-type. Images returned as image resources, PDFs as PDF resources, text/JSON as text objects. Useful for downloading files before processing or optimization.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "The HTTP or HTTPS URL to fetch"
+        }
+      },
+      "required": ["url"]
+    }
+  }
+]
