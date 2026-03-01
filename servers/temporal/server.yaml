@@ -15,7 +15,7 @@ source:
   project: https://github.com/GethosTheWalrus/temporal-mcp
   commit: 1505bbc6924924cf739386209eb306202398c496
 config:
-  description: Configure your temporal server address. Temporal is usually listening on port 7233 by default. For new Temporal users, the namespace should be set to 'default' and TLS should be disabled. Do not use other values unless you know what you are doing.
+  description: Configure your Temporal server address. For local Temporal, set the host to localhost:7233, namespace to 'default', and leave TLS settings blank. For Temporal Cloud, set the host to your namespace endpoint and authenticate via mTLS (cert + key paths) or an API key.
   env:
     - name: TEMPORAL_HOST
       example: localhost:7233
@@ -26,6 +26,15 @@ config:
     - name: TEMPORAL_TLS_ENABLED
       example: "false"
       value: "{{temporal.temporal_tls_enabled}}"
+    - name: TEMPORAL_TLS_CLIENT_CERT_PATH
+      example: /certs/client.pem
+      value: "{{temporal.temporal_tls_client_cert_path}}"
+    - name: TEMPORAL_TLS_CLIENT_KEY_PATH
+      example: /certs/client.key
+      value: "{{temporal.temporal_tls_client_key_path}}"
+    - name: TEMPORAL_API_KEY
+      example: ""
+      value: "{{temporal.temporal_api_key}}"
   parameters:
     type: object
     properties:
@@ -34,4 +43,10 @@ config:
       temporal_namespace:
         type: string
       temporal_tls_enabled:
+        type: string
+      temporal_tls_client_cert_path:
+        type: string
+      temporal_tls_client_key_path:
+        type: string
+      temporal_api_key:
         type: string
