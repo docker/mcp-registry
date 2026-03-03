@@ -1,0 +1,49 @@
+[
+  {
+    "name": "validate",
+    "description": "Evaluate OPA policy against a proposed infrastructure operation. Call BEFORE executing destructive commands (kubectl apply, terraform apply, helm install, argocd sync, oc apply). Returns allow/deny decision with risk level, reasons, and a cryptographically signed evidence record. If allow=false, the operation MUST be blocked.",
+    "arguments": [
+      {
+        "name": "actor",
+        "type": "object",
+        "desc": "Invocation initiator identity. Required fields: type (human|agent|ci), id (actor identifier), origin (mcp|cli|api)."
+      },
+      {
+        "name": "tool",
+        "type": "string",
+        "desc": "Execution tool name: kubectl, terraform, helm, argocd, or oc. Use the tool that performs the mutation, not the manifest generator."
+      },
+      {
+        "name": "operation",
+        "type": "string",
+        "desc": "Operation being performed (e.g. apply, delete, plan, sync)."
+      },
+      {
+        "name": "environment",
+        "type": "string",
+        "desc": "Target environment label for environment-specific policy (e.g. production, staging). Optional; defaults to server default."
+      },
+      {
+        "name": "params",
+        "type": "object",
+        "desc": "Operation parameters including payload. The payload can be a native Kubernetes manifest or a flat internal shape; Evidra canonicalizes it before policy evaluation."
+      },
+      {
+        "name": "context",
+        "type": "object",
+        "desc": "Optional free-form context metadata about the request origin."
+      }
+    ]
+  },
+  {
+    "name": "get_event",
+    "description": "Retrieve a previously recorded evidence event by its identifier. Returns the full evidence record including decision, risk level, reasons, and signature.",
+    "arguments": [
+      {
+        "name": "event_id",
+        "type": "string",
+        "desc": "Evidence event identifier (ULID format)."
+      }
+    ]
+  }
+]
