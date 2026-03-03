@@ -30,12 +30,30 @@ for ((i = 1; i <= MAX_ATTEMPTS; i++)); do
     exit 1
   fi
 
-  # Cycle auto-merge off/on every attempt to unstick it
+  # Cycle auto-merge off/on to unstick it
   echo "Cycling auto-merge for PR #$pr_number..."
   gh pr merge "$pr_number" --disable-auto || true
   sleep 5
-  gh pr merge "$pr_number" --squash --auto
+
+  # Re-check state before re-enabling — PR may have merged during the gap
+  state=$(gh pr view "$pr_number" --json state --jq '.state')
+  if [ "$state" = "MERGED" ]; then
+    echo "Successfully merged PR #$pr_number"
+    exit 0
+  fi
+
+  if [ "$state" = "OPEN" ]; then
+    gh pr merge "$pr_number" --squash --auto
+  fi
 done
 
-echo "PR #$pr_number was not merged after $((MAX_ATTEMPTS * POLL_INTERVAL))s. Giving up."
+# Final check — the last cycle may have unstuck the merge
+sleep "$POLL_INTERVAL"
+state=$(gh pr view "$pr_number" --json state --jq '.state')
+if [ "$state" = "MERGED" ]; then
+  echo "Successfully merged PR #$pr_number"
+  exit 0
+fi
+
+echo "PR #$pr_number was not merged after ~$((MAX_ATTEMPTS * 20))s. Giving up."
 exit 1
