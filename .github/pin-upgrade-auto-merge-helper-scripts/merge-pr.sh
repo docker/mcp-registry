@@ -9,7 +9,7 @@ if [ -z "$pr_number" ]; then
 fi
 
 POLL_INTERVAL=15
-MAX_ATTEMPTS=20  # 20 * 15s = 5 minutes total
+MAX_ATTEMPTS=9  # 9 * ~20s = ~3 minutes total
 
 echo "Enabling auto-merge for PR #$pr_number..."
 gh pr merge "$pr_number" --squash --auto
