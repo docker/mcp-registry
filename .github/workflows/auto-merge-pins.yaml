@@ -99,13 +99,7 @@ jobs:
         if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.checks.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
-        run: |
-          pr_number="${{ steps.pr.outputs.pr_number }}"
-
-          # Use squash merge to keep history clean
-          gh pr merge "$pr_number" --squash --auto
-
-          echo "Successfully merged PR #$pr_number"
+        run: .github/pin-upgrade-auto-merge-helper-scripts/merge-pr.sh "${{ steps.pr.outputs.pr_number }}"
 
       - name: Handle merge failure
         if: failure() && steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true'
