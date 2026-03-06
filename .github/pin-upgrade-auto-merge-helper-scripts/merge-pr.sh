@@ -8,52 +8,33 @@ if [ -z "$pr_number" ]; then
   exit 1
 fi
 
-POLL_INTERVAL=15
-MAX_ATTEMPTS=9  # 9 * ~20s = ~3 minutes total
-
-echo "Enabling auto-merge for PR #$pr_number..."
-gh pr merge "$pr_number" --squash --auto
+MAX_ATTEMPTS=5
+RETRY_DELAY=10
 
 for ((i = 1; i <= MAX_ATTEMPTS; i++)); do
-  sleep "$POLL_INTERVAL"
+  echo "Attempt $i/$MAX_ATTEMPTS: merging PR #$pr_number..."
 
-  state=$(gh pr view "$pr_number" --json state --jq '.state')
-  echo "Attempt $i/$MAX_ATTEMPTS: PR #$pr_number state is '$state'"
-
-  if [ "$state" = "MERGED" ]; then
+  if gh pr merge "$pr_number" --squash 2>&1; then
     echo "Successfully merged PR #$pr_number"
     exit 0
   fi
 
-  if [ "$state" != "OPEN" ]; then
-    echo "PR #$pr_number is in unexpected state '$state', aborting."
-    exit 1
-  fi
+  if [ "$i" -lt "$MAX_ATTEMPTS" ]; then
+    echo "Merge failed, retrying in ${RETRY_DELAY}s..."
+    sleep "$RETRY_DELAY"
 
-  # Cycle auto-merge off/on to unstick it
-  echo "Cycling auto-merge for PR #$pr_number..."
-  gh pr merge "$pr_number" --disable-auto || true
-  sleep 5
-
-  # Re-check state before re-enabling — PR may have merged during the gap
-  state=$(gh pr view "$pr_number" --json state --jq '.state')
-  if [ "$state" = "MERGED" ]; then
-    echo "Successfully merged PR #$pr_number"
-    exit 0
-  fi
-
-  if [ "$state" = "OPEN" ]; then
-    gh pr merge "$pr_number" --squash --auto
+    # Bail out if the PR is no longer open (e.g. closed or already merged)
+    state=$(gh pr view "$pr_number" --json state --jq '.state')
+    if [ "$state" = "MERGED" ]; then
+      echo "PR #$pr_number was merged by another process"
+      exit 0
+    fi
+    if [ "$state" != "OPEN" ]; then
+      echo "PR #$pr_number is in unexpected state '$state', aborting."
+      exit 1
+    fi
   fi
 done
 
-# Final check — the last cycle may have unstuck the merge
-sleep "$POLL_INTERVAL"
-state=$(gh pr view "$pr_number" --json state --jq '.state')
-if [ "$state" = "MERGED" ]; then
-  echo "Successfully merged PR #$pr_number"
-  exit 0
-fi
-
-echo "PR #$pr_number was not merged after ~$((MAX_ATTEMPTS * 20))s. Giving up."
+echo "Failed to merge PR #$pr_number after $MAX_ATTEMPTS attempts."
 exit 1
