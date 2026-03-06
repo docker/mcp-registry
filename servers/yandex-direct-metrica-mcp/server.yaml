@@ -1,0 +1,66 @@
+name: yandex-direct-metrica-mcp
+image: mcp/yandex-direct-metrica-mcp
+type: server
+meta:
+  category: data-visualization
+  tags:
+    - yandex
+    - direct
+    - metrica
+    - wordstat
+    - audience
+    - analytics
+    - dashboard
+about:
+  title: Yandex Direct Metrica Wordstat Audience
+  description: Public read-only analytics for Yandex Direct, Metrica, Wordstat, and Audience with joins and dashboards.
+  icon: https://www.google.com/s2/favicons?domain=yandex.ru&sz=64
+source:
+  project: https://github.com/georgy-agaev/yandex-direct-metrica-mcp
+  commit: 1ab02a94eca00436a217a7cc5d1579f98cea0927
+run:
+  env:
+    MCP_PUBLIC_READONLY: "true"
+    MCP_CONTENT_MODE: json
+    MCP_ACCOUNTS_FILE: /data/accounts.json
+  volumes:
+    - "{{yandex-direct-metrica-mcp.state_dir}}:/data"
+config:
+  description: Configure the Yandex OAuth token and local state folder for accounts.json and dashboard artifacts.
+  secrets:
+    - name: yandex-direct-metrica-mcp.yandex_access_token
+      env: YANDEX_ACCESS_TOKEN
+      example: ya29.****
+    - name: yandex-direct-metrica-mcp.yandex_wordstat_access_token
+      env: YANDEX_WORDSTAT_ACCESS_TOKEN
+      example: ya29.****
+    - name: yandex-direct-metrica-mcp.yandex_audience_access_token
+      env: YANDEX_AUDIENCE_ACCESS_TOKEN
+      example: ya29.****
+  env:
+    - name: YANDEX_DIRECT_CLIENT_LOGIN
+      example: example-client-login
+      value: "{{yandex-direct-metrica-mcp.direct_client_login}}"
+    - name: YANDEX_METRICA_COUNTER_IDS
+      example: "12345678,23456789"
+      value: "{{yandex-direct-metrica-mcp.metrica_counter_ids}}"
+  parameters:
+    type: object
+    properties:
+      state_dir:
+        type: string
+        title: State Folder (Host Path)
+        description: Host folder mounted to /data (accounts.json, cache, dashboard HTML/JSON)
+        default: /Users/username/mcp-state/yandex-direct-metrica-mcp
+      direct_client_login:
+        type: string
+        title: Default Direct Client Login
+        description: Optional default Client-Login for Direct API calls (can be overridden per tool call)
+        default: ""
+      metrica_counter_ids:
+        type: string
+        title: Default Metrica Counter IDs
+        description: Optional allow-list (comma-separated) for Metrica counters used by joins and dashboards
+        default: ""
+    required:
+      - state_dir
