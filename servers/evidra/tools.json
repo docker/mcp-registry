@@ -1,48 +1,74 @@
 [
   {
-    "name": "validate",
-    "description": "Evaluate OPA policy against a proposed infrastructure operation. Call BEFORE executing destructive commands (kubectl apply, terraform apply, helm install, argocd sync, oc apply). Returns allow/deny decision with risk level, reasons, and a cryptographically signed evidence record. If allow=false, the operation MUST be blocked.",
+    "name": "prescribe",
+    "description": "Record infrastructure intent before a mutation. Use it before operations like kubectl apply, terraform apply, helm upgrade, docker build, argocd sync, or oc apply. Returns a prescription_id, risk level, and artifact context for the later report step.",
     "arguments": [
-      {
-        "name": "actor",
-        "type": "object",
-        "desc": "Invocation initiator identity. Required fields: type (human|agent|ci), id (actor identifier), origin (mcp|cli|api)."
-      },
       {
         "name": "tool",
         "type": "string",
-        "desc": "Execution tool name: kubectl, terraform, helm, argocd, or oc. Use the tool that performs the mutation, not the manifest generator."
+        "desc": "Infrastructure tool name such as kubectl, terraform, helm, docker, argocd, or oc."
       },
       {
         "name": "operation",
         "type": "string",
-        "desc": "Operation being performed (e.g. apply, delete, plan, sync)."
+        "desc": "Mutation operation such as apply, destroy, upgrade, sync, build, or delete."
+      },
+      {
+        "name": "raw_artifact",
+        "type": "string",
+        "desc": "Raw artifact content such as a YAML manifest, Terraform plan JSON, or other operation payload."
+      },
+      {
+        "name": "actor",
+        "type": "object",
+        "desc": "Actor identity. Required fields are type, id, and origin."
       },
       {
         "name": "environment",
         "type": "string",
-        "desc": "Target environment label for environment-specific policy (e.g. production, staging). Optional; defaults to server default."
+        "desc": "Optional environment label such as production or staging."
+      }
+    ]
+  },
+  {
+    "name": "report",
+    "description": "Record the terminal outcome after an infrastructure operation completes or is deliberately declined. Use it exactly once for each prescription_id returned by prescribe.",
+    "arguments": [
+      {
+        "name": "prescription_id",
+        "type": "string",
+        "desc": "Identifier returned by prescribe."
       },
       {
-        "name": "params",
-        "type": "object",
-        "desc": "Operation parameters including payload. The payload can be a native Kubernetes manifest or a flat internal shape; Evidra canonicalizes it before policy evaluation."
+        "name": "verdict",
+        "type": "string",
+        "desc": "Terminal result: success, failure, error, or declined."
       },
       {
-        "name": "context",
+        "name": "exit_code",
+        "type": "integer",
+        "desc": "Exit code for success, failure, or error outcomes."
+      },
+      {
+        "name": "decision_context",
         "type": "object",
-        "desc": "Optional free-form context metadata about the request origin."
+        "desc": "Required for declined verdicts. Include trigger and reason."
+      },
+      {
+        "name": "actor",
+        "type": "object",
+        "desc": "Optional actor identity, usually matching the prescribe actor."
       }
     ]
   },
   {
     "name": "get_event",
-    "description": "Retrieve a previously recorded evidence event by its identifier. Returns the full evidence record including decision, risk level, reasons, and signature.",
+    "description": "Retrieve a previously recorded evidence event by event_id for debugging, correlation, or audit lookup.",
     "arguments": [
       {
         "name": "event_id",
         "type": "string",
-        "desc": "Evidence event identifier (ULID format)."
+        "desc": "Evidence event identifier."
       }
     ]
   }

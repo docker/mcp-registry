@@ -1,31 +1,28 @@
 # Evidra
 
-Designed for AI agents operating your infrastructure.
-Fail-closed policy guardrails for AI agents running kubectl, terraform, helm, argocd, and oc.
+Flight recorder for AI agents that touch infrastructure.
 
 ## Overview
 
-Evidra is a kill-switch for AI agents managing infrastructure. Experimenting with AI in staging? Add a kill-switch first. Blocks dangerous ops. Allows safe ones. Every decision logged.
+Evidra records what an agent intended to do, what it actually did, and what it deliberately refused to do. It produces an append-only evidence chain around infrastructure mutations and returns reliability context through MCP.
 
-## What it catches
+This Docker MCP Registry entry runs the `evidra-mcp` stdio server for local-first usage in Docker Desktop and the MCP Toolkit.
 
-- Protected namespace deletions (e.g. kube-system, default)
-- Mass resource removal
-- Public S3 bucket creation
-- Wildcard IAM policies
-- Dangerous ArgoCD sync operations
-- Other high-impact infrastructure mistakes
+## MCP tools
 
-## Key features
+- `prescribe` records intent before an infrastructure mutation
+- `report` records the terminal outcome or deliberate refusal
+- `get_event` looks up a previously recorded evidence event
 
-- **Zero-config**: embedded OPA policy bundle, works out of the box
-- **Fail-closed**: if policy evaluation fails, the operation is blocked
-- **Deterministic**: pure OPA/Rego rules, no LLM in the decision loop
-- **Evidence trail**: every allow/deny decision logged with cryptographic signatures
-- **Lightweight**: focused on catastrophic scenarios, not a full compliance engine
+## Runtime behavior
+
+- starts in local-first mode
+- sets `EVIDRA_SIGNING_MODE=optional` so the image works without an external signing key
+- can forward evidence to a self-hosted Evidra API if the client provides `EVIDRA_URL` and `EVIDRA_API_KEY`
 
 ## Links
 
 - [GitHub Repository](https://github.com/vitas/evidra)
-- [Security Model](https://github.com/vitas/evidra/blob/main/docs/SECURITY_MODEL.md)
+- [MCP Setup Guide](https://github.com/vitas/evidra/blob/main/docs/guides/mcp-setup.md)
+- [MCP Registry Publication Guide](https://github.com/vitas/evidra/blob/main/docs/guides/mcp-registry-publication.md)
 - [Landing Page](https://evidra.samebits.com)
