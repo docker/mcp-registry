@@ -1,12 +1,22 @@
 # Google Sheets MCP Server
 
-A fully-featured MCP server that lets AI agents interact with Google Sheets via the Google Sheets API v4. Supports **Service Account** (recommended for Docker) and **OAuth 2.0** (for personal use) — auto-detected based on which file is present.
+A fully-featured MCP server that lets AI agents interact with Google Sheets via the Google Sheets API v4. Supports **three authentication methods** — auto-detected based on what's available.
 
 ## Authentication
 
-### ✅ Option A — Service Account (Recommended for Docker)
+The server detects which method to use in this priority order:
 
-Best for Docker, teams, and automation. No browser login required.
+| Priority | Method | How | Best for |
+|----------|--------|-----|----------|
+| 1st | `GOOGLE_SERVICE_ACCOUNT_JSON` env var | Docker Desktop config UI | ✅ Easiest — Docker users |
+| 2nd | `service_account.json` file | Volume mount | ✅ Teams, automation |
+| 3rd | `credentials.json` file | Volume mount + browser login | ✅ Personal, local dev |
+
+---
+
+### ⭐ Option A — Docker Desktop Config UI (Easiest)
+
+If you're using **Docker Desktop with the MCP Toolkit**, paste your Service Account JSON directly in the Configuration tab — no file mounting needed.
 
 **Step 1 — Create a Google Cloud Project**
 1. Go to [console.cloud.google.com](https://console.cloud.google.com/)
@@ -17,20 +27,33 @@ Best for Docker, teams, and automation. No browser login required.
 2. Search for **Google Sheets API** and click **Enable**
 
 **Step 3 — Create a Service Account**
-1. Go to **APIs & Services → Credentials**
-2. Click **Create Credentials → Service Account**
-3. Give it a name, click **Create and Continue**, then **Done**
+1. Go to **IAM & Admin → Service Accounts**
+2. Click **Create Service Account**, give it a name, click **Create and Continue**, then **Done**
 
 **Step 4 — Download the JSON Key**
 1. Click on your new service account → **Keys** tab
 2. Click **Add Key → Create new key → JSON**
-3. Rename the downloaded file to `service_account.json`
+3. Open the downloaded file and copy the entire contents
 
 **Step 5 — Share your Sheet with the Service Account**
-> ⚠️ Important: The service account can only access sheets explicitly shared with it.
-1. Open `service_account.json` and copy the `client_email` value
+> ⚠️ The service account can only access sheets explicitly shared with it.
+1. In the JSON file, find the `client_email` value (e.g. `sheets-mcp@my-project.iam.gserviceaccount.com`)
 2. Open your Google Sheet → click **Share**
 3. Paste the `client_email` and give it **Editor** access
+
+**Step 6 — Configure in Docker Desktop**
+1. Open **Docker Desktop → MCP Toolkit → Catalog → Google Sheets**
+2. Go to the **Configuration** tab
+3. Paste the full JSON contents into the **Google Service Account JSON** field
+4. Click **Save** — done! 🎉
+
+---
+
+### ✅ Option B — Service Account File (Docker / Teams)
+
+Same as Option A but using a mounted file instead of the config UI.
+
+**Steps 1–5** — Same as Option A above.
 
 **Step 6 — Run**
 ```bash
@@ -42,9 +65,11 @@ docker run -i --rm \
   mcp/google-sheets
 ```
 
+No browser login needed! 🎉
+
 ---
 
-### ✅ Option B — OAuth 2.0 (Personal / Local Use)
+### ✅ Option C — OAuth 2.0 (Personal / Local Use)
 
 Best for personal Google accounts and local development. Requires a one-time browser login.
 
