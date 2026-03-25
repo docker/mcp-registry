@@ -61,57 +61,68 @@ jobs:
       - name: Validate PR is from bot and ready for merge
         id: validate
         if: steps.pr.outputs.skip != 'true'
+        env:
+          PR_AUTHOR: ${{ steps.pr.outputs.author }}
+          PR_STATE: ${{ steps.pr.outputs.state }}
+          PR_IS_DRAFT: ${{ steps.pr.outputs.is_draft }}
+          PR_LABELS: ${{ steps.pr.outputs.labels }}
         run: |
           .github/pin-upgrade-auto-merge-helper-scripts/validate-pr.sh \
-            "${{ steps.pr.outputs.author }}" \
-            "${{ steps.pr.outputs.state }}" \
-            "${{ steps.pr.outputs.is_draft }}" \
-            "${{ steps.pr.outputs.labels }}"
+            "$PR_AUTHOR" \
+            "$PR_STATE" \
+            "$PR_IS_DRAFT" \
+            "$PR_LABELS"
 
       - name: Extract server name from changed files
         id: extract
         if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
-        run: .github/pin-upgrade-auto-merge-helper-scripts/extract-server.sh "${{ steps.pr.outputs.pr_number }}"
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+        run: .github/pin-upgrade-auto-merge-helper-scripts/extract-server.sh "$PR_NUMBER"
 
       - name: Wait for all checks to pass
         id: checks
         if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          REPO: ${{ github.repository }}
         run: |
           .github/pin-upgrade-auto-merge-helper-scripts/wait-for-checks.sh \
-            "${{ steps.pr.outputs.pr_number }}" \
-            "${{ github.repository }}"
+            "$PR_NUMBER" \
+            "$REPO"
 
       - name: Comment on PR before merging
         if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.checks.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          SERVER: ${{ steps.extract.outputs.server }}
         run: |
           .github/pin-upgrade-auto-merge-helper-scripts/comment-pr.sh \
             success \
-            "${{ steps.pr.outputs.pr_number }}" \
-            "${{ steps.extract.outputs.server }}"
+            "$PR_NUMBER" \
+            "$SERVER"
 
       - name: Merge PR
         if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.checks.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
-        run: .github/pin-upgrade-auto-merge-helper-scripts/merge-pr.sh "${{ steps.pr.outputs.pr_number }}"
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+        run: .github/pin-upgrade-auto-merge-helper-scripts/merge-pr.sh "$PR_NUMBER"
 
       - name: Handle merge failure
         if: failure() && steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          pr_number="${{ steps.pr.outputs.pr_number }}"
-
-          if [ -n "$pr_number" ]; then
+          if [ -n "$PR_NUMBER" ]; then
             .github/pin-upgrade-auto-merge-helper-scripts/comment-pr.sh \
               failure \
-              "$pr_number" \
+              "$PR_NUMBER" \
               "" \
-              "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              "$WORKFLOW_URL"
           fi
