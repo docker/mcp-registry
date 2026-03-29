@@ -1,0 +1,53 @@
+name: cabin-flights
+image: mcp/cabin-flights
+type: server
+meta:
+  category: travel
+  tags:
+    - travel
+    - flights
+    - booking
+    - crypto
+    - payments
+    - ai-agent
+about:
+  title: Cabin Flights
+  description: AI-first travel booking with natural language. Search and book real flights with crypto micropayments (x402).
+  icon: https://raw.githubusercontent.com/yolo-maxi/cabin/main/packages/agent/assets/cabin-icon.png
+source:
+  project: https://github.com/yolo-maxi/cabin
+  commit: 864eb49797ef63f08a2f0a2b9211880d4d489604
+  subfolder: packages/agent
+config:
+  description: Configure x402 wallet and network settings for flight booking payments
+  secrets:
+    - name: cabin-flights.x402_private_key
+      env: X402_PRIVATE_KEY
+      example: 0x1234567890abcdef1234567890abcdef12345678
+  env:
+    - name: CABIN_API_URL
+      example: https://api.cabin.team
+      value: '{{cabin-flights.cabin_api_url}}'
+    - name: X402_NETWORK
+      example: base
+      value: '{{cabin-flights.x402_network}}'
+    - name: LOG_LEVEL
+      example: info
+      value: '{{cabin-flights.log_level}}'
+  parameters:
+    type: object
+    properties:
+      cabin_api_url:
+        type: string
+        default: "https://api.cabin.team"
+      x402_network:
+        type: string
+        default: "base"
+        enum: ["base", "ethereum", "polygon"]
+      log_level:
+        type: string
+        default: "info"
+        enum: ["debug", "info", "warn", "error"]
+    required:
+      - cabin_api_url
+      - x402_network
