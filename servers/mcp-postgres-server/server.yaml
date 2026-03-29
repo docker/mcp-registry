@@ -1,0 +1,56 @@
+name: mcp-postgres-server
+image: noquieono/mcp-postgres-server:latest
+type: server
+meta:
+  category: database
+  tags:
+    - postgres
+    - postgresql
+    - database
+    - sql
+    - ai
+run:
+  allowHosts:
+    - "*:5432"
+    - "*:5433"
+    - "*:443"
+about:
+  title: PostgreSQL
+  description: >
+    A production-ready MCP server that gives AI assistants direct, safe access
+    to your PostgreSQL database. Read-only by default (SELECT queries), with
+    optional write access. Includes schema introspection tools to list schemas,
+    tables, and describe table structure with columns, primary keys, foreign keys,
+    and indexes.
+  icon: https://www.postgresql.org/media/img/about/press/elephant.png
+source:
+  project: https://github.com/madmarin/mcp-postgres-server
+  commit: e285bda9cf35db2d1479505d07738d4594895517
+config:
+  description: Configure the connection to your PostgreSQL database
+  secrets:
+    - name: mcp-postgres-server.database_url
+      env: DATABASE_URL
+      example: postgresql+psycopg://user:password@localhost:5432/mydb
+      description: "Full PostgreSQL connection string. URL-encode special characters in the password."
+  env:
+    - name: ALLOW_WRITE
+      example: "false"
+      value: "{{mcp-postgres-server.allow_write}}"
+      description: "Set to true to enable INSERT, UPDATE, DELETE and DDL statements. Defaults to false (read-only)."
+    - name: QUERY_TIMEOUT
+      example: "30.0"
+      value: "{{mcp-postgres-server.query_timeout}}"
+      description: "Per-statement timeout in seconds."
+  parameters:
+    type: object
+    properties:
+      allow_write:
+        type: string
+        description: "Enable write operations (INSERT, UPDATE, DELETE, DDL)"
+        default: "false"
+        enum: ["true", "false"]
+      query_timeout:
+        type: string
+        description: "Per-statement timeout in seconds"
+        default: "30.0"
