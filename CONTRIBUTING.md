@@ -198,11 +198,91 @@ running the server.
 
 ### 4️⃣ Wait for review and approval
 
-Upon approval your entry will be processed and it will be available in 24 hours at:
+Once your PR is approved and merged:
+
+1. **For Docker-built images (`image: mcp/...`)**: Docker's infrastructure will automatically:
+   - Build your image from the pinned commit
+   - Sign it with cryptographic signatures
+   - Generate provenance and SBOM
+   - Publish to Docker Hub's `mcp/` namespace
+
+2. **For custom images**: Your image will be referenced as-is from your registry
+
+**Timeline**: Your entry will be processed and available within 24 hours at:
 
 - [MCP catalog](https://hub.docker.com/mcp)
 - [Docker Desktop's MCP Toolkit](https://www.docker.com/products/docker-desktop/)
 - [Docker Hub `mcp` namespace](https://hub.docker.com/u/mcp) (for MCP servers built by Docker)
+
+**Future Updates**: Once your server is in the registry, see [Updating Your MCP Server](#updating-your-mcp-server) section below for how to update it to new versions.
+
+---
+
+## 🔄 Updating Your MCP Server
+
+### Updating the Commit Hash/Pin
+
+After your MCP server is accepted into the registry, you have two options for updating it to a new version:
+
+#### Option A: Automated Updates (Recommended for Docker-Built Images)
+
+For servers using Docker-built images (those with `image: mcp/your-server-name`), the registry includes an automated system that keeps your server up to date:
+
+1. **Automated Pin Updates**: A nightly GitHub Action (runs at 5 AM UTC) automatically checks all Docker-built servers for new commits on their configured branch
+2. **Automatic PR Creation**: When a newer commit is detected, the bot creates a pull request updating the `source.commit` field in your `server.yaml`
+3. **PR Review and Merge**: The PR is created automatically, but review and merging are performed manually by the Docker team
+4. **Image Build**: Once the PR is merged to `main`, Docker's infrastructure automatically:
+   - Detects the change to `server.yaml`
+   - Builds the Docker image from the new pinned commit
+   - Signs the image with cryptographic signatures
+   - Generates provenance and SBOM (Software Bill of Materials)
+   - Publishes to Docker Hub's `mcp/` namespace
+5. **Availability**: The new image is typically available within **24 hours** of the PR being merged
+
+**What you need to do**: Nothing! Just push new commits to your repository's default branch (usually `main`). The automated system will handle the rest.
+
+**Note**: Automated updates only work for servers that:
+- Use Docker-built images (`image` starts with `mcp/`)
+- Are hosted on GitHub
+- Have a pinned commit (`source.commit` field)
+- Have a configured branch (defaults to `main`)
+
+#### Option B: Manual Update via PR
+
+If you want to update immediately or your server doesn't qualify for automated updates, you can manually update the commit hash:
+
+1. **Update your fork**: Make changes to `servers/your-server-name/server.yaml`
+2. **Change the commit hash**: Update the `source.commit` field to your new commit SHA
+
+   To get the latest commit hash from your repository, you can use:
+
+   ```bash
+   git ls-remote https://github.com/<username/orgname>/mcp-repo-name.git HEAD | awk '{print $1}'
+   ```
+
+   Replace `<username/orgname>` and `mcp-repo-name` with your actual repository details.
+
+3. **Create a PR**: Open a pull request with your changes
+4. **Wait for approval**: The Docker team will review and merge your PR
+5. **Image build**: After merge, Docker's infrastructure will build and publish the new image (same process as Option A)
+
+### Timeline Summary
+
+- **Automated pin update PR created**: Daily at ~5 AM UTC (when new commits are detected)
+- **PR review and merge**: Varies (typically within a few days)
+- **Image build triggered**: Immediately after PR merge (detected by Docker's infrastructure)
+- **Image available in Docker Hub**: Within 24 hours of PR merge
+
+### Troubleshooting
+
+**Q: My server uses a custom image (not `mcp/` namespace). Can I still get automated updates?**
+A: No, automated updates only work for Docker-built images. You'll need to manually update the commit hash via PR, or update your server.yaml to use the `mcp/` namespace instead.
+
+**Q: How do I check if my pin update PR was created?**
+A: Check for PRs with the title pattern `chore: update pin for {your-server-name}` or branches named `automation/update-pin-{your-server-name}`.
+
+**Q: The automated system hasn't created a PR yet. What should I do?**
+A: The system runs daily. If you need an immediate update, you can manually create a PR to update the commit hash.
 
 ---
 
