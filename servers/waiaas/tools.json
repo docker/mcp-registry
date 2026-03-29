@@ -1,0 +1,473 @@
+[
+  {
+    "name": "connect_info",
+    "description": "Get self-discovery info: accessible wallets, policies, capabilities, and AI-ready prompt. Call this first to understand your environment.",
+    "arguments": []
+  },
+  {
+    "name": "get_wallet_info",
+    "description": "Get wallet info including chain, address, environment, and available networks.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"}
+    ]
+  },
+  {
+    "name": "get_address",
+    "description": "Get the public address of the wallet.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier (optional)"}
+    ]
+  },
+  {
+    "name": "get_balance",
+    "description": "Get the current balance of the wallet.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier (optional)"}
+    ]
+  },
+  {
+    "name": "get_assets",
+    "description": "Get all assets (native + tokens) held by the wallet.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier (optional)"}
+    ]
+  },
+  {
+    "name": "send_token",
+    "description": "Send SOL/ETH or tokens from the wallet.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "to", "type": "string", "desc": "Recipient address"},
+      {"name": "amount", "type": "string", "desc": "Amount to send"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier"},
+      {"name": "type", "type": "string", "desc": "Transaction type: TRANSFER or TOKEN_TRANSFER"},
+      {"name": "token", "type": "string", "desc": "Token address (for TOKEN_TRANSFER)"}
+    ]
+  },
+  {
+    "name": "approve_token",
+    "description": "Approve a spender to transfer tokens on your behalf. Requires APPROVED_SPENDERS policy.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "token", "type": "string", "desc": "Token contract address"},
+      {"name": "spender", "type": "string", "desc": "Spender address"},
+      {"name": "amount", "type": "string", "desc": "Approval amount"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier"}
+    ]
+  },
+  {
+    "name": "call_contract",
+    "description": "Call a whitelisted smart contract. Requires CONTRACT_WHITELIST policy.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "to", "type": "string", "desc": "Contract address"},
+      {"name": "calldata", "type": "string", "desc": "Encoded calldata (hex)"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier"}
+    ]
+  },
+  {
+    "name": "encode_calldata",
+    "description": "Encode smart contract calldata from ABI function signature and arguments.",
+    "arguments": [
+      {"name": "functionSignature", "type": "string", "desc": "Function signature (e.g., transfer(address,uint256))"},
+      {"name": "args", "type": "string", "desc": "JSON array of arguments"}
+    ]
+  },
+  {
+    "name": "sign_message",
+    "description": "Sign an arbitrary message with the wallet private key.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "message", "type": "string", "desc": "Message to sign"}
+    ]
+  },
+  {
+    "name": "sign_transaction",
+    "description": "Sign an arbitrary transaction without broadcasting.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "transaction", "type": "string", "desc": "Transaction data"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier"}
+    ]
+  },
+  {
+    "name": "simulate_transaction",
+    "description": "Simulate a transaction without executing it. Returns policy tier, estimated fees, balance changes, and warnings.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "type", "type": "string", "desc": "Transaction type"},
+      {"name": "to", "type": "string", "desc": "Recipient address"},
+      {"name": "amount", "type": "string", "desc": "Amount"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier"}
+    ]
+  },
+  {
+    "name": "send_batch",
+    "description": "Send multiple instructions in a single atomic transaction (Solana only).",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "instructions", "type": "string", "desc": "JSON array of instructions"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier"}
+    ]
+  },
+  {
+    "name": "get_tokens",
+    "description": "Get registered tokens (builtin + custom) for a specific network.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier"}
+    ]
+  },
+  {
+    "name": "resolve_asset",
+    "description": "Resolve a CAIP-19 asset identifier to token metadata.",
+    "arguments": [
+      {"name": "assetId", "type": "string", "desc": "CAIP-19 asset identifier"}
+    ]
+  },
+  {
+    "name": "get_policies",
+    "description": "Get policies applied to the wallet. Shows spending limits, whitelists, rate limits, and other rules.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"}
+    ]
+  },
+  {
+    "name": "list_sessions",
+    "description": "List active sessions with pagination. Admin operation requiring master auth.",
+    "arguments": [
+      {"name": "limit", "type": "number", "desc": "Page size"},
+      {"name": "offset", "type": "number", "desc": "Offset for pagination"}
+    ]
+  },
+  {
+    "name": "list_transactions",
+    "description": "List transaction history with cursor-based pagination.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "cursor", "type": "string", "desc": "Cursor for pagination"},
+      {"name": "limit", "type": "number", "desc": "Page size"}
+    ]
+  },
+  {
+    "name": "get_transaction",
+    "description": "Get details of a specific transaction by ID.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "transactionId", "type": "string", "desc": "Transaction ID"}
+    ]
+  },
+  {
+    "name": "list_nfts",
+    "description": "List NFTs owned by the wallet.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier"}
+    ]
+  },
+  {
+    "name": "get_nft_metadata",
+    "description": "Get metadata for a specific NFT.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "contractAddress", "type": "string", "desc": "NFT contract address"},
+      {"name": "tokenId", "type": "string", "desc": "Token ID"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier"}
+    ]
+  },
+  {
+    "name": "transfer_nft",
+    "description": "Transfer an NFT to another address.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "to", "type": "string", "desc": "Recipient address"},
+      {"name": "contractAddress", "type": "string", "desc": "NFT contract address"},
+      {"name": "tokenId", "type": "string", "desc": "Token ID"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier"}
+    ]
+  },
+  {
+    "name": "list_incoming_transactions",
+    "description": "List incoming transactions received by the wallet.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier"}
+    ]
+  },
+  {
+    "name": "get_incoming_summary",
+    "description": "Get summary of incoming transactions for the wallet.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"}
+    ]
+  },
+  {
+    "name": "get_nonce",
+    "description": "Get a nonce for owner wallet signature verification.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"}
+    ]
+  },
+  {
+    "name": "list_credentials",
+    "description": "List external credentials stored in the wallet vault.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"}
+    ]
+  },
+  {
+    "name": "list_offchain_actions",
+    "description": "List available off-chain actions for the wallet.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"}
+    ]
+  },
+  {
+    "name": "get_provider_status",
+    "description": "Get Smart Account provider status: provider name, supported chains, gas sponsorship status.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"}
+    ]
+  },
+  {
+    "name": "build_userop",
+    "description": "Build an ERC-4337 UserOperation for smart account execution.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "calldata", "type": "string", "desc": "Encoded calldata"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier"}
+    ]
+  },
+  {
+    "name": "sign_userop",
+    "description": "Sign and submit an ERC-4337 UserOperation.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "userOpId", "type": "string", "desc": "UserOperation build ID"}
+    ]
+  },
+  {
+    "name": "x402_fetch",
+    "description": "Fetch a resource using x402 payment protocol.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "url", "type": "string", "desc": "URL to fetch"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier"}
+    ]
+  },
+  {
+    "name": "wc_connect",
+    "description": "Connect to a dApp via WalletConnect.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "uri", "type": "string", "desc": "WalletConnect URI"}
+    ]
+  },
+  {
+    "name": "wc_status",
+    "description": "Get WalletConnect session status.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"}
+    ]
+  },
+  {
+    "name": "wc_disconnect",
+    "description": "Disconnect WalletConnect session.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"}
+    ]
+  },
+  {
+    "name": "get_rpc_proxy_url",
+    "description": "Get the authenticated EVM RPC proxy URL for direct JSON-RPC access.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier"}
+    ]
+  },
+  {
+    "name": "erc8004_get_agent_info",
+    "description": "Get ERC-8004 agent identity info (on-chain ID, wallet, URI, metadata).",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier"}
+    ]
+  },
+  {
+    "name": "erc8004_get_reputation",
+    "description": "Get ERC-8004 agent reputation summary.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier"}
+    ]
+  },
+  {
+    "name": "erc8004_get_validation_status",
+    "description": "Get ERC-8004 validation request status.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier"}
+    ]
+  },
+  {
+    "name": "erc8128_sign_request",
+    "description": "Sign an HTTP request with ERC-8128 for verified agent identity.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "method", "type": "string", "desc": "HTTP method"},
+      {"name": "url", "type": "string", "desc": "Request URL"},
+      {"name": "body", "type": "string", "desc": "Request body (optional)"}
+    ]
+  },
+  {
+    "name": "erc8128_verify_signature",
+    "description": "Verify an ERC-8128 signed HTTP request.",
+    "arguments": [
+      {"name": "signature", "type": "string", "desc": "ERC-8128 signature header"},
+      {"name": "method", "type": "string", "desc": "HTTP method"},
+      {"name": "url", "type": "string", "desc": "Request URL"}
+    ]
+  },
+  {
+    "name": "waiaas_get_defi_positions",
+    "description": "Get DeFi lending positions with health factor and USD amounts.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier"}
+    ]
+  },
+  {
+    "name": "waiaas_get_health_factor",
+    "description": "Get lending health factor (safe/warning/danger/critical).",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "networkId", "type": "string", "desc": "Network identifier"}
+    ]
+  },
+  {
+    "name": "waiaas_hl_get_positions",
+    "description": "Get Hyperliquid perpetual positions for a wallet.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"}
+    ]
+  },
+  {
+    "name": "waiaas_hl_get_open_orders",
+    "description": "Get Hyperliquid open orders for a wallet.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"}
+    ]
+  },
+  {
+    "name": "waiaas_hl_get_markets",
+    "description": "Get Hyperliquid perpetual market list with metadata.",
+    "arguments": []
+  },
+  {
+    "name": "waiaas_hl_get_funding_rates",
+    "description": "Get funding rate history for a Hyperliquid perpetual market.",
+    "arguments": [
+      {"name": "market", "type": "string", "desc": "Market symbol"}
+    ]
+  },
+  {
+    "name": "waiaas_hl_get_account_state",
+    "description": "Get Hyperliquid account state (balances, margins, positions).",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"}
+    ]
+  },
+  {
+    "name": "waiaas_hl_get_trade_history",
+    "description": "Get Hyperliquid trade history (fills) for a wallet.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"}
+    ]
+  },
+  {
+    "name": "waiaas_hl_get_spot_balances",
+    "description": "Get Hyperliquid spot token balances for a wallet.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"}
+    ]
+  },
+  {
+    "name": "waiaas_hl_get_spot_markets",
+    "description": "Get Hyperliquid spot market list (trading pairs, token info).",
+    "arguments": []
+  },
+  {
+    "name": "waiaas_hl_list_sub_accounts",
+    "description": "List Hyperliquid sub-accounts for a wallet.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"}
+    ]
+  },
+  {
+    "name": "waiaas_hl_get_sub_positions",
+    "description": "Get positions for a Hyperliquid sub-account.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"},
+      {"name": "subAccountAddress", "type": "string", "desc": "Sub-account address"}
+    ]
+  },
+  {
+    "name": "waiaas_pm_get_positions",
+    "description": "Get Polymarket prediction market positions for a wallet.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"}
+    ]
+  },
+  {
+    "name": "waiaas_pm_get_orders",
+    "description": "Get Polymarket CLOB orders for a wallet.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"}
+    ]
+  },
+  {
+    "name": "waiaas_pm_get_markets",
+    "description": "Browse Polymarket prediction markets with optional filters.",
+    "arguments": [
+      {"name": "query", "type": "string", "desc": "Search query (optional)"}
+    ]
+  },
+  {
+    "name": "waiaas_pm_get_market_detail",
+    "description": "Get detailed information about a specific Polymarket prediction market.",
+    "arguments": [
+      {"name": "conditionId", "type": "string", "desc": "Market condition ID"}
+    ]
+  },
+  {
+    "name": "waiaas_pm_get_events",
+    "description": "Get Polymarket events (groups of related markets).",
+    "arguments": [
+      {"name": "query", "type": "string", "desc": "Search query (optional)"}
+    ]
+  },
+  {
+    "name": "waiaas_pm_get_balance",
+    "description": "Get Polymarket USDC.e balance and CTF token positions for a wallet.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"}
+    ]
+  },
+  {
+    "name": "waiaas_pm_get_pnl",
+    "description": "Get Polymarket profit and loss summary for a wallet.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"}
+    ]
+  },
+  {
+    "name": "waiaas_pm_setup",
+    "description": "Set up Polymarket API keys and optional CTF contract approval for a wallet.",
+    "arguments": [
+      {"name": "walletId", "type": "string", "desc": "Wallet identifier"}
+    ]
+  }
+]
