@@ -1,0 +1,71 @@
+name: proxmox
+image: mcp/proxmox
+type: server
+meta:
+  category: devops
+  tags:
+    - proxmox
+    - virtualization
+    - infrastructure
+    - devops
+about:
+  title: Proxmox VE
+  description: Manage Proxmox VE infrastructure including virtual machines, containers, storage, networking, firewall rules, high availability, and more
+  icon: https://camo.githubusercontent.com/deb848279f14aca7545274d26d2c8b785fd6232d6864243f630457c7f43103f9/68747470733a2f2f7777772e70726f786d6f782e636f6d2f696d616765732f70726f786d6f782f50726f786d6f785f73796d626f6c5f7374616e646172645f6865782e706e67
+source:
+  project: https://github.com/GethosTheWalrus/proxmox-mcp
+  branch: main
+  commit: 904b6cd28524c64c5f9269b31a456b3983ece012
+config:
+  description: Configure the connection to Proxmox VE
+  secrets:
+    - name: proxmox.token_value
+      env: PROXMOX_TOKEN_VALUE
+      example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    - name: proxmox.password
+      env: PROXMOX_PASSWORD
+      example: your-proxmox-password
+  env:
+    - name: PROXMOX_HOST
+      example: 192.168.1.100
+      value: "{{proxmox.host}}"
+    - name: PROXMOX_USER
+      example: root@pam
+      value: "{{proxmox.user}}"
+    - name: PROXMOX_TOKEN_NAME
+      example: mcp-token
+      value: "{{proxmox.token_name}}"
+    - name: PROXMOX_PORT
+      example: "8006"
+      value: "{{proxmox.port}}"
+    - name: PROXMOX_VERIFY_SSL
+      example: "false"
+      value: "{{proxmox.verify_ssl}}"
+    - name: PROXMOX_TIMEOUT
+      example: "30"
+      value: "{{proxmox.timeout}}"
+  parameters:
+    type: object
+    properties:
+      host:
+        description: Proxmox VE hostname or IP address
+        type: string
+      user:
+        description: Proxmox VE user (e.g. root@pam)
+        type: string
+      token_name:
+        description: API token name
+        type: string
+      port:
+        description: Proxmox VE API port
+        type: string
+      verify_ssl:
+        description: Verify SSL certificates (true/false)
+        type: string
+      timeout:
+        description: Request timeout in seconds
+        type: string
+    required:
+      - host
+      - token_name
+      - token_value
