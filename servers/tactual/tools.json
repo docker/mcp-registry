@@ -2,60 +2,88 @@
   {
     "name": "analyze_url",
     "description": "Analyze a web page for screen-reader navigation cost",
-    "arguments": [
-      {"name": "url", "type": "string", "desc": "URL to analyze"},
-      {"name": "profile", "type": "string", "desc": "AT profile ID"},
-      {"name": "format", "type": "string", "desc": "Output format: json, markdown, console, sarif"},
-      {"name": "explore", "type": "boolean", "desc": "Explore hidden branches"},
-      {"name": "probe", "type": "boolean", "desc": "Run keyboard probes"},
-      {"name": "waitForSelector", "type": "string", "desc": "CSS selector to wait for (SPAs)"}
-    ]
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "url": {"type": "string", "description": "URL to analyze"},
+        "profile": {"type": "string", "description": "AT profile ID", "default": "generic-mobile-web-sr-v0"},
+        "format": {"type": "string", "enum": ["json", "markdown", "console", "sarif"], "default": "sarif"},
+        "explore": {"type": "boolean", "description": "Explore hidden branches", "default": false},
+        "probe": {"type": "boolean", "description": "Run keyboard probes", "default": false},
+        "waitForSelector": {"type": "string", "description": "CSS selector to wait for (SPAs)"},
+        "summaryOnly": {"type": "boolean", "description": "Return only summary stats", "default": false}
+      },
+      "required": ["url"]
+    }
   },
   {
     "name": "trace_path",
     "description": "Trace the screen-reader navigation path to a specific target",
-    "arguments": [
-      {"name": "url", "type": "string", "desc": "URL of the page"},
-      {"name": "target", "type": "string", "desc": "Target ID or glob pattern"},
-      {"name": "profile", "type": "string", "desc": "AT profile ID"}
-    ]
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "url": {"type": "string", "description": "URL of the page"},
+        "target": {"type": "string", "description": "Target ID or glob pattern"},
+        "profile": {"type": "string", "description": "AT profile ID", "default": "generic-mobile-web-sr-v0"}
+      },
+      "required": ["url", "target"]
+    }
   },
   {
     "name": "list_profiles",
     "description": "List available assistive-technology profiles for scoring",
-    "arguments": []
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    }
   },
   {
     "name": "diff_results",
     "description": "Compare two analysis results (before/after)",
-    "arguments": [
-      {"name": "baseline", "type": "string", "desc": "Baseline analysis JSON"},
-      {"name": "candidate", "type": "string", "desc": "Candidate analysis JSON"}
-    ]
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "baseline": {"type": "string", "description": "Baseline analysis JSON"},
+        "candidate": {"type": "string", "description": "Candidate analysis JSON"}
+      },
+      "required": ["baseline", "candidate"]
+    }
   },
   {
     "name": "suggest_remediations",
     "description": "Extract top remediation suggestions ranked by severity",
-    "arguments": [
-      {"name": "analysis", "type": "string", "desc": "Analysis result JSON"},
-      {"name": "maxSuggestions", "type": "number", "desc": "Maximum suggestions to return"}
-    ]
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "analysis": {"type": "string", "description": "Analysis result JSON"},
+        "maxSuggestions": {"type": "number", "description": "Maximum suggestions to return", "default": 10}
+      },
+      "required": ["analysis"]
+    }
   },
   {
     "name": "save_auth",
     "description": "Authenticate with a web app and save session state",
-    "arguments": [
-      {"name": "url", "type": "string", "desc": "Login page URL"},
-      {"name": "steps", "type": "array", "desc": "Login steps to execute"},
-      {"name": "outputPath", "type": "string", "desc": "File path to save storageState"}
-    ]
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "url": {"type": "string", "description": "Login page URL"},
+        "steps": {"type": "array", "description": "Login steps to execute"},
+        "outputPath": {"type": "string", "description": "File path to save storageState", "default": "tactual-auth.json"}
+      },
+      "required": ["url", "steps"]
+    }
   },
   {
     "name": "analyze_pages",
     "description": "Analyze multiple pages with site-level aggregation",
-    "arguments": [
-      {"name": "urls", "type": "array", "desc": "URLs to analyze (2-20 pages)"},
-      {"name": "profile", "type": "string", "desc": "AT profile ID"}
-    ]
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "urls": {"type": "array", "items": {"type": "string"}, "description": "URLs to analyze (2-20 pages)"},
+        "profile": {"type": "string", "description": "AT profile ID", "default": "generic-mobile-web-sr-v0"}
+      },
+      "required": ["urls"]
+    }
   }
 ]
