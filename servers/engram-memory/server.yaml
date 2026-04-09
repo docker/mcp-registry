@@ -1,0 +1,39 @@
+name: engram-memory
+image: engrammemory/engram-memory
+type: server
+meta:
+  category: ai
+  tags:
+    - memory
+    - ai
+    - knowledge-graph
+    - vector-search
+    - embeddings
+about:
+  title: Engram Memory
+  description: Persistent memory for AI agents with three-tier recall (hot cache, hash index, vector search). Single container bundles vector database, ONNX embeddings, and the MCP server. Includes ACT-R cognitive cache, multi-head LSH, BM25 hybrid search, and a Kuzu graph layer for entity tracking.
+  icon: https://raw.githubusercontent.com/EngramMemory/engram-memory-community/main/assets/logo.svg
+source:
+  project: https://github.com/EngramMemory/engram-memory-community
+  commit: df71cdb28205e50f26d8e9d785d1dbdce9170bf9
+  dockerfile: docker/all-in-one/Dockerfile
+config:
+  description: Engram Memory bundles Qdrant, FastEmbed, and the MCP server in a single container. Mount a volume at /data to persist memories across restarts.
+  env:
+    - name: COLLECTION_NAME
+      example: agent-memory
+      value: "{{engram-memory.collection_name}}"
+    - name: MODEL_NAME
+      example: nomic-ai/nomic-embed-text-v1.5
+      value: "{{engram-memory.model_name}}"
+  parameters:
+    type: object
+    properties:
+      collection_name:
+        type: string
+        default: agent-memory
+        description: Qdrant collection name for storing memories
+      model_name:
+        type: string
+        default: nomic-ai/nomic-embed-text-v1.5
+        description: FastEmbed model identifier
