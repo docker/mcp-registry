@@ -28,6 +28,7 @@ Have Docker build and maintain your server image with enhanced security features
 _**Benefits: Your image will include cryptographic signatures, provenance tracking, SBOMs, and automatic security updates**_
 
 ### 📦 Option B: Self-Provided Pre-Built Image
+- [CCHub](https://github.com/Moresl/cchub) - A desktop control panel for the Claude Code / Codex / Gemini CLI ecosystem. Manage MCP servers, config profiles, agent skills, CLAUDE.md, hooks, and workflow templates from a single Tauri app (Windows / macOS / Linux).
 In this option, you'll provide an already built image which will be used directly in the catalog. 
 
 _**Note: Self-built images still benefit from container isolation but won't include the enhanced security features of Docker-built images.**_
