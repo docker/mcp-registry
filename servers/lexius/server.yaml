@@ -1,0 +1,58 @@
+name: lexius
+image: robotixai/lexius-mcp
+type: server
+meta:
+  category: database
+  tags:
+    - compliance
+    - regulation
+    - legal
+    - eu-ai-act
+    - dora
+    - provenance
+    - mcp
+about:
+  title: Lexius Compliance
+  description: >-
+    AI regulatory compliance database with provenance-tracked obligations,
+    penalties, deadlines, and verbatim regulation text. Covers the EU AI Act
+    and DORA. Every fact is labelled AUTHORITATIVE (verbatim from EUR-Lex),
+    CURATED (expert-reviewed), or AI_GENERATED — so you always know what
+    you can cite. Includes a deterministic extractor for fine amounts,
+    dates, and cross-references, plus a hivemind swarm for parallel
+    compliance assessment across all articles.
+  icon: https://raw.githubusercontent.com/rob-otix-ai/lexius/main/docs/icon.png
+source:
+  project: https://github.com/rob-otix-ai/lexius
+config:
+  description: >-
+    Lexius MCP server runs in two modes. Direct mode connects to a
+    PostgreSQL database with the Lexius schema (use the robotixai/lexius-db
+    Docker image for a pre-configured database). Proxy mode connects to a
+    hosted Lexius API over HTTPS — no database required.
+  secrets:
+    - name: lexius.api_key
+      env: LEXIUS_API_KEY
+      example: lx_your_api_key_here
+  env:
+    - name: DATABASE_URL
+      example: postgresql://legal_ai:secret@host.docker.internal:5432/legal_ai
+      value: "{{lexius.database_url}}"
+    - name: LEXIUS_API_URL
+      example: https://api.lexius.ai
+      value: "{{lexius.api_url}}"
+    - name: LEXIUS_API_KEY
+      example: lx_your_api_key_here
+      value: "{{lexius.api_key}}"
+  parameters:
+    type: object
+    properties:
+      database_url:
+        type: string
+        description: PostgreSQL connection string (direct mode)
+      api_url:
+        type: string
+        description: Hosted Lexius API URL (proxy mode)
+      api_key:
+        type: string
+        description: API key for the hosted Lexius API (proxy mode)
