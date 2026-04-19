@@ -1,17 +1,32 @@
 [
   {
     "name": "analyze_code_snippet",
-    "description": "Analyze a file or code snippet with SonarQube analyzers to identify code quality and security issues",
+    "description": "Analyze a file or code snippet to identify code quality and security issues. Always pass the complete file content for accurate analysis. Optionally provide a code snippet to filter issues - only issues within the snippet will be reported (snippet location is auto-detected). Specify the language to improve analysis accuracy.",
     "arguments": [
       {
-        "name": "language",
+        "name": "projectKey",
         "type": "string",
-        "desc": "Language of the code snippet"
+        "desc": "The SonarQube project key"
       },
       {
-        "name": "code_snippet",
+        "name": "fileContent",
         "type": "string",
-        "desc": "Code snippet to analyze"
+        "desc": "Complete file content to analyze"
+      },
+      {
+        "name": "codeSnippet",
+        "type": "string",
+        "desc": "Code snippet to filter issues - must match content within fileContent"
+      },
+      {
+        "name": "language",
+        "type": "array",
+        "desc": "Language of the code (e.g., 'java', 'python', 'js')"
+      },
+      {
+        "name": "scope",
+        "type": "array",
+        "desc": "Scope of the file: MAIN or TEST (default: MAIN)"
       }
     ]
   },
@@ -39,12 +54,17 @@
   },
   {
     "name": "search_sonar_issues_in_projects",
-    "description": "Search for SonarQube issues in my organization's projects",
+    "description": "Search for issues (bugs, vulnerabilities, code smells) in my organization's projects. Filter by severities=['HIGH','BLOCKER'] for critical issues, impactSoftwareQualities=['SECURITY'] for security, issueStatuses=['OPEN'] to exclude resolved.",
     "arguments": [
       {
         "name": "projects",
         "type": "array",
         "desc": "An optional list of Sonar projects to look in"
+      },
+      {
+        "name": "files",
+        "type": "array",
+        "desc": "An optional list of component keys (files, directories, modules) to filter issues"
       },
       {
         "name": "pullRequestId",
@@ -53,108 +73,205 @@
       },
       {
         "name": "severities",
-        "type": "string",
-        "desc": "An optional list of severities to filter by, separated by a comma. Possible values: INFO, LOW, MEDIUM, HIGH, BLOCKER"
+        "type": "array",
+        "desc": "An optional list of severities to filter by"
       },
       {
-        "name": "page",
-        "type": "number",
-        "desc": "An optional page number. Defaults to 1"
+        "name": "impactSoftwareQualities",
+        "type": "array",
+        "desc": "An optional list of software qualities to filter by"
       },
       {
-        "name": "pageSize",
+        "name": "issueStatuses",
+        "type": "array",
+        "desc": "An optional list of issue statuses to filter by. Note: IN_SANDBOX is valid only for SonarQube Server"
+      },
+      {
+        "name": "issueKey",
+        "type": "array",
+        "desc": "An optional list of issue keys to fetch specific issues"
+      },
+      {
+        "name": "p",
         "type": "number",
-        "desc": "An optional page size. Must be greater than 0 and less than or equal to 500. Defaults to 100"
+        "desc": "An optional page number. Defaults to 1."
+      },
+      {
+        "name": "ps",
+        "type": "number",
+        "desc": "An optional page size. Must be greater than 0 and less than or equal to 500. Defaults to 100."
       }
     ]
   },
   {
     "name": "change_sonar_issue_status",
-    "description": "Change the status of a SonarQube issue",
+    "description": "Change the status of an issue. This tool can be used to change the status of an issue to \"accept\", \"falsepositive\" or to \"reopen\" an issue. An example request could be: I would like to accept the issue having the key \"AX-HMISMFixnZED\"",
     "arguments": [
       {
-        "name": "issue_key",
+        "name": "key",
         "type": "string",
-        "desc": "Key of the issue to modify"
+        "desc": "The key of the issue which status should be changed"
       },
       {
-        "name": "transition",
-        "type": "string",
-        "desc": "Transition to apply to the issue"
+        "name": "status",
+        "type": "array",
+        "desc": "The new status of the issue"
       }
     ]
   },
   {
     "name": "search_my_sonarqube_projects",
-    "description": "Find SonarQube projects. The response is paginated",
+    "description": "Find SonarQube projects in your organization. Supports searching by project name or key. Use this first when projectKey is unknown - most other tools require the project key from this response.",
     "arguments": [
       {
         "name": "page",
         "type": "string",
-        "desc": "An optional page number. Defaults to 1"
+        "desc": "An optional page number. Defaults to 1."
+      },
+      {
+        "name": "pageSize",
+        "type": "number",
+        "desc": "An optional page size. Must be greater than 0 and less than or equal to 500. Defaults to 500."
+      },
+      {
+        "name": "q",
+        "type": "string",
+        "desc": "An optional search query to filter projects by name (partial match) or key (exact match)."
+      }
+    ]
+  },
+  {
+    "name": "search_security_hotspots",
+    "description": "Search for Security Hotspots in a project.",
+    "arguments": [
+      {
+        "name": "projectKey",
+        "type": "string",
+        "desc": "The key of the project or application to search in. Required unless hotspotKeys is provided."
+      },
+      {
+        "name": "hotspotKeys",
+        "type": "array",
+        "desc": "Comma-separated list of specific Security Hotspot keys to retrieve. Required unless projectKey is provided."
+      },
+      {
+        "name": "pullRequest",
+        "type": "string",
+        "desc": "The identifier of the Pull Request to search in"
+      },
+      {
+        "name": "files",
+        "type": "array",
+        "desc": "An optional list of file paths to filter Security Hotspots"
+      },
+      {
+        "name": "status",
+        "type": "array",
+        "desc": "Filter by review status"
+      },
+      {
+        "name": "resolution",
+        "type": "array",
+        "desc": "Filter by resolution (when status is REVIEWED)"
+      },
+      {
+        "name": "sinceLeakPeriod",
+        "type": "boolean",
+        "desc": "If true, only Security Hotspots created since the leak period (new code period) are returned"
+      },
+      {
+        "name": "onlyMine",
+        "type": "boolean",
+        "desc": "If true, only Security Hotspots assigned to the current user are returned"
+      },
+      {
+        "name": "p",
+        "type": "number",
+        "desc": "An optional page number. Defaults to 1."
+      },
+      {
+        "name": "ps",
+        "type": "number",
+        "desc": "An optional page size. Must be greater than 0 and less than or equal to 500. Defaults to 100."
+      }
+    ]
+  },
+  {
+    "name": "show_security_hotspot",
+    "description": "Get detailed information about a specific Security Hotspot, including rule details, code context, flows, and comments.",
+    "arguments": [
+      {
+        "name": "hotspotKey",
+        "type": "string",
+        "desc": "The key of the Security Hotspot to retrieve"
+      }
+    ]
+  },
+  {
+    "name": "change_security_hotspot_status",
+    "description": "Change the status of a Security Hotspot to review it. When marking as REVIEWED, you must specify a resolution.\n- TO_REVIEW: Mark the Security Hotspot as needing review\n- REVIEWED: Mark the Security Hotspot as reviewed with one of these resolutions:\n  * FIXED: A fix has been implemented\n  * SAFE: Reviewed and determined to be safe\n  * ACKNOWLEDGED: Acknowledged as a risk but accepted\nYou can optionally add a comment to explain your review decision.",
+    "arguments": [
+      {
+        "name": "hotspotKey",
+        "type": "string",
+        "desc": "The key of the Security Hotspot to update"
+      },
+      {
+        "name": "status",
+        "type": "array",
+        "desc": "The new status of the Security Hotspot"
+      },
+      {
+        "name": "resolution",
+        "type": "array",
+        "desc": "The resolution when status is REVIEWED. Required if status is REVIEWED"
+      },
+      {
+        "name": "comment",
+        "type": "string",
+        "desc": "An optional comment explaining the review decision"
       }
     ]
   },
   {
     "name": "list_quality_gates",
-    "description": "List all quality gates in my SonarQube",
+    "description": "List all quality gates.",
     "arguments": []
   },
   {
     "name": "get_project_quality_gate_status",
-    "description": "Get the quality gate status for a project",
+    "description": "Get the Quality Gate Status for a project. Either 'analysisId', 'projectId' or 'projectKey' must be provided.",
     "arguments": [
       {
         "name": "analysisId",
         "type": "string",
-        "desc": "The optional analysis ID to get the status for"
-      },
-      {
-        "name": "branch",
-        "type": "string",
-        "desc": "The optional branch key to get the status for"
+        "desc": "The optional analysis ID to get the status for, for example 'AU-TpxcA-iU5OvuD2FL1'"
       },
       {
         "name": "projectId",
         "type": "string",
-        "desc": "The optional project ID"
+        "desc": "The optional project ID to get the status for, for example 'AU-Tpxb--iU5OvuD2FLy'. Doesn't work with pull requests."
       },
       {
         "name": "projectKey",
         "type": "string",
-        "desc": "The optional project key to get the status for"
+        "desc": "The optional project key to get the status for, for example 'my_project'"
       },
       {
         "name": "pullRequest",
         "type": "string",
-        "desc": "The optional pull request ID to get the status for"
+        "desc": "The optional pull request ID to get the status for, for example '5461'"
       }
     ]
   },
   {
     "name": "show_rule",
-    "description": "Shows detailed information about a SonarQube rule",
+    "description": "Shows detailed information about a SonarQube rule.",
     "arguments": [
       {
         "name": "key",
         "type": "string",
-        "desc": "Rule key"
-      }
-    ]
-  },
-  {
-    "name": "list_rule_repositories",
-    "description": "List rule repositories available in SonarQube",
-    "arguments": [
-      {
-        "name": "language",
-        "type": "string",
-        "desc": "Optional language key to filter repositories"
-      },
-      {
-        "name": "q",
-        "type": "string",
-        "desc": "Optional search query to filter repositories by name or key"
+        "desc": "The rule key (e.g. javascript:EmptyBlock)"
       }
     ]
   },
@@ -171,7 +288,7 @@
   },
   {
     "name": "get_component_measures",
-    "description": "Get SonarQube measures for a project, such as ncloc, complexity, violations, coverage, etc",
+    "description": "Get SonarQube measures for a project, such as ncloc, complexity, violations, coverage, etc.",
     "arguments": [
       {
         "name": "projectKey",
@@ -179,14 +296,9 @@
         "desc": "The project key"
       },
       {
-        "name": "branch",
-        "type": "string",
-        "desc": "The branch to analyze for measures"
-      },
-      {
         "name": "metricKeys",
         "type": "array",
-        "desc": "The metric keys to retrieve"
+        "desc": "The metric keys to retrieve (e.g. ncloc, complexity, violations, coverage)"
       },
       {
         "name": "pullRequest",
@@ -197,33 +309,128 @@
   },
   {
     "name": "search_metrics",
-    "description": "Search for SonarQube metrics",
+    "description": "Search for available metrics",
     "arguments": [
       {
-        "name": "page",
+        "name": "p",
         "type": "number",
         "desc": "1-based page number (default: 1)"
       },
       {
-        "name": "pageSize",
+        "name": "ps",
         "type": "number",
         "desc": "Page size. Must be greater than 0 and less than or equal to 500 (default: 100)"
       }
     ]
   },
   {
-    "name": "get_raw_source",
-    "description": "Get source code as raw text from SonarQube. Require 'See Source Code' permission on file",
+    "name": "get_duplications",
+    "description": "Get duplications for a file. Requires Browse permission on file's project",
     "arguments": [
       {
         "name": "key",
         "type": "string",
-        "desc": "File key"
+        "desc": "File key (e.g. my_project:src/foo/Bar.php)"
       },
       {
-        "name": "branch",
+        "name": "pullRequest",
         "type": "string",
-        "desc": "Branch key"
+        "desc": "Pull request id"
+      }
+    ]
+  },
+  {
+    "name": "search_duplicated_files",
+    "description": "Search for files with code duplications in a project. By default, automatically fetches all duplicated files across all pages (up to 10,000 files max).",
+    "arguments": [
+      {
+        "name": "projectKey",
+        "type": "string",
+        "desc": "Project key (e.g. my_project)"
+      },
+      {
+        "name": "pullRequest",
+        "type": "string",
+        "desc": "Pull request id"
+      },
+      {
+        "name": "pageSize",
+        "type": "number",
+        "desc": "Optional: Number of results per page for manual pagination (max: 500). If not specified, auto-fetches all duplicated files."
+      },
+      {
+        "name": "pageIndex",
+        "type": "number",
+        "desc": "Optional: Page number for manual pagination (starts at 1). If not specified, auto-fetches all duplicated files."
+      }
+    ]
+  },
+  {
+    "name": "search_files_by_coverage",
+    "description": "Search for files in a project sorted by coverage (ascending - worst coverage first). This tool helps identify files that need test coverage improvements.",
+    "arguments": [
+      {
+        "name": "projectKey",
+        "type": "string",
+        "desc": "The project key to search in"
+      },
+      {
+        "name": "pullRequest",
+        "type": "string",
+        "desc": "Pull request id to analyze"
+      },
+      {
+        "name": "maxCoverage",
+        "type": "number",
+        "desc": "Only return files with coverage below this threshold (0-100)"
+      },
+      {
+        "name": "pageIndex",
+        "type": "number",
+        "desc": "Page index (1-based, default: 1)"
+      },
+      {
+        "name": "pageSize",
+        "type": "number",
+        "desc": "Page size (default: 100, max: 500)"
+      }
+    ]
+  },
+  {
+    "name": "get_file_coverage_details",
+    "description": "Get complete line-by-line coverage information for a file, including which exact lines are uncovered and which have partially covered branches. This tool helps identify precisely where to add test coverage. Use after identifying files with low coverage via search_files_by_coverage.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "File key (e.g. my_project:src/foo/Bar.java)"
+      },
+      {
+        "name": "pullRequest",
+        "type": "string",
+        "desc": "Pull request id"
+      }
+    ]
+  },
+  {
+    "name": "list_pull_requests",
+    "description": "List all pull requests for a project. Use this tool to discover available pull requests and their corresponding branch names before analyzing their coverage, issues, or quality. Returns the pull request key/ID and source branch for each PR, which can be used with other tools that accept a pullRequest parameter.",
+    "arguments": [
+      {
+        "name": "projectKey",
+        "type": "string",
+        "desc": "Project key (e.g. my_project)"
+      }
+    ]
+  },
+  {
+    "name": "get_raw_source",
+    "description": "Get source code as raw text. Requires 'See Source Code' permission on file.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "File key (e.g. my_project:src/foo/Bar.php)"
       },
       {
         "name": "pullRequest",
@@ -234,17 +441,17 @@
   },
   {
     "name": "get_scm_info",
-    "description": "Get SCM information of SonarQube source files. Require See Source Code permission on file's project",
+    "description": "Get SCM information of source files. Requires See Source Code permission on file's project",
     "arguments": [
       {
         "name": "key",
         "type": "string",
-        "desc": "File key"
+        "desc": "File key (e.g. my_project:src/foo/Bar.php)"
       },
       {
-        "name": "commitsByLine",
+        "name": "commits_by_line",
         "type": "boolean",
-        "desc": "Group lines by SCM commit if value is false, else display commits for each line"
+        "desc": "Group lines by SCM commit if value is false, else display commits for each line (true/false)"
       },
       {
         "name": "from",
@@ -375,12 +582,12 @@
   },
   {
     "name": "search_dependency_risks",
-    "description": "Search for software composition analysis issues (dependency risks) of a SonarQube project",
+    "description": "Search for software composition analysis issues (dependency risks) of a project, paired with releases that appear in the analyzed project, application, or portfolio.",
     "arguments": [
       {
         "name": "projectKey",
         "type": "string",
-        "desc": "Project key"
+        "desc": "The project key"
       },
       {
         "name": "branchKey",
