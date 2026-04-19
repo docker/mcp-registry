@@ -1,0 +1,49 @@
+name: spotify
+image: mcp/spotify
+type: server
+meta:
+  category: entertainment
+  tags:
+    - ai
+    - spotify
+about:
+  title: Spotify MCP Server
+  description: A Model Context Protocol server that exposes Spotify controls and queries as MCP tools using Spotipy. Control playback, search tracks, manage playlists, view listening history, and more through AI assistants.
+  icon: https://avatars.githubusercontent.com/u/10757148?v=4
+source:
+  project: https://github.com/Allensy/spotify-mcp
+  commit: c95f147c6a1039c0eda03482d2f81f45c0eb284c
+config:
+  description: Configure Spotify API credentials from your Spotify Developer app
+  secrets:
+    - name: spotify.spotipy_client_secret
+      env: SPOTIPY_CLIENT_SECRET
+      example: <YOUR_CLIENT_SECRET>
+  env:
+    - name: SPOTIPY_CLIENT_ID
+      example: <YOUR_CLIENT_ID>
+      value: "{{spotify.spotipy_client_id}}"
+    - name: SPOTIPY_REDIRECT_URI
+      example: http://127.0.0.1:8888/callback
+      value: "{{spotify.spotipy_redirect_uri}}"
+    - name: SPOTIPY_CACHE_PATH
+      example: /app/.cache/token
+      value: "{{spotify.spotipy_cache_path}}"
+      optional: true
+  parameters:
+    type: object
+    properties:
+      spotipy_client_id:
+        type: string
+        description: Spotify Client ID from your Spotify Developer app
+      spotipy_redirect_uri:
+        type: string
+        description: OAuth redirect URI (must match your Spotify app settings)
+        default: http://127.0.0.1:8888/callback
+      spotipy_cache_path:
+        type: string
+        description: Token cache file path (optional, defaults to /app/.cache/token)
+        optional: true
+    required:
+      - spotipy_client_id
+      - spotipy_redirect_uri
