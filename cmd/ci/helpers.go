@@ -32,6 +32,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	"github.com/docker/mcp-registry/internal/gitutil"
 	"github.com/docker/mcp-registry/pkg/servers"
 )
 
@@ -132,7 +133,11 @@ func gitDiff(workspace, base, head, mode string) ([]string, error) {
 
 // runGitCommand executes git with the given arguments inside the directory.
 func runGitCommand(dir string, args ...string) (string, error) {
-	cmd := exec.Command("git", args...)
+	gitPath, err := gitutil.Executable()
+	if err != nil {
+		return "", err
+	}
+	cmd := exec.Command(gitPath, args...)
 	cmd.Dir = dir
 	output, err := cmd.CombinedOutput()
 	if err != nil {
