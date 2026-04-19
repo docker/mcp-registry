@@ -27,13 +27,33 @@ config:
     - name: CB_USERNAME
       example: Administrator
       value: "{{couchbase.cb_username}}"
-    - name: CB_BUCKET_NAME
-      example: my-bucket
-      value: "{{couchbase.cb_bucket_name}}"
-
-    - name: CB_MCP_READ_ONLY_QUERY_MODE
+    - name: CB_CA_CERT_PATH
+      example: /path/to/ca-cert.pem
+      value: "{{couchbase.cb_ca_cert_path}}"
+    - name: CB_CLIENT_CERT_PATH
+      example: /path/to/client-cert.pem
+      value: "{{couchbase.cb_client_cert_path}}"
+    - name: CB_CLIENT_KEY_PATH
+      example: /path/to/client-key.pem
+      value: "{{couchbase.cb_client_key_path}}"
+    - name: CB_MCP_READ_ONLY_MODE
       example: "true"
-      value: "{{couchbase.cb_mcp_read_only_query_mode}}"
+      value: "{{couchbase.cb_mcp_read_only_mode}}"
+    - name: CB_MCP_TRANSPORT
+      example: stdio
+      value: "{{couchbase.cb_mcp_transport}}"
+    - name: CB_MCP_HOST
+      example: "127.0.0.1"
+      value: "{{couchbase.cb_mcp_host}}"
+    - name: CB_MCP_PORT
+      example: "8000"
+      value: "{{couchbase.cb_mcp_port}}"
+    - name: CB_MCP_DISABLED_TOOLS
+      example: "tool_1,tool_2"
+      value: "{{couchbase.cb_mcp_disabled_tools}}"
+    - name: CB_MCP_CONFIRMATION_REQUIRED_TOOLS
+      example: "tool_1,tool_2"
+      value: "{{couchbase.cb_mcp_confirmation_required_tools}}"
   parameters:
     type: object
     properties:
@@ -43,9 +63,30 @@ config:
       cb_username:
         description: Username for the Couchbase cluster with access to the bucket.
         type: string
-      cb_bucket_name:
-        description: Bucket in the Couchbase cluster to use for the MCP server.
+      cb_ca_cert_path:
+        description: Path to the CA certificate file for TLS authentication in non-Capella clusters.
         type: string
-      cb_mcp_read_only_query_mode:
-        description: Setting to "true" (default) enables read-only query mode while running SQL++ queries.
+      cb_client_cert_path:
+        description: Path to the client certificate file for mTLS authentication.
+        type: string
+      cb_client_key_path:
+        description: Path to the client certificate key file for mTLS authentication.
+        type: string
+      cb_mcp_read_only_mode:
+        description: Setting to "true" (default) disables all write operations (KV and Query). Set to "false" to enable write operations.
+        type: string
+      cb_mcp_transport:
+        description: Transport mode for the server (stdio, http or sse). Default is stdio.
+        type: string
+      cb_mcp_host:
+        description: Host to run the MCP server on (default 127.0.0.1). Used only for HTTP and SSE transport modes.
+        type: string
+      cb_mcp_port:
+        description: Port to run the MCP server on (default 8000). Used only for HTTP and SSE transport modes.
+        type: string
+      cb_mcp_disabled_tools:
+        description: Tools to disable. Accepts comma-separated tool names or a file path containing one tool name per line.
+        type: string
+      cb_mcp_confirmation_required_tools:
+        description: Comma-separated tool names that require user confirmation before execution. Requires the MCP client to support elicitation.
         type: string
