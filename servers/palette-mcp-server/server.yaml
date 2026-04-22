@@ -1,4 +1,4 @@
-name: palette-mcp-server
+name: palette
 image: public.ecr.aws/palette-ai/palette-mcp-server:latest
 type: server
 meta:
@@ -10,7 +10,7 @@ meta:
     - palette
     - cluster-management
 about:
-  title: Palette MCP Server
+  title: Palette
   description: >-
     Spectro Cloud Palette is a Kubernetes management platform for building, operating,
     and governing clusters across environments. This MCP server exposes Palette to your
@@ -22,23 +22,23 @@ source:
   branch: main
 run:
   volumes:
-    - "{{palette-mcp-server.kubeconfig_path}}:/tmp/kubeconfig"
+    - "{{palette.kubeconfig_path}}:/tmp/kubeconfig"
 config:
   description: Configure the connection to the Palette API
   secrets:
-    - name: palette-mcp-server.api_key
+    - name: palette.api_key
       env: SPECTROCLOUD_APIKEY
       example: <YOUR_PALETTE_API_KEY>
   env:
     - name: SPECTROCLOUD_HOST
       example: api.spectrocloud.com
-      value: "{{palette-mcp-server.host}}"
+      value: "{{palette.host}}"
     - name: SPECTROCLOUD_DEFAULT_PROJECT_ID
       example: <YOUR_PROJECT_ID>
-      value: "{{palette-mcp-server.default_project_id}}"
+      value: "{{palette.default_project_id}}"
     - name: ALLOW_DANGEROUS_ACTIONS
       example: "0"
-      value: "{{palette-mcp-server.allow_dangerous_actions}}"
+      value: "{{palette.allow_dangerous_actions}}"
   parameters:
     type: object
     properties:
@@ -57,3 +57,4 @@ config:
       kubeconfig_path:
         type: string
         description: "Host path to store downloaded kubeconfig files (e.g. /Users/you/.palette/kubeconfig)"
+
