@@ -1,0 +1,55 @@
+name: palette-mcp-server
+image: public.ecr.aws/palette-ai/palette-mcp-server:latest
+type: server
+meta:
+  category: infrastructure
+  tags:
+    - kubernetes
+    - cloud
+    - spectrocloud
+    - palette
+    - cluster-management
+about:
+  title: Palette MCP Server
+  description: Manage Spectro Cloud Palette clusters, cluster profiles, and resource tags. List, inspect, and delete clusters and cluster profiles; retrieve kubeconfigs; and search or manage tags across resources.
+  icon: https://avatars.githubusercontent.com/u/36211249?s=200&v=4
+source:
+  project: https://github.com/spectrocloud/palette-mcp-server
+  branch: main
+run:
+  volumes:
+    - "{{palette-mcp-server.kubeconfig_path}}:/tmp/kubeconfig"
+config:
+  description: Configure the connection to the Spectro Cloud Palette API
+  secrets:
+    - name: palette-mcp-server.api_key
+      env: SPECTROCLOUD_APIKEY
+      example: <YOUR_PALETTE_API_KEY>
+  env:
+    - name: SPECTROCLOUD_HOST
+      example: api.spectrocloud.com
+      value: "{{palette-mcp-server.host}}"
+    - name: SPECTROCLOUD_DEFAULT_PROJECT_ID
+      example: <YOUR_PROJECT_ID>
+      value: "{{palette-mcp-server.default_project_id}}"
+    - name: ALLOW_DANGEROUS_ACTIONS
+      example: "0"
+      value: "{{palette-mcp-server.allow_dangerous_actions}}"
+  parameters:
+    type: object
+    properties:
+      host:
+        type: string
+        description: "Palette API host (default: api.spectrocloud.com)"
+        default: "api.spectrocloud.com"
+      default_project_id:
+        type: string
+        description: "Default Palette project UID for tool calls"
+      allow_dangerous_actions:
+        type: string
+        description: "Set to '1' to enable delete operations (default: '0')"
+        default: "0"
+        enum: ["0", "1"]
+      kubeconfig_path:
+        type: string
+        description: "Host path to store downloaded kubeconfig files (e.g. /Users/you/.palette/kubeconfig)"
