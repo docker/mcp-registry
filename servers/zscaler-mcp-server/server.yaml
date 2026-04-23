@@ -1,0 +1,81 @@
+name: zscaler-mcp-server
+image: mcp/zscaler-mcp-server
+type: server
+meta:
+  category: security
+  tags:
+    - security
+    - zero-trust
+    - cloud-security
+    - network-security
+    - sase
+    - zscaler
+about:
+  title: Zscaler
+  description: >-
+    Manage the Zscaler Zero Trust Exchange platform via 300+ tools across
+    ZPA (private access), ZIA (internet access), ZDX (digital experience),
+    ZCC (client connector), ZTW (workload segmentation), ZMS (microsegmentation),
+    EASM (attack surface management), Z-Insights (security analytics),
+    and ZIdentity (identity management). Create and manage policies,
+    troubleshoot connectivity, audit security configurations,
+    and investigate incidents — all from your AI assistant.
+  icon: https://www.google.com/s2/favicons?domain=zscaler.com&sz=64
+source:
+  project: https://github.com/zscaler/zscaler-mcp-server
+  branch: master
+  commit: dce4039b18d182d2c9511e1d634da42bcac28e19
+config:
+  description: Configure the connection to the Zscaler Zero Trust Exchange API
+  secrets:
+    - name: zscaler-mcp-server.client_id
+      env: ZSCALER_CLIENT_ID
+      example: YOUR_ZSCALER_CLIENT_ID
+    - name: zscaler-mcp-server.client_secret
+      env: ZSCALER_CLIENT_SECRET
+      example: YOUR_ZSCALER_CLIENT_SECRET
+    - name: zscaler-mcp-server.customer_id
+      env: ZSCALER_CUSTOMER_ID
+      example: YOUR_ZSCALER_CUSTOMER_ID
+    - name: zscaler-mcp-server.vanity_domain
+      env: ZSCALER_VANITY_DOMAIN
+      example: company.zscloud.net
+    - name: zscaler-mcp-server.cloud
+      env: ZSCALER_CLOUD
+      example: production
+  env:
+    - name: ZSCALER_MCP_WRITE_ENABLED
+      example: "false"
+      value: "{{zscaler-mcp-server.write_enabled}}"
+    - name: ZSCALER_MCP_WRITE_TOOLS
+      example: "zpa_create_*,zia_update_*"
+      value: "{{zscaler-mcp-server.write_tools}}"
+    - name: ZSCALER_MCP_DISABLED_SERVICES
+      example: "zcc,ztw"
+      value: "{{zscaler-mcp-server.disabled_services}}"
+    - name: ZSCALER_MCP_DISABLED_TOOLS
+      example: "zia_delete_*"
+      value: "{{zscaler-mcp-server.disabled_tools}}"
+    - name: ZSCALER_MCP_SKIP_CONFIRMATIONS
+      example: "false"
+      value: "{{zscaler-mcp-server.skip_confirmations}}"
+  parameters:
+    type: object
+    properties:
+      write_enabled:
+        type: string
+        description: Enable write operations (true/false)
+        default: "false"
+      write_tools:
+        type: string
+        description: Comma-separated write tool patterns to allow (e.g. zpa_create_*,zia_update_*)
+      disabled_services:
+        type: string
+        description: Comma-separated services to disable (zcc,zdx,zpa,zia,ztw,zid,zeasm,zins,zms)
+      disabled_tools:
+        type: string
+        description: Comma-separated tool name patterns to disable (e.g. zia_delete_*,zpa_bulk_*)
+      skip_confirmations:
+        type: string
+        description: Skip HMAC confirmation prompts for destructive operations (true/false)
+        default: "false"
