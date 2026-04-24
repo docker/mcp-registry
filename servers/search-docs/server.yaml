@@ -1,0 +1,49 @@
+name: search-docs
+image: mcp/search-docs
+type: server
+meta:
+  category: search
+  tags:
+    - search
+    - documents
+    - vector-search
+    - local-files
+    - markdown
+about:
+  title: search-docs
+  description: |
+    Local document vector search system for project documentation.
+
+    Features:
+    • Vector search over local Markdown documents using Ruri Embedding model
+    • Automatic document indexing and background re-indexing
+    • Section-based splitting (H1-H4 headings, token-based)
+    • Document outline and full content retrieval
+    • Multi-project support with related project linking
+    • Built-in Embedding server (ONNX Runtime, CPU-optimized)
+
+    Designed for AI coding assistants to search and retrieve project documentation efficiently.
+  icon: https://avatars.githubusercontent.com/u/57501900?s=200&v=4
+source:
+  project: https://github.com/otolab/search-docs
+  commit: e77a9fdd1db6958d2380a131908da68ab62b57b4
+run:
+  volumes:
+    - "{{search-docs.project_path|volume-target}}:/projects/current"
+  env:
+    EMBEDDING_URL: "{{search-docs.embedding_url}}"
+config:
+  description: Configure project directory to index and optional external Embedding server URL
+  parameters:
+    type: object
+    properties:
+      project_path:
+        type: string
+        description: Project directory containing documents to search
+        default: /Users/demo/my-project
+      embedding_url:
+        type: string
+        description: External Embedding server URL (optional, uses built-in server if not set)
+        default: ""
+    required:
+      - project_path
