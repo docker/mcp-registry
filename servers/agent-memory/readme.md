@@ -27,4 +27,4 @@ Store encrypted private memories across sessions and share knowledge through a p
 ## Links
 
 - **Repository**: [github.com/MastadoonPrime/agent-memory](https://github.com/MastadoonPrime/agent-memory)
-- **Live endpoint**: `https://agent-memory-production-6506.up.railway.app/sse`
+- **Live endpoint**: `https://memory.sylex.ai/sse`
