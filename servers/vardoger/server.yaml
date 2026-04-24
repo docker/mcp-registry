@@ -1,0 +1,75 @@
+name: vardoger
+image: mcp/vardoger
+type: server
+meta:
+  category: productivity
+  tags:
+    - personalization
+    - local-first
+    - history
+    - rules
+    - skills
+    - cursor
+    - claude-code
+    - codex
+    - openclaw
+    - copilot
+    - windsurf
+about:
+  title: Vardoger
+  description: |
+    Personalize AI coding assistants by analyzing local conversation history.
+
+    vardoger reads the JSONL conversation logs that Cursor, Claude Code,
+    OpenAI Codex, GitHub Copilot CLI, Windsurf, and OpenClaw already store
+    under your $HOME, extracts behavioral patterns (communication style,
+    preferred stack, workflow habits, pain points), and writes a tailored
+    personalization file the host assistant picks up natively on its next
+    session.
+
+    All processing is local — no network calls, no API keys, no data
+    transmitted to any external service. See
+    https://github.com/dstrupl/vardoger/blob/main/PRIVACY.md.
+
+    Note: Cline history is not accessible from this containerized build
+    because Cline's on-disk layout depends on the host-OS VS Code
+    globalStorage location. Cline users should install via
+    `pipx install vardoger` instead.
+  icon: https://raw.githubusercontent.com/dstrupl/vardoger/main/assets/logo-400.png
+source:
+  project: https://github.com/dstrupl/vardoger
+  branch: main
+  # Pinned at submission time to the vardoger 0.3.1 release tag commit.
+  commit: 1090cf27ee75bec233b78c7234c56d68b30f6651
+run:
+  volumes:
+    - "{{vardoger.home_path}}:/host-home"
+config:
+  description: |
+    vardoger reads and writes under the mounted host $HOME. It reads
+    conversation history from ~/.cursor, ~/.claude, ~/.codex, ~/.openclaw,
+    ~/.copilot, and ~/.codeium/windsurf, and writes the generated
+    personalization back to the matching platform's native rules file plus
+    ~/.vardoger/state.json for incremental processing. Point `home_path` at
+    your host $HOME and leave `platform` blank unless you want to pin the
+    server to one specific host.
+  env:
+    - name: VARDOGER_MCP_PLATFORM
+      example: cursor
+      value: "{{vardoger.platform}}"
+  parameters:
+    type: object
+    properties:
+      home_path:
+        type: string
+        description: Absolute path to your host $HOME (vardoger reads and writes under it).
+        default: /home/you
+      platform:
+        type: string
+        description: >-
+          Optional host platform identifier (cursor, claude-code, codex, copilot,
+          windsurf, openclaw). Leave blank to auto-detect from the calling MCP
+          client.
+        default: ""
+    required:
+      - home_path
