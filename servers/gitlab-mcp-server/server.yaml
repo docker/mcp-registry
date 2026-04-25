@@ -1,0 +1,80 @@
+name: gitlab-mcp-server
+image: mcp/gitlab-mcp-server
+type: server
+meta:
+  category: devops
+  tags:
+    - gitlab
+    - devops
+    - ci-cd
+    - source-control
+about:
+  title: GitLab
+  description: Comprehensive GitLab MCP server covering REST API v4 and GraphQL.
+    1000 individual tools across 162 domains, 32 meta-tools by default (47 with
+    enterprise mode), 24 resources and 38 prompts. Full MCP capability set
+    (logging, progress, roots, sampling, elicitation, completions). Supports
+    SaaS and self-hosted GitLab, read-only and safe modes.
+  icon: https://raw.githubusercontent.com/jmrplens/gitlab-mcp-server/main/site/public/logo-400.png
+source:
+  project: https://github.com/jmrplens/gitlab-mcp-server
+  commit: 35f6de1d6532d17ad52ed04f7b8799861c2cbcf4
+run:
+  allowHosts:
+    - gitlab.com:443
+    - api.github.com:443
+config:
+  description: Configure your GitLab instance URL and Personal Access Token. Use
+    GITLAB_ENTERPRISE for Premium/Ultimate features, GITLAB_READ_ONLY to disable
+    mutating tools, or GITLAB_SAFE_MODE to preview mutations as JSON.
+  secrets:
+    - name: gitlab-mcp-server.gitlab_token
+      env: GITLAB_TOKEN
+      example: glpat-xxxxxxxxxxxxxxxxxxxx
+  env:
+    - name: GITLAB_URL
+      example: https://gitlab.com
+      value: "{{gitlab-mcp-server.gitlab_url}}"
+    - name: GITLAB_ENTERPRISE
+      example: "false"
+      value: "{{gitlab-mcp-server.gitlab_enterprise}}"
+    - name: GITLAB_READ_ONLY
+      example: "false"
+      value: "{{gitlab-mcp-server.gitlab_read_only}}"
+    - name: GITLAB_SAFE_MODE
+      example: "false"
+      value: "{{gitlab-mcp-server.gitlab_safe_mode}}"
+    - name: META_TOOLS
+      example: "true"
+      value: "{{gitlab-mcp-server.meta_tools}}"
+  parameters:
+    type: object
+    properties:
+      gitlab_url:
+        type: string
+        description: GitLab instance URL (use https://gitlab.com for SaaS, or your
+          self-hosted URL).
+        default: https://gitlab.com
+      gitlab_enterprise:
+        type: string
+        description: Enable Premium/Ultimate (enterprise) tools — epics, iterations,
+          audit events, DORA metrics, vulnerabilities, etc. Set to "true" if
+          your GitLab plan includes them.
+        default: "false"
+      gitlab_read_only:
+        type: string
+        description: Disable every mutating tool (safe for read-only chats). Set to
+          "true" to enable.
+        default: "false"
+      gitlab_safe_mode:
+        type: string
+        description: Intercept mutating tools and return a JSON preview instead of
+          executing the call. Set to "true" to enable.
+        default: "false"
+      meta_tools:
+        type: string
+        description: Use 32 consolidated meta-tools (recommended, default) instead of
+          registering all 1000 individual tools. Saves token budget.
+        default: "true"
+    required:
+      - gitlab_url
