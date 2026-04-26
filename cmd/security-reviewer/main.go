@@ -14,6 +14,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/docker/mcp-registry/internal/gitutil"
 	"github.com/spf13/cobra"
 )
 
@@ -28,8 +29,6 @@ const (
 	repositoryDirName = "repository"
 	// dockerExecutable identifies the docker CLI binary invoked by the tool.
 	dockerExecutable = "docker"
-	// gitExecutable identifies the git CLI binary used to manage repositories.
-	gitExecutable = "git"
 	// projectPrefix is applied to compose project names to make them unique yet readable.
 	projectPrefix = "security-reviewer"
 	// agentService is the compose service name running the security reviewer container.
@@ -272,6 +271,11 @@ func sanitizeName(text string) string {
 
 // prepareRepository clones the repository and materializes commits for review.
 func prepareRepository(ctx context.Context, opts options, repositoryDir string) error {
+	gitPath, err := gitutil.Executable()
+	if err != nil {
+		return err
+	}
+
 	parentDir := filepath.Dir(repositoryDir)
 	if err := os.MkdirAll(parentDir, 0o755); err != nil {
 		return fmt.Errorf("create repository parent directory: %w", err)
@@ -280,19 +284,19 @@ func prepareRepository(ctx context.Context, opts options, repositoryDir string) 
 		return fmt.Errorf("reset repository directory: %w", err)
 	}
 
-	if err := runCommand(ctx, "", gitExecutable, "clone", opts.Repository, repositoryDir); err != nil {
+	if err := runCommand(ctx, "", gitPath, "clone", opts.Repository, repositoryDir); err != nil {
 		return fmt.Errorf("clone repository: %w", err)
 	}
 
-	if err := ensureCommit(ctx, repositoryDir, opts.HeadSHA); err != nil {
+	if err := ensureCommit(ctx, gitPath, repositoryDir, opts.HeadSHA); err != nil {
 		return err
 	}
-	if err := runCommand(ctx, repositoryDir, gitExecutable, "checkout", "--detach", opts.HeadSHA); err != nil {
+	if err := runCommand(ctx, repositoryDir, gitPath, "checkout", "--detach", opts.HeadSHA); err != nil {
 		return fmt.Errorf("checkout head commit: %w", err)
 	}
 
 	if opts.BaseSHA != "" {
-		if err := ensureCommit(ctx, repositoryDir, opts.BaseSHA); err != nil {
+		if err := ensureCommit(ctx, gitPath, repositoryDir, opts.BaseSHA); err != nil {
 			return err
 		}
 	}
@@ -301,17 +305,17 @@ func prepareRepository(ctx context.Context, opts options, repositoryDir string) 
 }
 
 // ensureCommit verifies that a commit exists locally, fetching if needed.
-func ensureCommit(ctx context.Context, repoDir, sha string) error {
+func ensureCommit(ctx context.Context, gitPath, repoDir, sha string) error {
 	if sha == "" {
 		return nil
 	}
-	if err := runCommand(ctx, repoDir, gitExecutable, "rev-parse", "--verify", sha); err == nil {
+	if err := runCommand(ctx, repoDir, gitPath, "rev-parse", "--verify", sha); err == nil {
 		return nil
 	}
-	if err := runCommand(ctx, repoDir, gitExecutable, "fetch", "origin", sha); err != nil {
+	if err := runCommand(ctx, repoDir, gitPath, "fetch", "origin", sha); err != nil {
 		return fmt.Errorf("fetch commit %s: %w", sha, err)
 	}
-	if err := runCommand(ctx, repoDir, gitExecutable, "rev-parse", "--verify", sha); err != nil {
+	if err := runCommand(ctx, repoDir, gitPath, "rev-parse", "--verify", sha); err != nil {
 		return fmt.Errorf("verify commit %s: %w", sha, err)
 	}
 	return nil
