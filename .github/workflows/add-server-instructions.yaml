@@ -1,0 +1,172 @@
+name: Add Server Instructions
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, reopened, edited]
+    paths:
+      - "servers/**/server.yaml"
+
+permissions:
+  contents: read
+
+jobs:
+  detect_changes:
+    name: Detect changed server.yaml files
+    runs-on: ubuntu-latest
+    outputs:
+      changed_list: ${{ steps.diff.outputs.changed_list }}
+      has_changes: ${{ steps.diff.outputs.has_changes }}
+    steps:
+      - name: Checkout base repo (for workflow context only)
+        uses: actions/checkout@v5
+        # with:
+        #   persist-credentials: false
+        #   clean: true
+
+      # Fetch PR merge ref safely (no code execution)
+      - name: Fetch PR refs
+        run: |
+          git fetch --no-tags origin \
+            +refs/pull/${{ github.event.pull_request.number }}/merge:pr-merge \
+            +refs/pull/${{ github.event.pull_request.number }}/head:pr-head
+
+      - name: Compute changed files (base..head)
+        id: diff
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+          git fetch --no-tags origin $BASE $HEAD
+          CHANGED="$(git diff --name-only "$BASE" "$HEAD" | grep -E '^servers/.+/server\.yaml$' || true)"
+          if [ -n "$CHANGED" ]; then
+            echo "changed_list<<EOF" >> "$GITHUB_OUTPUT"
+            echo "$CHANGED" >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed_list=" >> "$GITHUB_OUTPUT"
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  codex_review:
+    name: Run Codex review
+    needs: detect_changes
+    if: needs.detect_changes.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      final_message: ${{ steps.run_codex.outputs.final-message }}
+    steps:
+      - name: Checkout PR merge ref (read-only)
+        uses: actions/checkout@v5
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          # persist-credentials: false
+          # clean: true
+
+      - name: Pre-fetch base/head refs (for context only)
+        run: |
+          git fetch --no-tags origin \
+            ${{ github.event.pull_request.base.ref }} \
+            +refs/pull/${{ github.event.pull_request.number }}/head
+
+      # OPTIONAL: Pre-fetch docs that Codex can read (Codex sandbox blocks network).
+      # If your YAML has source.project URLs, you can curl README.md and place in ./_docs
+      # - name: (Optional) Fetch referenced READMEs for context
+      #   run: |
+      #     mkdir -p _docs
+      #     curl -fsSL https://raw.githubusercontent.com/<owner>/<repo>/HEAD/README.md -o _docs/<repo>-README.md
+      #   env:
+      #     GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Run Codex
+        id: run_codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+
+          # IMPORTANT: Codex runs in a sandbox without network; it can read files in the workspace.
+          prompt: |
+            You are helping to improve MCP server configuration files in the mcp-registry repository.
+
+            Your task is to analyze changed server.yaml files and add helpful instructions for configuration fields.
+
+            Only consider these files (newline-separated):
+            ${{ needs.detect_changes.outputs.changed_list }}
+
+            For each listed server.yaml file:
+
+            1) Read the server.yaml file.
+            2) In config.secrets (if present):
+               - For each secret entry without an "instructions" field:
+                 * Add an "instructions" field with a concise 1-sentence explanation of the field.
+                 * If documentation exists at the source.project URL, include a link to relevant docs.
+            3) In config.env (if present):
+               - For each env entry without an "instructions" field:
+                 * Add an "instructions" field with a concise 1-sentence explanation.
+                 * If documentation exists at the source.project URL, include a link.
+            4) If config.instructions is missing:
+               - Add config.instructions with a 1-2 paragraph guide:
+                 * How to configure this MCP server.
+                 * Where to obtain secrets/env values.
+                 * Use the source.project GitHub repo context to inform explanations.
+            5) Produce a single suggested code change (diff) per server.yaml with all edits.
+
+            Guidelines:
+            - Keep field instructions to 1-2 sentences.
+            - Maintain YAML formatting and indentation.
+            - Only add instructions where missing (do not duplicate).
+            - Focus on WHERE to obtain values, not just WHAT they are.
+            - If external docs are needed and available, include a URL (if any README/doc was pre-fetched into ./_docs, you may cite those paths).
+
+            OUTPUT FORMAT (strict):
+            - For each file, output a unified diff patch (starting with ---/+++ and @@ hunks) that applies cleanly to the current workspace.
+            - Then, at the end, include a short Markdown summary explaining the rationale.
+
+            Context:
+            - Repository: ${{ github.repository }}
+            - PR #: ${{ github.event.pull_request.number }}
+            - Base SHA: ${{ github.event.pull_request.base.sha }}
+            - Head SHA: ${{ github.event.pull_request.head.sha }}
+
+  post_feedback:
+    name: Post Codex feedback
+    needs: [detect_changes, codex_review]
+    if: needs.detect_changes.outputs.has_changes == 'true' && needs.codex_review.outputs.final_message != ''
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Report Codex feedback
+        uses: actions/github-script@v7
+        env:
+          CODEX_FINAL_MESSAGE: ${{ needs.codex_review.outputs.final_message }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            // Post as a top-level PR comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: process.env.CODEX_FINAL_MESSAGE,
+            });
+
+  gate:
+    name: Merge gate (fail if suggestions exist)
+    needs: [detect_changes, codex_review]
+    if: needs.detect_changes.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Determine gate status
+        run: |
+          if [ -n "${{ needs.codex_review.outputs.final_message }}" ]; then
+            echo "Codex produced suggestions; failing gate to block merge."
+            exit 1
+          else
+            echo "No suggestions from Codex; gate passes."
+          fi
