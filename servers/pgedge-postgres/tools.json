@@ -1,0 +1,173 @@
+[
+  {
+    "name": "execute_explain",
+    "description": "Execute EXPLAIN ANALYZE on SQL queries to analyze performance, identify bottlenecks, and suggest index optimizations. Read-only transactions only.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "SELECT query to analyze"
+        },
+        "analyze": {
+          "type": "boolean",
+          "description": "Run EXPLAIN ANALYZE for actual timing (default: true)"
+        },
+        "buffers": {
+          "type": "boolean",
+          "description": "Include buffer usage statistics (default: true)"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["text", "json"],
+          "description": "Output format (default: text)"
+        }
+      },
+      "required": ["query"]
+    }
+  },
+  {
+    "name": "generate_embedding",
+    "description": "Generate vector embeddings from text using OpenAI, Voyage AI (cloud), or Ollama (local) for semantic search and RAG systems.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "Text to convert into an embedding vector"
+        }
+      },
+      "required": ["text"]
+    }
+  },
+  {
+    "name": "get_schema_info",
+    "description": "Primary tool for discovering database tables and schema information. Retrieves tables, columns, types, constraints, indexes, foreign keys, and pgvector columns in TSV format.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "schema_name": {
+          "type": "string",
+          "description": "Filter to specific schema (e.g., 'public')"
+        },
+        "table_name": {
+          "type": "string",
+          "description": "Filter to specific table (requires schema_name)"
+        },
+        "vector_tables_only": {
+          "type": "boolean",
+          "description": "Only return tables with pgvector columns (default: false)"
+        },
+        "compact": {
+          "type": "boolean",
+          "description": "Return table names only, no column details (default: false)"
+        }
+      }
+    }
+  },
+  {
+    "name": "query_database",
+    "description": "Execute SQL queries against PostgreSQL. LLMs can translate natural language to SQL. All queries run in read-only transactions (no INSERT/UPDATE/DELETE).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "SQL query to execute"
+        }
+      },
+      "required": ["query"]
+    }
+  },
+  {
+    "name": "read_resource",
+    "description": "Read MCP resources by URI for system information and statistics (e.g., pg://system_info). Always enabled as it's required to list resources.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "uri": {
+          "type": "string",
+          "description": "Resource URI to read (e.g., pg://system_info)"
+        },
+        "list": {
+          "type": "boolean",
+          "description": "List all available resources instead of reading one"
+        }
+      }
+    }
+  },
+  {
+    "name": "search_knowledgebase",
+    "description": "Search pre-built documentation knowledgebase for PostgreSQL syntax, pgEdge products, best practices, and troubleshooting. Requires separate KB database setup.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "Natural language search query"
+        },
+        "project_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Filter by projects (e.g., ['PostgreSQL', 'pgEdge'])"
+        },
+        "project_versions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Filter by versions (e.g., ['16', '17'])"
+        },
+        "top_n": {
+          "type": "integer",
+          "description": "Number of results to return (default: 5, max: 20)"
+        },
+        "list_products": {
+          "type": "boolean",
+          "description": "List available products/versions instead of searching"
+        }
+      }
+    }
+  },
+  {
+    "name": "similarity_search",
+    "description": "Advanced hybrid search combining pgvector semantic similarity, BM25 lexical matching, and MMR diversity. Auto-chunks large documents at query time without pre-chunking.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "table_name": {
+          "type": "string",
+          "description": "Table to search (can include schema: 'schema.table')"
+        },
+        "query_text": {
+          "type": "string",
+          "description": "Natural language search query"
+        },
+        "top_n": {
+          "type": "integer",
+          "description": "Number of rows from vector search (default: 10)"
+        },
+        "chunk_size_tokens": {
+          "type": "integer",
+          "description": "Maximum tokens per chunk (default: 100)"
+        },
+        "lambda": {
+          "type": "number",
+          "description": "MMR diversity: 0.0=max diversity, 1.0=max relevance (default: 0.6)"
+        },
+        "max_output_tokens": {
+          "type": "integer",
+          "description": "Maximum total tokens to return (default: 1000)"
+        },
+        "distance_metric": {
+          "type": "string",
+          "enum": ["cosine", "l2", "inner_product"],
+          "description": "Vector distance metric (default: cosine)"
+        }
+      },
+      "required": ["table_name", "query_text"]
+    }
+  }
+]
