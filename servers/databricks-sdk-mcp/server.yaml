@@ -1,0 +1,54 @@
+name: databricks-sdk-mcp
+image: mcp/databricks-sdk-mcp
+type: server
+
+meta:
+  category: cloud
+  tags:
+    - databricks
+    - cloud
+    - data
+    - sql
+    - mlops
+    - unity-catalog
+    - spark
+    - lakehouse
+
+about:
+  title: Databricks SDK MCP Server
+  description: >
+    Comprehensive SDK-first MCP server for Databricks providing 263 tools
+    across 28 service domains including Unity Catalog, SQL, Compute, Jobs,
+    Pipelines, Serving Endpoints, Vector Search, Apps, Lakebase, Dashboards,
+    Genie, Secrets, IAM, Experiments, and Delta Sharing. Includes 8 prompt
+    templates and role-based tool presets.
+  icon: https://avatars.githubusercontent.com/u/4998052?s=200&v=4
+
+source:
+  project: https://github.com/pramodbhatofficial/databricks-mcp-server
+  commit: bc922cba4847f60c0b0e6f66ac1b3b5f2dc5f8fc
+
+config:
+  description: Configure connection to your Databricks workspace
+  secrets:
+    - name: databricks-sdk-mcp.databricks_token
+      env: DATABRICKS_TOKEN
+      example: dapi1234567890abcdef
+  env:
+    - name: DATABRICKS_HOST
+      example: https://your-workspace.databricks.com
+      value: "{{databricks-sdk-mcp.databricks_host}}"
+    - name: DATABRICKS_MCP_TOOLS_INCLUDE
+      example: unity_catalog,sql,compute,jobs
+      value: "{{databricks-sdk-mcp.tools_include}}"
+  parameters:
+    type: object
+    properties:
+      databricks_host:
+        type: string
+        description: Your Databricks workspace URL
+      tools_include:
+        type: string
+        description: Comma-separated tool modules to load (leave empty for all 263 tools)
+    required:
+      - databricks_host
