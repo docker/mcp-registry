@@ -1,0 +1,75 @@
+[
+  {
+    "name": "prescribe",
+    "description": "Record infrastructure intent before a mutation. Use it before operations like kubectl apply, terraform apply, helm upgrade, docker build, argocd sync, or oc apply. Returns a prescription_id, risk level, and artifact context for the later report step.",
+    "arguments": [
+      {
+        "name": "tool",
+        "type": "string",
+        "desc": "Infrastructure tool name such as kubectl, terraform, helm, docker, argocd, or oc."
+      },
+      {
+        "name": "operation",
+        "type": "string",
+        "desc": "Mutation operation such as apply, destroy, upgrade, sync, build, or delete."
+      },
+      {
+        "name": "raw_artifact",
+        "type": "string",
+        "desc": "Raw artifact content such as a YAML manifest, Terraform plan JSON, or other operation payload."
+      },
+      {
+        "name": "actor",
+        "type": "object",
+        "desc": "Actor identity. Required fields are type, id, and origin."
+      },
+      {
+        "name": "environment",
+        "type": "string",
+        "desc": "Optional environment label such as production or staging."
+      }
+    ]
+  },
+  {
+    "name": "report",
+    "description": "Record the terminal outcome after an infrastructure operation completes or is deliberately declined. Use it exactly once for each prescription_id returned by prescribe.",
+    "arguments": [
+      {
+        "name": "prescription_id",
+        "type": "string",
+        "desc": "Identifier returned by prescribe."
+      },
+      {
+        "name": "verdict",
+        "type": "string",
+        "desc": "Terminal result: success, failure, error, or declined."
+      },
+      {
+        "name": "exit_code",
+        "type": "integer",
+        "desc": "Exit code for success, failure, or error outcomes."
+      },
+      {
+        "name": "decision_context",
+        "type": "object",
+        "desc": "Required for declined verdicts. Include trigger and reason."
+      },
+      {
+        "name": "actor",
+        "type": "object",
+        "desc": "Optional actor identity, usually matching the prescribe actor."
+      }
+    ]
+  },
+  {
+    "name": "get_event",
+    "description": "Retrieve a previously recorded evidence event by event_id for debugging, correlation, or audit lookup.",
+    "arguments": [
+      {
+        "name": "event_id",
+        "type": "string",
+        "desc": "Evidence event identifier."
+      }
+    ]
+  }
+]
