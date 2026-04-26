@@ -112,6 +112,86 @@ func Test_isNameValid(t *testing.T) {
 	}
 }
 
+func Test_isTitleValid(t *testing.T) {
+	type args struct {
+		name string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantError bool
+	}{
+		{
+			name: "valid single-word title",
+			args: args{
+				name: "atlassian",
+			},
+			wantError: false,
+		},
+		{
+			name: "valid multi-word title",
+			args: args{
+				name: "astra-db",
+			},
+			wantError: false,
+		},
+		{
+			name: "title contains MCP",
+			args: args{
+				name: "bad-server",
+			},
+			wantError: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isTitleValid(tt.args.name); (got != nil) != tt.wantError {
+				t.Errorf("isTitleValid() = %v, want error=%v", got, tt.wantError)
+			}
+		})
+	}
+}
+
+func Test_isCommitPinnedIfNecessary(t *testing.T) {
+	type args struct {
+		name string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantError bool
+	}{
+		{
+			name: "local server with pinned commit",
+			args: args{
+				name: "atlassian",
+			},
+			wantError: false,
+		},
+		{
+			name: "remote server skips commit check",
+			args: args{
+				name: "notion-remote",
+			},
+			wantError: false,
+		},
+		{
+			name: "local server missing commit",
+			args: args{
+				name: "bad-server",
+			},
+			wantError: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isCommitPinnedIfNecessary(tt.args.name); (got != nil) != tt.wantError {
+				t.Errorf("isCommitPinnedIfNecessary() = %v, want error=%v", got, tt.wantError)
+			}
+		})
+	}
+}
+
 func Test_areSecretsValid(t *testing.T) {
 	type args struct {
 		name string
