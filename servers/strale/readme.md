@@ -1,4 +1,4 @@
-Strale is trust and quality infrastructure for AI agents. 250+ verified data capabilities — IBAN validation, company registry lookups across 27 countries, sanctions and PEP screening, web scraping, lead enrichment, Web3 risk analysis — each continuously tested and assigned a dual-profile quality score. Every execution returns structured JSON with data provenance and an audit trail.
+Strale exposes a catalog of data capabilities for AI agents — IBAN/VAT/LEI validation, company registry lookups across 27 countries, sanctions and PEP screening, web extraction, document parsing, and Web3 wallet/token intelligence. Every execution returns structured JSON with provenance.
 
 ## What you can do
 
@@ -18,7 +18,7 @@ Strale is trust and quality infrastructure for AI agents. 250+ verified data cap
 
 These tools work without an API key:
 
-- `strale_search` — browse all 250+ capabilities
+- `strale_search` — browse the full capability catalog
 - `strale_getting_started` — see free capabilities with examples
 - `strale_trust_profile` — check quality scores
 - `strale_execute` with free slugs: `email-validate`, `iban-validate`, `dns-lookup`, `url-to-markdown`, `json-repair`
