@@ -26,6 +26,10 @@ about:
     The project directory is mounted read-only for document scanning.
     Index data is persisted in the .search-docs subdirectory (read-write).
 
+    If no external Embedding server is specified, the built-in server auto-detects
+    in order: Docker compose service, host-side server (host.docker.internal:24281),
+    then falls back to spawning a local instance.
+
     Designed for AI coding assistants to search and retrieve project documentation efficiently.
   icon: https://avatars.githubusercontent.com/u/57501900?s=200&v=4
 source:
@@ -35,10 +39,13 @@ run:
   volumes:
     - "{{search-docs.project_path}}:/workspace:ro"
     - "{{search-docs.project_path}}/.search-docs:/workspace/.search-docs"
+  env:
+    EMBEDDING_URL: "{{search-docs.embedding_url}}"
 config:
   description: |
     Project directory to index. Documents (*.md) are read from this directory.
     Index data is stored in .search-docs/ subdirectory within the project.
+    Embedding URL is optional — auto-detection covers most setups.
   parameters:
     type: object
     properties:
@@ -46,5 +53,9 @@ config:
         type: string
         description: Project directory containing Markdown documents to search
         default: /Users/demo/my-project
+      embedding_url:
+        type: string
+        description: "Embedding server URL (optional, auto-detected if not set). Example: http://host.docker.internal:24282"
+        default: ""
     required:
       - project_path
