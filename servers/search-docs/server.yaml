@@ -9,18 +9,22 @@ meta:
     - vector-search
     - local-files
     - markdown
+    - japanese
 about:
   title: search-docs
   description: |
     Local document vector search system for project documentation.
 
     Features:
-    • Vector search over local Markdown documents using Ruri Embedding model
+    • Vector search over local Markdown documents using Ruri Embedding model (optimized for Japanese)
     • Automatic document indexing and background re-indexing
     • Section-based splitting (H1-H4 headings, token-based)
     • Document outline and full content retrieval
     • Multi-project support with related project linking
     • Built-in Embedding server (ONNX Runtime, CPU-optimized)
+
+    The project directory is mounted read-only for document scanning.
+    Index data is persisted in the .search-docs subdirectory (read-write).
 
     Designed for AI coding assistants to search and retrieve project documentation efficiently.
   icon: https://avatars.githubusercontent.com/u/57501900?s=200&v=4
@@ -32,17 +36,15 @@ run:
     - "{{search-docs.project_path}}:/workspace:ro"
     - "{{search-docs.project_path}}/.search-docs:/workspace/.search-docs"
 config:
-  description: Configure project directory to index and optional external Embedding server URL
+  description: |
+    Project directory to index. Documents (*.md) are read from this directory.
+    Index data is stored in .search-docs/ subdirectory within the project.
   parameters:
     type: object
     properties:
       project_path:
         type: string
-        description: Project directory containing documents to search
+        description: Project directory containing Markdown documents to search
         default: /Users/demo/my-project
-      embedding_url:
-        type: string
-        description: External Embedding server URL (optional, uses built-in server if not set)
-        default: ""
     required:
       - project_path
