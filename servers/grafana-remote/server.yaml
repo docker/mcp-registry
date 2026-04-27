@@ -1,0 +1,36 @@
+name: grafana-remote
+type: remote
+dynamic:
+  tools: true
+meta:
+  category: monitoring
+  tags:
+    - grafana
+    - monitoring
+    - observability
+    - remote
+about:
+  title: Grafana Cloud
+  description: Query metrics, logs, traces, and profiles; manage dashboards, alerts, incidents, and on-call schedules in Grafana Cloud
+  icon: https://avatars.githubusercontent.com/u/7195757?s=200&v=4
+remote:
+  transport_type: streamable-http
+  url: https://mcp.grafana.com/mcp
+  headers:
+    X-Grafana-URL: "${X_GRAFANA_URL}"
+config:
+  description: Configure the connection to your Grafana Cloud stack
+  env:
+    - name: X_GRAFANA_URL
+      example: https://<your-stack>.grafana.net
+      value: "{{grafana-remote.x-grafana-url}}"
+  parameters:
+    type: object
+    properties:
+      x-grafana-url:
+        type: string
+        description: Your Grafana Cloud stack URL
+oauth:
+  - provider: grafana-remote
+    secret: grafana-remote.personal_access_token
+    env: GRAFANA_REMOTE_PERSONAL_ACCESS_TOKEN
