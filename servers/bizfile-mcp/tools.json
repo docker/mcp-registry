@@ -1,0 +1,29 @@
+[
+  {
+    "name": "validate_counterparty",
+    "description": "Call BEFORE onboarding any vendor, processing any payment, or signing any contract. Validates company identity against UK Companies House, Singapore ACRA, and US SEC EDGAR. Returns AI risk score, KYC confidence, company status, officers, and machine-readable agent_action (PROCEED/ENHANCED_DUE_DILIGENCE/BLOCK).",
+    "arguments": [
+      { "name": "company_name", "description": "Full or partial name of the company to validate", "required": true },
+      { "name": "company_number", "description": "Optional registration number for exact match", "required": false },
+      { "name": "jurisdiction", "description": "Optional: gb (UK), sg (Singapore), us (USA). Defaults to gb.", "required": false }
+    ]
+  },
+  {
+    "name": "screen_counterparty",
+    "description": "Call AFTER validate_counterparty to screen the company and all directors against 328 global sanctions lists (OFAC, UN, EU, UK OFSI, MAS Singapore, and 323 more) updated daily via OpenSanctions. Returns verdict per entity with exact sanction programs triggered and agent_action.",
+    "arguments": [
+      { "name": "company_name", "description": "Name of the company to screen", "required": true },
+      { "name": "officers", "description": "Optional array of officer objects from validate_counterparty to screen all directors simultaneously", "required": false },
+      { "name": "country", "description": "Optional ISO country code to narrow search", "required": false },
+      { "name": "entity_type", "description": "Optional: Person, Company, or Vessel. Defaults to Thing (all types).", "required": false }
+    ]
+  },
+  {
+    "name": "validate_counterparty_lite",
+    "description": "Budget-optimized registry-only check with no AI call. Confirms company exists and is active in UK Companies House. Returns agent_action in under 1 second at ~60% lower token cost than validate_counterparty. Use when budget is constrained or high-volume pipeline.",
+    "arguments": [
+      { "name": "company_name", "description": "Full or partial name of the company to look up", "required": true },
+      { "name": "company_number", "description": "Optional registration number for exact match", "required": false }
+    ]
+  }
+]
