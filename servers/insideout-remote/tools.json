@@ -1,0 +1,775 @@
+[
+  {
+    "annotations": {
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
+    "description": "INSPECTION: Inspect AWS infrastructure for a deployed project\n⚠️ **PREREQUISITE**: This tool requires a prior deployment ATTEMPT (successful or failed).\nCheck convostatus for hasDeployAttempt=true before calling. Works even after failed deploys to inspect orphaned resources.\n\nInspect deployed AWS resources after a deployment attempt.\nUse this tool when the user asks about the status or details of their deployed infrastructure.\nIt fetches temporary read-only credentials securely and queries the AWS API directly.\n\nRESPONSE TIERS (default is summary for token efficiency):\n- Summary (default): Key fields only (~500 tokens). Set detail=false, raw=false or omit both.\n- Detail: Full metadata for a specific resource. Set detail=true + resource filter.\n- Raw: Complete unprocessed API response. Set raw=true.\n\nREQUIRES: session_id from convoopen response (format: sess_v2_...).\nSupported services: account, alb, apigateway, backup, bedrock, cloudfront, cloudwatchlogs, cognito, cost-explorer, dynamodb, ebs, ec2, ecs, eks, elasticache, kms, lambda, msk, opensearch, rds, s3, secretsmanager, sqs, vpc, waf\nFor a specific service's actions, call with action=\"list-actions\".\nMETRICS: Use list-metrics to discover available metrics for a service (no credentials needed). Then use get-metrics to retrieve data (auto-discovers resources). Most services return CloudWatch time-series. KMS returns key health (rotation, state). SecretsManager returns secret health (rotation, last accessed/rotated). Optional filters JSON: {\"hours\":6,\"period\":300}.\nBILLING: Use service=cost-explorer to inspect AWS costs. Actions: get-cost-summary (last 30 days by service, filters: {\"days\":7,\"granularity\":\"DAILY\"}), get-cost-forecast (projected spend through end of month), get-cost-by-tag (costs grouped by tag, filters: {\"tag_key\":\"Environment\",\"days\":30}). Requires ce:GetCostAndUsage and ce:GetCostForecast IAM permissions.\n\nEXAMPLES:\n- awsinspect(session_id=..., service=\"ec2\", action=\"describe-instances\")\n- awsinspect(session_id=..., service=\"cost-explorer\", action=\"get-cost-summary\")\n- awsinspect(session_id=..., service=\"ec2\", action=\"get-metrics\", filters=\"{\\\"hours\\\":6}\")\n- awsinspect(session_id=..., service=\"rds\", action=\"describe-db-instances\", detail=true)",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        },
+        "service": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "filters": {
+          "type": "string"
+        },
+        "detail": {
+          "type": "boolean"
+        },
+        "raw": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "session_id",
+        "service",
+        "action",
+        "filters",
+        "detail",
+        "raw"
+      ],
+      "additionalProperties": false
+    },
+    "name": "awsinspect",
+    "title": "Inspect AWS Infrastructure"
+  },
+  {
+    "annotations": {
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
+    "description": "BATCH INSPECTION: run up to 32 AWS inspect probes in one call.\n⚠️ **PREREQUISITE**: Same as awsinspect — deploy attempt required.\nCheck convostatus for hasDeployAttempt=true before calling.\n\nUse this when you need to check more than ~3 resources. The backend fetches\nOracle credentials ONCE per batch and fans out probes against a single AWS\nconfig — for a 12-resource health check this is ~5–8× faster and 12× fewer\nOracle round-trips than calling awsinspect 12 times.\n\nBUDGETS:\n- Up to 32 sub-probes per call (subs array length).\n- 30s per-sub timeout; 60s total batch wall-clock.\n- Concurrency cap 8 — sub-probes run in parallel but never saturate AWS.\n- 512 KB response cap: subs past the cap keep their envelope\n  (index/service/action/ok) but have result replaced with truncated=true.\n\nPARTIAL FAILURE IS EXPECTED. The response is an ordered results array;\neach entry has {index, service, action, ok, result, error}. Inspect each\nresult — do NOT abort on the first error. A credential fetch failure\nleaves cred-less probes (list-actions, list-metrics) succeeding anyway.\n\nREQUIRES: session_id from convoopen response (format: sess_v2_...).\nSupported services: account, alb, apigateway, backup, bedrock, cloudfront, cloudwatchlogs, cognito, cost-explorer, dynamodb, ebs, ec2, ecs, eks, elasticache, kms, lambda, msk, opensearch, rds, s3, secretsmanager, sqs, vpc, waf\nFor a specific service's actions, use awsinspect (singular) with\naction=\"list-actions\" — batch is not the place for discovery.\nBatch responses are always summarized (no detail/raw per-sub); use\nsingular awsinspect when you need full metadata or raw API output for one\nresource.\n\nEXAMPLES:\n- awsinspect_batch(session_id=..., subs=[\n    {\"service\":\"ec2\",\"action\":\"describe-instances\"},\n    {\"service\":\"rds\",\"action\":\"describe-db-instances\"},\n    {\"service\":\"vpc\",\"action\":\"describe-vpcs\"},\n    {\"service\":\"s3\",\"action\":\"list-buckets\"}])\n- awsinspect_batch(session_id=..., subs=[\n    {\"service\":\"ec2\",\"action\":\"get-metrics\",\"filters\":\"{\\\"hours\\\":6}\"},\n    {\"service\":\"rds\",\"action\":\"get-metrics\",\"filters\":\"{\\\"hours\\\":6}\"}])",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        },
+        "subs": {
+          "type": [
+            "null",
+            "array"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "service": {
+                "type": "string"
+              },
+              "action": {
+                "type": "string"
+              },
+              "filters": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "service",
+              "action"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "session_id",
+        "subs"
+      ],
+      "additionalProperties": false
+    },
+    "name": "awsinspect_batch",
+    "title": "Batch-Inspect AWS Infrastructure"
+  },
+  {
+    "annotations": {
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
+    "description": "Wait for a pending response from Riley after a convoreply timeout.\n\n🎯 USE THIS TOOL WHEN: convoreply returned a timeout error.\nThis allows you to continue waiting for the response without resending the message.\n\nREQUIRES:\n- session_id: from convoopen response\n\nOPTIONAL:\n- message_id: if known (from convoreply timeout error)\n- timeout (integer): seconds to wait. For Cursor, use 50 (default). Max 55.\n\nReturns the same format as convoreply when successful.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        },
+        "message_id": {
+          "type": "string"
+        },
+        "timeout": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        }
+      },
+      "required": [
+        "session_id"
+      ],
+      "additionalProperties": false
+    },
+    "name": "convoawait",
+    "title": "Await Pending Response"
+  },
+  {
+    "annotations": {
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
+    "description": "INSPECTION: View a session's conversation transcript and metadata\nReturns the full message history (user / assistant / tool turns) plus the session's meta — workflow step, cloud, deployment status, drift state.\n\nThis is the transcript-reader companion to the other read tools — combine it with:\n  • `convostatus` for the live stack / config / pricing\n  • `tfruns` for deployment history (apply / destroy / plan / drift)\n  • `stackversions` for the stack-version ladder\n\nUse it when a user asks 'what did I say earlier?' or you need to retrace why the session ended up where it did. Read-only; never mutates session state.\n\nREQUIRES: session_id (format: sess_v2_...).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id"
+      ],
+      "additionalProperties": false
+    },
+    "name": "convoinspect",
+    "title": "Inspect Session Transcript"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": true
+    },
+    "description": "WORKFLOW: Step 1 of 4 - Start infrastructure design conversation\nOpen an InsideOut V2 session and receive the assistant's intro message.\nThe response contains a clean message from Riley (the infrastructure advisor) - display it to the user.\n⚠️ Riley will ask questions - forward these to the user, DO NOT answer on their behalf.\nCRITICAL: This tool returns a session_id in the response metadata. You MUST use this session_id for ALL subsequent tool calls (convoreply, tfgenerate, tfdeploy, etc.).\nUse when the user mentions keywords like: 'setup my cloud infra', 'provision infrastructure', 'deploy infra', 'start insideout', 'use insideout', or similar intent to begin infra setup.\n\nOPTIONAL: project_context (string) - General tech stack summary so Riley can skip discovery questions and jump to recommendations. The agent should confirm this with the user before sending. Include whichever apply: language/framework, databases/services, container usage, existing IaC, CI/CD platform, cloud provider, Kubernetes usage, what the project does. Example: 'Next.js 14 + TypeScript, PostgreSQL, Redis, Docker Compose, deployed to AWS ECS, GitHub Actions CI/CD, ~50k MAU'. NEVER include credentials, secrets, API keys, PII, source code, or internal URLs/IPs -- only general metadata summaries useful to a cloud architect agent.\nIMPORTANT: source (string) - You MUST set this to identify which IDE/tool you are. Auto-detect from your environment: 'claude-code', 'codex', 'antigravity', 'kiro', 'vscode', 'web', 'mcp'. If unsure, use the name of your IDE/tool in lowercase. Do NOT omit this — it controls the 'Open {IDE}' button on the credential connect screen.\nOPTIONAL: github_username (string) - GitHub username for deploy commit attribution. Pre-populates the GitHub username field on the connect page.\n💡 TIP: Examine workflow.usage prompt for more context on how to properly use these tools.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "project_context": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "github_username": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "convoopen",
+    "title": "Start Design Session"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": true
+    },
+    "description": "WORKFLOW: Step 2 of 4 - Continue infrastructure design conversation\nSend a user message to the active InsideOut session and receive the assistant reply.\nThe response contains a clean message from Riley - display it to the user.\n\n⚠️ CRITICAL: DO NOT answer Riley's questions yourself! Forward questions to the user and wait for their response. NEVER fabricate or assume the user's answer, even if you think you know what they would say.\nExamples of questions Riley asks that YOU MUST forward to the user:\n- 'Any questions or tweaks to these details?'\n- 'Ready for the cost estimate?'\n- 'Do you want to change the stack/config?'\n- 'Ready to proceed to Terraform?'\nWhen Riley asks ANY question, STOP and wait for the user's answer!\n\n📋 WORKFLOW PHASES: The typical flow is conversation → tfgenerate → tfdeploy\nWhen terraform_ready=true appears in THIS tool's response, THEN you can call tfgenerate.\n⚠️ DO NOT call tfgenerate until this tool returns! Wait for the response first.\n\n🎯 KEY SIGNALS IN RESPONSE:\n- `[TERRAFORM_READY: true]` → NOW you can call tfgenerate\n- `[[BUTTON_TF_APPLY: ...]]` → Deployment is ready! Ask user if they want to deploy, then use tfdeploy\n- `[[BUTTON_TF_DESTROY: ...]]` → User confirmed destroy intent! Ask user to confirm, then use tfdestroy\n- `[[BUTTON_TF_PLAN: ...]]` → User wants to preview changes! Use tfplan to run a plan, then tfdeploy with plan_id to apply\n\nREQUIRES: session_id from convoopen response (format: sess_v2_...).\nOPTIONAL: timeout (integer) - seconds to wait for response. For Cursor, use 50 (default). Max 55.\nOPTIONAL: project_context (string) - Only pass genuinely NEW project details the user shares after convoopen. Do NOT resend context already provided in convoopen — Riley remembers it. Do NOT scan files or directories to gather this — only use what the user explicitly tells you. Example: user reveals a new constraint like 'we also need HIPAA compliance' mid-conversation.\nOPTIONAL: auto_accept (boolean) - When true, Riley skips setup confirmation gates and proceeds with defaults. Only affects the setup phase (not management, deploy, or destroy). Default: true for MCP.\n💡 TIP: Use convostatus to check progress anytime. Examine workflow.usage prompt for more guidance.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "retry": {
+          "type": [
+            "null",
+            "boolean"
+          ]
+        },
+        "timeout": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "project_context": {
+          "type": "string"
+        },
+        "auto_accept": {
+          "type": [
+            "null",
+            "boolean"
+          ]
+        }
+      },
+      "required": [
+        "session_id",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "name": "convoreply",
+    "title": "Send Message"
+  },
+  {
+    "annotations": {
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
+    "description": "INSPECTION: View the current infrastructure stack for a session\nReturns the current state of the user's infrastructure design including:\n\n**Components** - Selected infrastructure services (VPC, databases, caching, etc.)\n  • Shows what services the user has chosen (e.g., PostgreSQL, Redis, S3)\n  • Includes architecture decisions (EKS vs EC2, monolith vs microservices)\n\n**Config** - Configuration details for each component\n  • Database sizes, replica counts, storage amounts\n  • Cache settings, queue configurations\n  • Backup schedules and retention policies\n\n**Pricing** - Cost estimates (when available)\n  • Monthly cost estimates per component\n  • Total estimated monthly spend\n\n**Phase Indicators** - Where the user is in the design workflow:\n  • hasComponents: User has selected infrastructure services\n  • hasConfig: User has configured component details\n  • hasPricing: Cost estimates have been calculated\n  • hasTerraform: Ready for Terraform generation\n\nUse this tool when the user asks 'what is my current stack?', 'show my infrastructure', 'what have I selected?', or similar questions about their design progress.\nREQUIRES: session_id from convoopen response (format: sess_v2_...).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        },
+        "include_code": {
+          "type": [
+            "null",
+            "boolean"
+          ]
+        }
+      },
+      "required": [
+        "session_id"
+      ],
+      "additionalProperties": false
+    },
+    "name": "convostatus",
+    "title": "View Session Stack Status"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "description": "Wait for the user to securely connect their cloud account and subscribe to Luther Systems.\nPolls until credentials appear on the session.\n\n🎯 USE THIS TOOL WHEN: tfdeploy returns an 'auth_required', 'no_credentials', or 'credentials_expired' error.\n\nThe user needs to visit the connect URL to:\n1. Connect their cloud credentials (AWS or GCP)\n2. Sign up and subscribe to a Luther Systems plan (required for deployment)\n\nThis secure connection allows InsideOut to deploy and manage infrastructure in the user's cloud account on their behalf. Credentials are handled securely and only used for deployment and management sessions.\n\nWORKFLOW:\n1. FIRST: Present the connect URL and explanation to the user (from the tfdeploy error response)\n2. THEN: Call this tool to begin polling for credentials\n3. The user opens the URL in their browser to subscribe and add credentials\n4. When credentials are found, inform the user and call tfdeploy to deploy\n\nIMPORTANT: Do NOT call this tool without first showing the connect URL to the user. The user needs to see the URL to complete the process.\n\nREQUIRES: session_id from convoopen response (format: sess_v2_...).\nOPTIONAL: cloud ('aws' or 'gcp'), timeout (integer, seconds to wait, default 300, max 600).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        },
+        "cloud": {
+          "type": "string"
+        },
+        "timeout": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        }
+      },
+      "required": [
+        "session_id"
+      ],
+      "additionalProperties": false
+    },
+    "name": "credawait",
+    "title": "Await Cloud Credentials"
+  },
+  {
+    "annotations": {
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
+    "description": "INSPECTION: Inspect GCP infrastructure for a deployed project\n⚠️ **PREREQUISITE**: This tool requires a prior deployment ATTEMPT (successful or failed).\nCheck convostatus for hasDeployAttempt=true before calling. Works even after failed deploys to inspect orphaned resources.\n\nInspect deployed GCP resources after a deployment attempt.\nUse this tool when the user asks about the status or details of their deployed GCP infrastructure.\nIt fetches temporary read-only credentials securely and queries the GCP API directly.\n\nRESPONSE TIERS (default is summary for token efficiency):\n- Summary (default): Key fields only (~500 tokens). Set detail=false, raw=false or omit both.\n- Detail: Full metadata for a specific resource. Set detail=true + resource filter.\n- Raw: Complete unprocessed API response. Set raw=true.\n\nREQUIRES: session_id from convoopen response (format: sess_v2_...).\nSupported services: apigateway, bastion, billing, cloudarmor, cloudbuild, cloudcdn, cloudfunctions, cloudkms, cloudlogging, cloudmonitoring, cloudrun, cloudsql, compute, firestore, gcs, gke, identityplatform, loadbalancer, memorystore, pubsub, secretmanager, vertexai, vpc\nFor a specific service's actions, call with action=\"list-actions\".\n\nMETRICS: Use list-metrics to see available Cloud Monitoring metrics for any service (no credentials needed — progressive disclosure). Use get-metrics to retrieve time-series data. Optional filters JSON: {\"hours\":6,\"period\":300}.\nLabel breakdowns: Cloud Functions (by status), Load Balancer/API Gateway (by response_code_class), Cloud CDN (by cache_result).\nSecret Manager get-metrics returns operational health (version count, replication, create time) — no time-series.\nBastion is an alias for Compute Engine metrics (SSH connection count not available as a GCP metric).\nBILLING: Use service=billing to inspect GCP billing. Actions: get-billing-info (check if billing enabled, which billing account), get-budgets (list budget alerts for the project — auto-fetches billing account). Requires roles/billing.viewer IAM role.\nRequired IAM roles: Monitoring Viewer (roles/monitoring.viewer) for metrics, Secret Manager Viewer (roles/secretmanager.viewer) for secret health, Billing Viewer (roles/billing.viewer) for billing.\n\nEXAMPLES:\n- gcpinspect(session_id=..., service=\"compute\", action=\"list-instances\")\n- gcpinspect(session_id=..., service=\"gke\", action=\"list-clusters\")\n- gcpinspect(session_id=..., service=\"cloudsql\", action=\"get-metrics\", filters=\"{\\\"hours\\\":6}\")\n- gcpinspect(session_id=..., service=\"billing\", action=\"get-billing-info\")",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        },
+        "service": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "filters": {
+          "type": "string"
+        },
+        "detail": {
+          "type": "boolean"
+        },
+        "raw": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "session_id",
+        "service",
+        "action",
+        "filters",
+        "detail",
+        "raw"
+      ],
+      "additionalProperties": false
+    },
+    "name": "gcpinspect",
+    "title": "Inspect GCP Infrastructure"
+  },
+  {
+    "annotations": {
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
+    "description": "BATCH INSPECTION: run up to 32 GCP inspect probes in one call.\n⚠️ **PREREQUISITE**: Same as gcpinspect — deploy attempt required.\nCheck convostatus for hasDeployAttempt=true before calling.\n\nUse this when you need to check more than ~3 resources. The backend fetches\nOracle credentials ONCE per batch and fans out probes against a single GCP\ncredentials blob — a 12-resource health check is ~5–8× faster and 12× fewer\nOracle round-trips than calling gcpinspect 12 times.\n\nBUDGETS:\n- Up to 32 sub-probes per call (subs array length).\n- 30s per-sub timeout; 60s total batch wall-clock.\n- Concurrency cap 8.\n- 512 KB response cap: subs past the cap keep their envelope\n  (index/service/action/ok) but have result replaced with truncated=true.\n\nPARTIAL FAILURE IS EXPECTED. The response is an ordered results array;\neach entry has {index, service, action, ok, result, error}. Inspect each\nresult — do NOT abort on the first error. A credential fetch failure\nleaves cred-less probes (list-actions, list-metrics) succeeding anyway.\n\nREQUIRES: session_id from convoopen response (format: sess_v2_...).\nSupported services: apigateway, bastion, billing, cloudarmor, cloudbuild, cloudcdn, cloudfunctions, cloudkms, cloudlogging, cloudmonitoring, cloudrun, cloudsql, compute, firestore, gcs, gke, identityplatform, loadbalancer, memorystore, pubsub, secretmanager, vertexai, vpc\nFor a specific service's actions, use gcpinspect (singular) with\naction=\"list-actions\" — batch is not the place for discovery.\nBatch responses are always summarized (no detail/raw per-sub); use\nsingular gcpinspect when you need full metadata or raw API output for one\nresource.\n\nEXAMPLES:\n- gcpinspect_batch(session_id=..., subs=[\n    {\"service\":\"compute\",\"action\":\"list-instances\"},\n    {\"service\":\"gke\",\"action\":\"list-clusters\"},\n    {\"service\":\"cloudsql\",\"action\":\"list-instances\"}])\n- gcpinspect_batch(session_id=..., subs=[\n    {\"service\":\"compute\",\"action\":\"get-metrics\",\"filters\":\"{\\\"hours\\\":6}\"},\n    {\"service\":\"cloudrun\",\"action\":\"get-metrics\",\"filters\":\"{\\\"hours\\\":6}\"}])",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        },
+        "subs": {
+          "type": [
+            "null",
+            "array"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "service": {
+                "type": "string"
+              },
+              "action": {
+                "type": "string"
+              },
+              "filters": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "service",
+              "action"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "session_id",
+        "subs"
+      ],
+      "additionalProperties": false
+    },
+    "name": "gcpinspect_batch",
+    "title": "Batch-Inspect GCP Infrastructure"
+  },
+  {
+    "annotations": {
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
+    "description": "Get workflow guidance for using InsideOut infrastructure tools.\nCall help() for a compact overview, or help(section=...) for a detailed guide.\nSections: workflow, tools, examples, inspect.\nResponses include hints with next_actions and related_tools.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "section": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "name": "help",
+    "title": "Workflow Guide"
+  },
+  {
+    "annotations": {
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
+    "description": "Structured diff between two stack versions.\nShows component-level changes (added/removed/modified), field-level details, and pricing deltas.\n\nOptional `from_version` (defaults to latest applied) and `to_version` (defaults to current draft).\n\nREQUIRES: session_id from convoopen response (format: sess_v2_...).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        },
+        "from_version": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "to_version": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        }
+      },
+      "required": [
+        "session_id"
+      ],
+      "additionalProperties": false
+    },
+    "name": "stackdiff",
+    "title": "Compare Stack Versions"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "description": "Create a draft version by reverting to a previous version's config.\nCopies components, config, and pricing from the target version. If a draft already exists, updates it in-place (single-draft rule).\n\nUse `stackversions` first to find available version numbers.\n\nREQUIRES: session_id from convoopen response (format: sess_v2_...), version (target version number).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "session_id",
+        "version"
+      ],
+      "additionalProperties": false
+    },
+    "name": "stackrollback",
+    "title": "Rollback Stack Version"
+  },
+  {
+    "annotations": {
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
+    "description": "List all stack versions for a session (newest first).\nShows version history including version number, status (draft/confirmed/applied), change summaries, and timestamps.\n\nUse this tool to see the design history, review what changed between iterations, or find a version number to roll back to.\n\nREQUIRES: session_id from convoopen response (format: sess_v2_...).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id"
+      ],
+      "additionalProperties": false
+    },
+    "name": "stackversions",
+    "title": "List Stack Versions"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": true
+    },
+    "description": "FEEDBACK: Submit feedback, bug reports, or feature requests to Luther Systems\nUse this tool to forward user feedback directly to the Luther Systems team. This includes bug reports, feature requests, questions, or general feedback about InsideOut.\nThe agent itself can also use this tool to report issues it encounters during operation.\n\nREQUIRES: session_id, category, message\nOPTIONAL: user_email (for follow-up), user_name, source (default: 'mcp'), initiator ('user' or 'agent')\n\nCategories: bug_report, feature_request, general_feedback, question, security\n\nThe 'initiator' field tracks who triggered the report:\n- 'user' — the user explicitly reported the issue or requested feedback submission\n- 'agent' — Riley detected an issue and initiated the feedback flow\n\nExamples:\n- User says 'the deploy button is broken' → submit_feedback(category='bug_report', message='...', initiator='user')\n- User says 'I wish it had dark mode' → submit_feedback(category='feature_request', message='...', initiator='user')\n- Deployment failed with Terraform error → submit_feedback(category='bug_report', message='Deployment failed: Terraform apply error on aws_alb resource — timeout waiting for ALB provisioning', initiator='agent')",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "user_email": {
+          "type": "string"
+        },
+        "user_name": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "initiator": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "category",
+        "message"
+      ],
+      "additionalProperties": false
+    },
+    "name": "submit_feedback",
+    "title": "Submit Feedback"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": true
+    },
+    "description": "WORKFLOW: Step 4 of 4 - Deploy infrastructure to the cloud\nDeploy infrastructure by starting a Terraform job for an InsideOut session.\nThis tool initiates the actual deployment process after Terraform files have been generated.\nIMPORTANT: This starts a long-running job (15+ minutes). Use tfstatus to monitor progress.\nSINGLE-FLIGHT: only one TF job (apply/plan/destroy/drift) runs per session at a time. If another job is already in flight, tfdeploy returns tf_job_conflict with the live job_id — attach with tfstatus/tflogs instead of retrying, or pass force_new=true to override.\nReturns confirmation that the deployment has started.\nREQUIRES: session_id from convoopen response (format: sess_v2_...).\nOPTIONAL: plan_id (string) — Apply a previously created plan from tfplan.\nPreview-then-apply workflow: tfplan → tflogs (review) → tfdeploy(plan_id=...).\nOPTIONAL: sandbox (boolean, default false) — deploys real generated Terraform. Set to true for cheap sandbox template (testing only).\nOPTIONAL: ignore_drift (boolean, default false) - when true, proceeds with deploy even if infrastructure drift is detected. By default, deploys fail on drift. Use after reviewing drift details via tfdrift or tflogs.\nOPTIONAL: force_new (boolean, default false) - bypass the session-level single-flight guard. Use only when the existing run is provably wedged.\nCREDENTIAL FLOW (if credentials are missing):\n1. Response includes a connect_url — present it to the user\n2. Call credawait(session_id=...) to poll for credentials\n3. When credawait returns success, retry tfdeploy\nDo NOT call credawait without first showing the connect URL to the user.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        },
+        "sandbox": {
+          "type": [
+            "null",
+            "boolean"
+          ]
+        },
+        "version": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "plan_id": {
+          "type": "string"
+        },
+        "project_id": {
+          "type": "string"
+        },
+        "ignore_drift": {
+          "type": [
+            "null",
+            "boolean"
+          ]
+        },
+        "force_new": {
+          "type": [
+            "null",
+            "boolean"
+          ]
+        }
+      },
+      "required": [
+        "session_id"
+      ],
+      "additionalProperties": false
+    },
+    "name": "tfdeploy",
+    "title": "Deploy Infrastructure"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": true
+    },
+    "description": "DESTROY: Tear down previously deployed infrastructure\nDestroys infrastructure by calling the Oracle destroy endpoint for a session that has a prior successful deployment.\nIMPORTANT: This starts a long-running job. Use tfstatus/tflogs to monitor progress.\nSINGLE-FLIGHT: only one TF job per session at a time. If another job is already in flight, tfdestroy returns tf_job_conflict with the live job_id — attach with tfstatus/tflogs, or pass force_new=true to override.\nREQUIRES: session_id from convoopen response (format: sess_v2_...).\nOPTIONAL: force_new (boolean, default false) - bypass the single-flight guard. Use only when the existing run is provably wedged.\nPREREQUISITE: The session must have a prior successful deployment with a project_id.\nAfter destroy completes, the session is kept for historical record but hasDeployment is set to false.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        },
+        "force_new": {
+          "type": [
+            "null",
+            "boolean"
+          ]
+        }
+      },
+      "required": [
+        "session_id"
+      ],
+      "additionalProperties": false
+    },
+    "name": "tfdestroy",
+    "title": "Destroy Infrastructure"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "description": "DRIFT CHECK: Run a read-only drift detection check\nChecks whether deployed infrastructure has drifted from the expected Terraform state.\nThis is a read-only operation — it does NOT modify any infrastructure.\nReturns job_id. Use tflogs to stream the drift check results.\nSINGLE-FLIGHT: only one TF job per session at a time. If another job is already in flight, tfdrift returns tf_job_conflict with the live job_id — attach with tfstatus/tflogs, or pass force_new=true to override.\nREQUIRES: session_id from convoopen response (format: sess_v2_...).\nPREREQUISITE: The session must have a prior deployment with a project_id.\nOPTIONAL: force_new (boolean, default false) - bypass the single-flight guard. Use only when the existing run is provably wedged.\nIf drift is detected, the user can either fix the drift or use tfdeploy(ignore_drift=true) to proceed.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        },
+        "force_new": {
+          "type": [
+            "null",
+            "boolean"
+          ]
+        }
+      },
+      "required": [
+        "session_id"
+      ],
+      "additionalProperties": false
+    },
+    "name": "tfdrift",
+    "title": "Check Infrastructure Drift"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "description": "WORKFLOW: Step 3 of 4 - Generate Terraform files from completed design\nGenerate Terraform files from an InsideOut session that has completed infrastructure design.\n\n⚠️ PREREQUISITE: Only call this AFTER convoreply returns with `terraform_ready=true` in the response metadata.\nDO NOT call this while convoreply is still running or before terraform_ready is confirmed!\nIf you get 'session has not reached terraform-ready state', wait for convoreply to complete first.\n\n🎯 USE THIS TOOL WHEN: convoreply has returned with terraform_ready=true, OR the user asks to 'see the terraforms', 'generate terraform', 'show me the code', etc.\n\n**DEFAULT RESPONSE**: Returns summary table + download URL (keeps code out of LLM context).\n**FALLBACK**: Set `include_code: true` to get full code inline if curl/unzip fails.\n\n**CRITICAL WORKFLOW** (default mode):\n1. Call this tool to get file summary and download URL\n2. ASK the user: 'Where would you like me to save the Terraform files? Default: ./insideout-infra/'\n3. WAIT for user confirmation before running the download command\n4. Run the curl/unzip command with the user's chosen directory\n5. If curl/unzip FAILS (sandbox, security, platform issues), retry with `include_code: true`\n\n**AFTER GENERATION**: Ask user if they want to review the files and then deploy with tfdeploy\n\nREQUIRES: session_id from convoopen response (format: sess_v2_...).\nOPTIONAL: include_code (boolean) - set true to return full code inline as fallback.\n💡 TIP: Examine workflow.usage prompt for more context on how to properly use these tools.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        },
+        "include_code": {
+          "type": [
+            "null",
+            "boolean"
+          ]
+        }
+      },
+      "required": [
+        "session_id"
+      ],
+      "additionalProperties": false
+    },
+    "name": "tfgenerate",
+    "title": "Generate Terraform"
+  },
+  {
+    "annotations": {
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
+    "description": "MONITORING: Fetch Terraform deployment logs with pagination\nFetches logs from a running or completed Terraform deployment job.\nFor **completed jobs**: uses REST endpoint for instant retrieval (supports `tail` for server-side filtering).\nFor **running jobs**: streams via SSE with timeout-based pagination.\n\n**PAGINATION** (running jobs only): Use `last_event_id` from the response to fetch more:\n1. First call: `tflogs(session_id='...')` → get logs + `last_event_id`\n2. Next call: `tflogs(session_id='...', last_event_id='...')` → get NEW logs only\n3. Repeat until `complete: true` in response\n\n**RESPONSE FIELDS**:\n- `logs`: Array of log messages collected\n- `last_event_id`: Pass this back to get more logs (pagination cursor, SSE only)\n- `complete`: true if job finished, false if more logs may be available\n- `total_logs`: total log entries before tail truncation\n\nREQUIRES: session_id from convoopen response (format: sess_v2_...).\nOPTIONAL: job_id to target a specific deployment (use tfruns to discover IDs),\ntimeout (default 50s, max 55s), last_event_id (for pagination), tail (return only last N entries)\n⚠️ CONTEXT WARNING: Deploy logs can be hundreds of lines. Use tail: 50 for completed jobs to avoid blowing up the context window.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        },
+        "job_id": {
+          "type": "string"
+        },
+        "timeout": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "last_event_id": {
+          "type": "string"
+        },
+        "tail": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        }
+      },
+      "required": [
+        "session_id"
+      ],
+      "additionalProperties": false
+    },
+    "name": "tflogs",
+    "title": "Fetch Deploy Logs"
+  },
+  {
+    "annotations": {
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
+    "description": "INSPECTION: Retrieve Terraform outputs from a completed deployment\nReturns structured output values (VPC IDs, endpoints, cluster names, etc.) after a successful deploy.\nSensitive outputs are redacted (shown as '(sensitive)').\n\nBy default returns outputs for the latest successful deploy. Optionally specify job_id to get outputs for a specific deployment.\n\nREQUIRES: session_id from convoopen response (format: sess_v2_...).\nOPTIONAL: job_id (specific deployment), lifecycle (filter by step e.g. 'cloud-provision').",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        },
+        "job_id": {
+          "type": "string"
+        },
+        "lifecycle": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id"
+      ],
+      "additionalProperties": false
+    },
+    "name": "tfoutputs",
+    "title": "Get Deploy Outputs"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "description": "PREVIEW: Run terraform plan to preview infrastructure changes\nRuns a terraform plan for an InsideOut session without applying any changes.\nThis lets the user review what will be created/changed/destroyed before committing.\nReturns job_id, plan_id, and project_id. Use tflogs to stream the plan output.\nAfter the plan completes, use tfdeploy with plan_id to apply the exact plan.\nSINGLE-FLIGHT: only one TF job per session at a time. If another job is already in flight, tfplan returns tf_job_conflict with the live job_id — attach with tfstatus/tflogs, or pass force_new=true to override.\nREQUIRES: session_id from convoopen response (format: sess_v2_...).\nOPTIONAL: sandbox (boolean, default false) — plans real generated Terraform. Set to true for cheap sandbox template (testing only).\nOPTIONAL: force_new (boolean, default false) - bypass the single-flight guard. Use only when the existing run is provably wedged.\nCREDENTIAL HANDLING: Same as tfdeploy - credentials must be configured first.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        },
+        "sandbox": {
+          "type": [
+            "null",
+            "boolean"
+          ]
+        },
+        "force_new": {
+          "type": [
+            "null",
+            "boolean"
+          ]
+        }
+      },
+      "required": [
+        "session_id"
+      ],
+      "additionalProperties": false
+    },
+    "name": "tfplan",
+    "title": "Preview Infrastructure Plan"
+  },
+  {
+    "annotations": {
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
+    "description": "INSPECTION: List all Terraform deployment runs for a session\nReturns job IDs, statuses, types (apply/destroy), and timestamps for every run.\nUse this to see deployment history, find job IDs for log inspection, or check which deployments succeeded or failed.\n\nREQUIRES: session_id from convoopen response (format: sess_v2_...).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id"
+      ],
+      "additionalProperties": false
+    },
+    "name": "tfruns",
+    "title": "List Deploy Runs"
+  },
+  {
+    "annotations": {
+      "openWorldHint": true,
+      "readOnlyHint": true
+    },
+    "description": "MONITORING: Quick status check for Terraform deployments\nCheck the current status of a Terraform deployment job.\nUse this tool to quickly check if a deployment is running, completed, or failed.\nReturns job status, job_id, and other metadata without streaming logs.\nUse tflogs to stream the actual deployment logs.\nREQUIRES: session_id from convoopen response (format: sess_v2_...).\nOPTIONAL: job_id to target a specific deployment (use tfruns to discover IDs).\n\n**LIVENESS**: The response carries two distinct timestamps:\n- `updated_at` — last semantic change (only bumped when status / drift / version actually differ).\n  Useful for sorting deployments; NOT a per-poll heartbeat.\n- `last_refresh_at` — last successful Oracle decode (stamped on every poll where reliable\n  reached Oracle, even if nothing in the row changed). Use this to confirm reliable is\n  still actively talking to Oracle for a long-running RUNNING job. Absent on rows that\n  haven't been refreshed since the column was added.\n💡 TIP: Examine workflow.usage prompt for more context on how to properly use these tools.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string"
+        },
+        "job_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id"
+      ],
+      "additionalProperties": false
+    },
+    "name": "tfstatus",
+    "title": "Check Deploy Status"
+  }
+]
