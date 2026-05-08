@@ -1,6 +1,6 @@
 module github.com/docker/mcp-registry
 
-go 1.24.0
+go 1.26.0
 
 require (
 	github.com/charmbracelet/huh v0.7.0

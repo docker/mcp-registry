@@ -327,11 +327,11 @@ func removeArgs(input string) string {
 	return strings.TrimSpace(strings.Join(result, "\n"))
 }
 
-func argumentDescription(name string, description any, toolDescription string) string {
+func argumentDescription(name string, description any, toolDescription string) *string {
 	if description != nil && description != "" {
-		return fmt.Sprintf("%s", description)
+		return new(fmt.Sprintf("%s", description))
 	}
-	return extractDescription(toolDescription, name)
+	return new(extractDescription(toolDescription, name))
 }
 
 func extractDescription(input string, name string) string {

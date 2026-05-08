@@ -405,14 +405,18 @@ func hasValidTools(server servers.Server) error {
 
 	// Tools.json is valid
 	tools, err := readToolsJson(server.Name)
+	if err != nil && !os.IsNotExist(err) {
+		fmt.Printf("🛑 Tools.json could not be read: %v\n", err)
+		return defaultErr
+	}
 	if err == nil {
+		if err := validateTools(tools); err != nil {
+			fmt.Printf("🛑 Tools.json is invalid: %v\n", err)
+			return err
+		}
 		toolCount := len(tools)
 		fmt.Printf("✅ tools.json is valid. Found %d tools.\n", toolCount)
 		return nil
-	}
-	if !os.IsNotExist(err) {
-		fmt.Printf("🛑 Tools.json could not be read: %v\n", err)
-		return defaultErr
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
@@ -428,6 +432,17 @@ func hasValidTools(server servers.Server) error {
 	toolCount := len(remoteTools)
 
 	fmt.Printf("✅ Remote tools are valid. Found %d tools.\n", toolCount)
+	return nil
+}
+
+func validateTools(tools []mcp.Tool) error {
+	for _, tool := range tools {
+		for _, argument := range tool.Arguments {
+			if argument.Description == nil {
+				return fmt.Errorf(`tool "%s" has argument "%s" which is missing a description ("desc" is required)`, tool.Name, argument.Name)
+			}
+		}
+	}
 	return nil
 }
 
