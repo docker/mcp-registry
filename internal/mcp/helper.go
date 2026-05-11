@@ -329,9 +329,11 @@ func removeArgs(input string) string {
 
 func argumentDescription(name string, description any, toolDescription string) *string {
 	if description != nil && description != "" {
-		return new(fmt.Sprintf("%s", description))
+		s := fmt.Sprintf("%s", description)
+		return &s
 	}
-	return new(extractDescription(toolDescription, name))
+	s := extractDescription(toolDescription, name)
+	return &s
 }
 
 func extractDescription(input string, name string) string {
