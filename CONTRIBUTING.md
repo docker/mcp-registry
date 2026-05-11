@@ -27,7 +27,7 @@ If you prefer to do things manually, follow the steps below instead.
 
 ## Prerequisites
 
-- Go v1.26+
+- Go v1.24+
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [Task](https://taskfile.dev/)
 
