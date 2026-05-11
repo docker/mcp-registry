@@ -438,7 +438,7 @@ func hasValidTools(server servers.Server) error {
 func validateTools(tools []mcp.Tool) error {
 	for _, tool := range tools {
 		for _, argument := range tool.Arguments {
-			if argument.Description == nil {
+			if argument.Description == "" {
 				return fmt.Errorf(`tool "%s" has argument "%s" which is missing a description ("desc" is required)`, tool.Name, argument.Name)
 			}
 		}

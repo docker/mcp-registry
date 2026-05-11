@@ -48,11 +48,11 @@ type Tool struct {
 }
 
 type ToolArgument struct {
-	Name        string  `json:"name" yaml:"name"`
-	Type        string  `json:"type" yaml:"type"`
-	Items       *Items  `json:"items,omitempty" yaml:"items,omitempty"`
-	Description *string `json:"desc,omitempty" yaml:"desc,omitempty"`
-	Optional    bool    `json:"optional,omitempty" yaml:"optional,omitempty"`
+	Name        string `json:"name" yaml:"name"`
+	Type        string `json:"type" yaml:"type"`
+	Items       *Items `json:"items,omitempty" yaml:"items,omitempty"`
+	Description string `json:"desc" yaml:"desc"`
+	Optional    bool   `json:"optional,omitempty" yaml:"optional,omitempty"`
 }
 
 type ToolAnnotations struct {
