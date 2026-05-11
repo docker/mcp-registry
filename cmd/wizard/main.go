@@ -87,6 +87,7 @@ type WizardData struct {
 	ServerName  string
 	GitHubRepo  string
 	Branch      string
+	Commit      string
 	Category    string
 	Title       string
 	Description string
@@ -506,6 +507,7 @@ func generateAndSave(data *WizardData) error {
 		},
 		Source: servers.Source{
 			Project: data.GitHubRepo,
+			Commit:  data.Commit,
 		},
 	}
 
@@ -617,6 +619,14 @@ func validateGithubRepo(data *WizardData) error {
 	if err != nil {
 		return err
 	}
+
+	sha, err := client.GetCommitSHA1(ctx, detectedInfo.ProjectURL, detectedInfo.Branch)
+	if err != nil {
+		return err
+	}
+
+	data.GitHubRepo = detectedInfo.ProjectURL
+	data.Commit = sha
 
 	parts := strings.Split(strings.ToLower(data.GitHubRepo), "/")
 	name := parts[len(parts)-1]

@@ -1,1 +1,0 @@
-Docs: https://cloudinary.com/documentation/cloudinary_llm_mcp

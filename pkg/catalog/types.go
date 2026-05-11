@@ -188,10 +188,11 @@ type Config struct {
 }
 
 type Secret struct {
-	Name     string `json:"name" yaml:"name"`
-	Env      string `json:"env" yaml:"env"`
-	Example  string `json:"example" yaml:"example"`
-	Required bool   `json:"required,omitempty" yaml:"required,omitempty"`
+	Name        string `json:"name" yaml:"name"`
+	Env         string `json:"env" yaml:"env"`
+	Example     string `json:"example" yaml:"example"`
+	Description string `json:"description,omitempty" yaml:"description,omitempty"`
+	Required    bool   `json:"required,omitempty" yaml:"required,omitempty"`
 }
 
 type Env struct {
@@ -207,38 +208,38 @@ type Remote struct {
 
 func (r Remote) MarshalYAML() (interface{}, error) {
 	mapNode := &yaml.Node{
-		Kind: yaml.MappingNode,
+		Kind:    yaml.MappingNode,
 		Content: []*yaml.Node{},
 	}
-	
+
 	if r.TransportType != "" {
 		mapNode.Content = append(mapNode.Content,
 			&yaml.Node{Kind: yaml.ScalarNode, Value: "transport_type"},
 			&yaml.Node{Kind: yaml.ScalarNode, Value: r.TransportType})
 	}
-	
+
 	if r.URL != "" {
 		mapNode.Content = append(mapNode.Content,
 			&yaml.Node{Kind: yaml.ScalarNode, Value: "url"},
 			&yaml.Node{Kind: yaml.ScalarNode, Value: r.URL})
 	}
-	
+
 	if len(r.Headers) > 0 {
 		headersNode := &yaml.Node{
-			Kind: yaml.MappingNode,
+			Kind:    yaml.MappingNode,
 			Content: []*yaml.Node{},
 		}
-		
+
 		for k, v := range r.Headers {
 			headersNode.Content = append(headersNode.Content,
 				&yaml.Node{Kind: yaml.ScalarNode, Value: k},
 				&yaml.Node{Kind: yaml.ScalarNode, Value: v, Style: yaml.DoubleQuotedStyle})
 		}
-		
+
 		mapNode.Content = append(mapNode.Content,
 			&yaml.Node{Kind: yaml.ScalarNode, Value: "headers"},
 			headersNode)
 	}
-	
+
 	return mapNode, nil
 }
