@@ -1,0 +1,1 @@
+Multi-year US equity-compensation tax optimizer. Six tools: ISO/AMT exercise scheduling, NSO sell-vs-hold, RSU vest-and-sell, single-stock concentration, protective put/collar pricing, and Section 1202 QSBS qualification. Federal plus 50-state plus DC tax code. Docs at https://optionsahoy.com/for-agents.
