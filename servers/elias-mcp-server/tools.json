@@ -1,0 +1,123 @@
+[
+  {
+    "name": "elias_configure",
+    "description": "Configure ELIAS server credentials at runtime — no static config files needed. Use action=set with baseUrl, username, and password to connect. Use action=status to inspect current config, action=clear to remove credentials.",
+    "arguments": [
+      { "name": "action", "type": "string", "desc": "set = configure credentials; status = show current config; clear = remove session credentials" },
+      { "name": "baseUrl", "type": "string", "desc": "ELIAS server URL, e.g. https://elias.example.com:22130/api (required for set)" },
+      { "name": "username", "type": "string", "desc": "Username (required for set)" },
+      { "name": "password", "type": "string", "desc": "Password (required for set)" },
+      { "name": "domain", "type": "string", "desc": "Domain — leave empty if not required" },
+      { "name": "ignoreTls", "type": "boolean", "desc": "Accept self-signed TLS certificates (default: false)" },
+      { "name": "save", "type": "boolean", "desc": "Persist credentials to ~/.elias-mcp.json for future sessions (default: false)" },
+      { "name": "test", "type": "boolean", "desc": "Test the connection before applying (default: true)" },
+      { "name": "deleteSaved", "type": "boolean", "desc": "Also delete ~/.elias-mcp.json when clearing (default: false)" }
+    ]
+  },
+  {
+    "name": "elias_containers",
+    "description": "Manage ELIAS containers. action=list returns all containers. action=check validates a container by name. action=create creates a new container. action=rename renames an existing container. action=delete deletes a container.",
+    "arguments": [
+      { "name": "action", "type": "string", "desc": "list = all containers; check = validate container; create/rename/delete = manage" },
+      { "name": "name", "type": "string", "desc": "Container name (required for check, create, rename, delete)" },
+      { "name": "newName", "type": "string", "desc": "New container name (required for rename)" }
+    ]
+  },
+  {
+    "name": "elias_images",
+    "description": "Manage ELIAS image definitions (IDF). Supports list, get, create, update, delete, sign, lock, and setdescription. Create/update automatically resolves package dependencies.",
+    "arguments": [
+      { "name": "action", "type": "string", "desc": "CRUD operations on IDF images, plus sign, lock, and setdescription" },
+      { "name": "container", "type": "string", "desc": "Container name" },
+      { "name": "name", "type": "string", "desc": "Image name without extension (required for get/create/update/delete/sign/lock/setdescription)" },
+      { "name": "idf", "type": "object", "desc": "IDF definition object (required for create/update)" },
+      { "name": "overwrite", "type": "boolean", "desc": "Overwrite existing image (default: false)" },
+      { "name": "description", "type": "string", "desc": "Image description, max 64 chars, no newlines (required for setdescription)" }
+    ]
+  },
+  {
+    "name": "elias_image_templates",
+    "description": "Manage ELIAS image definition templates (IDT). Supports list, get, create, update, delete, sign, lock, and setdescription. Accepts epmGroups as group names or pinned EPM IDs.",
+    "arguments": [
+      { "name": "action", "type": "string", "desc": "CRUD operations on IDT image templates, plus sign, lock, and setdescription" },
+      { "name": "container", "type": "string", "desc": "Container name" },
+      { "name": "name", "type": "string", "desc": "Template name without extension (required for get/create/update/delete/sign/lock/setdescription)" },
+      { "name": "idf", "type": "object", "desc": "IDT definition object (required for create/update). epmGroups accepts group names or exact EPM IDs." },
+      { "name": "overwrite", "type": "boolean", "desc": "Overwrite existing template (default: false)" },
+      { "name": "description", "type": "string", "desc": "Template description, max 64 chars, no newlines (required for setdescription)" }
+    ]
+  },
+  {
+    "name": "elias_packages",
+    "description": "Manage ELIAS packages (EPM/FPM). List, delete, clean up unused packages, or find packages containing a specific file.",
+    "arguments": [
+      { "name": "action", "type": "string", "desc": "list-epms = all EPMs; list-fpms = all FPMs; delete-epm = remove EPM; cleanup = remove unused packages; package-contains = find packages containing a file" },
+      { "name": "container", "type": "string", "desc": "Container name" },
+      { "name": "epm", "type": "string", "desc": "EPM identifier (required for delete-epm)" },
+      { "name": "filename", "type": "string", "desc": "Filename or regex to search for (required for package-contains)" },
+      { "name": "confirm", "type": "boolean", "desc": "Must be true to execute cleanup (prevents accidental deletion)" }
+    ]
+  },
+  {
+    "name": "elias_certificates",
+    "description": "Manage ELIAS certificates. List, retrieve, or upload PEM certificates and signing certificates (.pfx/.pem) for a container.",
+    "arguments": [
+      { "name": "action", "type": "string", "desc": "list = all certs; get = single cert; save = upload cert (PEM text); get-signing = container signing cert; save-signing = upload signing cert (base64 file content)" },
+      { "name": "container", "type": "string", "desc": "Container name" },
+      { "name": "filename", "type": "string", "desc": "Certificate filename (required for get/save)" },
+      { "name": "content", "type": "string", "desc": "PEM certificate content as text (required for save)" },
+      { "name": "fileContentBase64", "type": "string", "desc": "Signing cert file content as base64 (required for save-signing; .pfx or .pem)" },
+      { "name": "signingFilename", "type": "string", "desc": "Filename for the signing cert (required for save-signing)" },
+      { "name": "password", "type": "string", "desc": "Password for the signing certificate (if encrypted)" }
+    ]
+  },
+  {
+    "name": "elias_solve",
+    "description": "Resolve and validate ELIAS image package dependencies. Solve a complete package set, check for conflicts, or verify self-containment.",
+    "arguments": [
+      { "name": "action", "type": "string", "desc": "solve = find complete package set; has-conflicts = check for conflicts; find-conflicts = list conflicting packages; is-self-contained = check if image is self-contained" },
+      { "name": "container", "type": "string", "desc": "Container name" },
+      { "name": "parcels", "type": "string", "desc": "List of package IDs to operate on" }
+    ]
+  },
+  {
+    "name": "elias_export",
+    "description": "Export ELIAS container or image data. Supports full container zip, image definitions as text (idf/idt/jidf), signatures, StickWizz format, and image zip bundles.",
+    "arguments": [
+      { "name": "action", "type": "string", "desc": "container = export entire container as zip; idf/idt/jidf = export image as text; sig = export image signature; stw = StickWizz format; zip = full image zip" },
+      { "name": "container", "type": "string", "desc": "Container name" },
+      { "name": "name", "type": "string", "desc": "Image name without extension (required for all except container)" },
+      { "name": "stickWizzDescription", "type": "string", "desc": "Optional description shown in StickWizz (only for stw)" }
+    ]
+  },
+  {
+    "name": "elias_import",
+    "description": "Import data into an ELIAS container. Supports archive files (.zip/.cab/.udf/.cap/.bup) and image definition text (idf/idt/jidf). Async imports can be polled with check-status.",
+    "arguments": [
+      { "name": "action", "type": "string", "desc": "zip = import archive file; idf/idt/jidf = import image text; check-status = poll async import status by importId" },
+      { "name": "container", "type": "string", "desc": "Container name" },
+      { "name": "filename", "type": "string", "desc": "Archive filename including extension (required for zip)" },
+      { "name": "name", "type": "string", "desc": "Image name without extension (required for idf/idt/jidf)" },
+      { "name": "content", "type": "string", "desc": "IDF/IDT/JIDF file content as text (required for idf/idt/jidf)" },
+      { "name": "fileContentBase64", "type": "string", "desc": "Archive file content as base64 (required for zip)" },
+      { "name": "force", "type": "boolean", "desc": "Overwrite existing files (default: false)" },
+      { "name": "importId", "type": "string", "desc": "Import job UUID for check-status" }
+    ]
+  },
+  {
+    "name": "elias_access_control",
+    "description": "Manage ELIAS access controls (requires global admin rights). List, create, or delete access control entries.",
+    "arguments": [
+      { "name": "action", "type": "string", "desc": "list = all access controls; set = add access control; delete = remove by ID" },
+      { "name": "id", "type": "string", "desc": "Access control ID (required for delete)" },
+      { "name": "accessControl", "type": "object", "desc": "Access control definition (required for set). Requires global admin rights." }
+    ]
+  },
+  {
+    "name": "elias_about",
+    "description": "Get copyright and version information for an ELIAS container.",
+    "arguments": [
+      { "name": "container", "type": "string", "desc": "Container name" }
+    ]
+  }
+]
