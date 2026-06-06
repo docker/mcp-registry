@@ -1,1 +1,1 @@
-Docs: https://github.com/twzrd-sol/wzrd-final
+Docs: https://intel.twzrd.xyz
