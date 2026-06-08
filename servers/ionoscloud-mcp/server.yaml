@@ -1,0 +1,42 @@
+name: ionoscloud-mcp
+image: mcp/ionoscloud-mcp
+type: server
+meta:
+  category: devops
+  tags:
+    - ionos
+    - cloud
+    - infrastructure
+    - compute
+    - dns
+    - billing
+about:
+  title: IONOS CLOUD
+  description: Inspect IONOS CLOUD infrastructure (Compute, DNS, Billing, Certificates, Object Storage, Activity Log) via MCP. Read-only operations.
+  icon: https://avatars.githubusercontent.com/u/67323449?v=4
+source:
+  project: https://github.com/ionos-cloud/ionoscloud-mcp
+  branch: main
+  commit: b47a1c2ba6836e6294829753a54dc3876671eec3
+config:
+  description: Configure the connection to IONOS CLOUD
+  secrets:
+    - name: ionoscloud-mcp.ionos_token
+      env: IONOS_TOKEN
+      example: <your IONOS CLOUD API token>
+    - name: ionoscloud-mcp.ionos_s3_access_key
+      env: IONOS_S3_ACCESS_KEY
+      example: <your S3 access key (optional, for Object Storage)>
+    - name: ionoscloud-mcp.ionos_s3_secret_key
+      env: IONOS_S3_SECRET_KEY
+      example: <your S3 secret key (optional, for Object Storage)>
+  env:
+    - name: IONOS_MCP_EAGER_LOAD
+      example: "true"
+      value: "{{ionoscloud-mcp.eager_load}}"
+  parameters:
+    type: object
+    properties:
+      eager_load:
+        type: string
+        description: Set to 'true' to register all tools at startup instead of lazy loading Compute and Object Storage.
