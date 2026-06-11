@@ -1,0 +1,66 @@
+name: odoo-mcp
+image: mcp/odoo-mcp
+type: server
+meta:
+  category: database
+  tags:
+    - erp
+    - odoo
+    - database
+    - crm
+about:
+  title: Odoo MCP
+  description: >-
+    Safe, approval-gated MCP bridge for Odoo ERP. 36 tools covering search,
+    read, server-side aggregation, field schema discovery, access diagnostics,
+    upgrade-risk reports, local BM25 knowledge search, AR/AP aging, background
+    tasks, chatter, and gated write operations for any Odoo model. Supports
+    XML-RPC (Odoo 16-18) and JSON-2 (Odoo 19+) transports, multi-instance
+    routing, and an optional OAuth 2.1 resource-server mode for Streamable
+    HTTP deployments.
+  icon: https://avatars.githubusercontent.com/u/52296800?v=4
+source:
+  project: https://github.com/tuanle96/mcp-odoo
+  branch: main
+  commit: f68d52f9a1583157568c96f5ab343436a1037f34
+config:
+  description: >-
+    Configure the Odoo instance connection. ODOO_URL, ODOO_DB, ODOO_USERNAME,
+    and ODOO_PASSWORD are required. ODOO_TRANSPORT selects the RPC protocol
+    (xmlrpc for Odoo 16-18, json2 for Odoo 19+; json2 needs an Odoo API key).
+  secrets:
+    - name: odoo-mcp.password
+      env: ODOO_PASSWORD
+      example: <YOUR_ODOO_PASSWORD_OR_API_KEY>
+  env:
+    - name: ODOO_URL
+      example: https://mycompany.odoo.com
+      value: "{{odoo-mcp.url}}"
+    - name: ODOO_DB
+      example: mycompany
+      value: "{{odoo-mcp.db}}"
+    - name: ODOO_USERNAME
+      example: admin@mycompany.com
+      value: "{{odoo-mcp.username}}"
+    - name: ODOO_TRANSPORT
+      example: xmlrpc
+      value: "{{odoo-mcp.transport}}"
+  parameters:
+    type: object
+    required:
+      - url
+      - db
+      - username
+    properties:
+      url:
+        type: string
+        description: Odoo instance URL (e.g. https://mycompany.odoo.com)
+      db:
+        type: string
+        description: Odoo database name
+      username:
+        type: string
+        description: Odoo login email
+      transport:
+        type: string
+        description: "RPC transport: xmlrpc (default) or json2 (Odoo 19+)"
