@@ -12,7 +12,7 @@ Real-time product search and price comparison for Southeast Asia.
 ## Getting Started
 
 1. Get a free API key at [buywhere.ai/api-keys](https://buywhere.ai/api-keys)
-2. Connect via the remote MCP endpoint: `https://mcp.buywhere.ai/mcp`
+2. Connect via the remote MCP endpoint: `https://api.buywhere.ai/mcp`
 
 ## Documentation
 
