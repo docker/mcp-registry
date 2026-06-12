@@ -1,0 +1,671 @@
+[
+  {
+    "name": "list_containers",
+    "description": "List Docker containers with optional filters (state, label, name). Returns container IDs, names, images, states, ports, and labels.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "all": {
+          "type": "boolean",
+          "description": "Include stopped containers (default: false)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Filter by name (partial match)"
+        },
+        "state": {
+          "type": "string",
+          "description": "Filter by state",
+          "enum": [
+            "running",
+            "stopped",
+            "paused",
+            "exited",
+            "created",
+            "restarting"
+          ]
+        }
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "inspect_container",
+    "description": "Get detailed configuration and state of a Docker container by ID or name.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "container_id": {
+          "type": "string",
+          "description": "Container ID or name"
+        }
+      },
+      "required": [
+        "container_id"
+      ]
+    }
+  },
+  {
+    "name": "start_container",
+    "description": "Start a stopped Docker container by ID or name.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "container_id": {
+          "type": "string",
+          "description": "Container ID or name"
+        }
+      },
+      "required": [
+        "container_id"
+      ]
+    }
+  },
+  {
+    "name": "stop_container",
+    "description": "Stop a running Docker container by ID or name with optional timeout.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "container_id": {
+          "type": "string",
+          "description": "Container ID or name"
+        },
+        "timeout": {
+          "type": "number",
+          "description": "Seconds to wait before killing (default: 10)"
+        }
+      },
+      "required": [
+        "container_id"
+      ]
+    }
+  },
+  {
+    "name": "restart_container",
+    "description": "Restart a Docker container by ID or name with optional timeout.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "container_id": {
+          "type": "string",
+          "description": "Container ID or name"
+        },
+        "timeout": {
+          "type": "number",
+          "description": "Seconds to wait before killing (default: 10)"
+        }
+      },
+      "required": [
+        "container_id"
+      ]
+    }
+  },
+  {
+    "name": "remove_container",
+    "description": "Remove a Docker container by ID or name. Use force to remove running containers.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "container_id": {
+          "type": "string",
+          "description": "Container ID or name"
+        },
+        "force": {
+          "type": "boolean",
+          "description": "Force removal even if running (default: false)"
+        }
+      },
+      "required": [
+        "container_id"
+      ]
+    }
+  },
+  {
+    "name": "recreate_container",
+    "description": "Recreate a container with the same configuration (stop, remove, re-create). Useful for applying config changes.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "container_id": {
+          "type": "string",
+          "description": "Container ID or name"
+        },
+        "timeout": {
+          "type": "number",
+          "description": "Seconds to wait before killing (default: 10)"
+        }
+      },
+      "required": [
+        "container_id"
+      ]
+    }
+  },
+  {
+    "name": "run_container",
+    "description": "Create and start a new Docker container with one command. Supports image, env, ports, volumes, restart policy, and command override. Auto-pulls missing images.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "image": {
+          "type": "string",
+          "description": "Image name (e.g., 'nginx:latest')"
+        },
+        "name": {
+          "type": "string",
+          "description": "Container name"
+        },
+        "restart_policy": {
+          "type": "string",
+          "description": "Restart policy",
+          "enum": [
+            "no",
+            "always",
+            "unless-stopped",
+            "on-failure"
+          ]
+        },
+        "detach": {
+          "type": "boolean",
+          "description": "Run in detached mode (default: true)"
+        }
+      },
+      "required": [
+        "image"
+      ]
+    }
+  },
+  {
+    "name": "list_images",
+    "description": "List Docker images with optional filters. Returns image IDs, tags, sizes, and creation dates.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "all": {
+          "type": "boolean",
+          "description": "Include intermediate images (default: false)"
+        },
+        "filter": {
+          "type": "string",
+          "description": "Filter by reference"
+        }
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "pull_image",
+    "description": "Pull a Docker image from a registry. Returns pull progress events.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "image": {
+          "type": "string",
+          "description": "Image to pull (e.g., 'nginx:latest')"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Tag to pull (default: 'latest')"
+        }
+      },
+      "required": [
+        "image"
+      ]
+    }
+  },
+  {
+    "name": "build_image",
+    "description": "Build a Docker image from a Dockerfile or build context path.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "context": {
+          "type": "string",
+          "description": "Build context path or Dockerfile content"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Tag for the built image (e.g., 'myapp:v1')"
+        },
+        "dockerfile": {
+          "type": "string",
+          "description": "Dockerfile name relative to context (default: 'Dockerfile')"
+        },
+        "target": {
+          "type": "string",
+          "description": "Target build stage"
+        }
+      },
+      "required": [
+        "context",
+        "tag"
+      ]
+    }
+  },
+  {
+    "name": "remove_image",
+    "description": "Remove a Docker image by name or ID. Use force to remove even if tagged.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "image": {
+          "type": "string",
+          "description": "Image name or ID"
+        },
+        "force": {
+          "type": "boolean",
+          "description": "Force removal (default: false)"
+        }
+      },
+      "required": [
+        "image"
+      ]
+    }
+  },
+  {
+    "name": "compose_up",
+    "description": "Bring up Docker Compose services from a docker-compose.yml file. Optionally build images first.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to docker-compose.yml file or its parent directory"
+        },
+        "build": {
+          "type": "boolean",
+          "description": "Build images before starting (default: false)"
+        },
+        "detach": {
+          "type": "boolean",
+          "description": "Run in detached mode (default: true)"
+        }
+      },
+      "required": [
+        "path"
+      ]
+    }
+  },
+  {
+    "name": "compose_down",
+    "description": "Tear down Docker Compose services. Optionally remove named volumes.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to docker-compose.yml file or its parent directory"
+        },
+        "volumes": {
+          "type": "boolean",
+          "description": "Remove named volumes (default: false)"
+        },
+        "timeout": {
+          "type": "number",
+          "description": "Shutdown timeout in seconds (default: 10)"
+        }
+      },
+      "required": [
+        "path"
+      ]
+    }
+  },
+  {
+    "name": "compose_ps",
+    "description": "List service states across a Docker Compose stack.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to docker-compose.yml file or its parent directory"
+        }
+      },
+      "required": [
+        "path"
+      ]
+    }
+  },
+  {
+    "name": "compose_logs",
+    "description": "Tail logs from Docker Compose services. Supports filtering by service and line count.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to docker-compose.yml directory"
+        },
+        "tail": {
+          "type": "number",
+          "description": "Number of lines to show (default: 100)"
+        },
+        "follow": {
+          "type": "boolean",
+          "description": "Follow log output (default: false)"
+        }
+      },
+      "required": [
+        "path"
+      ]
+    }
+  },
+  {
+    "name": "compose_restart",
+    "description": "Restart Docker Compose services. Restart specific services or the entire stack.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to docker-compose.yml file or its parent directory"
+        },
+        "timeout": {
+          "type": "number",
+          "description": "Shutdown timeout in seconds (default: 10)"
+        }
+      },
+      "required": [
+        "path"
+      ]
+    }
+  },
+  {
+    "name": "check_health",
+    "description": "Run a health probe against a container. Supports HTTP, TCP, and exec probes. Auto-detects from container HEALTHCHECK if available.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "container_id": {
+          "type": "string",
+          "description": "Container ID or name"
+        },
+        "type": {
+          "type": "string",
+          "description": "Probe type (default: auto-detect from HEALTHCHECK)",
+          "enum": [
+            "http",
+            "tcp",
+            "exec"
+          ]
+        },
+        "endpoint": {
+          "type": "string",
+          "description": "HTTP endpoint or TCP port"
+        }
+      },
+      "required": [
+        "container_id"
+      ]
+    }
+  },
+  {
+    "name": "watch_health",
+    "description": "Poll a container's health status until it becomes healthy or times out. Useful for waiting on service startup.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "container_id": {
+          "type": "string",
+          "description": "Container ID or name"
+        },
+        "timeout": {
+          "type": "number",
+          "description": "Max seconds to wait (default: 60)"
+        },
+        "interval": {
+          "type": "number",
+          "description": "Seconds between polls (default: 5)"
+        }
+      },
+      "required": [
+        "container_id"
+      ]
+    }
+  },
+  {
+    "name": "set_restart_policy",
+    "description": "Change the restart policy of a running container without recreating it.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "container_id": {
+          "type": "string",
+          "description": "Container ID or name"
+        },
+        "policy": {
+          "type": "string",
+          "description": "Restart policy",
+          "enum": [
+            "no",
+            "always",
+            "unless-stopped",
+            "on-failure"
+          ]
+        },
+        "max_retry_count": {
+          "type": "number",
+          "description": "Max retry count for on-failure (default: 0)"
+        }
+      },
+      "required": [
+        "container_id",
+        "policy"
+      ]
+    }
+  },
+  {
+    "name": "stream_logs",
+    "description": "Get logs from a Docker container. Supports tail count, timestamp filtering, and follow mode.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "container_id": {
+          "type": "string",
+          "description": "Container ID or name"
+        },
+        "tail": {
+          "type": "number",
+          "description": "Number of lines to show (default: 100)"
+        },
+        "since": {
+          "type": "string",
+          "description": "Show logs since timestamp (e.g., '2026-01-01T00:00:00Z')"
+        },
+        "follow": {
+          "type": "boolean",
+          "description": "Follow log output (default: false)"
+        }
+      },
+      "required": [
+        "container_id"
+      ]
+    }
+  },
+  {
+    "name": "container_stats",
+    "description": "Get real-time resource usage statistics for a Docker container (CPU, memory, network, I/O).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "container_id": {
+          "type": "string",
+          "description": "Container ID or name"
+        }
+      },
+      "required": [
+        "container_id"
+      ]
+    }
+  },
+  {
+    "name": "exec_in_container",
+    "description": "Execute a command inside a running Docker container. Returns stdout, stderr, and exit code.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "container_id": {
+          "type": "string",
+          "description": "Container ID or name"
+        },
+        "working_dir": {
+          "type": "string",
+          "description": "Working directory inside container"
+        }
+      },
+      "required": [
+        "container_id"
+      ]
+    }
+  },
+  {
+    "name": "list_networks",
+    "description": "List Docker networks with optional filter. Returns network IDs, names, drivers, and scopes.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "filter": {
+          "type": "string",
+          "description": "Filter by name or driver"
+        }
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "list_volumes",
+    "description": "List Docker volumes with optional filter. Returns volume names, drivers, mount points, and labels.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "filter": {
+          "type": "string",
+          "description": "Filter by name or driver"
+        }
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "container_health_status",
+    "description": "Check health status, uptime, and restart count for all running Docker containers. Returns JSON with container name, state, health probe status, and restart count.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": []
+    }
+  },
+  {
+    "name": "container_resource_usage",
+    "description": "Monitor CPU, memory, and network I/O across all running Docker containers. Returns sorted resource usage metrics with percentage breakdowns.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "sort_by": {
+          "type": "string",
+          "description": "Sort results by metric (default: cpu)",
+          "enum": [
+            "cpu",
+            "memory",
+            "network"
+          ]
+        }
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "watch_events",
+    "description": "Stream Docker container events (start, stop, die, restart, health_status) over a configurable time window. Filter by specific container or event type.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "container": {
+          "type": "string",
+          "description": "Filter by container name or ID"
+        },
+        "event_type": {
+          "type": "string",
+          "description": "Filter by event type (default: all)",
+          "enum": [
+            "start",
+            "stop",
+            "die",
+            "restart",
+            "health_status",
+            "oom",
+            "all"
+          ]
+        },
+        "since": {
+          "type": "string",
+          "description": "Show events since timestamp (e.g., '2026-01-01T00:00:00Z')"
+        },
+        "duration": {
+          "type": "number",
+          "description": "Max seconds to listen (default: 30)"
+        }
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "search_logs",
+    "description": "Search Docker container logs across multiple containers using regex pattern matching. Returns matching log lines with container name and timestamp.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "pattern": {
+          "type": "string",
+          "description": "Regex or grep pattern to search for"
+        },
+        "tail": {
+          "type": "number",
+          "description": "Max lines to scan per container (default: 500)"
+        },
+        "since": {
+          "type": "string",
+          "description": "Only search logs since timestamp"
+        },
+        "ignore_case": {
+          "type": "boolean",
+          "description": "Case-insensitive search (default: false)"
+        }
+      },
+      "required": [
+        "pattern"
+      ]
+    }
+  },
+  {
+    "name": "resource_alert_check",
+    "description": "Alert when Docker containers exceed resource thresholds (CPU%, memory%, restart count). Returns violations with specific metrics that triggered alerts.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "cpu_percent": {
+          "type": "number",
+          "description": "Alert if CPU usage exceeds this % (default: 80)"
+        },
+        "memory_percent": {
+          "type": "number",
+          "description": "Alert if memory usage exceeds this % (default: 80)"
+        },
+        "restart_count": {
+          "type": "number",
+          "description": "Alert if restart count exceeds this (default: 5)"
+        }
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "monitor_dashboard",
+    "description": "Comprehensive Docker fleet dashboard in a single API call. Returns health status, top resource consumers, recent events, and threshold violations.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": []
+    }
+  }
+]
