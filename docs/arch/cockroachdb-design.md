@@ -9,8 +9,8 @@ Key points:
 - Keep application servers stateless; rely on DB for durable locks/leases; implement graceful drain and health probes for rolling updates.
 
 Operational notes:
-- Provide migrations in servers/example-server/migrations/ to create required tables.
-- Run DB migrations at deploy time with a safe migrator (idempotent SQL files).
+- Migrations and schema evolution scripts belong with the server implementation repository and CI pipeline.- Run DB migrations at deploy time with a safe migrator (idempotent SQL files).
 - Configure DB connection via env var COCKROACH_URLS and tune pool sizes.
 
 For reviewers: this approach grounds in CockroachDB literature: Raft per range, MVCC + Serializable snapshot isolation, and leaseholder-aware locality are explicitly used to avoid split-brain, write skew, and high-latency cross-region transactions.
+
