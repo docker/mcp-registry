@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: example-server-config
+data:
+  APP_PORT: "8080"
+  COCKROACH_URLS: "postgresql://root@crdb-0.crdb.default.svc.cluster.local:26257,crdb-1.crdb.default.svc.cluster.local:26257/?sslmode=disable&application_name=example-server"
+  DB_MAX_OPEN_CONNS: "50"
+  DB_MAX_IDLE_CONNS: "25"
+  TX_RETRY_ATTEMPTS: "5"
+  TX_RETRY_BACKOFF_MS: "100"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-server
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: example-server
+  template:
+    metadata:
+      labels:
+        app: example-server
+    spec:
+      containers:
+        - name: example-server
+          image: ghcr.io/example/example-server:latest
+          envFrom:
+            - configMapRef:
+                name: example-server-config
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          lifecycle:
+            preStop:
+              exec:
+                # ensure graceful drain: stop accepting new work, finish transactions
+                command: ["/bin/sh", "-c", "curl -sS -XPOST http://localhost:8080/-/drain || true; sleep 5"]
+      terminationGracePeriodSeconds: 60
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: example-server
+spec:
+  selector:
+    app: example-server
+  ports:
+    - port: 8080
+      targetPort: 8080
