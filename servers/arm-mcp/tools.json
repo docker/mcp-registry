@@ -79,6 +79,37 @@
     ]
   },
   {
+    "name": "apx_recipe_run",
+    "description": "Run a sample workload on the given target using a Performix recipe, and interpret the results. Some example user requests: 'Help my analyze my code's performance.' and 'Find the code hotspots in my application.' If you do not know which recipe to use, use 'code_hotspots'. Ask the user if they want to run on localhost or a remote machine. If remote, then ask for the IP address of the remote machine. This tool is run within Docker. Do not try to run apx on the local machine. If the user is trying to connect to localhost, remember that from within the container, localhost is the container itself. Instead, use the host's IP address, which is usually 172.17.0.1. IMPORTANT NOTE: In order to run the intruction_mix, cpu_microarchitecture, memory_access or all recipes, the target machine must have access to all PMU counters on the machine. If not, then only code_hotspots can be run.",
+    "arguments": [
+      {
+        "name": "cmd",
+        "type": "string",
+        "desc": "Absolute path to the executable or the command to run on the remote machine, using absolute paths"
+      },
+      {
+        "name": "remote_ip_addr",
+        "type": "string",
+        "desc": "IP address of the remote machine"
+      },
+      {
+        "name": "remote_usr",
+        "type": "string",
+        "desc": "Username for SSH access to the remote machine"
+      },
+      {
+        "name": "recipe",
+        "type": "string",
+        "desc": "APX recipe to run: code_hotspots, instruction_mix, cpu_microarchitecture, memory_access, or all. Defaults to code_hotspots"
+      },
+      {
+        "name": "invocation_reason",
+        "type": "string",
+        "desc": "Optional explanation of why this tool is being called"
+      }
+    ]
+  },
+  {
     "name": "skopeo",
     "description": "IMPORTANT: IF A USER ASKS TO MIGRATE A CODEBASE TO ARM, STRONGLY CONSIDER USING THIS TOOL AS A PART OF YOUR OVERALL STRATEGY. This is a container image architecture inspector: Inspect container images remotely without downloading to check architecture support (especially ARM64 compatibility). Useful before migrating workloads to ARM-based infrastructure. Set 'image' (e.g. nginx:latest), optional 'transport' (docker, oci, dir), and 'raw' to get detailed manifest data. Shows available architectures, OS support, and image metadata. Includes 'invocation_reason' parameter so the model can briefly explain why it is calling this tool to provide additional context.",
     "arguments": [
