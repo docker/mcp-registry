@@ -1,0 +1,125 @@
+[
+  {
+    "name": "memory_store",
+    "description": "Store a memory with semantic embedding (indexed into hot-tier cache and hash index)",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "Text content to store"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["preference", "fact", "decision", "entity", "other"],
+          "default": "other",
+          "description": "Memory category"
+        },
+        "importance": {
+          "type": "number",
+          "default": 0.5,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Importance score (0-1)"
+        }
+      },
+      "required": ["text"]
+    }
+  },
+  {
+    "name": "memory_search",
+    "description": "Search memories using three-tier recall: hot cache (sub-ms), hash index (O(1)), and vector search",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "Natural language search query"
+        },
+        "limit": {
+          "type": "integer",
+          "default": 10,
+          "description": "Max results"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["preference", "fact", "decision", "entity", "other"],
+          "description": "Filter by category"
+        }
+      },
+      "required": ["query"]
+    }
+  },
+  {
+    "name": "memory_recall",
+    "description": "Recall relevant memories for context injection (higher threshold, designed for auto-recall)",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "context": {
+          "type": "string",
+          "description": "Context to recall memories for"
+        },
+        "limit": {
+          "type": "integer",
+          "default": 5,
+          "description": "Max memories to recall"
+        }
+      },
+      "required": ["context"]
+    }
+  },
+  {
+    "name": "memory_forget",
+    "description": "Delete a memory from all tiers (hot cache, hash index, and vector store)",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "memory_id": {
+          "type": "string",
+          "description": "UUID of memory to delete"
+        },
+        "query": {
+          "type": "string",
+          "description": "Search query to find and delete the best match"
+        }
+      }
+    }
+  },
+  {
+    "name": "memory_consolidate",
+    "description": "Find and merge near-duplicate memories (Community: fixed 0.95 threshold)",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "threshold": {
+          "type": "number",
+          "default": 0.95,
+          "description": "Similarity threshold for deduplication"
+        }
+      }
+    }
+  },
+  {
+    "name": "memory_connect",
+    "description": "Discover cross-category connections for a memory (Community: max 3 per call)",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "memory_id": {
+          "type": "string",
+          "description": "UUID of memory to connect"
+        },
+        "query": {
+          "type": "string",
+          "description": "Search to find the memory first"
+        },
+        "max_connections": {
+          "type": "integer",
+          "default": 3,
+          "description": "Max connections to discover"
+        }
+      }
+    }
+  }
+]
