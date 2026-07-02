@@ -1,0 +1,54 @@
+name: docker-mcp-server
+image: ghcr.io/gavinlucas/docker-mcp-server
+type: server
+meta:
+  category: devops
+  tags:
+    - docker
+    - containers
+    - compose
+    - devops
+about:
+  title: Docker Manager
+  description: Manage Docker via the Docker SDK for Python and the docker CLI — containers, images, networks, volumes, Compose, Swarm, Buildx, Scout, and OCI registries. Supports multiple daemons over TCP, TLS, or SSH. Exposes container logs and stats as MCP resources.
+  icon: https://raw.githubusercontent.com/GavinLucas/docker-mcp/main/assets/icon.png
+source:
+  project: https://github.com/GavinLucas/docker-mcp
+  commit: 8041858b0a539ba8e816679fca00e654076e238b
+run:
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+config:
+  description: All fields are optional. Leave blank to connect to your default local Docker daemon.
+  env:
+    - name: DOCKER_MCP_SERVER_HOSTS
+      value: "{{docker-mcp-server.hosts}}"
+      example: ""
+    - name: DOCKER_MCP_SERVER_READONLY
+      value: "{{docker-mcp-server.read_only}}"
+      example: "false"
+    - name: DOCKER_MCP_SERVER_NO_DESTRUCTIVE
+      value: "{{docker-mcp-server.no_destructive}}"
+      example: "false"
+    - name: DOCKER_MCP_SERVER_DISABLE
+      value: "{{docker-mcp-server.disable_domains}}"
+      example: ""
+  parameters:
+    type: object
+    properties:
+      hosts:
+        type: string
+        default: ""
+        description: "Docker daemon(s) to manage. Blank = default local socket. One remote: ssh://user@host. Several: comma-separated name=endpoint pairs, e.g. local=auto,prod=ssh://ops@host(ro)."
+      read_only:
+        type: boolean
+        default: false
+        description: "Register only read-only tools — no create, modify, or delete."
+      no_destructive:
+        type: boolean
+        default: false
+        description: "Register everything except destructive tools (remove/prune/kill)."
+      disable_domains:
+        type: string
+        default: ""
+        description: "Comma-separated tool domains to drop, e.g. swarm,plugins,scout."
