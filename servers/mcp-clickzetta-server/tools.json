@@ -1,0 +1,1188 @@
+[
+  {
+    "name": "get_product_knowledge",
+    "description": "Search ClickZetta product knowledge from vector database using semantic similarity search.",
+    "arguments": [
+      {
+        "name": "question",
+        "type": "string",
+        "desc": "User question to search, for example \"custom functions\", \"common DDL statements\", or \"data import/export\". Provide the question or topic you want to look up."
+      },
+      {
+        "name": "vector_search_limit_n",
+        "type": "integer",
+        "desc": "Limit the return results, default value is 3. Number of most relevant results to"
+      },
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "table name, default is knowledge_base"
+      }
+    ]
+  },
+  {
+    "name": "read_query",
+    "description": "Execute read-only SQL queries and return results with automatic result limiting.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Read-only SQL statement such as SELECT, DESCRIBE, SHOW, or EXPLAIN. Use LIMIT to control the number of rows returned (maximum 100)."
+      },
+      {
+        "name": "verbose",
+        "type": "boolean",
+        "desc": "If true, returns detailed SQL execution information including the query and meta"
+      }
+    ]
+  },
+  {
+    "name": "vector_search",
+    "description": "Perform vector search/knowledge retrieval/document retrieval on a table.",
+    "arguments": [
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "table name"
+      },
+      {
+        "name": "content_column_name",
+        "type": "string",
+        "desc": "Optional column name that stores the document content. If omitted it will be inferred automatically using the priority order: text, content, document, body, description, etc."
+      },
+      {
+        "name": "embedding_column_name",
+        "type": "string",
+        "desc": "Optional column name that stores embeddings. If omitted it will be inferred automatically using the priority order: embeddings, embedding, semantic_vector, vector, etc."
+      }
+    ]
+  },
+  {
+    "name": "match_all",
+    "description": "Perform full-text search on a table using the MATCH_ALL function.",
+    "arguments": [
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "Table name to search in"
+      },
+      {
+        "name": "content_column_name",
+        "type": "string",
+        "desc": "Column containing searchable content (optional - will auto-detect if not provide"
+      },
+      {
+        "name": "question",
+        "type": "string",
+        "desc": "Search query/question"
+      }
+    ]
+  },
+  {
+    "name": "write_query",
+    "description": "Execute write operation SQL statements (INSERT/UPDATE/DELETE/CREATE/DROP, etc.).",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "SQL query to execute (INSERT/UPDATE/DELETE/CREATE/DROP etc.)"
+      },
+      {
+        "name": "verbose",
+        "type": "boolean",
+        "desc": "If true, returns detailed execution information. If false, returns minimal succe"
+      }
+    ]
+  },
+  {
+    "name": "switch_context",
+    "description": "Switch context (SCHEMA and VCLUSTER) within the current connection, or intelligently route to workspace switching.",
+    "arguments": [
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Schema name to switch to (optional)"
+      },
+      {
+        "name": "vcluster",
+        "type": "string",
+        "desc": "VCluster name to switch to (optional)"
+      },
+      {
+        "name": "workspace",
+        "type": "string",
+        "desc": "Workspace name - if provided, will route to switch_workspace tool instead"
+      }
+    ]
+  },
+  {
+    "name": "desc_object_history",
+    "description": "View historical versions and change records of an object.",
+    "arguments": [
+      {
+        "name": "object_type",
+        "type": "string",
+        "desc": "Object type (TABLE/VIEW/FUNCTION/PIPE etc.)"
+      },
+      {
+        "name": "object_name",
+        "type": "string",
+        "desc": "Object name to describe history for"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of history records to return (default: 10)"
+      }
+    ]
+  },
+  {
+    "name": "get_current_context",
+    "description": "Get current connection context information.",
+    "arguments": []
+  },
+  {
+    "name": "show_table_load_history",
+    "description": "Query table COPY operation load history.",
+    "arguments": [
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "Table name to query load history for (required)"
+      }
+    ]
+  },
+  {
+    "name": "show_job_history",
+    "description": "Query system-level job execution history.",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of history records to return (default: 20)"
+      },
+      {
+        "name": "workspace_name",
+        "type": "string",
+        "desc": "Filter by workspace name"
+      },
+      {
+        "name": "virtual_cluster",
+        "type": "string",
+        "desc": "Filter by virtual cluster name"
+      }
+    ]
+  },
+  {
+    "name": "create_schema",
+    "description": "Create a new SCHEMA (data schema).",
+    "arguments": [
+      {
+        "name": "schema_name",
+        "type": "string",
+        "desc": "Name of the schema to create."
+      },
+      {
+        "name": "if_not_exists",
+        "type": "boolean",
+        "desc": "Optional. When true, create only if the target does not already exist."
+      },
+      {
+        "name": "comment",
+        "type": "string",
+        "desc": "Optional descriptive comment for the schema."
+      }
+    ]
+  },
+  {
+    "name": "create_catalog_connection",
+    "description": "Create CATALOG CONNECTION to access external metadata catalogs.",
+    "arguments": [
+      {
+        "name": "connection_name",
+        "type": "string",
+        "desc": "Name of the CATALOG CONNECTION to use."
+      },
+      {
+        "name": "catalog_type",
+        "type": "string",
+        "desc": "Catalog type. Supported values: HIVE, OSS_CATALOG, DATABRICKS."
+      },
+      {
+        "name": "if_not_exists",
+        "type": "boolean",
+        "desc": "Optional. When true, create only if the target does not already exist."
+      }
+    ]
+  },
+  {
+    "name": "create_external_catalog",
+    "description": "Create EXTERNAL CATALOG to mount external metadata catalogs.",
+    "arguments": [
+      {
+        "name": "catalog_name",
+        "type": "string",
+        "desc": "Name of the EXTERNAL CATALOG, for example `my_hive_catalog`."
+      },
+      {
+        "name": "connection",
+        "type": "string",
+        "desc": "Name of the existing CATALOG CONNECTION."
+      },
+      {
+        "name": "options",
+        "type": "object",
+        "desc": "Optional OPTIONS map with additional key-value parameters."
+      }
+    ]
+  },
+  {
+    "name": "create_external_schema",
+    "description": "Create EXTERNAL SCHEMA to mount external databases as Lakehouse schemas.",
+    "arguments": [
+      {
+        "name": "schema_name",
+        "type": "string",
+        "desc": "Name of the EXTERNAL SCHEMA, for example `my_schema`."
+      },
+      {
+        "name": "connection",
+        "type": "string",
+        "desc": "Name of the existing CATALOG CONNECTION."
+      },
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Database name inside the external catalog."
+      }
+    ]
+  },
+  {
+    "name": "create_external_table",
+    "description": "Create external tables according to ClickZetta official documentation.",
+    "arguments": [
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "External table name (required)."
+      },
+      {
+        "name": "table_format",
+        "type": "string",
+        "desc": "External table format type:\n- DELTA: Delta Lake format stored in object storage.\nNote: According to ClickZetta documentation, only Delta Lake format is currently supported."
+      },
+      {
+        "name": "columns",
+        "type": [
+          "string",
+          "array"
+        ],
+        "desc": "Column definitions. Two formats are supported:\n- String form: 'order_id INT, product_id STRING, sale_amount DOUBLE'\n- Array form: ['order_id INT', 'product_id STRING', 'sale_amount DOUBLE']"
+      }
+    ]
+  },
+  {
+    "name": "create_api_connection",
+    "description": "Create API CONNECTION for cloud function connectivity, supporting Alibaba Cloud FC, Tencent Cloud Functions, and AWS Lambda.",
+    "arguments": [
+      {
+        "name": "connection_name",
+        "type": "string",
+        "desc": "Name of the API CONNECTION, for example `ai_function_connection`."
+      },
+      {
+        "name": "provider",
+        "type": "string",
+        "desc": "Cloud function provider (required)."
+      },
+      {
+        "name": "region",
+        "type": "string",
+        "desc": "Cloud region (required), for example `cn-hangzhou`, `ap-beijing`, or `us-east-1`."
+      }
+    ]
+  },
+  {
+    "name": "create_storage_connection",
+    "description": "Create STORAGE CONNECTION to access external storage systems.",
+    "arguments": [
+      {
+        "name": "connection_name",
+        "type": "string",
+        "desc": "Connection name, for example `hdfs_conn`, `oss_conn`, `cos_conn`, or `s3_conn`."
+      },
+      {
+        "name": "connection_type",
+        "type": "string",
+        "desc": "Connection type."
+      },
+      {
+        "name": "endpoint",
+        "type": "string",
+        "desc": "Service endpoint address."
+      }
+    ]
+  },
+  {
+    "name": "create_volume",
+    "description": "Create EXTERNAL VOLUME to access object storage.",
+    "arguments": [
+      {
+        "name": "volume_name",
+        "type": "string",
+        "desc": "Volume name, for example `sh_image_volume`, `my_tx_volume`, or `aws_s3_volume_arn`."
+      },
+      {
+        "name": "volume_type",
+        "type": "string",
+        "desc": "Object storage type. Supported values: oss, cos, s3."
+      },
+      {
+        "name": "bucket",
+        "type": "string",
+        "desc": "Object storage bucket name. Bucket names must contain only lowercase letters, numbers, or hyphens."
+      }
+    ]
+  },
+  {
+    "name": "create_table",
+    "description": "Create ClickZetta tables with full CREATE TABLE syntax support.",
+    "arguments": [
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "Table name."
+      },
+      {
+        "name": "if_not_exists",
+        "type": "boolean",
+        "desc": "Optional. When true, create the table only if it does not already exist."
+      },
+      {
+        "name": "creation_method",
+        "type": "string",
+        "desc": "Table creation mode."
+      }
+    ]
+  },
+  {
+    "name": "create_function",
+    "description": "Create SQL-based User Defined Functions (UDF).",
+    "arguments": [
+      {
+        "name": "function_name",
+        "type": "string",
+        "desc": "Function name, optionally qualified with schema (for example `public.my_func`)."
+      },
+      {
+        "name": "return_type",
+        "type": "string",
+        "desc": "Scalar function return type, such as INT, DOUBLE, STRING, or BOOLEAN."
+      },
+      {
+        "name": "returns_table",
+        "type": "array",
+        "desc": "Table function return structure (mutually exclusive with `return_type`)."
+      }
+    ]
+  },
+  {
+    "name": "create_external_function",
+    "description": "🚀 Create EXTERNAL FUNCTION - Execute Python/Java code based on cloud function services.",
+    "arguments": [
+      {
+        "name": "function_name",
+        "type": "string",
+        "desc": "External function name, optionally schema-qualified (for example `public.my_func`)."
+      },
+      {
+        "name": "class_name",
+        "type": "string",
+        "desc": "Function handler. ClickZetta requires the `module.ClassName` format.\n- Example: `my_function.MyHandlerClass`."
+      },
+      {
+        "name": "resource_uris",
+        "type": [
+          "array",
+          "string"
+        ],
+        "desc": "Function code resource location. The system automatically validates that the file exists.\n- Volume check: verifies that a `volume://` path is present.\n- Cloud storage warning: OSS/S3 paths cannot be fully validated in advance."
+      }
+    ]
+  },
+  {
+    "name": "create_index",
+    "description": "Create indexes supporting three types: VECTOR/INVERTED/BLOOMFILTER.",
+    "arguments": [
+      {
+        "name": "index_type",
+        "type": "string",
+        "desc": "Index type."
+      },
+      {
+        "name": "index_name",
+        "type": "string",
+        "desc": "Index name."
+      },
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "Table name (schema-qualified if needed)."
+      }
+    ]
+  },
+  {
+    "name": "create_pipe",
+    "description": "Create PIPE pipeline for automated data import - Intelligently optimized version.",
+    "arguments": [
+      {
+        "name": "pipe_name",
+        "type": "string",
+        "desc": "PIPE name (required)."
+      },
+      {
+        "name": "target_table",
+        "type": "string",
+        "desc": "Target table name. In smart mode a COPY statement will be generated automatically."
+      },
+      {
+        "name": "source_volume",
+        "type": "string",
+        "desc": "Source volume name. In smart mode a COPY statement will be generated automatically."
+      }
+    ]
+  },
+  {
+    "name": "create_table_stream",
+    "description": "Create table stream to capture table change data.",
+    "arguments": [
+      {
+        "name": "stream_name",
+        "type": "string",
+        "desc": "Stream name."
+      },
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "Source table name."
+      },
+      {
+        "name": "stream_type",
+        "type": "string",
+        "desc": "Stream type."
+      }
+    ]
+  },
+  {
+    "name": "create_dynamic_table",
+    "description": "Create dynamic table that automatically maintains real-time updates of query results.",
+    "arguments": [
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "Dynamic table name."
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "SQL query that defines the dynamic table."
+      },
+      {
+        "name": "refresh_mode",
+        "type": "string",
+        "desc": "Refresh mode."
+      }
+    ]
+  },
+  {
+    "name": "create_knowledge_base",
+    "description": "Build new knowledge base from documents using unstructured ETL pipeline.",
+    "arguments": [
+      {
+        "name": "documents_source_type",
+        "type": "string",
+        "desc": "Document source type, for example `volume`, `s3`, or `local`."
+      },
+      {
+        "name": "volume_name",
+        "type": "string",
+        "desc": "Volume name (required when source type is `volume`)."
+      },
+      {
+        "name": "documents_source_path",
+        "type": "string",
+        "desc": "Document source path (required)."
+      }
+    ]
+  },
+  {
+    "name": "create_vcluster",
+    "description": "Create Virtual Cluster for compute resources.",
+    "arguments": [
+      {
+        "name": "cluster_name",
+        "type": "string",
+        "desc": "Cluster name."
+      },
+      {
+        "name": "cluster_type",
+        "type": "string",
+        "desc": "Cluster type."
+      },
+      {
+        "name": "cluster_size",
+        "type": "integer",
+        "desc": "Cluster size in CRUs (1-256)."
+      }
+    ]
+  },
+  {
+    "name": "generate_external_function_template",
+    "description": "🚀 Generate external function template code - Based on successful experience from clickzetta_aisql project.",
+    "arguments": [
+      {
+        "name": "function_name",
+        "type": "string",
+        "desc": "Function name. It will also be used as the Python class name and ZIP file name."
+      },
+      {
+        "name": "template_type",
+        "type": "string",
+        "desc": "Template type."
+      },
+      {
+        "name": "system_prompt",
+        "type": "string",
+        "desc": "AI system prompt (used only for the `ai_text_processing` template)."
+      }
+    ]
+  },
+  {
+    "name": "test_external_function_locally",
+    "description": "🧪 Test external function locally - Validate and debug before deployment.",
+    "arguments": [
+      {
+        "name": "python_file",
+        "type": "string",
+        "desc": "Path to a Python file."
+      },
+      {
+        "name": "function_name",
+        "type": "string",
+        "desc": "Function name (optional). If omitted it will be inferred automatically."
+      },
+      {
+        "name": "test_cases",
+        "type": "array",
+        "desc": "List of test cases."
+      }
+    ]
+  },
+  {
+    "name": "switch_vcluster_schema",
+    "description": "Switch current VCLUSTER (virtual cluster) and/or SCHEMA, changing compute resources and data scope within current workspace.",
+    "arguments": [
+      {
+        "name": "schema_name",
+        "type": "string",
+        "desc": "Schema name to switch to (optional)."
+      },
+      {
+        "name": "vcluster_name",
+        "type": "string",
+        "desc": "VCluster name to switch to (optional)."
+      }
+    ]
+  },
+  {
+    "name": "switch_workspace",
+    "description": "Switch the current connection's workspace.",
+    "arguments": [
+      {
+        "name": "workspace_name",
+        "type": "string",
+        "desc": "Target workspace name."
+      },
+      {
+        "name": "list_workspaces",
+        "type": "boolean",
+        "desc": "Whether to list all available workspaces."
+      },
+      {
+        "name": "update_config",
+        "type": "boolean",
+        "desc": "Whether to persistently update the connection configuration file."
+      }
+    ]
+  },
+  {
+    "name": "show_object_list",
+    "description": "List database objects with intelligent filtering, statistical analysis, and filtering suggestions.",
+    "arguments": [
+      {
+        "name": "show_command",
+        "type": "string",
+        "desc": "Legacy parameter (backward compatible). You can use the following syntax to cons"
+      },
+      {
+        "name": "object_type",
+        "type": "string",
+        "desc": "Type of objects to list (recommended over show_command)"
+      },
+      {
+        "name": "in_schema",
+        "type": "string",
+        "desc": "Optional schema name to filter objects within. Note: VOLUMES does not support IN"
+      }
+    ]
+  },
+  {
+    "name": "desc_object",
+    "description": "Get detailed information about database objects.",
+    "arguments": [
+      {
+        "name": "object_type",
+        "type": "string",
+        "desc": "Type of the object. Supported: WORKSPACE, TABLE, VIEW, TABLE STREAM, SCHEMA, CON"
+      },
+      {
+        "name": "object_name",
+        "type": "string",
+        "desc": "Name of the object to describe (can include schema qualification like 'schema.ta"
+      },
+      {
+        "name": "extended",
+        "type": "boolean",
+        "desc": "Use EXTENDED mode for more detailed information (tables/views)"
+      }
+    ]
+  },
+  {
+    "name": "refresh_dynamic_table",
+    "description": "Manually refresh dynamic table data. Example: REFRESH DYNAMIC TABLE my_dt;",
+    "arguments": [
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "Dynamic table name."
+      }
+    ]
+  },
+  {
+    "name": "restore_object",
+    "description": "Restore table, dynamic table, or materialized view to specified historical point in time.",
+    "arguments": [
+      {
+        "name": "object_type",
+        "type": "string",
+        "desc": "Object type. Supported values: `table`, `dynamic table`, `materialized view`."
+      },
+      {
+        "name": "object_name",
+        "type": "string",
+        "desc": "Object name."
+      },
+      {
+        "name": "timestamp",
+        "type": "string",
+        "desc": "Point in time to restore to. Supported formats include:\n- Full precision: '2024-01-26 17:44:45.349'\n- Seconds precision: '2024-01-26 17:44:45'"
+      }
+    ]
+  },
+  {
+    "name": "undrop_object",
+    "description": "Recover deleted table, dynamic table, or materialized view. Example: UNDROP TABLE my_table; Supported object types: table, dynamic table, materialized view.",
+    "arguments": [
+      {
+        "name": "object_type",
+        "type": "string",
+        "desc": "Object type. Supported values: `table`, `dynamic table`, `materialized view`."
+      },
+      {
+        "name": "object_name",
+        "type": "string",
+        "desc": "Object name."
+      }
+    ]
+  },
+  {
+    "name": "drop_object",
+    "description": "🚨 Safely drop various types of database objects with confirmation mechanism and UNDROP hints.",
+    "arguments": [
+      {
+        "name": "object_name",
+        "type": "string",
+        "desc": "Name of the object to drop."
+      },
+      {
+        "name": "object_type",
+        "type": "string",
+        "desc": "Object type (for example TABLE, VIEW, SCHEMA, etc.)."
+      },
+      {
+        "name": "if_exists",
+        "type": "boolean",
+        "desc": "Whether to use IF EXISTS (default true) so the command succeeds even if the object is missing."
+      }
+    ]
+  },
+  {
+    "name": "manage_share",
+    "description": "Manage SHARE objects - Unified cross-instance data sharing management tool.",
+    "arguments": [
+      {
+        "name": "operation",
+        "type": "string",
+        "desc": "Operation type."
+      },
+      {
+        "name": "share_name",
+        "type": "string",
+        "desc": "SHARE name (optional for list operations)."
+      },
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "Table name (required for grant_table/revoke_table operations)."
+      }
+    ]
+  },
+  {
+    "name": "import_data_src",
+    "description": "Import data from URL, file path, or Volume into table.",
+    "arguments": [
+      {
+        "name": "from_url",
+        "type": "string",
+        "desc": "Data source location. Three formats are supported (each with different capabilities):\n1. Volume URL (recommended): volume://my_volume/folder/data.json"
+      },
+      {
+        "name": "dest_table",
+        "type": "string",
+        "desc": "Target table name."
+      },
+      {
+        "name": "write_mode",
+        "type": "string",
+        "desc": "Data write mode:\n- 'create': create a new table; fails if the target table already exists.\n- 'overwrite': replace the existing table."
+      }
+    ]
+  },
+  {
+    "name": "import_data_from_db",
+    "description": "Import data from external database into ClickZetta table.",
+    "arguments": [
+      {
+        "name": "db_type",
+        "type": "string",
+        "desc": "Database type, for example 'mysql', 'postgresql', or 'sqlite'."
+      },
+      {
+        "name": "host",
+        "type": "string",
+        "desc": "Database server host name or IP address (not required for SQLite)."
+      },
+      {
+        "name": "port",
+        "type": "integer",
+        "desc": "Database server port (not required for SQLite)."
+      }
+    ]
+  },
+  {
+    "name": "preview_volume_data",
+    "description": "Perform SQL query analysis on semi-structured files in VOLUME or import into table.",
+    "arguments": [
+      {
+        "name": "copy_statement",
+        "type": "string",
+        "desc": "Complete COPY INTO statement, for example: COPY INTO target_table FROM @volume/path/ FILE_FORMAT=(TYPE='CSV' ...)."
+      },
+      {
+        "name": "source_volume",
+        "type": "string",
+        "desc": "Volume name, for example `volume_name`, `TABLE table_name`, or `USER`."
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "File format, such as csv, parquet, bson, or orc."
+      }
+    ]
+  },
+  {
+    "name": "add_data_insight",
+    "description": "Add data insights to memo, recording important findings discovered during analysis.",
+    "arguments": [
+      {
+        "name": "insight",
+        "type": "string",
+        "desc": "Data insight discovered from analysis"
+      }
+    ]
+  },
+  {
+    "name": "put_file_to_volume",
+    "description": "🚀 Upload files to ClickZetta Lakehouse VOLUME storage.",
+    "arguments": [
+      {
+        "name": "source_path",
+        "type": "string",
+        "desc": "File path or HTTP(S) URL. If only a file name is provided, the system searches the default upload directories:\n- /app/.clickzetta/data/uploads (inside the container)\n- ~/.clickzetta/data/uploads (local environment)."
+      },
+      {
+        "name": "content",
+        "type": "string",
+        "desc": "Upload file content directly (text) - ideal for external function development.\n- Primary use: upload Python external function code directly.\n- Supported formats: .py source, .sql scripts, .txt files."
+      },
+      {
+        "name": "target_volume",
+        "type": "string",
+        "desc": "Target Volume storage location.\n- Recommended volumes:\n  - external_functions_prod (production external functions)\n  - external_functions_dev (development/testing)\n- You may also provide a custom volume path."
+      }
+    ]
+  },
+  {
+    "name": "get_file_from_volume",
+    "description": "Download files from ClickZetta Lakehouse Volume to local directory.",
+    "arguments": [
+      {
+        "name": "source_volume",
+        "type": "string",
+        "desc": "Source volume name, for example `volume_name`, `TABLE table_name`, or `USER`."
+      },
+      {
+        "name": "source_file",
+        "type": "string",
+        "desc": "File names inside the Volume. Supports comma-separated values or a list."
+      },
+      {
+        "name": "target_local_path",
+        "type": "string",
+        "desc": "Local destination directory (optional). Files will be downloaded there using their original names. If omitted, the default download directories are used:\n- /app/.clickzetta/data/downloads (inside the container)\n- ~/.clickzetta/data/downloads (local environment)."
+      }
+    ]
+  },
+  {
+    "name": "list_files_on_volume",
+    "description": "List files in Volume.",
+    "arguments": [
+      {
+        "name": "target_volume",
+        "type": "string",
+        "desc": "Volume name, for example `volume_name`, `TABLE table_name`, or `USER`."
+      },
+      {
+        "name": "target_subdirectory",
+        "type": "string",
+        "desc": "Optional subdirectory."
+      },
+      {
+        "name": "pattern",
+        "type": "string",
+        "desc": "Optional file-name regular expression filter (standard regex syntax, not shell globbing).\nExamples:\n- '.*\\.json$' - JSON files\n- '.*\\.(json|ndjson)$' - JSON and NDJSON files"
+      }
+    ]
+  },
+  {
+    "name": "remove_file_from_volume",
+    "description": "Delete files or directories from Volume.",
+    "arguments": [
+      {
+        "name": "target_volume",
+        "type": "string",
+        "desc": "Volume name, for example `volume_name`, `TABLE table_name`, or `USER`."
+      },
+      {
+        "name": "target_file",
+        "type": "string",
+        "desc": "File names to delete. Supports comma-separated values or a list."
+      },
+      {
+        "name": "target_subdirectory",
+        "type": "string",
+        "desc": "Subdirectory to delete."
+      }
+    ]
+  },
+  {
+    "name": "alter_dynamic_table",
+    "description": "Modify dynamic table properties.",
+    "arguments": [
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "Dynamic table name."
+      },
+      {
+        "name": "operation",
+        "type": "string",
+        "desc": "Operation type. Supported actions include:\n- suspend: pause dynamic table scheduling\n- resume: resume dynamic table scheduling\n- set_comment: update the table comment\n- rename: rename the table"
+      },
+      {
+        "name": "column_name",
+        "type": "string",
+        "desc": "Column name (required for column operations)."
+      }
+    ]
+  },
+  {
+    "name": "alter_pipe",
+    "description": "Modify PIPE properties. Supported operations: suspend/resume, set_virtual_cluster, set_batch_interval, set_batch_size, etc.",
+    "arguments": [
+      {
+        "name": "pipe_name",
+        "type": "string",
+        "desc": "PIPE name."
+      },
+      {
+        "name": "operation",
+        "type": "string",
+        "desc": "Operation type."
+      },
+      {
+        "name": "virtual_cluster",
+        "type": "string",
+        "desc": "Virtual cluster name."
+      }
+    ]
+  },
+  {
+    "name": "modify_dynamic_table_data",
+    "description": "Perform insert, update, delete, and merge operations on dynamic tables.",
+    "arguments": [
+      {
+        "name": "sql",
+        "type": "string",
+        "desc": "SQL statement to execute (required). Supported examples:\n- INSERT INTO table_name VALUES (...)\n- INSERT INTO table_name SELECT ..."
+      },
+      {
+        "name": "table_name",
+        "type": "string",
+        "desc": "Target dynamic table name (optional).\nTip: If omitted, the system will attempt to extract the table name from the SQL."
+      }
+    ]
+  },
+  {
+    "name": "alter_vcluster",
+    "description": "Modify Virtual Cluster (compute cluster).",
+    "arguments": [
+      {
+        "name": "cluster_name",
+        "type": "string",
+        "desc": "Compute cluster name."
+      },
+      {
+        "name": "operation",
+        "type": "string",
+        "desc": "Operation type:\n- RESUME: start the cluster\n- SUSPEND: stop the cluster\n- CANCEL_ALL_JOBS: cancel all running jobs on the cluster\n- SET: modify cluster properties"
+      },
+      {
+        "name": "if_exists",
+        "type": "boolean",
+        "desc": "Optional. When true, perform the action only if the cluster already exists."
+      }
+    ]
+  },
+  {
+    "name": "get_operation_guide",
+    "description": "Get comprehensive guides for ClickZetta-specific operations and tasks.",
+    "arguments": [
+      {
+        "name": "to_do_something",
+        "type": "string",
+        "desc": "The thing you want to do, should be one of the following: analyze_slow_query, an"
+      }
+    ]
+  },
+  {
+    "name": "add_knowledge_entry",
+    "description": "Add user-input knowledge to vector database.",
+    "arguments": [
+      {
+        "name": "knowledge_table_name",
+        "type": "string",
+        "desc": "Target knowledge-base table name, such as 'product_knowledge' or 'technical_specs'."
+      },
+      {
+        "name": "knowledge",
+        "type": "string",
+        "desc": "Knowledge content to add. Example:\n\"ClickZetta Lakehouse SQL is highly compatible with Spark SQL and Snowflake. Zettapark integrates seamlessly with PySpark and Snowpark ...\""
+      }
+    ]
+  },
+  {
+    "name": "get_external_function_guide",
+    "description": "Get complete guide and best practices for Python external function development.",
+    "arguments": [
+      {
+        "name": "topic",
+        "type": "string",
+        "desc": "Guidance topic."
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Return format."
+      }
+    ]
+  },
+  {
+    "name": "package_external_function",
+    "description": "Intelligently package Python external functions and their dependencies.",
+    "arguments": [
+      {
+        "name": "source_file",
+        "type": "string",
+        "desc": "Path to the Python source file (for example '/path/to/function.py'). Mutually exclusive with `source_content`."
+      },
+      {
+        "name": "source_content",
+        "type": "string",
+        "desc": "Python source code content (recommended). Mutually exclusive with `source_file` to avoid path issues."
+      },
+      {
+        "name": "dependencies",
+        "type": "array",
+        "desc": "List of dependency packages, for example ['requests', 'numpy==1.21.0']. A warning is shown for C-extension packages such as numpy."
+      }
+    ]
+  },
+  {
+    "name": "get_external_function_template",
+    "description": "Get ClickZetta external function development template.",
+    "arguments": [
+      {
+        "name": "template_type",
+        "type": "string",
+        "desc": "Template type:\n- basic: basic function template\n- ai_text: AI text processing (summarization, translation, sentiment analysis)\n- ai_multimodal: AI multimodal functions (image, audio, etc.)"
+      },
+      {
+        "name": "function_name",
+        "type": "string",
+        "desc": "Function name used as the class name in the generated template."
+      },
+      {
+        "name": "include_dependencies",
+        "type": "boolean",
+        "desc": "Whether to include dependency information."
+      }
+    ]
+  },
+  {
+    "name": "smart_crawl_to_volume",
+    "description": "Intelligently crawl URL content to VOLUME.",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "URL to crawl."
+      },
+      {
+        "name": "volume",
+        "type": "string",
+        "desc": "Target ClickZetta Volume."
+      },
+      {
+        "name": "volume_dir",
+        "type": "string",
+        "desc": "Target subdirectory within the Volume."
+      }
+    ]
+  },
+  {
+    "name": "run_happy_paths",
+    "description": "Execute Lakehouse happy path demonstrations.",
+    "arguments": [
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "The language for the Happy Path guidance"
+      }
+    ]
+  },
+  {
+    "name": "switch_lakehouse_instance",
+    "description": "Switch between multi-cloud or Lakehouse environments.",
+    "arguments": [
+      {
+        "name": "connection_name",
+        "type": "string",
+        "desc": "Connection name to switch to (this is the configuration name, not the ClickZetta instance ID)."
+      },
+      {
+        "name": "list_connections",
+        "type": "boolean",
+        "desc": "Whether to list all available connections."
+      },
+      {
+        "name": "reload",
+        "type": "boolean",
+        "desc": "Whether to reload the configuration file."
+      }
+    ]
+  },
+  {
+    "name": "smart_crawl_url",
+    "description": "Intelligent web content crawling tool.",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "URL address to crawl."
+      },
+      {
+        "name": "css_selector",
+        "type": "string",
+        "desc": "CSS selector used to extract specific content."
+      },
+      {
+        "name": "word_count_threshold",
+        "type": "integer",
+        "desc": "Minimum word-count threshold for content blocks."
+      }
+    ]
+  },
+  {
+    "name": "crawl_single_page",
+    "description": "Single-page web crawling tool.",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "Web page URL to crawl."
+      },
+      {
+        "name": "css_selector",
+        "type": "string",
+        "desc": "CSS selector used to extract specific content."
+      },
+      {
+        "name": "word_count_threshold",
+        "type": "integer",
+        "desc": "Minimum word-count threshold for content blocks."
+      }
+    ]
+  },
+  {
+    "name": "lakehouse_metadata_insights",
+    "description": "Lakehouse metadata insights tool (analysis based only on metadata in sys.information_schema).",
+    "arguments": [
+      {
+        "name": "show_capabilities",
+        "type": "boolean",
+        "desc": "Whether to show only the tool capability overview without running any analysis. When true, the tool lists all available analysis categories and scenarios to help users understand its features."
+      },
+      {
+        "name": "general_guidance",
+        "type": "boolean",
+        "desc": "Whether to provide general analysis guidance without executing it. When the 20 predefined analyses are insufficient, this option offers guidance on creating custom analyses based on sys.information_schema, including table structures, analytical dimensions, and example queries."
+      },
+      {
+        "name": "show_sql",
+        "type": "boolean",
+        "desc": "Whether to show only the SQL query for the specified analysis without executing it. When true, you must also provide `analysis_name`; the tool returns the SQL statement, the analysis objective, and relevant notes."
+      }
+    ]
+  }
+]
