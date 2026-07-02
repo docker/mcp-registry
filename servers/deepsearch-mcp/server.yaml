@@ -1,0 +1,59 @@
+name: deepsearch-mcp
+image: 1robot9/deepsearch-mcp:latest
+type: server
+meta:
+  category: research
+  tags:
+    - research
+    - market-analysis
+    - ai-agents
+    - deep-search
+    - vision-2030
+about:
+  title: ConverseSpark DeepSearch
+  description: A 13-agent AI-powered market research and analysis MCP server. Provides comprehensive deep search capabilities with Vision 2030 alignment scoring for strategic market analysis in Saudi Arabia and beyond.
+  icon: https://raw.githubusercontent.com/docker/mcp-registry/main/assets/img/default-server-icon.png
+source:
+  project: https://github.com/1robot9/ConverseSpark
+  commit: HEAD
+config:
+  description: Configure API keys for LLM and web search capabilities
+  secrets:
+    - name: deepsearch-mcp.openrouter_api_key
+      env: OPENROUTER_API_KEY
+      example: sk-or-v1-xxxxxx
+    - name: deepsearch-mcp.perplexity_api_key
+      env: PERPLEXITY_API_KEY
+      example: pplx-xxxxxx
+  env:
+    - name: DATABASE_URL
+      example: postgresql://user:pass@host:5432/db
+      value: '{{deepsearch-mcp.database_url}}'
+  parameters:
+    type: object
+    properties:
+      database_url:
+        type: string
+        description: PostgreSQL connection string for report storage
+    required: []
+tools:
+  - name: deep_search
+    description: Perform a comprehensive market analysis using the 13-agent DeepSearch pipeline
+    inputSchema:
+      type: object
+      properties:
+        query:
+          type: string
+          description: The research query or topic to analyze
+        tier:
+          type: string
+          enum:
+            - standard
+            - premium
+          default: premium
+          description: Analysis tier - 'standard' for quick analysis, 'premium' for comprehensive 13-agent analysis
+        focus:
+          type: string
+          description: Optional specific focus area (e.g., 'regulatory', 'technology', 'competition')
+      required:
+        - query
