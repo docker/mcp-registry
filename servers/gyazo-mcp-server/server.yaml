@@ -1,0 +1,43 @@
+name: gyazo-mcp-server
+image: ishiimasaki646/gyazo-mcp-server
+type: server
+
+meta:
+  category: media
+  tags:
+    - screenshot
+    - image
+    - gyazo
+    - upload
+    - search
+
+about:
+  title: Gyazo Unofficial
+  description: >
+    Gyazo 向けの非公式 MCP サーバーです。画像の一覧取得・検索・アップロード・削除・oEmbed メタデータ取得と、
+    gyazo-mcp:///image_id 形式のリソースアクセスを提供します。
+    MCP 標準 OAuth に準拠した認証 broker を内蔵し、
+    streamable HTTP transport と stdio transport の両方に対応する、対応範囲の広い実装です。
+  icon: https://www.google.com/s2/favicons?domain=gyazo.com&sz=64
+
+source:
+  project: https://github.com/ishii-masaki-646/gyazo-mcp-server
+  commit: e4ccb38939f74bca40f328a59b8573373364a1a1
+
+config:
+  secrets:
+    - name: gyazo-mcp-server.personal_access_token
+      env: GYAZO_MCP_PERSONAL_ACCESS_TOKEN
+      example: your-personal-access-token
+      description: >
+        Gyazo の Personal Access Token。OAuth を使わずに認証する場合に指定します。
+        Gyazo の開発者ページ (https://gyazo.com/api) で発行できます。
+      required: false
+  env:
+    - name: GYAZO_MCP_TCP_PORT
+      description: HTTP サーバーの待ち受けポート
+      default: "18449"
+    - name: GYAZO_MCP_BIND_ADDRESS
+      description: バインドアドレス (コンテナ内では自動で 0.0.0.0)
+    - name: GYAZO_MCP_BASE_URL
+      description: クライアントに公開する base URL (LAN 向け等)
