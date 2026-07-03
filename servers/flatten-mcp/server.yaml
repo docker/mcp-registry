@@ -24,7 +24,14 @@ run:
     - "{{flatten-mcp.claude_dir|volume-target}}:/claude"
   disableNetwork: true
 config:
-  description: flatten-mcp reads and writes Claude Code sessions in this directory (your ~/.claude)
+  description: >-
+    flatten-mcp reads and writes Claude Code sessions in this directory (your
+    ~/.claude). Inside the container, "current" resolves to the most recent
+    session in the store.
+  env:
+    - name: FLATTEN_INMEMORY_TOOLS
+      example: "1"
+      value: "{{flatten-mcp.inmemory_tools}}"
   parameters:
     type: object
     properties:
@@ -33,5 +40,9 @@ config:
         title: Claude Config Directory
         description: Absolute path to your Claude Code config directory (the one holding projects/)
         default: /Users/username/.claude
+      inmemory_tools:
+        type: string
+        title: In-Memory Tools
+        description: Set to 1 to also register the flatten_messages/unflatten_messages in-memory tools (no disk or network involved)
     required:
       - claude_dir
