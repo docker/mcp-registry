@@ -1,0 +1,37 @@
+name: flatten-mcp
+image: mcp/flatten-mcp
+type: server
+meta:
+  category: productivity
+  tags:
+    - claude-code
+    - context-window
+    - tokens
+    - session
+    - productivity
+about:
+  title: Flatten for Claude Code
+  description: >-
+    Losslessly cut a Claude Code session's context tokens: bulky tool output
+    moves to a local backup, every prompt stays verbatim, and the session
+    resumes lighter — the reversible alternative to /compact.
+  icon: https://raw.githubusercontent.com/shayaShav/flatten-mcp/main/assets/logo-400.png
+source:
+  project: https://github.com/shayaShav/flatten-mcp
+  commit: 49140149b06655f68da4240317cf9d849822e994
+run:
+  volumes:
+    - "{{flatten-mcp.claude_dir|volume-target}}:/claude"
+  disableNetwork: true
+config:
+  description: flatten-mcp reads and writes Claude Code sessions in this directory (your ~/.claude)
+  parameters:
+    type: object
+    properties:
+      claude_dir:
+        type: string
+        title: Claude Config Directory
+        description: Absolute path to your Claude Code config directory (the one holding projects/)
+        default: /Users/username/.claude
+    required:
+      - claude_dir
