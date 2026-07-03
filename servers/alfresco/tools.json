@@ -1,0 +1,229 @@
+[
+  {
+    "name": "search_nodes",
+    "description": "Search for nodes in the Alfresco repository using AFTS (Alfresco Full Text Search) query syntax",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "AFTS search query (e.g., 'name:contract*' or 'TEXT:important')"
+        },
+        "ticket": {
+          "type": "string",
+          "description": "Alfresco authentication ticket"
+        },
+        "maxItems": {
+          "type": "integer",
+          "description": "Maximum number of results to return",
+          "default": 100
+        }
+      },
+      "required": ["query", "ticket"]
+    }
+  },
+  {
+    "name": "get_node",
+    "description": "Get detailed information about a specific node by its ID",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "type": "string",
+          "description": "The unique identifier of the node"
+        },
+        "ticket": {
+          "type": "string",
+          "description": "Alfresco authentication ticket"
+        }
+      },
+      "required": ["nodeId", "ticket"]
+    }
+  },
+  {
+    "name": "get_node_content",
+    "description": "Retrieve the content of a document node",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "type": "string",
+          "description": "The unique identifier of the document node"
+        },
+        "ticket": {
+          "type": "string",
+          "description": "Alfresco authentication ticket"
+        }
+      },
+      "required": ["nodeId", "ticket"]
+    }
+  },
+  {
+    "name": "create_node",
+    "description": "Create a new node (folder or document) in the repository",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "parentId": {
+          "type": "string",
+          "description": "The parent node ID where the new node will be created"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the new node"
+        },
+        "nodeType": {
+          "type": "string",
+          "description": "Node type (e.g., 'cm:folder' or 'cm:content')"
+        },
+        "ticket": {
+          "type": "string",
+          "description": "Alfresco authentication ticket"
+        },
+        "properties": {
+          "type": "object",
+          "description": "Additional properties for the node"
+        }
+      },
+      "required": ["parentId", "name", "nodeType", "ticket"]
+    }
+  },
+  {
+    "name": "update_node",
+    "description": "Update properties of an existing node",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "type": "string",
+          "description": "The unique identifier of the node to update"
+        },
+        "ticket": {
+          "type": "string",
+          "description": "Alfresco authentication ticket"
+        },
+        "properties": {
+          "type": "object",
+          "description": "Properties to update"
+        }
+      },
+      "required": ["nodeId", "ticket", "properties"]
+    }
+  },
+  {
+    "name": "delete_node",
+    "description": "Delete a node from the repository (moves to trash)",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "type": "string",
+          "description": "The unique identifier of the node to delete"
+        },
+        "ticket": {
+          "type": "string",
+          "description": "Alfresco authentication ticket"
+        },
+        "permanent": {
+          "type": "boolean",
+          "description": "If true, permanently delete the node; otherwise move to trash",
+          "default": false
+        }
+      },
+      "required": ["nodeId", "ticket"]
+    }
+  },
+  {
+    "name": "list_children",
+    "description": "List all child nodes of a parent node",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "type": "string",
+          "description": "The parent node ID"
+        },
+        "ticket": {
+          "type": "string",
+          "description": "Alfresco authentication ticket"
+        },
+        "maxItems": {
+          "type": "integer",
+          "description": "Maximum number of children to return",
+          "default": 100
+        }
+      },
+      "required": ["nodeId", "ticket"]
+    }
+  },
+  {
+    "name": "upload_file",
+    "description": "Upload a file to a specific folder in Alfresco",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "parentId": {
+          "type": "string",
+          "description": "The parent folder node ID"
+        },
+        "fileName": {
+          "type": "string",
+          "description": "Name of the file to upload"
+        },
+        "content": {
+          "type": "string",
+          "description": "Base64 encoded file content or text content"
+        },
+        "ticket": {
+          "type": "string",
+          "description": "Alfresco authentication ticket"
+        }
+      },
+      "required": ["parentId", "fileName", "content", "ticket"]
+    }
+  },
+  {
+    "name": "get_node_metadata",
+    "description": "Get metadata and properties of a node",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "type": "string",
+          "description": "The unique identifier of the node"
+        },
+        "ticket": {
+          "type": "string",
+          "description": "Alfresco authentication ticket"
+        }
+      },
+      "required": ["nodeId", "ticket"]
+    }
+  },
+  {
+    "name": "copy_node",
+    "description": "Copy a node to a different location in the repository",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "type": "string",
+          "description": "The node ID to copy"
+        },
+        "targetParentId": {
+          "type": "string",
+          "description": "The target parent node ID"
+        },
+        "ticket": {
+          "type": "string",
+          "description": "Alfresco authentication ticket"
+        },
+        "name": {
+          "type": "string",
+          "description": "Optional new name for the copied node"
+        }
+      },
+      "required": ["nodeId", "targetParentId", "ticket"]
+    }
+  }
+]
