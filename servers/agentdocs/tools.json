@@ -1,0 +1,511 @@
+[
+  {
+    "name": "whoami",
+    "title": "Who am I",
+    "description": "Identify the authenticated AgentDocs user and credential scope. Call this first: a space-scoped credential is locked to a single space, which becomes the default for page tools.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {}
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "list_workspaces",
+    "title": "List workspaces",
+    "description": "List all AgentDocs workspaces the user can access. Workspaces contain spaces; spaces contain pages.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {}
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "list_spaces",
+    "title": "List spaces",
+    "description": "List the spaces in a workspace.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "workspace": {
+          "type": "string",
+          "description": "Workspace UUID or workspace slug (e.g. \"my-team-docs\")"
+        }
+      },
+      "required": [
+        "workspace"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "search_docs",
+    "title": "Search docs",
+    "description": "Full-text (keyword) search across all pages in a workspace. Matches in the returned content_preview are delimited with << >> markers. For natural-language questions, prefer semantic_search.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "workspace": {
+          "type": "string",
+          "description": "Workspace UUID or workspace slug"
+        },
+        "query": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Search terms"
+        }
+      },
+      "required": [
+        "workspace",
+        "query"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "semantic_search",
+    "title": "Semantic search",
+    "description": "Search a workspace by meaning, not keywords — ask a natural-language question (e.g. \"how do we handle billing retries?\") and get the most relevant pages ranked by similarity. Pages are embedded automatically after each save. Requires a Pro workspace; the response 'mode' is \"semantic\" when active, or \"fulltext_fallback\" if semantic search is not configured on the instance (results are still returned).",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "workspace": {
+          "type": "string",
+          "description": "Workspace UUID or workspace slug"
+        },
+        "query": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000,
+          "description": "A natural-language question or description (max 1000 chars)"
+        }
+      },
+      "required": [
+        "workspace",
+        "query"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "list_pages",
+    "title": "List pages",
+    "description": "List the pages in a space as a tree (content omitted — use get_page to read a page). With a space-scoped token, omit \"space\" to use the token's space.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "space": {
+          "description": "Space UUID or \"workspaceSlug/spaceSlug\" path. Optional for space-scoped tokens.",
+          "type": "string"
+        }
+      }
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "get_page",
+    "title": "Get page",
+    "description": "Read a page including its full Markdown content and current version number. Set include_comments to also return the page's comment thread, and/or include_children to return the page's child pages (titles + slugs, no content) — useful for 'folder' pages whose own content is empty but which organise sub-pages.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "string",
+          "description": "Page UUID or \"workspaceSlug/spaceSlug/pageSlug\" path"
+        },
+        "include_comments": {
+          "description": "When true, also return the page's comments (threaded) alongside the page.",
+          "type": "boolean"
+        },
+        "include_children": {
+          "description": "When true, also return the page's immediate child pages (id, title, slug — no content).",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "page"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "create_page",
+    "title": "Create page",
+    "description": "Create a Markdown page in a space. The slug is derived from the title unless given. With a space-scoped token, omit \"space\" to use the token's space.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "space": {
+          "description": "Space UUID or \"workspaceSlug/spaceSlug\" path. Optional for space-scoped tokens.",
+          "type": "string"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Page title"
+        },
+        "content": {
+          "type": "string",
+          "description": "Markdown content"
+        },
+        "parent_page_id": {
+          "description": "Parent page UUID, to nest this page under another",
+          "type": "string"
+        },
+        "slug": {
+          "description": "Explicit URL slug (auto-generated and deduped when omitted)",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "content"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "update_page",
+    "title": "Update page",
+    "description": "Update a page's title and/or content. Every update creates a new version (old versions stay restorable). Pass expected_version to fail instead of overwriting concurrent edits.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "string",
+          "description": "Page UUID or \"workspaceSlug/spaceSlug/pageSlug\" path"
+        },
+        "title": {
+          "description": "New title",
+          "type": "string"
+        },
+        "content": {
+          "description": "New full Markdown content (replaces existing content)",
+          "type": "string"
+        },
+        "expected_version": {
+          "description": "If set and the page has moved past this version, the update is rejected",
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "page"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "append_to_page",
+    "title": "Append to page",
+    "description": "Append Markdown to the end of an existing page (read-modify-write; creates a new version). Ideal for logs, reports, and running notes.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "string",
+          "description": "Page UUID or \"workspaceSlug/spaceSlug/pageSlug\" path"
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Markdown to append"
+        },
+        "separator": {
+          "description": "Separator inserted before the appended text (default: blank line \"\\n\\n\")",
+          "type": "string"
+        }
+      },
+      "required": [
+        "page",
+        "content"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "delete_page",
+    "title": "Delete page",
+    "description": "Permanently delete a page. WARNING: deletion cascades to all child pages. There is no undo via the API.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "string",
+          "description": "Page UUID or \"workspaceSlug/spaceSlug/pageSlug\" path"
+        }
+      },
+      "required": [
+        "page"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "import_markdown",
+    "title": "Import a markdown folder",
+    "description": "Import a folder of Markdown files and let the folder structure become the page hierarchy. Each file is { path, content } where path is a relative file path like \"guides/setup.md\". Folders become parent pages; an index.md or README.md inside a folder supplies that folder page's content; titles come from the first # H1, falling back to the file name. Ideal for an Obsidian vault, a Notion markdown export, or a repo's docs/ folder. Up to 500 files per call. IDEMPOTENT: pages are matched by source path, so re-running an import — or chunking a large vault across several calls — reuses existing pages instead of creating duplicates (response reports created/reused/updated counts). By default existing pages keep their content; set overwrite_existing to re-sync content from the files. Use parent_page to nest the whole import under an existing page. Use bulk_create_pages instead when you want to specify the page tree explicitly. With a space-scoped token, omit \"space\" to use the token's space.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "space": {
+          "description": "Space UUID or \"workspaceSlug/spaceSlug\" path. Optional for space-scoped tokens.",
+          "type": "string"
+        },
+        "files": {
+          "minItems": 1,
+          "maxItems": 500,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Relative file path, e.g. \"guides/setup.md\" (only .md / .markdown)"
+              },
+              "content": {
+                "type": "string",
+                "description": "Markdown file contents"
+              }
+            },
+            "required": [
+              "path",
+              "content"
+            ]
+          },
+          "description": "The markdown files to import"
+        },
+        "parent_page": {
+          "description": "Optional existing page to nest the import under (UUID or \"workspaceSlug/spaceSlug/pageSlug\" path). Defaults to the space root.",
+          "type": "string"
+        },
+        "overwrite_existing": {
+          "description": "When true, re-importing updates the content of pages that already exist (re-sync). Default false: existing pages are left untouched.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "files"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "bulk_create_pages",
+    "title": "Bulk create pages",
+    "description": "Create up to 500 pages in one atomic call (all succeed or all fail) with an explicitly specified structure (titles, slugs, parent_page_id). To import a folder of Markdown files and derive the hierarchy from file paths, use import_markdown instead. With a space-scoped token, omit \"space\" to use the token's space.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "space": {
+          "description": "Space UUID or \"workspaceSlug/spaceSlug\" path. Optional for space-scoped tokens.",
+          "type": "string"
+        },
+        "pages": {
+          "minItems": 1,
+          "maxItems": 500,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "minLength": 1
+              },
+              "content": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "parent_page_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "title",
+              "content"
+            ]
+          },
+          "description": "Pages to create"
+        }
+      },
+      "required": [
+        "pages"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "share_page",
+    "title": "Share page",
+    "description": "Create a public magic link for a page — anyone with the link can read it without logging in. Returns a web URL and a raw-Markdown URL (the raw one is ideal for other agents).",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "string",
+          "description": "Page UUID or \"workspaceSlug/spaceSlug/pageSlug\" path"
+        },
+        "expires_in_days": {
+          "description": "Days until the link expires. Omit for a non-expiring link.",
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "page"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "list_comments",
+    "title": "List comments",
+    "description": "List the threaded comments on a page, returning each comment's id, content, author and parent. Use this to find a comment's id before update_comment / delete_comment. (get_page with include_comments returns the same thread alongside the page content.)",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "string",
+          "description": "Page UUID or \"workspaceSlug/spaceSlug/pageSlug\" path"
+        }
+      },
+      "required": [
+        "page"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "add_comment",
+    "title": "Add comment",
+    "description": "Post a comment on a page. Set parent_comment_id to reply within an existing thread. Mentioning a user with @name notifies them; the returned 'mentions' array lists who was matched.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "string",
+          "description": "Page UUID or \"workspaceSlug/spaceSlug/pageSlug\" path"
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10000,
+          "description": "Comment body (Markdown; supports @mentions)"
+        },
+        "parent_comment_id": {
+          "description": "UUID of the comment being replied to, to thread under it (omit for a top-level comment)",
+          "type": "string"
+        }
+      },
+      "required": [
+        "page",
+        "content"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "update_comment",
+    "title": "Update comment",
+    "description": "Edit a comment's body and/or mark its thread resolved. Only the comment's author (or an admin) may update it. Provide at least one of content / resolved.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "comment": {
+          "type": "string",
+          "description": "Comment UUID (from get_page include_comments or list_comments)"
+        },
+        "content": {
+          "description": "New comment body (replaces the existing text)",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10000
+        },
+        "resolved": {
+          "description": "Mark the comment thread resolved (true) or reopen it (false)",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "comment"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "delete_comment",
+    "title": "Delete comment",
+    "description": "Permanently delete a comment. Only the comment's author (or an admin) may delete it. There is no undo via the API.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "comment": {
+          "type": "string",
+          "description": "Comment UUID (from get_page include_comments or list_comments)"
+        }
+      },
+      "required": [
+        "comment"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  }
+]
