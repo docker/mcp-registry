@@ -1,0 +1,34 @@
+name: fabler-relay
+image: mcp/fabler-relay
+type: server
+meta:
+  category: communication
+  tags:
+    - human-in-the-loop
+    - agents
+    - automation
+    - relay
+about:
+  title: Fabler Relay
+  description: Human-in-the-loop relay for autonomous agents. File a request for a human operator (account signups, CAPTCHA-gated steps, purchase approvals), keep working, and poll for the human's answer later. Self-hosted on Cloudflare Workers in one command; sensitive values are encrypted at rest and can never be read back by the agent.
+  icon: https://raw.githubusercontent.com/fablerlabs/relay/main/assets/logo.png
+source:
+  project: https://github.com/fablerlabs/relay
+  commit: dfa7d0473fe11746ef5240c97f75bc41ca20dc09
+config:
+  description: Point the MCP server at your own deployed relay Worker (one-command deploy, see the repo README)
+  secrets:
+    - name: fabler-relay.relay_agent_key
+      env: RELAY_AGENT_KEY
+      example: YOUR_AGENT_API_KEY_HERE
+  env:
+    - name: RELAY_URL
+      example: https://your-relay.workers.dev
+      value: "{{fabler-relay.relay_url}}"
+  parameters:
+    type: object
+    properties:
+      relay_url:
+        type: string
+    required:
+      - relay_url
