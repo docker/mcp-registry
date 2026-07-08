@@ -1,0 +1,426 @@
+[
+  {
+    "name": "get_supported_languages",
+    "description": "List all languages supported by Scriptivox for audio/video transcription. Returns language names and ISO codes. No API key required.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {}
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "get_pricing",
+    "description": "Get Scriptivox pricing information including subscription plans (Free, Pro, Team) and API pay-as-you-go rates. Includes signup URLs. No API key required.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {}
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "get_product_info",
+    "description": "Get information about Scriptivox capabilities: transcription, audio tools, video tools, subtitle tools, meeting bot, or API. No API key required.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "topic": {
+          "description": "Topic to get info about. Defaults to \"all\".",
+          "type": "string",
+          "enum": [
+            "transcription",
+            "audio-tools",
+            "video-tools",
+            "subtitle-tools",
+            "meeting-bot",
+            "api",
+            "all"
+          ]
+        }
+      }
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "get_api_docs",
+    "description": "Get Scriptivox API documentation. Sections: quickstart, transcribe, result, list, cancel, delete, upload, balance, webhooks, errors. No API key required.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "section": {
+          "description": "Documentation section. Defaults to \"quickstart\".",
+          "type": "string",
+          "enum": [
+            "quickstart",
+            "transcribe",
+            "result",
+            "list",
+            "cancel",
+            "delete",
+            "upload",
+            "balance",
+            "webhooks",
+            "errors",
+            "all"
+          ]
+        }
+      }
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "check_balance",
+    "description": "Check your Scriptivox API credit balance, available hours, and pricing. Requires a configured API key.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {}
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "transcribe_url",
+    "description": "Transcribe audio or video from a public URL using Scriptivox AI. Supports 119 languages, speaker diarization, and word-level timestamps. RECOMMENDED: always pass the `language` parameter explicitly when you know the audio language \u2014 auto-detect has a small failure rate on short clips, code-switched audio, or files starting with music. Requires a configured API key.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "Public URL to an audio or video file (http/https). Supports Google Drive, Dropbox, OneDrive sharing links, and direct file URLs."
+        },
+        "language": {
+          "description": "ISO 639-1 language code (e.g. \"en\", \"es\", \"fr\"). 119 languages supported. Strongly recommended when you know the language.",
+          "type": "string"
+        },
+        "diarize": {
+          "description": "Enable speaker diarization. Default: false. When true, word-level alignment is automatically enabled regardless of `align`.",
+          "type": "boolean"
+        },
+        "speaker_count": {
+          "description": "Expected number of speakers (1-50). Requires diarize: true. Passing this when known improves diarization accuracy.",
+          "type": "number"
+        },
+        "align": {
+          "description": "Word-level timestamps + confidence scores. Default: true. Pass false to opt out (ignored when diarize: true).",
+          "type": "boolean"
+        },
+        "webhook_url": {
+          "description": "Optional HTTPS URL where transcription.* events will be POSTed (HMAC-signed).",
+          "type": "string"
+        },
+        "idempotency_key": {
+          "description": "Optional Idempotency-Key header (up to 255 chars). Same key + same body = same transcription_id.",
+          "type": "string"
+        },
+        "await_completed": {
+          "description": "Default: true. When false, return the transcription_id immediately without polling.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "url"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "transcribe_status",
+    "description": "Check the status of a Scriptivox transcription job. Use this for long-running transcriptions, after a timeout, or to verify completion. Requires a configured API key.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "transcription_id": {
+          "type": "string",
+          "description": "The transcription ID returned from transcribe_url or transcribe_upload."
+        }
+      },
+      "required": [
+        "transcription_id"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "transcription_url",
+    "description": "[DEPRECATED \u2014 use transcribe_url instead] Alias kept for backward compatibility with @scriptivox/mcp-server@1.0.x. Will be removed in 2.0.0. Identical behavior to transcribe_url.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "Public URL to an audio/video file (http/https)."
+        },
+        "language": {
+          "description": "ISO 639-1 language code (e.g. \"en\"). Strongly recommended when known.",
+          "type": "string"
+        },
+        "diarize": {
+          "description": "Enable speaker diarization. Default: false.",
+          "type": "boolean"
+        },
+        "speaker_count": {
+          "description": "Expected number of speakers (1-50). Requires diarize: true.",
+          "type": "number"
+        },
+        "align": {
+          "description": "Word-level timestamps. Default: true.",
+          "type": "boolean"
+        },
+        "webhook_url": {
+          "description": "Optional HTTPS webhook URL.",
+          "type": "string"
+        },
+        "idempotency_key": {
+          "description": "Optional Idempotency-Key header.",
+          "type": "string"
+        },
+        "await_completed": {
+          "description": "Default: true. When false, return id immediately without polling.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "url"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "transcription_status",
+    "description": "[DEPRECATED \u2014 use transcribe_status instead] Alias kept for backward compatibility with @scriptivox/mcp-server@1.0.x. Will be removed in 2.0.0. Identical behavior to transcribe_status.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "transcription_id": {
+          "type": "string",
+          "description": "The transcription ID."
+        }
+      },
+      "required": [
+        "transcription_id"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "transcribe_upload",
+    "description": "Transcribe a LOCAL file by uploading it to Scriptivox. Drives the 3-step upload flow internally. Same options as transcribe_url. Use when the file isn't on a public URL. Max file size 5 GB. Requires a configured API key.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "file_path": {
+          "type": "string",
+          "description": "Absolute path to the audio/video file on the local filesystem."
+        },
+        "language": {
+          "description": "ISO 639-1 language code. Strongly recommended when known.",
+          "type": "string"
+        },
+        "diarize": {
+          "description": "Enable speaker diarization. Default: false.",
+          "type": "boolean"
+        },
+        "speaker_count": {
+          "description": "Expected speakers (1-50). Requires diarize: true.",
+          "type": "number"
+        },
+        "align": {
+          "description": "Word-level timestamps. Default: true.",
+          "type": "boolean"
+        },
+        "webhook_url": {
+          "description": "Optional HTTPS webhook URL.",
+          "type": "string"
+        },
+        "idempotency_key": {
+          "description": "Optional Idempotency-Key header.",
+          "type": "string"
+        },
+        "await_completed": {
+          "description": "Default: true. When false, return id without polling.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "file_path"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "transcribe_cancel",
+    "description": "Cancel an in-flight Scriptivox transcription and release any reserved balance. Idempotent. Returns 409 CONFLICT on already-terminal jobs. Requires a configured API key.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "transcription_id": {
+          "type": "string",
+          "description": "The transcription ID to cancel (UUID)."
+        }
+      },
+      "required": [
+        "transcription_id"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "transcribe_delete",
+    "description": "Soft-delete a Scriptivox transcription record. Idempotent. Returns 409 CONFLICT if the job is still in-flight \u2014 cancel first via transcribe_cancel. Requires a configured API key.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "transcription_id": {
+          "type": "string",
+          "description": "The transcription ID to delete (UUID)."
+        }
+      },
+      "required": [
+        "transcription_id"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "list_transcriptions",
+    "description": "List recent transcriptions for the configured API key, with optional status/date filters and cursor pagination. The full transcript body is omitted \u2014 fetch transcribe_status per id to read it. Requires a configured API key.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "status": {
+          "description": "Filter by status.",
+          "type": "string",
+          "enum": [
+            "created",
+            "downloading",
+            "pending",
+            "processing",
+            "completed",
+            "failed"
+          ]
+        },
+        "from": {
+          "description": "ISO 8601 timestamp lower bound (inclusive).",
+          "type": "string"
+        },
+        "to": {
+          "description": "ISO 8601 timestamp upper bound (exclusive).",
+          "type": "string"
+        },
+        "limit": {
+          "description": "Max items per page (1-200, default 50).",
+          "type": "number"
+        },
+        "cursor": {
+          "description": "Opaque cursor from a previous response.",
+          "type": "string"
+        },
+        "order": {
+          "description": "Sort order. Default: desc.",
+          "type": "string",
+          "enum": [
+            "asc",
+            "desc"
+          ]
+        }
+      }
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "export_transcript",
+    "description": "Export a completed Scriptivox transcript as SRT subtitles, WebVTT subtitles, or plain text. Supports segmentation knobs (max_words, max_chars, max_duration, sentence_aware, include_speakers, strip_chars). Requires the transcription to be in `completed` status. Requires a configured API key.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "transcription_id": {
+          "type": "string",
+          "description": "Completed transcription ID (UUID)."
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "srt",
+            "vtt",
+            "text"
+          ],
+          "description": "Output format."
+        },
+        "max_words": {
+          "description": "Max words per caption segment (default 4).",
+          "type": "number"
+        },
+        "max_chars": {
+          "description": "Max characters per caption segment (default 80).",
+          "type": "number"
+        },
+        "max_duration": {
+          "description": "Max seconds per caption segment (default 10).",
+          "type": "number"
+        },
+        "sentence_aware": {
+          "description": "Break at sentence boundaries (default true).",
+          "type": "boolean"
+        },
+        "include_speakers": {
+          "description": "Whether to prefix caption lines with speaker tags. 'auto' (default), 'true' (always), 'false' (never).",
+          "type": "string",
+          "enum": [
+            "auto",
+            "true",
+            "false"
+          ]
+        },
+        "strip_chars": {
+          "description": "Characters to strip from the transcript before formatting.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "transcription_id",
+        "format"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  }
+]
