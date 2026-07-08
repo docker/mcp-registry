@@ -1,0 +1,155 @@
+[
+  {
+    "name": "gather_or_delete_clusters",
+    "description": "List, get details about, or delete Palette clusters. Supports filtering by active status, pagination, and compact output.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "description": "Action to perform: 'list', 'get', or 'delete'",
+          "enum": ["list", "get", "delete"]
+        },
+        "uid": {
+          "type": "string",
+          "description": "Cluster UID (required for 'get' and 'delete' actions)"
+        },
+        "active_only": {
+          "type": "boolean",
+          "description": "Filter to only running/active clusters (for 'list' action)"
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Max number of results to return"
+        },
+        "continue_token": {
+          "type": "string",
+          "description": "Pagination continuation token"
+        },
+        "compact": {
+          "type": "boolean",
+          "description": "Return compact (reduced) output"
+        },
+        "force_delete": {
+          "type": "boolean",
+          "description": "Force delete cluster (requires ALLOW_DANGEROUS_ACTIONS=1)"
+        },
+        "project_id": {
+          "type": "string",
+          "description": "Override default project UID for this call"
+        },
+        "api_key": {
+          "type": "string",
+          "description": "Override default API key for this call"
+        }
+      },
+      "required": ["action"]
+    }
+  },
+  {
+    "name": "gather_or_delete_clusterprofiles",
+    "description": "List, get details about, or delete Palette cluster profiles.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "description": "Action to perform: 'list', 'get', or 'delete'",
+          "enum": ["list", "get", "delete"]
+        },
+        "uid": {
+          "type": "string",
+          "description": "Cluster profile UID (required for 'get' and 'delete' actions)"
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Max number of results to return"
+        },
+        "continue_token": {
+          "type": "string",
+          "description": "Pagination continuation token"
+        },
+        "compact": {
+          "type": "boolean",
+          "description": "Return compact (reduced) output"
+        },
+        "project_id": {
+          "type": "string",
+          "description": "Override default project UID for this call"
+        },
+        "api_key": {
+          "type": "string",
+          "description": "Override default API key for this call"
+        }
+      },
+      "required": ["action"]
+    }
+  },
+  {
+    "name": "getKubeconfig",
+    "description": "Download the kubeconfig (or admin kubeconfig) for a Palette cluster.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "cluster_uid": {
+          "type": "string",
+          "description": "UID of the cluster to retrieve kubeconfig for"
+        },
+        "admin_config": {
+          "type": "boolean",
+          "description": "Retrieve admin kubeconfig instead of user kubeconfig"
+        },
+        "project_id": {
+          "type": "string",
+          "description": "Override default project UID for this call"
+        },
+        "api_key": {
+          "type": "string",
+          "description": "Override default API key for this call"
+        }
+      },
+      "required": ["cluster_uid"]
+    }
+  },
+  {
+    "name": "search_and_manage_resource_tags",
+    "description": "Search and manage tags on Palette resources (clusters, cluster profiles, edge hosts, policies, and cluster templates). Supports list, get, create, and delete actions.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "description": "Action to perform: 'list', 'get', 'create', or 'delete'",
+          "enum": ["list", "get", "create", "delete"]
+        },
+        "resource_type": {
+          "type": "string",
+          "description": "Resource type to manage tags on",
+          "enum": ["spectroclusters", "clusterprofiles", "clusterTemplates", "edgehosts", "policy"]
+        },
+        "uid": {
+          "type": "string",
+          "description": "Resource UID (required for get/create/delete)"
+        },
+        "policy_type": {
+          "type": "string",
+          "description": "Policy type (required when resource_type is 'policy')"
+        },
+        "tags": {
+          "type": "array",
+          "description": "Tags to apply (for 'create' action), as key:value strings",
+          "items": { "type": "string" }
+        },
+        "project_id": {
+          "type": "string",
+          "description": "Override default project UID for this call"
+        },
+        "api_key": {
+          "type": "string",
+          "description": "Override default API key for this call"
+        }
+      },
+      "required": ["action", "resource_type"]
+    }
+  }
+]
