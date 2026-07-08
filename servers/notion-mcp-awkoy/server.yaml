@@ -1,0 +1,42 @@
+name: notion-mcp-awkoy
+image: mcp/notion-mcp-awkoy
+type: server
+meta:
+  category: productivity
+  tags:
+    - notion
+    - productivity
+about:
+  title: Notion Community (Token Auth)
+  description: |
+    Community Notion MCP server that authenticates with a token, so it runs
+    headless — CI, cron jobs, and background agents — where OAuth-only servers
+    can't. 43 operations (pages, databases, blocks, comments, users, files,
+    templates) behind 2 context-efficient tools, with batched mutations and
+    atomic rollback, idempotency keys, automatic retry on rate limits, and
+    full markdown round-trip.
+  icon: https://raw.githubusercontent.com/awkoy/notion-mcp-server/main/assets/logo.png
+source:
+  project: https://github.com/awkoy/notion-mcp-server
+  commit: c855bd586283a6c244a6f48786fbe963ddfea8e2
+config:
+  description: |
+    Set NOTION_TOKEN to a Notion Personal Access Token (ntn_...) created at
+    https://app.notion.com/developers/tokens, or an Internal Integration
+    Secret. Optionally set a default parent page ID used by create_page /
+    create_database when no parent is passed.
+  secrets:
+    - name: notion-mcp-awkoy.notion_token
+      env: NOTION_TOKEN
+      example: ntn_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      description: Notion Personal Access Token or Internal Integration Secret.
+  env:
+    - name: NOTION_PAGE_ID
+      example: 8a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d
+      value: "{{notion-mcp-awkoy.notion_page_id}}"
+  parameters:
+    type: object
+    properties:
+      notion_page_id:
+        type: string
+        description: Default parent page ID used when none is passed at call time.
