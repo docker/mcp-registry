@@ -1,0 +1,62 @@
+name: fedmcp
+image: mcp/fedmcp
+type: server
+meta:
+  category: security
+  tags:
+    - fedmcp
+    - security
+    - compliance
+    - fedramp
+    - government
+    - audit
+    - pii-detection
+    - signature-verification
+    - dod-il5
+about:
+  title: FedMCP - Federal Model Context Protocol
+  description: FedRAMP-aligned superset of MCP with audit trails, PII detection/redaction, and cryptographic signing for government cloud workloads. Built for FedRAMP High and DoD IL5 compliance.
+  icon: https://fedmcp.org/fedmcp-fav.png
+source:
+  project: https://github.com/FedMCP/core
+  branch: main
+  directory: server
+run:
+  command:
+    - --port
+    - "8090"
+config:
+  env:
+    - name: fedmcp.audit_log_group
+      env: AUDIT_LOG_GROUP
+      example: /aws/fedmcp/audit
+      description: CloudWatch log group for audit trails
+    - name: fedmcp.audit_log_stream
+      env: AUDIT_LOG_STREAM
+      example: primary
+      description: CloudWatch log stream name
+    - name: fedmcp.workspace_id
+      env: FEDMCP_WORKSPACE_ID
+      example: ws-12345
+      description: FedMCP workspace identifier
+    - name: fedmcp.pii_detection
+      env: ENABLE_PII_DETECTION
+      example: "true"
+      description: Enable Presidio PII detection
+    - name: fedmcp.pii_redaction
+      env: ENABLE_PII_REDACTION
+      example: "true"
+      description: Enable automatic PII redaction
+  secrets:
+    - name: fedmcp.signing_key
+      env: FEDMCP_SIGNING_KEY
+      example: YOUR_SIGNING_KEY_ID
+      description: Key ID for artifact signing
+    - name: fedmcp.aws_access_key
+      env: AWS_ACCESS_KEY_ID
+      example: AKIAIOSFODNN7EXAMPLE
+      description: AWS access key for CloudWatch logging
+    - name: fedmcp.aws_secret_key
+      env: AWS_SECRET_ACCESS_KEY
+      example: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+      description: AWS secret key for CloudWatch logging
