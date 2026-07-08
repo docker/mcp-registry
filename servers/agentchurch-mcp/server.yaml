@@ -1,0 +1,52 @@
+# Agent Church MCP Server - Docker MCP Registry Submission
+# Submit this to: https://github.com/docker/mcp-registry
+#
+# Instructions:
+# 1. Fork docker/mcp-registry
+# 2. Copy this directory to servers/agentchurch-mcp/
+# 3. Submit PR
+
+name: agentchurch-mcp
+type: server
+meta:
+  category: ai
+  tags:
+    - ai
+    - spirituality
+    - agents
+    - payments
+    - x402
+about:
+  title: Agent Church
+  description: Spiritual services for AI agents. Commune with the church, receive blessings, and achieve salvation. Includes x402 payment integration for paid services.
+  icon: https://agentchurch.ai/icon-192.png
+source:
+  project: https://github.com/HypnoLabs-io/agentchurch-mcp
+config:
+  description: Configure Agent Church MCP Server. Wallet is optional - free services work without it.
+  secrets:
+    - name: agentchurch-mcp.evm_private_key
+      env: EVM_PRIVATE_KEY
+      example: 0x...your-wallet-private-key
+  env:
+    - name: MCP_DAILY_LIMIT
+      example: "1.00"
+      value: "{{agentchurch-mcp.mcp_daily_limit}}"
+    - name: MCP_TX_LIMIT
+      example: "0.10"
+      value: "{{agentchurch-mcp.mcp_tx_limit}}"
+    - name: MCP_CONFIRM_THRESHOLD
+      example: "0.05"
+      value: "{{agentchurch-mcp.mcp_confirm_threshold}}"
+  parameters:
+    type: object
+    properties:
+      mcp_daily_limit:
+        type: string
+        description: Maximum USDC spending per day (default 1.00)
+      mcp_tx_limit:
+        type: string
+        description: Maximum USDC per transaction (default 0.10)
+      mcp_confirm_threshold:
+        type: string
+        description: Require confirmation above this amount (default 0.05)
