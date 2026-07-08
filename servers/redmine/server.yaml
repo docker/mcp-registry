@@ -1,0 +1,40 @@
+name: redmine
+image: mcp/redmine
+type: server
+meta:
+  category: productivity
+  tags:
+    - productivity
+    - project-management
+    - issue-tracking
+    - redmine
+about:
+  title: Redmine
+  description: Issue-focused Redmine integration over MCP. List, search, and inspect issues with normalized context. Add notes, update statuses, and reassign issues with validation. Scoped to allowed projects only.
+  icon: https://www.google.com/s2/favicons?domain=redmine.org&sz=64
+source:
+  project: https://github.com/Shaqal7/claude-redmine-mcp
+  branch: main
+  commit: 4ec2ddd6955fbb37373730279831573383a075a3
+config:
+  description: Configure the connection to your Redmine instance
+  secrets:
+    - name: redmine.api_key
+      env: REDMINE_API_KEY
+      example: your-redmine-api-key
+  env:
+    - name: REDMINE_BASE_URL
+      example: https://redmine.example.com
+      value: "{{redmine.url}}"
+    - name: REDMINE_ALLOWED_PROJECTS
+      example: project1,project2
+      value: "{{redmine.projects}}"
+  parameters:
+    type: object
+    properties:
+      url:
+        type: string
+        description: Full base URL of your Redmine instance, including subpath if any
+      projects:
+        type: string
+        description: Comma-separated project identifiers (slugs) or numeric IDs
