@@ -1,0 +1,407 @@
+[
+  {
+    "name": "write_data_to_excel",
+    "description": "Write data to Excel worksheet with change logging",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Name of worksheet"},
+      {"name": "data", "type": "array", "desc": "2D array of data to write"},
+      {"name": "start_cell", "type": "string", "desc": "Starting cell (e.g., A1)"},
+      {"name": "action", "type": "string", "desc": "Description of the action"},
+      {"name": "expected_after", "type": "string", "desc": "Expected values after write"},
+      {"name": "reason", "type": "string", "desc": "Reason for the change"}
+    ]
+  },
+  {
+    "name": "read_data_from_excel",
+    "description": "Read data from Excel worksheet with cell metadata",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Name of worksheet"},
+      {"name": "start_cell", "type": "string", "desc": "Starting cell"},
+      {"name": "end_cell", "type": "string", "desc": "Ending cell (optional)"}
+    ]
+  },
+  {
+    "name": "apply_formula",
+    "description": "Apply Excel formula to cell with change logging",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Target worksheet"},
+      {"name": "cell", "type": "string", "desc": "Target cell reference"},
+      {"name": "formula", "type": "string", "desc": "Excel formula to apply"}
+    ]
+  },
+  {
+    "name": "format_range",
+    "description": "Apply formatting to a range of cells (bold, colors, borders, etc.)",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Target worksheet"},
+      {"name": "start_cell", "type": "string", "desc": "Starting cell of range"},
+      {"name": "end_cell", "type": "string", "desc": "Ending cell (optional)"},
+      {"name": "bold", "type": "boolean", "desc": "Make text bold"},
+      {"name": "font_color", "type": "string", "desc": "Font color hex code"},
+      {"name": "bg_color", "type": "string", "desc": "Background color hex code"}
+    ]
+  },
+  {
+    "name": "format_range_matrix",
+    "description": "Apply formatting using a 2D style matrix",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Worksheet name"},
+      {"name": "start_cell", "type": "string", "desc": "Top-left cell"},
+      {"name": "styles", "type": "array", "desc": "2D array of style objects"}
+    ]
+  },
+  {
+    "name": "merge_cells",
+    "description": "Merge a range of cells",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Target worksheet"},
+      {"name": "start_cell", "type": "string", "desc": "Starting cell"},
+      {"name": "end_cell", "type": "string", "desc": "Ending cell"}
+    ]
+  },
+  {
+    "name": "unmerge_cells",
+    "description": "Unmerge a range of cells",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Target worksheet"},
+      {"name": "start_cell", "type": "string", "desc": "Starting cell"},
+      {"name": "end_cell", "type": "string", "desc": "Ending cell"}
+    ]
+  },
+  {
+    "name": "copy_range",
+    "description": "Copy a range of cells to another location",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Source worksheet"},
+      {"name": "source_start", "type": "string", "desc": "Source range start"},
+      {"name": "source_end", "type": "string", "desc": "Source range end"},
+      {"name": "target_start", "type": "string", "desc": "Target cell"}
+    ]
+  },
+  {
+    "name": "delete_range",
+    "description": "Delete a range of cells and shift remaining cells",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Target worksheet"},
+      {"name": "start_cell", "type": "string", "desc": "Starting cell"},
+      {"name": "end_cell", "type": "string", "desc": "Ending cell"},
+      {"name": "shift_direction", "type": "string", "desc": "up or left"}
+    ]
+  },
+  {
+    "name": "create_table",
+    "description": "Create a native Excel table from a range",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Sheet name"},
+      {"name": "data_range", "type": "string", "desc": "Range for table (e.g., A1:D10)"},
+      {"name": "table_name", "type": "string", "desc": "Optional table name"},
+      {"name": "table_style", "type": "string", "desc": "Visual style"}
+    ]
+  },
+  {
+    "name": "insert_rows",
+    "description": "Insert rows at specified position",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Target worksheet"},
+      {"name": "start_row", "type": "integer", "desc": "Row number (1-based)"},
+      {"name": "count", "type": "integer", "desc": "Number of rows"}
+    ]
+  },
+  {
+    "name": "insert_columns",
+    "description": "Insert columns at specified position",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Target worksheet"},
+      {"name": "start_col", "type": "integer", "desc": "Column number (1=A)"},
+      {"name": "count", "type": "integer", "desc": "Number of columns"}
+    ]
+  },
+  {
+    "name": "delete_sheet_rows",
+    "description": "Delete rows from worksheet",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Target worksheet"},
+      {"name": "start_row", "type": "integer", "desc": "Row number (1-based)"},
+      {"name": "count", "type": "integer", "desc": "Number of rows"}
+    ]
+  },
+  {
+    "name": "delete_sheet_columns",
+    "description": "Delete columns from worksheet",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Target worksheet"},
+      {"name": "start_col", "type": "integer", "desc": "Column number (1=A)"},
+      {"name": "count", "type": "integer", "desc": "Number of columns"}
+    ]
+  },
+  {
+    "name": "validate_formula_syntax",
+    "description": "Validate Excel formula syntax without applying it",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Target worksheet"},
+      {"name": "cell", "type": "string", "desc": "Target cell"},
+      {"name": "formula", "type": "string", "desc": "Formula to validate"}
+    ]
+  },
+  {
+    "name": "read_data_with_styles",
+    "description": "Read data with full style information per cell",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Worksheet name"},
+      {"name": "start_cell", "type": "string", "desc": "Starting cell"},
+      {"name": "end_cell", "type": "string", "desc": "Ending cell"}
+    ]
+  },
+  {
+    "name": "get_workbook_metadata",
+    "description": "Get metadata about workbook including sheets and ranges",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "include_ranges", "type": "boolean", "desc": "Include range info"}
+    ]
+  },
+  {
+    "name": "get_merged_cells",
+    "description": "Get merged cells in a worksheet",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Target worksheet"}
+    ]
+  },
+  {
+    "name": "validate_excel_range",
+    "description": "Validate if a range exists and is properly formatted",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Target worksheet"},
+      {"name": "start_cell", "type": "string", "desc": "Starting cell"},
+      {"name": "end_cell", "type": "string", "desc": "Ending cell"}
+    ]
+  },
+  {
+    "name": "get_data_validation_info",
+    "description": "Get all data validation rules in a worksheet",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Target worksheet"}
+    ]
+  },
+  {
+    "name": "create_workbook",
+    "description": "Create new Excel workbook",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path for new workbook"}
+    ]
+  },
+  {
+    "name": "create_worksheet",
+    "description": "Create new worksheet in workbook",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Name for new sheet"}
+    ]
+  },
+  {
+    "name": "create_chart",
+    "description": "Create chart in worksheet",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Target worksheet"},
+      {"name": "data_range", "type": "string", "desc": "Data range for chart"},
+      {"name": "chart_type", "type": "string", "desc": "Type: line, bar, pie, etc."},
+      {"name": "target_cell", "type": "string", "desc": "Cell to place chart"},
+      {"name": "title", "type": "string", "desc": "Chart title"}
+    ]
+  },
+  {
+    "name": "create_pivot_table",
+    "description": "Create pivot table in worksheet",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Target worksheet"},
+      {"name": "data_range", "type": "string", "desc": "Source data range"},
+      {"name": "rows", "type": "array", "desc": "Fields for row labels"},
+      {"name": "values", "type": "array", "desc": "Fields for values"},
+      {"name": "agg_func", "type": "string", "desc": "Aggregation function"}
+    ]
+  },
+  {
+    "name": "copy_worksheet",
+    "description": "Copy worksheet within workbook",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "source_sheet", "type": "string", "desc": "Sheet to copy"},
+      {"name": "target_sheet", "type": "string", "desc": "New sheet name"}
+    ]
+  },
+  {
+    "name": "delete_worksheet",
+    "description": "Delete worksheet from workbook",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "sheet_name", "type": "string", "desc": "Sheet to delete"}
+    ]
+  },
+  {
+    "name": "rename_worksheet",
+    "description": "Rename worksheet in workbook",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to Excel file"},
+      {"name": "old_name", "type": "string", "desc": "Current sheet name"},
+      {"name": "new_name", "type": "string", "desc": "New sheet name"}
+    ]
+  },
+  {
+    "name": "browser_navigate",
+    "description": "Navigate to a URL using the browser",
+    "arguments": [
+      {"name": "url", "type": "string", "desc": "URL to navigate to"},
+      {"name": "wait_until", "type": "string", "desc": "load, domcontentloaded, or networkidle"},
+      {"name": "timeout", "type": "integer", "desc": "Timeout in milliseconds"}
+    ]
+  },
+  {
+    "name": "browser_screenshot",
+    "description": "Take a screenshot of the current page or element",
+    "arguments": [
+      {"name": "filepath", "type": "string", "desc": "Path to save screenshot"},
+      {"name": "full_page", "type": "boolean", "desc": "Capture full scrollable page"},
+      {"name": "selector", "type": "string", "desc": "CSS selector for element"}
+    ]
+  },
+  {
+    "name": "browser_click",
+    "description": "Click an element on the page",
+    "arguments": [
+      {"name": "selector", "type": "string", "desc": "CSS selector for element"},
+      {"name": "button", "type": "string", "desc": "left, right, or middle"},
+      {"name": "click_count", "type": "integer", "desc": "Number of clicks"}
+    ]
+  },
+  {
+    "name": "browser_fill_input",
+    "description": "Fill an input field with text",
+    "arguments": [
+      {"name": "selector", "type": "string", "desc": "CSS selector for input"},
+      {"name": "value", "type": "string", "desc": "Text to fill"}
+    ]
+  },
+  {
+    "name": "browser_get_text",
+    "description": "Get text content of an element",
+    "arguments": [
+      {"name": "selector", "type": "string", "desc": "CSS selector for element"}
+    ]
+  },
+  {
+    "name": "browser_wait_for_element",
+    "description": "Wait for an element to be in a specific state",
+    "arguments": [
+      {"name": "selector", "type": "string", "desc": "CSS selector for element"},
+      {"name": "state", "type": "string", "desc": "attached, detached, visible, hidden"}
+    ]
+  },
+  {
+    "name": "browser_execute_js",
+    "description": "Execute JavaScript code in the browser page context",
+    "arguments": [
+      {"name": "script", "type": "string", "desc": "JavaScript code to execute"}
+    ]
+  },
+  {
+    "name": "browser_get_page_content",
+    "description": "Get the full HTML content of the current page",
+    "arguments": []
+  },
+  {
+    "name": "browser_select_option",
+    "description": "Select an option in a dropdown/select element",
+    "arguments": [
+      {"name": "selector", "type": "string", "desc": "CSS selector for select"},
+      {"name": "value", "type": "string", "desc": "Option value to select"},
+      {"name": "label", "type": "string", "desc": "Option label to select"},
+      {"name": "index", "type": "integer", "desc": "Option index (0-based)"}
+    ]
+  },
+  {
+    "name": "browser_check_checkbox",
+    "description": "Check or uncheck a checkbox",
+    "arguments": [
+      {"name": "selector", "type": "string", "desc": "CSS selector for checkbox"},
+      {"name": "checked", "type": "boolean", "desc": "True to check, False to uncheck"}
+    ]
+  },
+  {
+    "name": "browser_hover",
+    "description": "Hover over an element",
+    "arguments": [
+      {"name": "selector", "type": "string", "desc": "CSS selector for element"}
+    ]
+  },
+  {
+    "name": "browser_press_key",
+    "description": "Press a keyboard key",
+    "arguments": [
+      {"name": "key", "type": "string", "desc": "Key to press (e.g., Enter, Escape)"},
+      {"name": "selector", "type": "string", "desc": "Optional element to focus first"}
+    ]
+  },
+  {
+    "name": "browser_get_attribute",
+    "description": "Get an attribute value from an element",
+    "arguments": [
+      {"name": "selector", "type": "string", "desc": "CSS selector for element"},
+      {"name": "attribute", "type": "string", "desc": "Attribute name (href, class, etc.)"}
+    ]
+  },
+  {
+    "name": "browser_scroll",
+    "description": "Scroll the page in a specified direction",
+    "arguments": [
+      {"name": "direction", "type": "string", "desc": "up, down, left, or right"},
+      {"name": "amount", "type": "integer", "desc": "Scroll amount in pixels"}
+    ]
+  },
+  {
+    "name": "browser_get_cookies",
+    "description": "Get all cookies from the current browser context",
+    "arguments": []
+  },
+  {
+    "name": "browser_set_cookie",
+    "description": "Set a cookie in the browser context",
+    "arguments": [
+      {"name": "name", "type": "string", "desc": "Cookie name"},
+      {"name": "value", "type": "string", "desc": "Cookie value"},
+      {"name": "domain", "type": "string", "desc": "Cookie domain"},
+      {"name": "path", "type": "string", "desc": "Cookie path"},
+      {"name": "expires", "type": "number", "desc": "Expiration timestamp"}
+    ]
+  },
+  {
+    "name": "browser_clear_cookies",
+    "description": "Clear all cookies from the browser context",
+    "arguments": []
+  },
+  {
+    "name": "browser_cleanup",
+    "description": "Clean up browser resources (close browser, context, page)",
+    "arguments": []
+  }
+]
