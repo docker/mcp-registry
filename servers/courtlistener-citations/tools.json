@@ -1,0 +1,109 @@
+[
+  {
+    "name": "courtlistener_validate_citations",
+    "description": "Extract and validate all legal citations from document text against the CourtListener database. Returns status per citation: 200 (found), 300 (ambiguous), 404 (not found — potential hallucination), plus name-mismatch detection for citations that resolve to a different case than claimed.",
+    "arguments": [
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "Full document text containing legal citations to validate"
+      }
+    ]
+  },
+  {
+    "name": "courtlistener_extract_citations",
+    "description": "Extract ALL legal citation types from document text using eyecite (runs locally, no API key required). Returns case citations, statutory citations, law journal citations, id. and supra back-references. Use before validate_citations to get a complete citation inventory.",
+    "arguments": [
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "Document text to extract citations from"
+      }
+    ]
+  },
+  {
+    "name": "courtlistener_search_cases",
+    "description": "Search for cases by name, court, date, or full-text query. Use as fallback when validate_citations returns 404 for a citation.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Full-text search query (optional)"
+      },
+      {
+        "name": "case_name",
+        "type": "string",
+        "desc": "Case name to search for, e.g. 'Alice Corp v CLS Bank' (optional)"
+      },
+      {
+        "name": "court",
+        "type": "string",
+        "desc": "Court identifier, e.g. 'scotus', 'ca1', 'cafc', 'dcd' (optional)"
+      },
+      {
+        "name": "citation",
+        "type": "string",
+        "desc": "Citation string to filter by (optional)"
+      }
+    ]
+  },
+  {
+    "name": "courtlistener_lookup_citation",
+    "description": "Look up a case directly by its reporter citation string (e.g. '573 U.S. 208'). Use as last resort after validate_citations and search_cases both fail.",
+    "arguments": [
+      {
+        "name": "citation",
+        "type": "string",
+        "desc": "Legal citation string, e.g. '573 U.S. 208' or '134 S. Ct. 2347'"
+      }
+    ]
+  },
+  {
+    "name": "courtlistener_get_cluster",
+    "description": "Get detailed information about a specific opinion cluster (a court decision) by its CourtListener cluster ID. Returns case name, court, date filed, parallel citations, citation count, judges, and a direct URL.",
+    "arguments": [
+      {
+        "name": "cluster_id",
+        "type": "integer",
+        "desc": "CourtListener cluster ID from opinion URLs, e.g. /opinion/2679558/"
+      },
+      {
+        "name": "include_opinions",
+        "type": "boolean",
+        "desc": "Include full opinion text excerpts (default: false)"
+      }
+    ]
+  },
+  {
+    "name": "courtlistener_search_clusters",
+    "description": "Search opinion clusters with filters for case name, court, docket number, judge, or citation. A cluster groups all opinions (majority, dissent, concurrence) from a single court decision.",
+    "arguments": [
+      {
+        "name": "case_name",
+        "type": "string",
+        "desc": "Case name to search (optional)"
+      },
+      {
+        "name": "court",
+        "type": "string",
+        "desc": "Court identifier, e.g. 'scotus', 'cafc' (optional)"
+      },
+      {
+        "name": "citation",
+        "type": "string",
+        "desc": "Citation to search (optional)"
+      }
+    ]
+  },
+  {
+    "name": "courtlistener_citations_get_guidance",
+    "description": "Get contextual guidance for using the CourtListener citation validation tools. Available sections: overview, workflow, response_format, hallucination_patterns, edge_cases, risk_assessment, limitations.",
+    "arguments": [
+      {
+        "name": "section",
+        "type": "string",
+        "desc": "Guidance section name (default: overview)"
+      }
+    ]
+  }
+]
