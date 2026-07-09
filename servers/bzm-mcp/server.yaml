@@ -1,0 +1,40 @@
+name: bzm-mcp
+image: mcp/bzm-mcp
+type: server
+meta:
+  category: devops
+  tags:
+    - devops
+    - performance-testing
+    - blazemeter
+about:
+  title: BlazeMeter
+  description: Connects AI tools (MCP clients like Cursor, Claude, etc.) to BlazeMeter's cloud performance testing platform so agents can create, configure, run, and inspect load tests end‑to‑end using natural language.
+  icon: https://raw.githubusercontent.com/Blazemeter/bzm-mcp/main/docs/logo-blazemeter-icon-reg.svg
+source:
+  project: https://github.com/Blazemeter/bzm-mcp
+  branch: main
+  commit: ee2ccb6e90a17b98b16dd32c37e73696578ebd70
+run:
+  volumes:
+    - "{{bzm-mcp.working_directory}}:/home/bzm-mcp/working_directory"
+config:
+  description: Configure the connection to BlazeMeter. See [BlazeMeter API keys](https://help.blazemeter.com/docs/guide/api-blazemeter-api-keys.html) to create or copy your key ID and secret.
+  secrets:
+    - name: bzm-mcp.api_key_id
+      env: API_KEY_ID
+      example: <API_KEY_ID>
+    - name: bzm-mcp.api_key_secret
+      env: API_KEY_SECRET
+      example: <API_KEY_SECRET>
+  env:
+    - name: SOURCE_WORKING_DIRECTORY
+      value: "{{bzm-mcp.working_directory}}"
+  parameters:
+    type: object
+    properties:
+      working_directory:
+        type: string
+        description: Host path to your test files (JMX, data files, etc.); mounted into the container for uploads and runs.
+    required:
+      - working_directory
