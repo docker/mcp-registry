@@ -1,0 +1,50 @@
+name: skillsmith
+image: mcp/skillsmith
+type: server
+meta:
+  category: productivity
+  tags:
+    - agent-skills
+    - claude
+    - skills
+    - discovery
+about:
+  title: Skillsmith
+  description: Discover, install, compare, and manage Claude Agent Skills — search a skill registry, get contextual recommendations, and validate skill structure.
+  icon: https://www.skillsmith.app/logo-icon.svg
+source:
+  project: https://github.com/smith-horn/skillsmith
+  branch: main
+  # BLOCKED — do not fill in / submit until this is resolved (SMI-5614):
+  # main HEAD's packages/mcp-server source references @skillsmith/core exports
+  # (e.g. DEFAULT_RISK_THRESHOLD) that are NOT in the currently-published
+  # @skillsmith/core@0.10.0 npm package (verified 2026-07-09 — still 0.10.0,
+  # tarball confirmed missing the export). The release commit that IS
+  # version-aligned (40ad893c, core 0.10.0 / mcp-server 0.7.0) predates
+  # packages/mcp-server/Dockerfile (added in #1769 at 847558d6), so it can't
+  # be used either — no Dockerfile exists there.
+  # Pin this only once @skillsmith/core publishes a version containing every
+  # export mcp-server's current HEAD depends on, to a commit at/after both
+  # that publish AND 847558d6. See docs/internal/implementation/
+  # docker-mcp-registry-publish.md (skillsmith repo) for full context.
+  commit: PENDING-CORE-REPUBLISH
+  directory: packages/mcp-server
+run:
+  volumes:
+    - '{{skillsmith.skills_path}}:/home/nodejs/.claude/skills'
+    - '{{skillsmith.config_path}}:/home/nodejs/.skillsmith'
+config:
+  description: Optional API key for higher quotas (works with no key — 10 free calls covering search/get_skill; some tools like skill_audit require a paid Team+ tier regardless of key). Mount your local Claude skills directory (skills_path) so install/uninstall persist to your real skills folder — without it, installs appear to succeed but write only to the container's throwaway filesystem and are lost on restart.
+  secrets:
+    - name: skillsmith.api_key
+      env: SKILLSMITH_API_KEY
+      example: sk_live_your_key
+  parameters:
+    type: object
+    properties:
+      skills_path:
+        type: string
+        default: ~/.claude/skills
+      config_path:
+        type: string
+        default: ~/.skillsmith
