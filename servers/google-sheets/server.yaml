@@ -1,0 +1,39 @@
+name: google-sheets
+image: mcp/google-sheets
+type: server
+meta:
+  category: productivity
+  tags:
+    - google-sheets
+    - google-workspace
+    - spreadsheets
+    - data
+    - oauth2
+about:
+  title: Google Sheets
+  description: >-
+    A fully-featured MCP server for Google Sheets with 28 tools covering
+    reading, writing, batch operations, sheet management, row/column
+    manipulation, data cleaning, formatting, and conditional formatting
+    via OAuth 2.0 or Service Account.
+  icon: https://www.gstatic.com/images/branding/product/1x/sheets_2020q4_48dp.png
+source:
+  project: https://github.com/adalpan/google-sheets-mcp
+  branch: main
+  dockerfile: Dockerfile
+config:
+  secrets:
+    - name: google.service_account_json
+      env: GOOGLE_SERVICE_ACCOUNT_JSON
+      description: >-
+        Paste the full contents of your service_account.json file here.
+        To get this file: Google Cloud Console → IAM & Admin → Service Accounts
+        → Create Service Account → Keys tab → Add Key → JSON.
+        Then share your Google Sheet with the service account email (client_email field).
+      example: '{"type": "service_account", "project_id": "my-project", "private_key_id": "...", "private_key": "...", "client_email": "sheets-mcp@my-project.iam.gserviceaccount.com", "client_id": "..."}'
+  volumes:
+    - name: google-sheets-data
+      path: /data
+      description: >-
+        Optional: mount a local folder containing credentials.json (OAuth 2.0)
+        or service_account.json (Service Account) if not using the config field above.
