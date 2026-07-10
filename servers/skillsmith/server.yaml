@@ -1,0 +1,50 @@
+name: skillsmith
+image: mcp/skillsmith
+type: server
+meta:
+  category: productivity
+  tags:
+    - agent-skills
+    - claude
+    - skills
+    - discovery
+about:
+  title: Skillsmith
+  description: Discover, install, compare, and manage agent skills across Claude, Codex, Cursor, Copilot, and OpenCode — search a skill registry, get contextual recommendations, and validate skill structure.
+  icon: https://www.skillsmith.app/logo-icon.svg
+source:
+  # Re-pointed at the SMI-5629 submodule-free mirror repo (2026-07-10):
+  # smith-horn/skillsmith's own BuildKit git-context build recurses into its
+  # root .gitmodules (3 private submodules) and fails before this build
+  # context is even assembled. The mirror is a public, submodule-free copy
+  # of packages/mcp-server, kept in sync by a CI job after every npm publish
+  # of @skillsmith/mcp-server — see docs/internal/implementation/mcp-server-mirror-repo.md
+  # in the source monorepo. No `directory:` key: this mirror's repo root IS
+  # the package (matches this registry's convention for root-level packages
+  # — no other server.yaml uses an explicit `directory: .`).
+  project: https://github.com/smith-horn/skillsmith-mcp-server
+  branch: main
+  # First verified-correct sync commit (2026-07-10): the mirror's LICENSE
+  # was briefly wrong on its very first sync (gitleaks install step bug,
+  # fixed same-day) and manually corrected here — this is that correction
+  # commit, verified via a fresh clone + successful `docker build .`.
+  commit: 7cbc3fa98f8d1567c312996fa637ed353ef71ba4
+run:
+  volumes:
+    - "{{skillsmith.skills_path}}:/home/nodejs/.claude/skills"
+    - "{{skillsmith.config_path}}:/home/nodejs/.skillsmith"
+config:
+  description: No credentials required to try it — works with no key at all (10 free requests, trial mode), or sign in with GitHub at https://skillsmith.app/account for a free Community-tier API key (30 requests/minute, no credit card). The optional API key below is only for higher-tier quotas; some tools like skill_audit require a paid Team+ tier regardless of key. Mount your local skills directory (skills_path) so install/uninstall persist to your real skills folder — without it, installs appear to succeed but write only to the container's throwaway filesystem and are lost on restart.
+  secrets:
+    - name: skillsmith.api_key
+      env: SKILLSMITH_API_KEY
+      example: sk_live_your_key
+  parameters:
+    type: object
+    properties:
+      skills_path:
+        type: string
+        default: ~/.claude/skills
+      config_path:
+        type: string
+        default: ~/.skillsmith
