@@ -104,7 +104,7 @@
   {
     "name": "list_pages",
     "title": "List pages",
-    "description": "List the pages in a space as a tree (content omitted — use get_page to read a page). With a space-scoped token, omit \"space\" to use the token's space.",
+    "description": "List the pages in a space as a tree (content omitted — use get_page to read a page). Pages with a discussion carry comment_count / unresolved_comment_count / last_comment_at — comments do NOT bump a page's updated_at, so check last_comment_at to spot new replies. With a space-scoped token, omit \"space\" to use the token's space.",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
@@ -122,7 +122,7 @@
   {
     "name": "get_page",
     "title": "Get page",
-    "description": "Read a page including its full Markdown content and current version number. Set include_comments to also return the page's comment thread, and/or include_children to return the page's child pages (titles + slugs, no content) — useful for 'folder' pages whose own content is empty but which organise sub-pages.",
+    "description": "Read a page including its full Markdown content and current version number. The page carries comment_count / unresolved_comment_count / last_comment_at — if comment_count > 0 there is a discussion; set include_comments to read it. include_children returns the page's child pages (titles + slugs, no content) — useful for 'folder' pages whose own content is empty but which organise sub-pages.",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
@@ -427,7 +427,7 @@
   {
     "name": "add_comment",
     "title": "Add comment",
-    "description": "Post a comment on a page. Set parent_comment_id to reply within an existing thread. Mentioning a user with @name notifies them; the returned 'mentions' array lists who was matched.",
+    "description": "Post a comment on a page. Set parent_comment_id to reply within an existing thread. The returned 'mentions' array echoes @name tokens parsed from the body — it is informational only; posting a comment does NOT currently notify the mentioned user.",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
@@ -440,7 +440,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 10000,
-          "description": "Comment body (Markdown; supports @mentions)"
+          "description": "Comment body (Markdown)"
         },
         "parent_comment_id": {
           "description": "UUID of the comment being replied to, to thread under it (omit for a top-level comment)",
