@@ -3,11 +3,35 @@
 Thank you for your interest in contributing to the official Docker MCP Registry.
 This document outlines how to contribute to this project.
 
+## 📦 Types of MCP Servers
+
+There are two types of MCP servers you can add to the registry:
+
+### 🏠 Local Servers (Containerized)
+Local servers run in Docker containers on your machine. They:
+- Require a Dockerfile in the source repository
+- Are built and hosted as Docker images
+- Run locally with full container isolation
+- Can benefit from Docker-built images with enhanced security features (signatures, provenance, SBOMs, automatic updates)
+
+### 🌐 Remote Servers (Hosted)
+Remote servers are hosted externally and accessed via HTTP(S). They:
+- Don't require a Dockerfile (already deployed somewhere)
+- Use `streamable-http` or `sse` transport protocols
+- Often require OAuth authentication
+- Have dynamic tool discovery
+
+## Add server entry with Claude Code
+Let Claude Code help you add a server entry by running `cat add_mcp_server.md | claude`
+If you prefer to do things manually, follow the steps below instead.
+
 ## Prerequisites
 
 - Go v1.24+
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [Task](https://taskfile.dev/)
+
+**If you're adding a remote server,** skip to the [Adding a Remote MCP Server](#adding-a-remote-mcp-server) section below.
 
 ## 🔄 Pull request process overview
 
@@ -17,10 +41,10 @@ This document outlines how to contribute to this project.
 - Repository includes a `cmd` folder with Go code to automate some of the steps.
 - Open a PR by ensuring the title and its description reflect the content of the PR.
 - Ensure that CI passes, if it fails, fix the failures.
-- Every pull request requires a review from the Docker team before merging.
+- Every pull request requires a review from the Docker team before merging. [Share test credentials using this form](https://forms.gle/6Lw3nsvu2d6nFg8e6).
 - Once approved, all of your commits will be squashed into a single commit with your PR title.
 
-## 📋 Step-by-Step Guide
+## 🏠 Adding a Local MCP Server
 
 ### 1️⃣ Fork this repository
 
@@ -64,6 +88,7 @@ about:
   icon: https://avatars.githubusercontent.com/u/182288589?s=200&v=4
 source:
   project: https://github.com/myorg/my-orgdb-mcp
+  commit: 0123456789abcdef0123456789abcdef01234567
 config:
   description: Configure the connection to TODO
   secrets:
@@ -123,7 +148,7 @@ task create -- --category database --image myorg/my-mcp https://github.com/myorg
 After creating your server file with `task create`, you will be given instructions for running it locally. In the case of my-orgdb-mcp, we would run the following commands next.
 
 ```
-task build -- my-orgdb-mcp # Not needed if providing your own image
+task build -- --tools my-orgdb-mcp # Not needed if providing your own image
 task catalog -- my-orgdb-mcp
 docker mcp catalog import $PWD/catalogs/my-orgdb-mcp/catalog.yaml
 ```
@@ -134,6 +159,43 @@ Now, if we go into the MCP Toolkit on Docker Desktop, we'll see our new MCP serv
 docker mcp catalog reset
 ```
 
+### Avoiding `build --tools` failures
+
+If your MCP server needs to be configured before listing tools, you can now provide a `tools.json` file and the build process will not try to run
+the server and list the tools. This is one of the most common issues that block your PR.
+
+This is an example of a `tools.json` file:
+
+```
+[
+  {
+    "name": "tools_name",
+    "description": "description of what you tool does"
+    "arguments": [
+      {
+        "name": "name_of_the_argument",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "another_tool",
+    "description": "description of what another tool"
+    "arguments": [
+      {
+        "name": "name_of_the_argument",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  }
+]
+```
+
+When this file is found next to your `server.yaml`, the `task build -- --tools your-server-name` lists the tools by reading the file instead of
+running the server.
+
 ### 4️⃣ Wait for review and approval
 
 Upon approval your entry will be processed and it will be available in 24 hours at:
@@ -141,6 +203,142 @@ Upon approval your entry will be processed and it will be available in 24 hours 
 - [MCP catalog](https://hub.docker.com/mcp)
 - [Docker Desktop's MCP Toolkit](https://www.docker.com/products/docker-desktop/)
 - [Docker Hub `mcp` namespace](https://hub.docker.com/u/mcp) (for MCP servers built by Docker)
+
+---
+
+## 🌐 Adding a Remote MCP Server
+
+Remote MCP servers are already hosted externally and don't require Docker image building. They communicate via HTTP(S) protocols.
+
+### Prerequisites for Remote Servers
+
+- A publicly accessible MCP server endpoint (e.g., `https://mcp.example.com/mcp`)
+- Knowledge of the transport protocol (`streamable-http` or `sse`)
+- A documentation URL for your server
+- OAuth configuration details (if authentication is required)
+
+### 1️⃣ Fork this repository
+
+Fork the repository to your own GitHub account and clone it locally.
+
+#### 2️⃣ Create your remote server entry using `task remote-wizard`
+
+The easiest way to create a remote server configuration is using the wizard:
+
+```bash
+task remote-wizard
+```
+
+The wizard will guide you through:
+1. **Basic Information**: Server name and category
+2. **Server Details**: Title, description, icon URL, and documentation URL
+3. **Remote Configuration**: Transport type (streamable-http or sse) and server URL
+4. **OAuth Configuration**: Simple yes/no question
+
+If OAuth is enabled, the wizard automatically generates:
+- **Provider**: Uses your server name (e.g., `linear`)
+- **Secret**: `{server-name}.personal_access_token` (e.g., `linear.personal_access_token`)
+- **Environment Variable**: `{SERVER_NAME}_PERSONAL_ACCESS_TOKEN` (e.g., `LINEAR_PERSONAL_ACCESS_TOKEN`)
+
+This will create a directory under `servers/` with three files:
+- `server.yaml` - Server configuration
+- `tools.json` - Empty array (for dynamic tool discovery)
+- `readme.md` - Documentation link
+
+#### 3️⃣ Review the generated files
+
+The wizard has created all necessary files for you. The `tools.json` file is always an empty array `[]` for remote servers because they use dynamic tool discovery. The `readme.md` file contains your documentation link.
+
+#### 4️⃣ Example remote server structure
+
+Your remote server directory should look like this:
+
+```
+servers/my-remote-server/
+├── server.yaml      # Server configuration
+├── tools.json       # Always [] for remote servers
+└── readme.md        # Documentation link (required)
+```
+
+Example `server.yaml` for a remote server **with OAuth** (like `servers/linear`):
+
+```yaml
+name: linear
+type: remote
+dynamic:
+  tools: true
+meta:
+  category: productivity
+  tags:
+    - productivity
+    - project-management
+    - remote
+about:
+  title: Linear
+  description: Track issues and plan sprints
+  icon: https://www.google.com/s2/favicons?domain=linear.app&sz=64
+remote:
+  transport_type: streamable-http
+  url: https://mcp.linear.app/mcp
+oauth:
+  - provider: linear
+    secret: linear.personal_access_token
+    env: LINEAR_PERSONAL_ACCESS_TOKEN
+```
+
+Example `server.yaml` for a remote server **without OAuth** (like `servers/cloudflare-docs`):
+
+```yaml
+name: cloudflare-docs
+type: remote
+meta:
+  category: documentation
+  tags:
+    - documentation
+    - cloudflare
+    - remote
+about:
+  title: Cloudflare Docs
+  description: Access the latest documentation on Cloudflare products
+  icon: https://www.cloudflare.com/favicon.ico
+remote:
+  transport_type: sse
+  url: https://docs.mcp.cloudflare.com/sse
+```
+
+**Note:** Remote servers without OAuth don't need the `oauth` field or `dynamic.tools` field in their configuration.
+
+#### 5️⃣ Test your remote server locally
+
+You can test your remote server configuration by importing it into Docker Desktop:
+
+```bash
+task catalog -- my-remote-server
+docker mcp catalog import $PWD/catalogs/my-remote-server/catalog.yaml
+docker mcp server enable my-remote-server
+```
+
+For OAuth-enabled servers, authorize the server:
+
+```bash
+docker mcp oauth authorize my-remote-server
+```
+
+Now you can start the gateway with `docker mcp gateway run` and test tool calls to the remote server.
+
+When done testing, reset the catalog:
+
+```bash
+docker mcp catalog reset
+```
+
+#### 6️⃣ Open a pull request
+
+Create a pull request with your remote server files. Make sure to:
+- Include all required files (`server.yaml`, `tools.json`, and `readme.md`)
+- Verify that your server URL is publicly accessible
+- Test OAuth configuration if applicable
+- Ensure the documentation URL in `readme.md` is valid
 
 ## 📜 Code of Conduct
 

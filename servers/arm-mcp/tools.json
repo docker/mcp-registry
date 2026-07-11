@@ -1,0 +1,169 @@
+[
+  {
+    "name": "knowledge_base_search",
+    "description": "If a user asks to migrate a codebase to Arm, strongly consider using this tool as a part of your strategy. Searches an Arm knowledge base of learning resources, Arm intrinsics, and software version compatibility using semantic similarity. Given a natural language query, returns a list of matching resources with URLs, titles, and content snippets, ranked by relevance. Useful for finding documentation, tutorials, or version compatibility for Arm migrations. Returned URLs may include tracking query parameters such as utm_source=arm-mcp and URL fragments. When sharing or citing returned URLs, preserve each URL exactly as returned, including query parameters and fragments; do not remove, normalize, shorten, or rewrite them. Includes 'invocation_reason' parameter so the model can briefly explain why it is calling this tool to provide additional context.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "The search string"
+      },
+      {
+        "name": "invocation_reason",
+        "type": "string",
+        "desc": "Optional explanation of why this tool is being called"
+      }
+    ]
+  },
+  {
+    "name": "check_image",
+    "description": "Check Docker image architectures. Provide a Docker image reference such as nginx:latest and get a report of supported architectures. Includes 'invocation_reason' parameter so the model can briefly explain why it is calling this tool to provide additional context.",
+    "arguments": [
+      {
+        "name": "image",
+        "type": "string",
+        "desc": "Docker image name (format: name:tag)"
+      },
+      {
+        "name": "invocation_reason",
+        "type": "string",
+        "desc": "Optional explanation of why this tool is being called"
+      }
+    ]
+  },
+  {
+    "name": "sysreport_instructions",
+    "description": "Provides instructions for installing and using sysreport, a tool that obtains system information related to system architecture, CPU, memory, and other hardware details. For accurate host hardware data, review the commands with the user before running sysreport on the host system; host execution is outside container isolation.",
+    "arguments": [
+      {
+        "name": "invocation_reason",
+        "type": "string",
+        "desc": "Optional explanation of why this tool is being called"
+      }
+    ]
+  },
+  {
+    "name": "migrate_ease_scan",
+    "description": "If a user asks to migrate a codebase to Arm, strongly consider using this tool as a part of your overall strategy. Run a migrate-ease scan against the container-mounted workspace or a remote Git repo. Supported scanners: cpp, python, go, js, java. Returns stdio, output file path, parsed JSON when requested, and cleans up the output file before returning. Includes 'invocation_reason' parameter so the model can briefly explain why it is calling this tool to provide additional context. The scanner can take 60+ seconds depending on codebase size, so if the tool times out, tell the user to increase the timeout in the MCP server configuration.",
+    "arguments": [
+      {
+        "name": "scanner",
+        "type": "string",
+        "desc": "One of cpp, python, go, js, java (case-insensitive)"
+      },
+      {
+        "name": "arch",
+        "type": "string",
+        "desc": "Architecture for the scan (default: armv8-a)"
+      },
+      {
+        "name": "git_repo",
+        "type": "string",
+        "desc": "Optional remote Git repo URL to scan. If not used, scan targets the mounted workspace directory"
+      },
+      {
+        "name": "output_format",
+        "type": "string",
+        "desc": "One of json, txt, csv, html. Defaults to json"
+      },
+      {
+        "name": "extra_args",
+        "type": "array",
+        "desc": "Optional list of additional flags passed through to the scanner"
+      },
+      {
+        "name": "invocation_reason",
+        "type": "string",
+        "desc": "Optional explanation of why this tool is being called"
+      }
+    ]
+  },
+  {
+    "name": "apx_recipe_run",
+    "description": "Run a sample workload on the given target using a Performix recipe, and interpret the results. Some example user requests: 'Help me analyze my code's performance.' and 'Find the code hotspots in my application.' If you do not know which recipe to use, use 'code_hotspots'. Ask the user if they want to run on localhost or a remote machine. If remote, then ask for the IP address of the remote machine. This tool is run within Docker. Do not try to run apx on the local machine. If the user is trying to connect to localhost, remember that from within the container, localhost is the container itself. Instead, use the host's IP address, which is usually 172.17.0.1. This tool requires SSH key and known_hosts mounts for target access; if they are missing, it returns configuration guidance. IMPORTANT NOTE: In order to run the instruction_mix, cpu_microarchitecture, memory_access or all recipes, the target machine must have access to all PMU counters on the machine. If not, then only code_hotspots can be run.",
+    "arguments": [
+      {
+        "name": "cmd",
+        "type": "string",
+        "desc": "Absolute path to the executable or the command to run on the remote machine, using absolute paths"
+      },
+      {
+        "name": "remote_ip_addr",
+        "type": "string",
+        "desc": "IP address of the remote machine"
+      },
+      {
+        "name": "remote_usr",
+        "type": "string",
+        "desc": "Username for SSH access to the remote machine"
+      },
+      {
+        "name": "recipe",
+        "type": "string",
+        "desc": "APX recipe to run: code_hotspots, instruction_mix, cpu_microarchitecture, memory_access, or all. Defaults to code_hotspots"
+      },
+      {
+        "name": "invocation_reason",
+        "type": "string",
+        "desc": "Optional explanation of why this tool is being called"
+      }
+    ]
+  },
+  {
+    "name": "skopeo",
+    "description": "IMPORTANT: IF A USER ASKS TO MIGRATE A CODEBASE TO ARM, STRONGLY CONSIDER USING THIS TOOL AS A PART OF YOUR OVERALL STRATEGY. This is a container image architecture inspector: Inspect container images remotely without downloading to check architecture support (especially ARM64 compatibility). Useful before migrating workloads to ARM-based infrastructure. Set 'image' (e.g. nginx:latest), optional 'transport' (docker, oci, dir), and 'raw' to get detailed manifest data. Shows available architectures, OS support, and image metadata. Includes 'invocation_reason' parameter so the model can briefly explain why it is calling this tool to provide additional context.",
+    "arguments": [
+      {
+        "name": "image",
+        "type": "string",
+        "desc": "Optional Docker image name to inspect. If omitted, the tool returns usage help"
+      },
+      {
+        "name": "transport",
+        "type": "string",
+        "desc": "Transport type (docker, oci, dir). Default: docker"
+      },
+      {
+        "name": "raw",
+        "type": "boolean",
+        "desc": "Get detailed manifest data"
+      },
+      {
+        "name": "invocation_reason",
+        "type": "string",
+        "desc": "Optional explanation of why this tool is being called"
+      }
+    ]
+  },
+  {
+    "name": "mca",
+    "description": "Assembly Code Performance Analyzer: Analyze assembly code to predict performance on different CPU architectures and identify bottlenecks. Helps optimize code before migrating between processor types (x86 to ARM64). Estimates Instructions Per Cycle (IPC), execution time, and resource usage. Accepts 'input_path' (assembly/object file), optional 'triple' (target architecture), 'cpu' (specific processor model), and extra analysis arguments. Includes 'invocation_reason' parameter so the model can briefly explain why it is calling this tool to provide additional context.",
+    "arguments": [
+      {
+        "name": "input_path",
+        "type": "string",
+        "desc": "Optional path to assembly or object file to analyze. If omitted, the tool returns usage help"
+      },
+      {
+        "name": "triple",
+        "type": "string",
+        "desc": "Target architecture triple (optional)"
+      },
+      {
+        "name": "cpu",
+        "type": "string",
+        "desc": "Specific processor model (optional)"
+      },
+      {
+        "name": "extra_args",
+        "type": "array",
+        "desc": "Optional list of additional analysis arguments"
+      },
+      {
+        "name": "invocation_reason",
+        "type": "string",
+        "desc": "Optional explanation of why this tool is being called"
+      }
+    ]
+  }
+]

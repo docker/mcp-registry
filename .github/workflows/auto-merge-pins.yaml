@@ -1,0 +1,128 @@
+name: Auto-merge Pin Upgrade PRs
+
+# This workflow automatically merges pin upgrade PRs when all required checks
+# pass. It triggers whenever any check run completes, ensuring the workflow
+# re-evaluates as each check finishes.
+
+on:
+  check_run:
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to test auto-merge on'
+        required: true
+        type: number
+
+# Prevent multiple concurrent auto-merge attempts for the same PR
+concurrency:
+  group: auto-merge-${{ github.event.check_run.pull_requests[0].number || inputs.pr_number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+jobs:
+  auto-merge:
+    name: Auto-merge pin upgrades
+    runs-on: ubuntu-latest
+    # Only run if check_run succeeded and has associated PRs, or if manually triggered
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.check_run.conclusion == 'success' && github.event.check_run.pull_requests[0] != null)
+
+    steps:
+      - name: Create GitHub auth token for mcp-registry-bot from GitHub App
+        id: docker-mcp-registry-bot-auth
+        uses: actions/create-github-app-token@af35edadc00be37caa72ed9f3e6d5f7801bfdf09 # v1.11.7
+        with:
+          app-id: ${{ vars.MCP_REGISTRY_BOT_APP_ID }}
+          private-key: ${{ secrets.MCP_REGISTRY_BOT_PRIVATE_KEY }}
+          owner: docker
+          repositories: |
+            mcp-registry
+
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Get PR number and details
+        id: pr
+        env:
+          GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          INPUT_PR_NUMBER: ${{ inputs.pr_number }}
+          CHECK_RUN_PR_NUMBER: ${{ github.event.check_run.pull_requests[0].number }}
+          CHECK_RUN_NAME: ${{ github.event.check_run.name }}
+          CHECK_RUN_CONCLUSION: ${{ github.event.check_run.conclusion }}
+        run: .github/pin-upgrade-auto-merge-helper-scripts/get-pr-details.sh
+
+      - name: Validate PR is from bot and ready for merge
+        id: validate
+        if: steps.pr.outputs.skip != 'true'
+        env:
+          PR_AUTHOR: ${{ steps.pr.outputs.author }}
+          PR_STATE: ${{ steps.pr.outputs.state }}
+          PR_IS_DRAFT: ${{ steps.pr.outputs.is_draft }}
+          PR_LABELS: ${{ steps.pr.outputs.labels }}
+        run: |
+          .github/pin-upgrade-auto-merge-helper-scripts/validate-pr.sh \
+            "$PR_AUTHOR" \
+            "$PR_STATE" \
+            "$PR_IS_DRAFT" \
+            "$PR_LABELS"
+
+      - name: Extract server name from changed files
+        id: extract
+        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+        run: .github/pin-upgrade-auto-merge-helper-scripts/extract-server.sh "$PR_NUMBER"
+
+      - name: Wait for all checks to pass
+        id: checks
+        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          REPO: ${{ github.repository }}
+        run: |
+          .github/pin-upgrade-auto-merge-helper-scripts/wait-for-checks.sh \
+            "$PR_NUMBER" \
+            "$REPO"
+
+      - name: Comment on PR before merging
+        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.checks.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          SERVER: ${{ steps.extract.outputs.server }}
+        run: |
+          .github/pin-upgrade-auto-merge-helper-scripts/comment-pr.sh \
+            success \
+            "$PR_NUMBER" \
+            "$SERVER"
+
+      - name: Merge PR
+        if: steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true' && steps.extract.outputs.skip != 'true' && steps.checks.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+        run: .github/pin-upgrade-auto-merge-helper-scripts/merge-pr.sh "$PR_NUMBER"
+
+      - name: Handle merge failure
+        if: failure() && steps.pr.outputs.skip != 'true' && steps.validate.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.docker-mcp-registry-bot-auth.outputs.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -n "$PR_NUMBER" ]; then
+            .github/pin-upgrade-auto-merge-helper-scripts/comment-pr.sh \
+              failure \
+              "$PR_NUMBER" \
+              "" \
+              "$WORKFLOW_URL"
+          fi

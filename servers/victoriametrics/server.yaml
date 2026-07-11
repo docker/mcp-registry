@@ -1,0 +1,104 @@
+name: victoriametrics
+image: ghcr.io/victoriametrics-community/mcp-victoriametrics
+type: server
+meta:
+  category: "monitoring"
+  tags:
+    - monitoring
+    - observability
+    - metrics
+    - victoriametrics
+    - devops
+    - sre
+    - metricsql
+    - promql
+about:
+  title: "VictoriaMetrics"
+  description: "Provides access to your VictoriaMetrics instance and seamless integration with VictoriaMetrics APIs and documentation. It can give you a comprehensive interface for monitoring, observability, and debugging tasks related to your VictoriaMetrics instances, enable advanced automation and interaction capabilities for engineers and tools."
+  icon: "https://github.com/user-attachments/assets/1c060750-370a-4440-b619-78b78c7abd7a"
+source:
+  project: "https://github.com/VictoriaMetrics-Community/mcp-victoriametrics"
+  commit: "4db876ab9d9c09bb24035bc709988cb691ad8626"
+config:
+  description: "Configure the connection to VictoriaMetrics MCP Server"
+  secrets:
+    - name: "victoriametrics.vm_instance_bearer_token"
+      env: "VM_INSTANCE_BEARER_TOKEN"
+      example: "<instance_bearer_token_for_authentication>"
+      required: false
+  env:
+    - name: "VM_INSTANCE_ENTRYPOINT"
+      example: "https://play.victoriametrics.com"
+      value: "{{victoriametrics.vm_instance_entrypoint}}"
+    - name: "VM_INSTANCE_TYPE"
+      example: "cluster"
+      value: "{{victoriametrics.vm_instance_type}}"
+    - name: "VM_INSTANCE_HEADERS"
+      example: "HEADER2=HEADER_VALUE,HEADER2=HEADER_VALUE_2"
+      value: "{{victoriametrics.vm_instance_headers}}"
+    - name: "MCP_SERVER_MODE"
+      example: "stdio"
+      value: "{{victoriametrics.mcp_server_mode}}"
+    - name: "MCP_LISTEN_ADDR"
+      example: ":8080"
+      value: "{{victoriametrics.mcp_listen_addr}}"
+    - name: "MCP_DISABLED_TOOLS"
+      example: "export,metric_statistics,test_rules"
+      value: "{{victoriametrics.mcp_disabled_tools}}"
+    - name: "MCP_DISABLE_RESOURCES"
+      example: "false"
+      value: "{{victoriametrics.mcp_disable_resources}}"
+    - name: "MCP_HEARTBEAT_INTERVAL"
+      example: "30s"
+      value: "{{victoriametrics.mcp_heartbeat_interval}}"
+  parameters:
+    type: object
+    required:
+      - vm_instance_entrypoint
+      - vm_instance_type
+    properties:
+      vm_instance_entrypoint:
+        type: string
+        description: "URL of VictoriaMetrics instance (it should be root URL of vmsingle or vmselect)"
+        example: "https://play.victoriametrics.com"
+      vm_instance_type:
+        type: string
+        description: "Type of VictoriaMetrics instance (possible values: single, cluster)"
+        example: "cluster"
+        enum:
+          - "single"
+          - "cluster"
+      vm_instance_headers:
+        type: string
+        description: "Optional custom headers to include in requests to VictoriaMetrics instance, formatted as 'header1=value1,header2=value2'"
+        example: "HEADER2=HEADER_VALUE,HEADER2=HEADER_VALUE_2"
+      mcp_server_mode:
+        type: string
+        description: "Mode in which the MCP server operates (possible values: stdio, http, sse)"
+        example: "stdio"
+        enum:
+          - "stdio"
+          - "http"
+          - "sse"
+        default: "stdio"
+      mcp_listen_addr:
+        type: string
+        description: "Address and port on which the MCP server listens for incoming connections (e.g., ':8080')"
+        example: ":8080"
+        default: ":8080"
+      mcp_disabled_tools:
+        type: string
+        description: "Comma-separated list of tools to disable (possible values: export, metric_statistics, test_rules)"
+        example: "export,metric_statistics,test_rules"
+      mcp_disable_resources:
+        type: string
+        description: "Set to 'true' to disable all resource endpoints"
+        example: "false"
+        enum:
+          - "true"
+          - "false"
+      mcp_heartbeat_interval:
+        type: string
+        description: "Defines the heartbeat interval for the streamable-http protocol. It means the MCP server will send a heartbeat to the client through the GET connection, to keep the connection alive from being closed by the network infrastructure (e.g. gateways)"
+        example: "30s"
+        default: "30s"

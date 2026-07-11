@@ -29,10 +29,16 @@ import (
 func (s *Server) GetContext() string {
 	base := s.Source.Project + ".git"
 
-	if s.GetBranch() != "main" {
-		base += "#" + s.Source.Branch
+	revision := s.Source.Commit
+	if revision != "" {
+		base += "#" + revision
 	} else {
-		base += "#"
+		branch := s.GetBranch()
+		if branch != "main" {
+			base += "#" + branch
+		} else {
+			base += "#"
+		}
 	}
 
 	if s.Source.Directory != "" && s.Source.Directory != "." {
@@ -43,7 +49,12 @@ func (s *Server) GetContext() string {
 }
 
 func (s *Server) GetSourceURL() string {
-	source := s.Source.Project + "/tree/" + s.GetBranch()
+	revision := s.Source.Commit
+	if revision == "" {
+		revision = s.GetBranch()
+	}
+
+	source := s.Source.Project + "/tree/" + revision
 	if s.Source.Directory != "" {
 		source += "/" + s.Source.Directory
 	}
@@ -65,7 +76,12 @@ func (s *Server) GetBranch() string {
 }
 
 func (s *Server) GetDockerfileUrl() string {
-	base := s.Source.Project + "/blob/" + s.GetBranch()
+	revision := s.Source.Commit
+	if revision == "" {
+		revision = s.GetBranch()
+	}
+
+	base := s.Source.Project + "/blob/" + revision
 	if s.Source.Directory != "" {
 		base += "/" + s.Source.Directory
 	}
