@@ -1,0 +1,41 @@
+name: fluxmail
+image: mcp/fluxmail
+type: server
+meta:
+  category: communication
+  tags:
+    - email
+    - gmail
+    - outlook
+    - imap
+    - smtp
+    - communication
+about:
+  title: Fluxmail
+  description: Connect AI agents to Gmail, Outlook, and IMAP/SMTP mailboxes. Read, search, draft, send, and organize email through one set of tools.
+  icon: https://avatars.githubusercontent.com/u/4218237?v=4
+source:
+  project: https://github.com/churichard/fluxmail-mcp
+  commit: f75560da464400fd848f57c6dac4acc51859052b
+run:
+  command:
+    - stdio
+  volumes:
+    - fluxmail-data:/data
+config:
+  description: Configure Google OAuth credentials for Gmail. Add Outlook and IMAP/SMTP accounts with the Fluxmail CLI.
+  secrets:
+    - name: fluxmail.google_client_secret
+      env: GOOGLE_CLIENT_SECRET
+      example: <GOOGLE_CLIENT_SECRET>
+      required: false
+  env:
+    - name: GOOGLE_CLIENT_ID
+      example: 123456789.apps.googleusercontent.com
+      value: "{{fluxmail.google_client_id}}"
+  parameters:
+    type: object
+    properties:
+      google_client_id:
+        type: string
+        description: Google OAuth client ID for Gmail accounts
