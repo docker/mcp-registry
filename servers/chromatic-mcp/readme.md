@@ -1,1 +1,1 @@
-Docs: https://github.com/Chromatic0618/alipay-mcp-server
+Docs: https://github.com/XYG-LUNA/alipay-mcp-server
