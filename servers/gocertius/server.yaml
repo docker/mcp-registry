@@ -1,0 +1,72 @@
+name: gocertius
+description: MCP server for GoCertius: certified evidence, dossiers, notifications and chats via AI agents.
+image: gdigital/gocertius:1.4.0
+icon: https://unpkg.com/@g-digital/mcp-gocertius@1.4.0/assets/logo-400x400.png
+about:
+  homepage: https://github.com/g-digital-by-Garrigues/MCP_Market_Distribution
+  publisher: g-digital by Garrigues
+  license: MIT
+source:
+  repository: https://github.com/g-digital-by-Garrigues/MCP_Market_Distribution
+  directory: pending-to-publish/gocertius
+config:
+  description: |
+    Consumer credentials are required to run this MCP. See README for setup.
+  env:
+    - name: MCP_ALLOW_INSECURE_FILE_URL
+      example: 
+      description: Set to "true" to allow plain http:// fileUrl downloads in evidence_create (default https-only). Private/internal addresses are rejected regardless (resolution-time check; see the documented DNS TOCTOU limitation in the hosted-deployment runbook).
+    - name: MCP_ALLOW_UNVERIFIED_BEARER
+      example: 
+      description: Escape hatch for MCP_HTTP_PUBLIC=true WITHOUT inbound-token introspection: set to "true" ONLY when an upstream gateway already verifies Bearer tokens. The server logs a prominent warning and forwards tokens upstream unverified.
+    - name: MCP_ALLOWED_HOSTS
+      example: 
+      description: Comma-separated allowed Host headers. Empty = Host validation disabled (default). When set, requests with a Host outside the list are rejected.
+    - name: MCP_ALLOWED_ORIGINS
+      example: 
+      description: Comma-separated allowed browser Origins (DNS-rebinding defense). Empty = reject any request carrying an Origin header; non-browser clients (CLI/SDK) send no Origin and are always allowed. Use '*' to allow all.
+    - name: MCP_API_BASE_URL
+      example: 
+      description: Overrides the default upstream API host for every tool
+    - name: MCP_AUTH_EMAIL
+      example: 
+      description: Your GoCertius account email (Flow 1). Configure exactly one of Flow 1, 2, or 3.
+    - name: MCP_AUTH_PASSWORD
+      example: 
+      description: Your GoCertius account password (Flow 1, email/password accounts) (See https://www.gocertius.io for credential acquisition.)
+    - name: MCP_HTTP_HOST
+      example: 127.0.0.1
+      description: Interface the HTTP transport binds to. Default 127.0.0.1 (localhost only). Set 0.0.0.0 to expose on all interfaces (containers do this automatically).
+    - name: MCP_HTTP_MAX_BODY_BYTES
+      example: 
+      description: Maximum accepted POST /mcp request-body size in bytes (default 16777216 = 16 MiB — sized so base64 file uploads within the documented tool limits fit). Oversized requests get a 413 JSON-RPC error before/while reading — closes a memory-exhaustion DoS vector in public deployments. Note: base64 file sources are capped by this limit BEFORE MCP_FILE_MAX_BYTES applies.
+    - name: MCP_HTTP_PUBLIC
+      example: 
+      description: Set to "true" for public/multi-tenant deployments. Activates Host validation and refuses to start unless (1) MCP_ALLOWED_ORIGINS or MCP_ALLOWED_HOSTS is set AND (2) inbound Bearer introspection is configured (MCP_SVC_INTROSPECT_URL + MCP_SVC_CLIENT_ID/SECRET) or MCP_ALLOW_UNVERIFIED_BEARER=true is set explicitly (fail-closed).
+    - name: MCP_OPENID_CLIENT_ID
+      example: 
+      description: OpenID Connect client ID (Flow 2)
+    - name: MCP_OPENID_ISSUER
+      example: 
+      description: OpenID Connect issuer URL (Flow 2)
+    - name: MCP_OPENID_REFRESH_TOKEN
+      example: 
+      description: OpenID Connect refresh token (Flow 2) (See https://www.gocertius.io for credential acquisition.)
+    - name: MCP_SVC_CLIENT_ID
+      example: 
+      description: OAuth2 client_credentials client ID (Flow 3)
+    - name: MCP_SVC_CLIENT_SECRET
+      example: 
+      description: OAuth2 client_credentials client secret (Flow 3) (See https://www.gocertius.io for credential acquisition.)
+    - name: MCP_SVC_INTROSPECT_URL
+      example: 
+      description: RFC 7662 token introspection URL for inbound Bearer verification in HTTP mode. Opt-in — reuses the Flow 3 client id/secret above as the resource-server credentials.
+    - name: MCP_SVC_SCOPE
+      example: 
+      description: Optional OAuth2 scope for the service-account token request (Flow 3)
+    - name: MCP_SVC_TOKEN_URL
+      example: 
+      description: Token endpoint URL for the OAuth2 client_credentials flow (Flow 3)
+    - name: PORT
+      example: 8080
+      description: HTTP port when running in hosted (HTTP) mode; ignored in stdio mode
