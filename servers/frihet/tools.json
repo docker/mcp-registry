@@ -1,31 +1,31 @@
 [
   {
     "name": "anomaly_list",
-    "description": "List HR / operational / financial anomalies detected by the system. Filter by type (duplicate_clock_in, overtime_spike, missing_clock_out, expense_outlier, etc.), severity (low/medium/high/critical), or period. Useful for daily HR review and compl..."
+    "description": "List HR / operational / financial anomalies detected by the system. Filter by type (duplicate_clock_in, overtime_spike, missing_clock_out, expense_outlier, etc.), severity (low/medium/high/critical), or period. Useful for daily HR review and compliance audits. / Lista anomalias detectadas (RRHH/operativas/financieras) con filtros opcionales."
   },
   {
     "name": "apply_deposit",
-    "description": "Apply a deposit to an invoice or mark it as used. Transitions the deposit status to 'applied'. Example: id='dep_abc123', invoiceId='inv_xyz'"
+    "description": "Apply a deposit to an invoice or mark it as used. Transitions the deposit status to 'applied'. Example: id='dep_abc123', invoiceId='inv_xyz' / Aplica un deposito a una factura o lo marca como utilizado."
   },
   {
     "name": "apply_late_fee",
-    "description": "Apply late payment interest to an overdue invoice. Calculates interest based on EU Late Payment Directive (8% default) or auto-calculates from days overdue. Creates a debit note linked to the original invoice."
+    "description": "Apply late payment interest to an overdue invoice. Calculates interest based on EU Late Payment Directive (8% default) or auto-calculates from days overdue. Creates a debit note linked to the original invoice. / Aplica intereses de demora a una factura vencida. Calcula intereses segun la Directiva Europea de Morosidad (8% por defecto) o los calcula automaticamente a partir de los dias de retraso. Crea una nota de debito vinculada a la factura original."
   },
   {
     "name": "attendance_clock_in",
-    "description": "Record an employee clock-in. Optionally captures mood (employee well-being tracking) and location (remote/office/site). Returns an attendance entry with status='open'. Pair with attendance_clock_out to close the entry."
+    "description": "Record an employee clock-in. Optionally captures mood (employee well-being tracking) and location (remote/office/site). Returns an attendance entry with status='open'. Pair with attendance_clock_out to close the entry. / Registra una entrada de fichaje. Captura opcionalmente estado de animo y ubicacion."
   },
   {
     "name": "attendance_clock_out",
-    "description": "Close an open attendance entry. Stamps clockOutAt and computes durationMinutes. Idempotent: clocking out an already-closed entry is a no-op."
+    "description": "Close an open attendance entry. Stamps clockOutAt and computes durationMinutes. Idempotent: clocking out an already-closed entry is a no-op. / Cierra una entrada de fichaje abierta. Calcula la duracion en minutos."
   },
   {
     "name": "categorize_transaction",
-    "description": "Apply a category to a bank transaction for manual classification. Categories map to expense categories for tax deduction tracking. Example: id='tx_abc', category='supplies', notes='Office paper Q1' / Asigna una categoria a un movimiento bancario. ..."
+    "description": "Apply a category to a bank transaction for manual classification. Categories map to expense categories for tax deduction tracking. Example: id='tx_abc', category='supplies', notes='Office paper Q1' / Asigna una categoria a un movimiento bancario. Las categorias se mapean a categorias de gastos para el control de deducciones fiscales."
   },
   {
     "name": "create_client",
-    "description": "Create a new client/customer. Requires at minimum a name. Clients are used when creating invoices and quotes. Example: name='Acme Corp', email='billing@acme.com', taxId='B12345678', address={street:'Main St 1', city:'Madrid', country:'ES'}"
+    "description": "Create a new client/customer. Requires at minimum a name. Clients are used when creating invoices and quotes. Example: name='Acme Corp', email='billing@acme.com', taxId='B12345678', address={street:'Main St 1', city:'Madrid', country:'ES'} / Crea un nuevo cliente. Requiere como minimo un nombre. Los clientes se usan al crear facturas y presupuestos."
   },
   {
     "name": "create_client_contact",
@@ -37,319 +37,327 @@
   },
   {
     "name": "create_credit_note",
-    "description": "Create a credit note (factura rectificativa) for an existing invoice. This reverses all or part of an invoice for compliance. Spanish market: generates VeriFactu-compliant R1-R5 rectificativa. Other markets: standard credit note with negative amou..."
+    "description": "Create a credit note (factura rectificativa) for an existing invoice. This reverses all or part of an invoice for compliance. Spanish market: generates VeriFactu-compliant R1-R5 rectificativa. Other markets: standard credit note with negative amounts. / Crea una factura rectificativa para una factura existente. Mercado espanol: genera rectificativa R1-R5 conforme a VeriFactu. Otros mercados: nota de credito estandar con importes negativos."
   },
   {
     "name": "create_deposit",
-    "description": "Record a new deposit from a client. Requires clientId and amount. Useful for tracking advance payments, retainers, and security deposits. Example: clientId='abc123', amount=500, currency='EUR', description='Project retainer'"
+    "description": "Record a new deposit from a client. Requires clientId and amount. Useful for tracking advance payments, retainers, and security deposits. Example: clientId='abc123', amount=500, currency='EUR', description='Project retainer' / Registra un nuevo deposito de un cliente. Requiere clientId e importe. Util para adelantos, retenciones y depositos de garantia."
   },
   {
     "name": "create_expense",
-    "description": "Record a new expense. Requires a description and amount. Useful for tracking business costs, deductible expenses, and vendor payments. Example: description='Office supplies', amount=49.99, category='office', vendor='Amazon', taxDeductible=true"
+    "description": "Record a new expense. Requires a description and amount. Useful for tracking business costs, deductible expenses, and vendor payments. Example: description='Office supplies', amount=49.99, category='office', vendor='Amazon', taxDeductible=true / Registra un nuevo gasto. Requiere descripcion e importe. Util para seguimiento de costes, gastos deducibles y pagos a proveedores."
   },
   {
     "name": "create_invoice",
-    "description": "Create a new invoice. Requires client name and at least one line item. The invoice number is auto-generated. Defaults to draft status and today's date. Example: clientName='Acme Corp', items=[{description:'Consulting', quantity:10, unitPrice:150}]..."
+    "description": "Create a new invoice. Requires client name and at least one line item. The invoice number is auto-generated. Defaults to draft status and today's date. Example: clientName='Acme Corp', items=[{description:'Consulting', quantity:10, unitPrice:150}], taxRate=21, irpfRate=15 / Crea una nueva factura. Requiere nombre del cliente y al menos un concepto. El numero se genera automaticamente. Por defecto estado borrador y fecha de hoy. Soporta retencion IRPF (autonomos ES), recargo de equivalencia, serie, anticipo y descuento global."
   },
   {
     "name": "create_product",
-    "description": "Create a new product or service in the catalog. Requires a name and unit price. Products can be referenced when creating invoices and quotes for faster data entry. Example: name='Web Design', unitPrice=1500, taxRate=21, description='Full website r..."
+    "description": "Create a new product or service in the catalog. Requires a name and unit price. Products can be referenced when creating invoices and quotes for faster data entry. Example: name='Web Design', unitPrice=1500, taxRate=21, description='Full website redesign' / Crea un nuevo producto o servicio en el catalogo. Requiere nombre y precio unitario. Los productos se pueden usar al crear facturas y presupuestos para entrada rapida de datos."
   },
   {
     "name": "create_quote",
-    "description": "Create a new quote/estimate for a client. Requires client name and at least one line item. Quotes can later be converted to invoices. Defaults to draft status. Example: clientName='Acme Corp', items=[{description:'Design', quantity:1, unitPrice:30..."
+    "description": "Create a new quote/estimate for a client. Requires client name and at least one line item. Quotes can later be converted to invoices. Defaults to draft status. Example: clientName='Acme Corp', items=[{description:'Design', quantity:1, unitPrice:3000}], validUntil='2026-04-30' / Crea un nuevo presupuesto. Requiere nombre del cliente y al menos un concepto. Los presupuestos se pueden convertir en facturas despues."
   },
   {
     "name": "create_recurring_invoice",
-    "description": "Create a new recurring invoice template. Specify frequency (daily/weekly/monthly/quarterly/yearly), recipient client, line items, and optional start date. The first invoice instance is generated on the next scheduled run date. Example: clientId='c..."
+    "description": "Create a new recurring invoice template. Specify frequency (daily/weekly/monthly/quarterly/yearly), recipient client, line items, and optional start date. The first invoice instance is generated on the next scheduled run date. Example: clientId='cli_abc', frequency='monthly', templateName='Servicio mensual', lineItems=[{description:'SaaS', quantity:1, unitPrice:299}] / Crea una nueva plantilla de factura recurrente. Especifica frecuencia, cliente destinatario, lineas y fecha de inicio opcional. La primera instancia se genera en la proxima fecha programada."
   },
   {
     "name": "create_reservation",
-    "description": "Create a new reservation manually (not via channel sync). Requires property ID, check-in/check-out dates, and guest count. Optionally provide a guest ID or inline guest data to create a new guest."
+    "description": "Create a new reservation manually (not via channel sync). Requires property ID, check-in/check-out dates, and guest count. Optionally provide a guest ID or inline guest data to create a new guest. / Crea una nueva reserva manualmente. Requiere propiedad, fechas y numero de huespedes."
   },
   {
     "name": "create_time_entry",
-    "description": "Log a time entry for a project. Requires projectId, hours (decimal), and date. Mark as billable=true to include in client invoicing. Example: projectId='proj_abc', hours=2.5, description='Frontend review', billable=true, date='2026-05-10'"
+    "description": "Log a time entry for a project. Requires projectId, hours (decimal), and date. Mark as billable=true to include in client invoicing. Example: projectId='proj_abc', hours=2.5, description='Frontend review', billable=true, date='2026-05-10' / Registra una entrada de tiempo para un proyecto. Requiere projectId, horas (decimal) y fecha. Marca billable=true para incluirlo en la facturacion al cliente."
   },
   {
     "name": "create_vendor",
-    "description": "Create a new vendor/supplier. Requires at minimum a name. Vendors are used when tracking expenses and purchase orders. Example: name='Office Supplies Ltd', email='billing@office.com', taxId='B87654321', address={street:'Gran Via 1', city:'Madrid',..."
+    "description": "Create a new vendor/supplier. Requires at minimum a name. Vendors are used when tracking expenses and purchase orders. Example: name='Office Supplies Ltd', email='billing@office.com', taxId='B87654321', address={street:'Gran Via 1', city:'Madrid', country:'ES'} / Crea un nuevo proveedor. Requiere como minimo un nombre. Los proveedores se usan al registrar gastos y pedidos de compra."
   },
   {
     "name": "create_webhook",
-    "description": "Register a new webhook endpoint. You must specify the URL to receive notifications and which events to subscribe to. Available events: invoice.created, invoice.updated, invoice.paid, invoice.deleted, expense.created, expense.updated, expense.delet..."
+    "description": "Register a new webhook endpoint. You must specify the URL to receive notifications and which events to subscribe to. Available events: invoice.created, invoice.updated, invoice.paid, invoice.deleted, expense.created, expense.updated, expense.deleted, client.created, client.updated, quote.created, quote.updated, quote.accepted. Example: url='https://example.com/webhook', events=['invoice.created','invoice.paid'], secret='my-secret' / Registra un nuevo endpoint de webhook. Especifica la URL y los eventos a suscribir."
   },
   {
     "name": "delete_client",
-    "description": "Permanently delete a client by their ID. This action cannot be undone. Warning: this may affect existing invoices and quotes referencing this client."
+    "description": "Permanently delete a client by their ID. This action cannot be undone. Warning: this may affect existing invoices and quotes referencing this client. / Elimina permanentemente un cliente por su ID. Esta accion no se puede deshacer. Advertencia: puede afectar a facturas y presupuestos existentes."
   },
   {
     "name": "delete_client_contact",
-    "description": "Permanently delete a contact from a client. This action cannot be undone."
+    "description": "Permanently delete a contact from a client. This action cannot be undone. / Elimina permanentemente un contacto de un cliente. Esta accion no se puede deshacer."
   },
   {
     "name": "delete_client_note",
-    "description": "Permanently delete a note from a client. This action cannot be undone."
+    "description": "Permanently delete a note from a client. This action cannot be undone. / Elimina permanentemente una nota de un cliente. Esta accion no se puede deshacer."
   },
   {
     "name": "delete_deposit",
-    "description": "Permanently delete a deposit by its ID. This action cannot be undone."
+    "description": "Permanently delete a deposit by its ID. This action cannot be undone. / Elimina permanentemente un deposito por su ID. Esta accion no se puede deshacer."
   },
   {
     "name": "delete_expense",
-    "description": "Permanently delete an expense by its ID. This action cannot be undone."
+    "description": "Permanently delete an expense by its ID. This action cannot be undone. / Elimina permanentemente un gasto por su ID. Esta accion no se puede deshacer."
   },
   {
     "name": "delete_invoice",
-    "description": "Permanently delete an invoice by its ID. This action cannot be undone."
+    "description": "Permanently delete an invoice by its ID. This action cannot be undone. / Elimina permanentemente una factura por su ID. Esta accion no se puede deshacer."
   },
   {
     "name": "delete_product",
-    "description": "Permanently delete a product by its ID. This action cannot be undone."
+    "description": "Permanently delete a product by its ID. This action cannot be undone. / Elimina permanentemente un producto por su ID. Esta accion no se puede deshacer."
   },
   {
     "name": "delete_quote",
-    "description": "Permanently delete a quote by its ID. This action cannot be undone."
+    "description": "Permanently delete a quote by its ID. This action cannot be undone. / Elimina permanentemente un presupuesto por su ID. Esta accion no se puede deshacer."
   },
   {
     "name": "delete_recurring_invoice",
-    "description": "Permanently delete a recurring invoice template. This does NOT delete previously generated invoices — only the template and future scheduled runs. Requires confirm=true to prevent accidental deletion."
+    "description": "Permanently delete a recurring invoice template. This does NOT delete previously generated invoices — only the template and future scheduled runs. Requires confirm=true to prevent accidental deletion. / Elimina permanentemente una plantilla de factura recurrente. No elimina facturas ya generadas — solo la plantilla y las ejecuciones futuras. Requiere confirm=true para evitar eliminaciones accidentales."
   },
   {
     "name": "delete_time_entry",
-    "description": "Soft-delete a time entry by ID. Requires confirm=true to prevent accidental deletion. Deleted entries are excluded from billing reports but retained for audit."
+    "description": "Soft-delete a time entry by ID. Requires confirm=true to prevent accidental deletion. Deleted entries are excluded from billing reports but retained for audit. / Elimina (soft-delete) una entrada de tiempo por su ID. Requiere confirm=true para evitar eliminaciones accidentales. Las entradas eliminadas se excluyen de informes de facturacion pero se retienen en auditoria."
   },
   {
     "name": "delete_vendor",
-    "description": "Permanently delete a vendor by their ID. This action cannot be undone. Warning: this may affect existing expenses referencing this vendor."
+    "description": "Permanently delete a vendor by their ID. This action cannot be undone. Warning: this may affect existing expenses referencing this vendor. / Elimina permanentemente un proveedor por su ID. Esta accion no se puede deshacer. Advertencia: puede afectar a gastos existentes que referencien este proveedor."
   },
   {
     "name": "delete_webhook",
-    "description": "Permanently delete a webhook by its ID. Notifications will stop immediately."
+    "description": "Permanently delete a webhook by its ID. Notifications will stop immediately. / Elimina permanentemente un webhook por su ID. Las notificaciones se detendran inmediatamente."
   },
   {
     "name": "duplicate_invoice",
-    "description": "Duplicate an existing invoice for a new period. Copies all line items, client data, tax rate, and notes. Strips the original ID, document number, status, and timestamps. The new invoice starts as 'draft' with today's date (or the provided date). P..."
+    "description": "Duplicate an existing invoice for a new period. Copies all line items, client data, tax rate, and notes. Strips the original ID, document number, status, and timestamps. The new invoice starts as 'draft' with today's date (or the provided date). Perfect for recurring invoices — duplicate last month's invoice and adjust if needed. / Duplica una factura existente para un nuevo periodo. Copia conceptos, cliente, impuestos y notas. La nueva factura empieza como 'borrador' con fecha de hoy."
   },
   {
     "name": "einvoice_export",
-    "description": "Export an invoice as e-invoicing XML in a specific format. Supports Facturae (ES B2G), XRechnung-CII (DE), XRechnung-UBL (DE), Factur-X profiles (FR), FatturaPA (IT), PEPPOL-BIS-3 (EU network), UBL and CII (generic). For Facturae, set signed=true ..."
+    "description": "Export an invoice as e-invoicing XML in a specific format. Supports Facturae (ES B2G), XRechnung-CII (DE), XRechnung-UBL (DE), Factur-X profiles (FR), FatturaPA (IT), PEPPOL-BIS-3 (EU network), UBL and CII (generic). For Facturae, set signed=true to get XAdES-enveloped XML for FACe/AEAT submission. Returns a signed download URL valid for 24 hours. \n\n/ Exporta una factura como XML de facturacion electronica en el formato especificado. Para Facturae con signed=true devuelve XML firmado XAdES para envio a FACe/AEAT."
   },
   {
     "name": "export_datev",
-    "description": "Export accounting data in DATEV EXTF format for import into DATEV Kanzlei-Rechnungswesen or compatible systems. Returns a signed download URL valid for 24 hours. \\n\\n Supported EXTF formats:\\n • extf-buchungsstapel — Journal entries (Buchungsstape..."
+    "description": "Export accounting data in DATEV EXTF format for import into DATEV Kanzlei-Rechnungswesen or compatible systems. Returns a signed download URL valid for 24 hours. \n\nSupported EXTF formats:\n  • extf-buchungsstapel — Journal entries (Buchungsstapel) — most common, use for P&L/tax\n  • extf-debitoren — Accounts receivable master data (Debitoren-/Kreditorenstamm AR)\n  • extf-kreditoren — Accounts payable master data (Debitoren-/Kreditorenstamm AP)\n\nOutput encoding is always CP1252 per DATEV EXTF specification. Date range: both periodStart and periodEnd must be ISO 8601 dates (YYYY-MM-DD). \n\nIf the DATEV export backend is not deployed for this workspace, returns an honest 'unavailable' response — never a fabricated file URL. / Exporta datos contables en formato DATEV EXTF para importacion en DATEV o sistemas compatibles."
   },
   {
     "name": "face_status",
-    "description": "Poll the status of a FACe (Spain B2G) invoice submission. Returns the current FACe portal state code, description, and the registro number. \\n\\n Common FACe status codes:\\n • 1200 — Registrada / Registered (submission received)\\n • 1300 — En proce..."
+    "description": "Poll the status of a FACe (Spain B2G) invoice submission. Returns the current FACe portal state code, description, and the registro number. \n\nCommon FACe status codes:\n  • 1200 — Registrada / Registered (submission received)\n  • 1300 — En proceso de contabilización / In accounting (being processed)\n  • 1400 — Contabilizada / Accounted (approved, awaiting payment)\n  • 2400 — Anulada / Cancelled\n  • 3100 — Rechazada / Rejected (check rejectionReason)\n\n/ Consulta el estado de un envío a FACe. Devuelve el código de estado, descripción y número de registro."
   },
   {
     "name": "face_submit",
-    "description": "Submit a Facturae-formatted invoice to the Spanish FACe (Punto General de Entrada de Facturas Electrónicas) B2G portal. The invoice must have a recipient with DIR3 administrative unit codes (órgano gestor, unidad tramitadora, oficina contable). Re..."
+    "description": "Submit a Facturae-formatted invoice to the Spanish FACe (Punto General de Entrada de Facturas Electrónicas) B2G portal. The invoice must have a recipient with DIR3 administrative unit codes (órgano gestor, unidad tramitadora, oficina contable). Returns a submission reference (registro) that can be used with face_status to poll the portal. \n\nModes:\n  • mock — local simulation only, no network call (safe for dev/test)\n  • sandbox — FACe pre-production endpoint (requires sandbox credentials)\n  • production — live FACe SOAP endpoint (default)\n\n/ Envía una factura Facturae al portal FACe del Estado español. Requiere códigos DIR3 en el destinatario (órgano gestor, unidad tramitadora, oficina contable). Devuelve el número de registro para consulta de estado con face_status."
   },
   {
     "name": "frihet_aiem_calculate",
-    "description": "Calculate the AIEM (Arbitrio sobre Importaciones y Entrega de Mercancias) for goods imported to or produced in the Canary Islands. Returns applicable AIEM rate, tax base, and amount due for the given product. AIEM is a Canarian surcharge on top of..."
+    "description": "Calculate the AIEM (Arbitrio sobre Importaciones y Entrega de Mercancias) for goods imported to or produced in the Canary Islands. Returns applicable AIEM rate, tax base, and amount due for the given product. AIEM is a Canarian surcharge on top of IGIC for protected local industries. Example: ncCode='8471', amount=1000, description='Ordenadores portatiles'. / Calcula el AIEM para mercancias importadas o producidas en Canarias. Devuelve tipo aplicable, base imponible y cuota. El AIEM protege la industria local canaria."
   },
   {
     "name": "frihet_bank_rule_create",
-    "description": "Create a new bank auto-categorization rule. Rules apply automatically to matching incoming transactions. A rule has conditions (AND logic) and actions (assign category, tag, or client). Example: name='Mercadona groceries', condition description co..."
+    "description": "Create a new bank auto-categorization rule. Rules apply automatically to matching incoming transactions. A rule has conditions (AND logic) and actions (assign category, tag, or client). Example: name='Mercadona groceries', condition description contains 'MERCADONA', action category='groceries'. / Crea una nueva regla de categorizacion automatica de transacciones bancarias. Las reglas aplican condiciones (logica AND) y acciones (categoria, etiqueta, cliente)."
   },
   {
     "name": "frihet_bank_rules_list",
-    "description": "List all bank auto-categorization rules for the workspace. Rules automatically categorize transactions matching conditions (description, amount, counterparty). Returns rule name, conditions, actions (category/tag/client assign), and active status."
+    "description": "List all bank auto-categorization rules for the workspace. Rules automatically categorize transactions matching conditions (description, amount, counterparty). Returns rule name, conditions, actions (category/tag/client assign), and active status. / Lista las reglas de categorizacion automatica de transacciones bancarias del workspace. Devuelve nombre, condiciones, acciones (categoria/etiqueta/cliente) y estado activo."
   },
   {
     "name": "frihet_gl_entry_approve",
-    "description": "Approve a General Ledger journal entry pending review. Sets entry status to 'approved' and records the approver + timestamp in the audit trail. Requires gestor/admin role. This is a TRUST AREA action — double-check entry ID before calling. Example..."
+    "description": "Approve a General Ledger journal entry pending review. Sets entry status to 'approved' and records the approver + timestamp in the audit trail. Requires gestor/admin role. This is a TRUST AREA action — double-check entry ID before calling. Example: entryId='gl_2026_q1_042'. / Aprueba un asiento contable pendiente de revision. Requiere rol gestor/admin. Accion de area de confianza."
   },
   {
     "name": "frihet_gl_entry_audit_log",
-    "description": "Retrieve the full audit trail for a General Ledger entry — all state transitions (created, submitted, approved, rejected), who acted, and when. Use this to investigate approval history or compliance audits. Example: entryId='gl_2026_q1_042'."
+    "description": "Retrieve the full audit trail for a General Ledger entry — all state transitions (created, submitted, approved, rejected), who acted, and when. Use this to investigate approval history or compliance audits. Example: entryId='gl_2026_q1_042'. / Obtiene el historial de auditoría completo de un asiento contable. Muestra todas las transiciones de estado, quien actuo y cuando."
   },
   {
     "name": "frihet_gl_entry_reject",
-    "description": "Reject a General Ledger journal entry pending review with a required reason. Sets entry status to 'rejected' and records the rejector + reason in the audit trail. Requires gestor/admin role. This is a TRUST AREA action. Example: entryId='gl_2026_q..."
+    "description": "Reject a General Ledger journal entry pending review with a required reason. Sets entry status to 'rejected' and records the rejector + reason in the audit trail. Requires gestor/admin role. This is a TRUST AREA action. Example: entryId='gl_2026_q1_042', reason='Importe incorrecto, revisar factura F-2026-042'. / Rechaza un asiento contable pendiente con una razon obligatoria. Requiere rol gestor/admin."
   },
   {
     "name": "frihet_modelo_200_summary",
-    "description": "Get Modelo 200 summary — annual corporate income tax return (Impuesto sobre Sociedades) for Spanish SLs and SAs. Returns taxable base, deductions, tax rate, withholdings, installment payments made (M202), and net payable/refundable. Filing deadlin..."
+    "description": "Get Modelo 200 summary — annual corporate income tax return (Impuesto sobre Sociedades) for Spanish SLs and SAs. Returns taxable base, deductions, tax rate, withholdings, installment payments made (M202), and net payable/refundable. Filing deadline: 25 days after 6 months from fiscal year end (typically 25 July for Dec FY). Example: year='2025'. / Resumen Modelo 200 — declaracion anual del Impuesto sobre Sociedades para SL/SA. Devuelve base imponible, deducciones, tipo, retenciones, pagos fraccionados y cuota."
   },
   {
     "name": "frihet_modelo_202_summary",
-    "description": "Get Modelo 202 summary — installment payments (pagos fraccionados) for Impuesto sobre Sociedades. Three annual payments: April (1P), October (2P), December (3P). Returns each installment amount, due date, payment status, and cumulative total vs M2..."
+    "description": "Get Modelo 202 summary — installment payments (pagos fraccionados) for Impuesto sobre Sociedades. Three annual payments: April (1P), October (2P), December (3P). Returns each installment amount, due date, payment status, and cumulative total vs M200 projection. Example: year='2026', installment='1P'. / Resumen Modelo 202 — pagos fraccionados del Impuesto sobre Sociedades. Tres plazos: abril (1P), octubre (2P), diciembre (3P). Devuelve importes, plazos y estado de pago."
   },
   {
     "name": "frihet_modelo_415_summary",
-    "description": "Get IGIC Modelo 415 summary — annual declaration of operations with third parties exceeding €3,005. Canary Islands equivalent of Modelo 347 (peninsular Spain). Returns counterparty list, operation totals, and filing deadline. Example: year='2025'...."
+    "description": "Get IGIC Modelo 415 summary — annual declaration of operations with third parties exceeding €3,005. Canary Islands equivalent of Modelo 347 (peninsular Spain). Returns counterparty list, operation totals, and filing deadline. Example: year='2025'. / Resumen del Modelo 415 IGIC — declaracion anual de operaciones con terceros > €3.005. Equivalente canario del Modelo 347. Devuelve listado de contrapartes, totales y plazo."
   },
   {
     "name": "frihet_modelo_418_summary",
-    "description": "Get IGIC Modelo 418 summary — monthly IGIC return for large enterprises (grandes empresas) in the Canary Islands. Returns monthly IGIC collected, deductible, net due, and any carryover. Applicable when annual turnover exceeds the grandes empresas ..."
+    "description": "Get IGIC Modelo 418 summary — monthly IGIC return for large enterprises (grandes empresas) in the Canary Islands. Returns monthly IGIC collected, deductible, net due, and any carryover. Applicable when annual turnover exceeds the grandes empresas threshold. Example: period='2026-04'. / Resumen del Modelo 418 IGIC — declaracion mensual para grandes empresas en Canarias. Devuelve IGIC repercutido, soportado, cuota a ingresar y saldo a compensar."
   },
   {
     "name": "frihet_modelo_425_summary",
-    "description": "Get IGIC Modelo 425 summary — annual IGIC recap for Canary Islands businesses. Returns aggregated IGIC collected, deductible IGIC, net payable, and filing status. Example: year='2025'. / Resumen del Modelo 425 IGIC — resumen anual IGIC para empres..."
+    "description": "Get IGIC Modelo 425 summary — annual IGIC recap for Canary Islands businesses. Returns aggregated IGIC collected, deductible IGIC, net payable, and filing status. Example: year='2025'. / Resumen del Modelo 425 IGIC — resumen anual IGIC para empresas canarias. Devuelve IGIC repercutido, IGIC soportado, cuota neta y estado de presentacion."
   },
   {
     "name": "frihet_portal_domain_add",
-    "description": "Add a custom domain to the Frihet client portal for white-label branding. Returns DNS records (CNAME) that must be configured at the registrar before verification. Example: domain='portal.miempresa.com'. / Agrega un dominio personalizado al portal..."
+    "description": "Add a custom domain to the Frihet client portal for white-label branding. Returns DNS records (CNAME) that must be configured at the registrar before verification. Example: domain='portal.miempresa.com'. / Agrega un dominio personalizado al portal de clientes Frihet para marca blanca. Devuelve los registros DNS (CNAME) que deben configurarse en el registrador antes de verificar."
   },
   {
     "name": "frihet_portal_domain_remove",
-    "description": "Remove a custom domain from the Frihet client portal. The portal will revert to the default Frihet subdomain. Example: domain='portal.miempresa.com'."
+    "description": "Remove a custom domain from the Frihet client portal. The portal will revert to the default Frihet subdomain. Example: domain='portal.miempresa.com'. / Elimina un dominio personalizado del portal de clientes Frihet. El portal volverá al subdominio predeterminado de Frihet."
   },
   {
     "name": "frihet_portal_domain_verify",
-    "description": "Verify DNS propagation for a custom portal domain added via frihet_portal_domain_add. Returns verification status (pending/verified/failed) and any DNS errors. DNS propagation can take up to 48 hours — retry if status is 'pending'. Example: domain..."
+    "description": "Verify DNS propagation for a custom portal domain added via frihet_portal_domain_add. Returns verification status (pending/verified/failed) and any DNS errors. DNS propagation can take up to 48 hours — retry if status is 'pending'. Example: domain='portal.miempresa.com'. / Verifica la propagacion DNS de un dominio de portal personalizado. Devuelve estado (pending/verified/failed). La propagacion puede tardar hasta 48h."
   },
   {
     "name": "frihet_portal_onboard_link_generate",
-    "description": "Generate a time-limited, single-use self-onboard invitation link for a prospective client. The client follows the link to register their company details (CIF, address, contact) without requiring manual data entry by the gestor. Requires gestor/adm..."
+    "description": "Generate a time-limited, single-use self-onboard invitation link for a prospective client. The client follows the link to register their company details (CIF, address, contact) without requiring manual data entry by the gestor. Requires gestor/admin role. Example: email='cliente@empresa.com', expiresInHours=72. / Genera un enlace de auto-registro para un cliente potencial. El cliente completa sus datos sin que el gestor tenga que introducirlos manualmente. Requiere rol gestor/admin."
   },
   {
     "name": "frihet_tax_id_vies_lookup",
-    "description": "Validate an EU VAT number (CIF intracomunitario) via the VIES (VAT Information Exchange System). Returns company name, address, and validity status from the official EU registry. Essential for intra-EU invoicing compliance — always validate before..."
+    "description": "Validate an EU VAT number (CIF intracomunitario) via the VIES (VAT Information Exchange System). Returns company name, address, and validity status from the official EU registry. Essential for intra-EU invoicing compliance — always validate before adding a EU client. Example: vatNumber='ES12345678A', countryCode='ES'. / Valida un numero de IVA intracomunitario (CIF) via el sistema VIES de la UE. Devuelve nombre, direccion y validez desde el registro oficial europeo."
   },
   {
     "name": "gestoria_aging_consolidated",
-    "description": "Get a cross-client AR aging report for a gestor — totals bucketed by current / 30-60 / 60-90 / 90+ days overdue, a per-workspace breakdown, and the top overdue invoices. Defaults to the authenticated gestor; pass `ownerUid` to query a specific ges..."
+    "description": "Get a cross-client AR aging report for a gestor — totals bucketed by current / 30-60 / 60-90 / 90+ days overdue, a per-workspace breakdown, and the top overdue invoices. Defaults to the authenticated gestor; pass `ownerUid` to query a specific gestor (requires elevated scope). Useful for dunning prioritisation and end-of-month chase lists. / Obtiene un informe de antiguedad de saldos cruzando todos los clientes del gestor — totales por tramo (al dia / 30-60 / 60-90 / 90+ dias), desglose por espacio y top vencidas. Util para priorizar reclamaciones y listas de cobro de fin de mes."
   },
   {
     "name": "gestoria_message_send",
-    "description": "Send a message in a contextual thread between a gestor (accountant) and a client. Threads attach to a document request, a filing item, or a fiscal obligation — context is preserved so both sides see what the message is about. Useful for chasing a ..."
+    "description": "Send a message in a contextual thread between a gestor (accountant) and a client. Threads attach to a document request, a filing item, or a fiscal obligation — context is preserved so both sides see what the message is about. Useful for chasing a missing document, replying to a client's question, or annotating a presentation. Example: workspaceId='ws_abc', parentType='documentRequest', parentId='dr_q3_iva', body='Falta el extracto bancario de septiembre'. / Envia un mensaje en un hilo contextual entre gestor y cliente. Los hilos se anclan a una solicitud de documento, presentacion o obligacion fiscal — ambas partes ven a que se refiere. Util para pedir documentos, responder dudas o anotar presentaciones."
   },
   {
     "name": "gestoria_messages_list",
-    "description": "List messages in a contextual gestor/cliente thread, newest first. Use `before` (message ID or ISO timestamp) to paginate backwards through history. Returns up to `limit` messages plus a `hasMore` flag so the agent knows when to stop."
+    "description": "List messages in a contextual gestor/cliente thread, newest first. Use `before` (message ID or ISO timestamp) to paginate backwards through history. Returns up to `limit` messages plus a `hasMore` flag so the agent knows when to stop. / Lista los mensajes de un hilo gestor/cliente, mas recientes primero. Usa `before` (ID o fecha) para paginar hacia atras. Devuelve hasta `limit` mensajes con flag `hasMore`."
   },
   {
     "name": "gestoria_template_bulk_send",
-    "description": "Send the same document request template to up to 500 client workspaces in one call. Each spawned request triggers the per-client notification handler (email + in-app). Honours `allowGestoriaCommunications=false` on the client user doc (opt-out). U..."
+    "description": "Send the same document request template to up to 500 client workspaces in one call. Each spawned request triggers the per-client notification handler (email + in-app). Honours `allowGestoriaCommunications=false` on the client user doc (opt-out). Uses `periodOverrides` to plug runtime values (quarter/year/month) into template variables. Returns a per-client outcome with success count, failures, and total wall-clock duration. Trust Area: RGPD — recipients must already have granted accountant access. Example: templateId='tpl_iva_q', clientWorkspaceIds=['ws_a','ws_b','ws_c'], periodOverrides={quarter:3, year:2026}. / Envia la misma plantilla a hasta 500 espacios cliente en una sola operacion. Respeta opt-out `allowGestoriaCommunications=false`."
   },
   {
     "name": "gestoria_template_create",
-    "description": "Create a reusable document request template that the gestor can bulk-send to many client workspaces. Template body supports plain-text variable interpolation (e.g. `{{quarter}}`, `{{year}}`). `dueDateOffsetDays` sets when the request is due relati..."
+    "description": "Create a reusable document request template that the gestor can bulk-send to many client workspaces. Template body supports plain-text variable interpolation (e.g. `{{quarter}}`, `{{year}}`). `dueDateOffsetDays` sets when the request is due relative to the bulk-send date. `attachmentRequired=true` enforces clients to upload a file before marking complete. Example: name='IVA trimestral', title='Documentacion IVA {{quarter}}/{{year}}', description='Adjunta extractos bancarios y facturas emitidas del {{quarter}}', dueDateOffsetDays=14, attachmentRequired=true. / Crea una plantilla de solicitud de documento reutilizable que el gestor puede enviar en masa a varios espacios cliente."
   },
   {
     "name": "get_bank_account",
-    "description": "Get a single connected bank account by ID. Returns alias, IBAN (last 4 digits), currency, current balance, and last sync timestamp."
+    "description": "Get a single connected bank account by ID. Returns alias, IBAN (last 4 digits), currency, current balance, and last sync timestamp. / Obtiene una cuenta bancaria conectada por su ID. Devuelve alias, IBAN (ultimos 4 digitos), divisa, saldo actual y ultima sincronizacion."
   },
   {
     "name": "get_business_context",
-    "description": "Get complete business context — profile, defaults, plan limits, recent activity, top clients, and current month summary. Call this FIRST in any session to understand the user's business. Returns everything an AI agent needs to provide personalized..."
+    "description": "Get complete business context — profile, defaults, plan limits, recent activity, top clients, and current month summary. Call this FIRST in any session to understand the user's business. Returns everything an AI agent needs to provide personalized help without multiple round-trips. / Obtiene el contexto completo del negocio — perfil, limites del plan, actividad reciente, principales clientes y resumen del mes actual. Llama a esto PRIMERO en cualquier sesion."
   },
   {
     "name": "get_client",
-    "description": "Get a single client by their ID. Returns full contact details."
+    "description": "Get a single client by their ID. Returns full contact details. / Obtiene un cliente por su ID. Devuelve todos los datos de contacto."
   },
   {
     "name": "get_deposit",
-    "description": "Get a single deposit by its ID."
+    "description": "Get a single deposit by its ID. / Obtiene un deposito por su ID."
   },
   {
     "name": "get_einvoice_status",
-    "description": "Poll the status of an e-invoice dispatch workflow. Returns current step, ack ID (network confirmation), and download URLs once complete. Poll every 5–10 seconds until status is 'succeeded', 'failed', or 'cancelled'. \\n\\n NOTE: Stub response — real..."
+    "description": "Poll the status of an e-invoice dispatch workflow. Returns current step, ack ID (network confirmation), and download URLs once complete. Poll every 5–10 seconds until status is 'succeeded', 'failed', or 'cancelled'. \n\nIf the status backend is not deployed for this workspace, returns an honest 'unavailable' response — never a fabricated status. / Consulta el estado de un flujo de envio de factura electronica."
   },
   {
     "name": "get_expense",
-    "description": "Get a single expense by its ID."
+    "description": "Get a single expense by its ID. / Obtiene un gasto por su ID."
   },
   {
     "name": "get_invoice",
-    "description": "Get a single invoice by its ID. Returns the full invoice including line items, totals, and status."
+    "description": "Get a single invoice by its ID. Returns the full invoice including line items, totals, and status. / Obtiene una factura por su ID. Devuelve la factura completa con conceptos, totales y estado."
   },
   {
     "name": "get_invoice_einvoice",
-    "description": "Download the e-invoice XML for an invoice. Returns EN16931-compliant XML in the auto-detected format (UBL, CII, XRechnung, Factur-X, FatturaPA, PEPPOL). Only available after the invoice has been saved/sent. / Descarga el XML de factura electronica..."
+    "description": "Download the e-invoice XML for an invoice. Returns EN16931-compliant XML in the auto-detected format (UBL, CII, XRechnung, Factur-X, FatturaPA, PEPPOL). Only available after the invoice has been saved/sent. / Descarga el XML de factura electronica para una factura. Devuelve XML conforme a EN16931 en el formato auto-detectado (UBL, CII, XRechnung, Factur-X, FatturaPA, PEPPOL). Solo disponible despues de guardar o enviar la factura."
   },
   {
     "name": "get_invoice_pdf",
-    "description": "Get the PDF for an invoice. Returns a URL to download the PDF or binary info."
+    "description": "Get the PDF for an invoice. Returns a URL to download the PDF or binary info. / Obtiene el PDF de una factura. Devuelve una URL de descarga o informacion del binario."
+  },
+  {
+    "name": "get_kitchen_ticket",
+    "description": "Get a single kitchen ticket by ID. Returns full ticket details including all items, their individual statuses, station assignment, and table reference. / Obtiene un ticket de cocina por ID. Devuelve todos los detalles: items, estados individuales, estacion asignada y referencia de mesa."
   },
   {
     "name": "get_modelo_130_summary",
-    "description": "Get IRPF estimated payment summary for Modelo 130 filing (freelancers/self-employed in Spain). Returns quarterly net income, deductible expenses, previous payments, and amount due. Example: period='2026-Q1'"
+    "description": "Get IRPF estimated payment summary for Modelo 130 filing (freelancers/self-employed in Spain). Returns quarterly net income, deductible expenses, previous payments, and amount due. Example: period='2026-Q1' / Obtiene el resumen del pago fraccionado IRPF para el Modelo 130 (autonomos). Devuelve rendimiento neto, gastos deducibles, pagos previos y cuota a ingresar."
   },
   {
     "name": "get_modelo_180_summary",
-    "description": "Get IRPF annual informative summary for rental income withholdings (Modelo 180, Spain). Returns total retentions per tenant, property, and annual aggregate. Example: period='2025'"
+    "description": "Get IRPF annual informative summary for rental income withholdings (Modelo 180, Spain). Returns total retentions per tenant, property, and annual aggregate. Example: period='2025' / Obtiene el resumen anual de retenciones sobre alquileres para el Modelo 180. Devuelve retenciones totales por inquilino, inmueble y agregado anual."
   },
   {
     "name": "get_modelo_303_summary",
-    "description": "Get IVA (VAT) quarterly summary for Modelo 303 filing in Spain. Returns aggregated totals by tax rate, deductible IVA, net amount due, and filing deadline. Example: period='2026-Q1'"
+    "description": "Get IVA (VAT) quarterly summary for Modelo 303 filing in Spain. Returns aggregated totals by tax rate, deductible IVA, net amount due, and filing deadline. Example: period='2026-Q1' / Obtiene el resumen trimestral del IVA para el Modelo 303 en Espana. Devuelve totales por tipo impositivo, IVA deducible, cuota a ingresar y plazo."
   },
   {
     "name": "get_modelo_347_summary",
-    "description": "Get annual informative summary of operations exceeding €3,005 per counterparty (Modelo 347, Spain). Returns per-party totals for clients and vendors above the threshold. Example: period='2025'"
+    "description": "Get annual informative summary of operations exceeding €3,005 per counterparty (Modelo 347, Spain). Returns per-party totals for clients and vendors above the threshold. Example: period='2025' / Obtiene el resumen anual de operaciones con terceros superiores a 3.005€ (Modelo 347). Devuelve totales por cliente/proveedor que superen el umbral."
   },
   {
     "name": "get_modelo_390_summary",
-    "description": "Get IVA annual summary for Modelo 390 filing in Spain. Returns full-year totals by rate, total deductible IVA, and annual balance. Example: period='2025'"
+    "description": "Get IVA annual summary for Modelo 390 filing in Spain. Returns full-year totals by rate, total deductible IVA, and annual balance. Example: period='2025' / Obtiene el resumen anual del IVA para el Modelo 390. Devuelve totales anuales por tipo, IVA deducible total y resultado anual."
   },
   {
     "name": "get_monthly_summary",
-    "description": "Get complete monthly financial summary — revenue, expenses, profit, tax liability, invoice stats, expense breakdown by category. Defaults to current month. Use this to answer questions about financial performance, cash flow, or monthly P&L. / Resu..."
+    "description": "Get complete monthly financial summary — revenue, expenses, profit, tax liability, invoice stats, expense breakdown by category. Defaults to current month. Use this to answer questions about financial performance, cash flow, or monthly P&L. / Resumen financiero mensual completo — ingresos, gastos, beneficio, impuestos, estadisticas de facturas, desglose de gastos por categoria. Por defecto el mes actual."
   },
   {
     "name": "get_product",
-    "description": "Get a single product/service by its ID."
+    "description": "Get a single product/service by its ID. / Obtiene un producto/servicio por su ID."
   },
   {
     "name": "get_quarterly_taxes",
-    "description": "Get quarterly tax preparation data — Modelo 303 (IVA/IGIC), Modelo 130 (IRPF income tax advance), revenue/expense totals, tax collected vs deductible. Defaults to current quarter. Essential for filing quarterly tax returns with AEAT or ATC (Canary..."
+    "description": "Get quarterly tax preparation data — Modelo 303 (IVA/IGIC), Modelo 130 (IRPF income tax advance), revenue/expense totals, tax collected vs deductible. Defaults to current quarter. Essential for filing quarterly tax returns with AEAT or ATC (Canary Islands). / Datos de preparacion de impuestos trimestrales — Modelo 303, Modelo 130, totales de ingresos/gastos, impuesto repercutido vs soportado. Por defecto trimestre actual."
   },
   {
     "name": "get_quote",
-    "description": "Get a single quote/estimate by its ID. Returns the full quote with line items and totals."
+    "description": "Get a single quote/estimate by its ID. Returns the full quote with line items and totals. / Obtiene un presupuesto por su ID. Devuelve el presupuesto completo con conceptos y totales."
   },
   {
     "name": "get_recurring_invoice",
-    "description": "Get full details of a recurring invoice template by ID. Returns template name, frequency, next run date, recipient, line items, and active/paused status."
+    "description": "Get full details of a recurring invoice template by ID. Returns template name, frequency, next run date, recipient, line items, and active/paused status. / Obtiene los detalles completos de una plantilla de factura recurrente por ID. Devuelve nombre, frecuencia, proxima ejecucion, destinatario, lineas y estado."
   },
   {
     "name": "get_reservation",
-    "description": "Get a single reservation by ID. Returns full booking details: guest, property, dates, channel, payment status, and notes."
+    "description": "Get a single reservation by ID. Returns full booking details: guest, property, dates, channel, payment status, and notes. / Obtiene una reserva por ID. Devuelve todos los detalles de la reserva."
   },
   {
     "name": "get_sale",
-    "description": "Get a single POS sale by ID. Returns full sale details: terminal, items, payment method, amounts, and status."
+    "description": "Get a single POS sale by ID. Returns full sale details: terminal, items, payment method, amounts, and status. / Obtiene una venta POS por ID. Devuelve todos los detalles: terminal, articulos, metodo de pago, importes y estado."
   },
   {
     "name": "get_time_entry",
-    "description": "Get full details of a single time tracking entry by ID. Returns project, user, hours, description, billable flag, date and status."
+    "description": "Get full details of a single time tracking entry by ID. Returns project, user, hours, description, billable flag, date and status. / Obtiene los detalles completos de una entrada de tiempo por su ID. Devuelve proyecto, usuario, horas, descripcion, facturabilidad, fecha y estado."
   },
   {
     "name": "get_time_summary",
-    "description": "Get aggregated time tracking summary for a workspace or specific team member. Returns total hours, billable hours, non-billable hours, and estimated cost for the period. Filter by date range and optionally by user ID for per-member breakdowns."
+    "description": "Get aggregated time tracking summary for a workspace or specific team member. Returns total hours, billable hours, non-billable hours, and estimated cost for the period. Filter by date range and optionally by user ID for per-member breakdowns. / Obtiene el resumen agregado de seguimiento de tiempo para el espacio de trabajo o un miembro. Devuelve horas totales, facturables, no facturables y coste estimado del periodo. Filtra por rango de fechas y opcionalmente por usuario para desglose por miembro."
   },
   {
     "name": "get_vendor",
-    "description": "Get a single vendor/supplier by their ID. Returns full contact details."
+    "description": "Get a single vendor/supplier by their ID. Returns full contact details. / Obtiene un proveedor por su ID. Devuelve todos los datos de contacto."
   },
   {
     "name": "get_webhook",
-    "description": "Get a single webhook configuration by its ID."
+    "description": "Get a single webhook configuration by its ID. / Obtiene la configuracion de un webhook por su ID."
   },
   {
     "name": "invite_team_member",
-    "description": "Invite a new member to the workspace by email address. An invitation email is sent — the member must accept before gaining access. Roles: owner (full access), admin (manage account, no billing), member (operational access), viewer (read-only). Exa..."
+    "description": "Invite a new member to the workspace by email address. An invitation email is sent — the member must accept before gaining access. Roles: owner (full access), admin (manage account, no billing), member (operational access), viewer (read-only). Example: email='ana@example.com', role='member' / Invita a un nuevo miembro al espacio de trabajo por correo electronico. Se envia un email de invitacion — el miembro debe aceptar antes de acceder. Roles: owner (acceso total), admin (gestion sin facturacion), member (acceso operativo), viewer (solo lectura)."
+  },
+  {
+    "name": "kitchen_flow_summary",
+    "description": "Slow-station detection: aggregates open kitchen tickets per station and flags the bottleneck (station with the highest open-ticket count). Returns per-station openTickets count, oldest wait time in seconds, and an isBottleneck flag. Call this first to diagnose kitchen throughput issues before drilling into individual tickets. / Deteccion de cuello de botella: agrega tickets abiertos por estacion y marca la mas saturada. Devuelve openTickets, tiempo de espera mas antiguo y flag isBottleneck por estacion. Llamar primero para diagnosticar problemas de rendimiento de cocina."
   },
   {
     "name": "ksef_submit",
-    "description": "Submit an invoice to the Polish KSeF (Krajowy System e-Faktur) national e-invoicing system. Poland requires e-invoicing for B2B transactions (mandatory phase rolling out 2025). \\n\\n Modes:\\n • mock — local simulation (no network call, safe for dev..."
+    "description": "Submit an invoice to the Polish KSeF (Krajowy System e-Faktur) national e-invoicing system. Poland requires e-invoicing for B2B transactions (mandatory phase rolling out 2025). \n\nModes:\n  • mock — local simulation (no network call, safe for dev/test)\n  • sandbox — KSeF test environment (demo.ksef.mf.gov.pl)\n  • production — live KSeF endpoint (ksef.mf.gov.pl)\n\n\nNOTE: This tool is a forward-compatible stub. The KSeF Cloud Function lands in PR #417. Until merged, all calls return a NotImplementedYet error with guidance on when it will be available. / NOTA: Este tool es un stub anticipatorio. La Cloud Function KSeF se activa con el PR #417. Hasta su merge, todas las llamadas devuelven un error NotImplementedYet con instrucciones."
   },
   {
     "name": "leave_approve",
-    "description": "TRUST AREA — HR DECISION. Approve a pending leave request. Logs decision with timestamp and approver. Idempotent: re-approving an already approved leave is a no-op. / AREA DE CONFIANZA — DECISION RRHH. Aprueba una solicitud de permiso pendiente. R..."
+    "description": "TRUST AREA — HR DECISION. Approve a pending leave request. Logs decision with timestamp and approver. Idempotent: re-approving an already approved leave is a no-op. / AREA DE CONFIANZA — DECISION RRHH. Aprueba una solicitud de permiso pendiente. Registra la decision."
   },
   {
     "name": "leave_cancel",
-    "description": "Cancel a leave request. Typically used by the requesting employee before approval, or by HR after approval (which may trigger schedule rollback)."
+    "description": "Cancel a leave request. Typically used by the requesting employee before approval, or by HR after approval (which may trigger schedule rollback). / Cancela una solicitud de permiso (por el empleado o RRHH)."
   },
   {
     "name": "leave_list",
-    "description": "List leave/PTO requests with optional filters. Filter by employee, status (pending/approved/rejected/cancelled), or period (date range). Useful for HR dashboards, calendar views, balance tracking."
+    "description": "List leave/PTO requests with optional filters. Filter by employee, status (pending/approved/rejected/cancelled), or period (date range). Useful for HR dashboards, calendar views, balance tracking. / Lista solicitudes de permisos con filtros opcionales (empleado, estado, periodo)."
   },
   {
     "name": "leave_reject",
@@ -357,91 +365,103 @@
   },
   {
     "name": "leave_request_create",
-    "description": "Create a new leave/PTO request for an employee. Types: 'vacation', 'sick', 'personal', 'parental', 'unpaid', 'training'. Dates must be ISO 8601 (YYYY-MM-DD). Status starts as 'pending' awaiting manager approval."
+    "description": "Create a new leave/PTO request for an employee. Types: 'vacation', 'sick', 'personal', 'parental', 'unpaid', 'training'. Dates must be ISO 8601 (YYYY-MM-DD). Status starts as 'pending' awaiting manager approval. / Crea una nueva solicitud de vacaciones/permiso. Estado inicial 'pending' pendiente aprobacion."
   },
   {
     "name": "list_bank_accounts",
-    "description": "List all connected bank accounts for the workspace. Returns alias, IBAN (last 4 digits only for security), currency, balance, and last sync timestamp."
+    "description": "List all connected bank accounts for the workspace. Returns alias, IBAN (last 4 digits only for security), currency, balance, and last sync timestamp. / Lista todas las cuentas bancarias conectadas al espacio de trabajo. Devuelve alias, IBAN (solo ultimos 4 digitos por seguridad), divisa, saldo y ultima sincronizacion."
   },
   {
     "name": "list_client_activities",
-    "description": "List all CRM activities for a client with optional pagination. Returns calls, emails, meetings, and tasks logged against the client."
+    "description": "List all CRM activities for a client with optional pagination. Returns calls, emails, meetings, and tasks logged against the client. / Lista todas las actividades CRM de un cliente con paginacion opcional."
   },
   {
     "name": "list_client_contacts",
-    "description": "List all contacts for a client with optional pagination. Returns name, email, phone, role, and primary flag."
+    "description": "List all contacts for a client with optional pagination. Returns name, email, phone, role, and primary flag. / Lista todos los contactos de un cliente con paginacion opcional."
   },
   {
     "name": "list_client_notes",
-    "description": "List all notes for a client with optional pagination."
+    "description": "List all notes for a client with optional pagination. / Lista todas las notas de un cliente con paginacion opcional."
   },
   {
     "name": "list_clients",
-    "description": "List all clients/customers with optional pagination. Returns contact info, tax IDs, and addresses."
+    "description": "List all clients/customers with optional pagination. Returns contact info, tax IDs, and addresses. / Lista todos los clientes con paginacion opcional. Devuelve informacion de contacto, NIF/CIF y direcciones."
   },
   {
     "name": "list_deposits",
-    "description": "List all deposits with optional pagination and date range filters. Returns deposits sorted by date (newest first). Example: from='2026-01-01', to='2026-03-31', clientId='abc', limit=50"
+    "description": "List all deposits with optional pagination and date range filters. Returns deposits sorted by date (newest first). Example: from='2026-01-01', to='2026-03-31', clientId='abc', limit=50 / Lista todos los depositos con paginacion y filtros de fecha opcionales."
   },
   {
     "name": "list_expenses",
-    "description": "List all expenses with optional pagination and date range filters. Returns expenses sorted by date (newest first). Example: from='2026-01-01', to='2026-03-31', limit=50"
+    "description": "List all expenses with optional pagination and date range filters. Returns expenses sorted by date (newest first). Example: from='2026-01-01', to='2026-03-31', limit=50 / Lista todos los gastos con paginacion y filtros de fecha opcionales."
   },
   {
     "name": "list_invoices",
-    "description": "List all invoices with optional pagination and filters. Returns a paginated list sorted by issue date (newest first). Supports filtering by status (draft/sent/paid/overdue/cancelled) and date range. Example: status='paid', from='2026-01-01', to='2..."
+    "description": "List all invoices with optional pagination and filters. Returns a paginated list sorted by issue date (newest first). Supports filtering by status (draft/sent/paid/overdue/cancelled) and date range. Example: status='paid', from='2026-01-01', to='2026-03-31', limit=20 / Lista facturas con paginacion y filtros opcionales. Soporta filtrado por estado y rango de fechas."
+  },
+  {
+    "name": "list_kitchen_stations",
+    "description": "List all kitchen stations. Returns station id, name, and active status. Use kitchen_flow_summary to see per-station ticket load and bottlenecks. / Lista todas las estaciones de cocina. Devuelve id, nombre y estado activo. Usa kitchen_flow_summary para ver carga por estacion y cuellos de botella."
+  },
+  {
+    "name": "list_kitchen_tickets",
+    "description": "List all kitchen order tickets for the live order board, with optional filters by status or station. Returns ticket id, station, status, table ref, and items. / Lista todos los tickets de cocina del panel en vivo, con filtros opcionales por estado o estacion. Devuelve id, estacion, estado, mesa e items."
+  },
+  {
+    "name": "list_menu_items",
+    "description": "List the kitchen menu catalog. Supports free-text search and active/inactive filter. Returns item id, name, description, price, category, and active status. / Lista el catálogo de menu de cocina. Admite búsqueda de texto y filtro activo/inactivo. Devuelve id, nombre, descripcion, precio, categoria y estado activo."
   },
   {
     "name": "list_products",
-    "description": "List all products/services with optional pagination. Products are reusable items that can be added to invoices and quotes."
+    "description": "List all products/services with optional pagination. Products are reusable items that can be added to invoices and quotes. / Lista todos los productos/servicios con paginacion opcional. Los productos son conceptos reutilizables para facturas y presupuestos."
   },
   {
     "name": "list_properties",
-    "description": "List all rental properties for the workspace. Returns name, address, capacity, owner info, and license number."
+    "description": "List all rental properties for the workspace. Returns name, address, capacity, owner info, and license number. / Lista todas las propiedades de alquiler vacacional. Devuelve nombre, direccion, capacidad, datos del propietario y numero de licencia."
   },
   {
     "name": "list_quotes",
-    "description": "List all quotes/estimates with optional pagination and filters. Quotes are proposals sent to clients before they become invoices. Supports filtering by status (draft/sent/accepted/rejected/expired) and date range. Example: status='sent', from='202..."
+    "description": "List all quotes/estimates with optional pagination and filters. Quotes are proposals sent to clients before they become invoices. Supports filtering by status (draft/sent/accepted/rejected/expired) and date range. Example: status='sent', from='2026-01-01', limit=20 / Lista todos los presupuestos con paginacion y filtros opcionales. Soporta filtrado por estado y rango de fechas."
   },
   {
     "name": "list_recurring_invoices",
-    "description": "List all recurring invoice templates. Returns template name, frequency, next scheduled run date, recipient, line items, and active/paused status."
+    "description": "List all recurring invoice templates. Returns template name, frequency, next scheduled run date, recipient, line items, and active/paused status. / Lista todas las plantillas de facturas recurrentes. Devuelve nombre de la plantilla, frecuencia, proxima fecha de ejecucion, destinatario, lineas y estado."
   },
   {
     "name": "list_reservations",
-    "description": "List all reservations for the workspace, with optional filters by property, status, or date range. Returns guest, dates, channel, and total."
+    "description": "List all reservations for the workspace, with optional filters by property, status, or date range. Returns guest, dates, channel, and total. / Lista todas las reservas del espacio de trabajo, con filtros opcionales por propiedad, estado o rango de fechas."
   },
   {
     "name": "list_sales",
-    "description": "List POS sales with optional filters by date range, terminal, or status."
+    "description": "List POS sales with optional filters by date range, terminal, or status. / Lista las ventas POS con filtros opcionales por fecha, terminal o estado."
   },
   {
     "name": "list_team_members",
-    "description": "List all members in the workspace. Returns member ID, name, email, role, and invite status (pending/active). Useful for access management and auditing who has access to the account."
+    "description": "List all members in the workspace. Returns member ID, name, email, role, and invite status (pending/active). Useful for access management and auditing who has access to the account. / Lista todos los miembros del espacio de trabajo. Devuelve ID, nombre, email, rol y estado de invitacion (pendiente/activo). Util para gestion de accesos y auditoria de quien tiene acceso a la cuenta."
   },
   {
     "name": "list_terminals",
-    "description": "List all configured POS terminals (Stripe Terminal readers) for the workspace. Returns terminal label, device type, location, and connection status."
+    "description": "List all configured POS terminals (Stripe Terminal readers) for the workspace. Returns terminal label, device type, location, and connection status. / Lista todos los terminales de punto de venta (lectores Stripe Terminal). Devuelve etiqueta, tipo de dispositivo, ubicacion y estado de conexion."
   },
   {
     "name": "list_time_entries",
-    "description": "List time tracking entries with optional filters. Filter by user, project, date range, or billable status. Useful for generating timesheets, billing reports, and project cost analysis."
+    "description": "List time tracking entries with optional filters. Filter by user, project, date range, or billable status. Useful for generating timesheets, billing reports, and project cost analysis. / Lista entradas de tiempo con filtros opcionales. Filtra por usuario, proyecto, rango de fechas o facturabilidad. Util para partes de trabajo, informes de facturacion y analisis de costes por proyecto."
   },
   {
     "name": "list_transactions",
-    "description": "List bank transactions with optional filters. Filter by account, date range, status (pending/posted/excluded), or category. Useful for reconciliation, expense matching, and cash flow analysis."
+    "description": "List bank transactions with optional filters. Filter by account, date range, status (pending/posted/excluded), or category. Useful for reconciliation, expense matching, and cash flow analysis. / Lista movimientos bancarios con filtros opcionales. Filtra por cuenta, rango de fechas, estado (pendiente/contabilizado/excluido) o categoria. Util para conciliacion, asignacion de gastos y analisis de flujo de caja."
   },
   {
     "name": "list_vendors",
-    "description": "List all vendors/suppliers with optional pagination and search. Returns contact info, tax IDs, and addresses."
+    "description": "List all vendors/suppliers with optional pagination and search. Returns contact info, tax IDs, and addresses. / Lista todos los proveedores con paginacion y busqueda opcional. Devuelve informacion de contacto, NIF/CIF y direcciones."
   },
   {
     "name": "list_webhooks",
-    "description": "List all configured webhooks. Webhooks send HTTP POST notifications when events occur in Frihet."
+    "description": "List all configured webhooks. Webhooks send HTTP POST notifications when events occur in Frihet. / Lista todos los webhooks configurados. Los webhooks envian notificaciones HTTP POST cuando ocurren eventos en Frihet."
   },
   {
     "name": "log_client_activity",
-    "description": "Log a CRM activity against a client. Use to track calls, emails, meetings, or tasks. Example: clientId='abc123', type='call', title='Discussed Q2 proposal', description='Client interested in upgrade'"
+    "description": "Log a CRM activity against a client. Use to track calls, emails, meetings, or tasks. Example: clientId='abc123', type='call', title='Discussed Q2 proposal', description='Client interested in upgrade' / Registra una actividad CRM para un cliente. Usa para rastrear llamadas, emails, reuniones o tareas."
   },
   {
     "name": "mark_invoice_paid",
@@ -449,158 +469,162 @@
   },
   {
     "name": "match_transaction_to_invoice",
-    "description": "TRUST AREA — RECONCILIATION. Link a bank transaction to an invoice or expense document. This affects fiscal reconciliation records. Requires confirm=true to proceed. Idempotent: re-matching to same document is a no-op. Example: transactionId='tx_a..."
+    "description": "TRUST AREA — RECONCILIATION. Link a bank transaction to an invoice or expense document. This affects fiscal reconciliation records. Requires confirm=true to proceed. Idempotent: re-matching to same document is a no-op. Example: transactionId='tx_abc', documentId='inv_xyz', documentType='invoice', confirm=true / AREA DE CONFIANZA — CONCILIACION. Vincula un movimiento bancario a una factura o gasto. Afecta registros de conciliacion fiscal. Requiere confirm=true para ejecutar."
   },
   {
     "name": "onboarding_persona_set",
-    "description": "Set the workspace persona. Drives module visibility, default chart-of-accounts, and onboarding checklist. Personas:\\n - 'autonomo' — self-employed (autonomo Spain)\\n - 'empresa' — small/medium business\\n - 'agencia' — agency / consultancy\\n - 'ges..."
+    "description": "Set the workspace persona. Drives module visibility, default chart-of-accounts, and onboarding checklist. Personas:\n  - 'autonomo' — self-employed (autonomo Spain)\n  - 'empresa'  — small/medium business\n  - 'agencia'  — agency / consultancy\n  - 'gestoria' — accounting firm (manages multiple client workspaces)\n\nIdempotent: setting the same persona again is a no-op. / Define la persona del workspace. Determina modulos visibles, plan contable y checklist."
   },
   {
     "name": "onboarding_status",
-    "description": "Return the current workspace onboarding state — persona, completed steps, pending steps, percent complete. Useful to drive in-app guidance, sales follow-up triggers, and partner program tracking."
+    "description": "Return the current workspace onboarding state — persona, completed steps, pending steps, percent complete. Useful to drive in-app guidance, sales follow-up triggers, and partner program tracking. / Devuelve el estado actual del onboarding del workspace (persona, pasos completados/pendientes)."
   },
   {
     "name": "overtime_report",
-    "description": "Generate an overtime report for a period. Aggregates regular vs overtime hours per employee + total estimated cost in EUR. Useful for payroll prep and labor-law audits. Period format: 'YYYY-MM' (monthly) or 'YYYY-QN' (quarterly) or 'YYYY' (annual)..."
+    "description": "Generate an overtime report for a period. Aggregates regular vs overtime hours per employee + total estimated cost in EUR. Useful for payroll prep and labor-law audits. Period format: 'YYYY-MM' (monthly) or 'YYYY-QN' (quarterly) or 'YYYY' (annual). / Informe de horas extra por periodo. Agrega horas regulares vs extra por empleado + coste estimado."
   },
   {
     "name": "pause_recurring_invoice",
-    "description": "Pause an active recurring invoice template. No new invoices are generated while paused. The template is preserved — use resume_recurring_invoice to restart."
+    "description": "Pause an active recurring invoice template. No new invoices are generated while paused. The template is preserved — use resume_recurring_invoice to restart. / Pausa una plantilla de factura recurrente activa. No se generan nuevas facturas mientras esta pausada. Usa resume_recurring_invoice para reanudarla."
   },
   {
     "name": "payroll_checklist",
-    "description": "List all employees for a given month with their payroll readiness status. Status values:\\n - 'ready' — all required data present, ready to export\\n - 'missing_data' — some required fields missing (see missingFields[])\\n - 'blocked' — manually bloc..."
+    "description": "List all employees for a given month with their payroll readiness status. Status values:\n  - 'ready'         — all required data present, ready to export\n  - 'missing_data'  — some required fields missing (see missingFields[])\n  - 'blocked'       — manually blocked or data inconsistency detected\n\nUse BEFORE payroll_export to identify gaps. Month format: 'YYYY-MM'. / Lista empleados con estado de preparacion para nomina. Usar antes de payroll_export."
   },
   {
     "name": "payroll_export",
-    "description": "Export payroll data for a month in gestoria-compatible format. Supported formats:\\n - 'a3' — Wolters Kluwer A3 (CSV with Spanish payroll columns)\\n - 'contasol' — Sage Contasol\\n - 'sage' — Sage 50/200\\n - 'holded' — Holded import format\\n - 'silt..."
+    "description": "Export payroll data for a month in gestoria-compatible format. Supported formats:\n  - 'a3'       — Wolters Kluwer A3 (CSV with Spanish payroll columns)\n  - 'contasol' — Sage Contasol\n  - 'sage'     — Sage 50/200\n  - 'holded'   — Holded import format\n  - 'siltra'   — SILTRA Seguridad Social XML\n\nFrihet does NOT calculate payroll — it exports staged data for the gestoria. Month format: 'YYYY-MM'. / Exporta datos de nominas en formato compatible con gestoria. Mes en formato 'YYYY-MM'."
   },
   {
     "name": "period_close",
-    "description": "TRUST AREA — FISCAL CLOSE. Close a monthly or quarterly accounting period. Freezes invoices, expenses, journal entries and bank reconciliations for the period. Requires confirm=true. Idempotent: re-closing an already closed period is a no-op. Clos..."
+    "description": "TRUST AREA — FISCAL CLOSE. Close a monthly or quarterly accounting period. Freezes invoices, expenses, journal entries and bank reconciliations for the period. Requires confirm=true. Idempotent: re-closing an already closed period is a no-op. Closed periods can be reopened with period_reopen + audit reason. / AREA DE CONFIANZA — CIERRE FISCAL. Cierra un periodo contable mensual o trimestral. Congela facturas, gastos, asientos. Requiere confirm=true."
   },
   {
     "name": "period_close_status",
-    "description": "Get the current accounting period state (open / closing / closed / reopened). Without periodId returns the current open or most recently closed period."
+    "description": "Get the current accounting period state (open / closing / closed / reopened). Without periodId returns the current open or most recently closed period. / Devuelve el estado del periodo contable actual (abierto/cerrando/cerrado/reabierto)."
   },
   {
     "name": "period_reopen",
-    "description": "TRUST AREA — FISCAL REOPEN. Reopen a closed accounting period. Requires a compliance reason (audit log) and confirm=true. Reopening allows backdated edits to invoices/expenses — use with extreme caution. / AREA DE CONFIANZA — REAPERTURA FISCAL. Re..."
+    "description": "TRUST AREA — FISCAL REOPEN. Reopen a closed accounting period. Requires a compliance reason (audit log) and confirm=true. Reopening allows backdated edits to invoices/expenses — use with extreme caution. / AREA DE CONFIANZA — REAPERTURA FISCAL. Reabre un periodo cerrado. Requiere motivo (auditoria) y confirm=true."
   },
   {
     "name": "permissions_matrix",
-    "description": "Return the full role-to-permission matrix for the workspace. Lists every role with the permissions it grants and every protected resource. Useful for security audits, role design, and compliance reporting."
+    "description": "Return the full role-to-permission matrix for the workspace. Lists every role with the permissions it grants and every protected resource. Useful for security audits, role design, and compliance reporting. / Devuelve la matriz completa de roles y permisos del workspace."
   },
   {
     "name": "permissions_me",
-    "description": "Return the caller's effective role + permissions in the current workspace. Useful for client-side UI gating, debugging access errors, and capability discovery."
+    "description": "Return the caller's effective role + permissions in the current workspace. Useful for client-side UI gating, debugging access errors, and capability discovery. / Devuelve el rol efectivo y los permisos del llamante en el workspace actual."
   },
   {
     "name": "refund_deposit",
-    "description": "Refund a deposit back to the client. Transitions the deposit status to 'refunded'. Example: id='dep_abc123', reason='Project cancelled'"
+    "description": "Refund a deposit back to the client. Transitions the deposit status to 'refunded'. Example: id='dep_abc123', reason='Project cancelled' / Devuelve un deposito al cliente."
   },
   {
     "name": "refund_sale",
-    "description": "Refund a POS sale in full or partially. This action is irreversible — the customer will receive a refund to their original payment method. You MUST pass confirm=true to proceed. Optionally specify amountCents for a partial refund (defaults to full..."
+    "description": "Refund a POS sale in full or partially. This action is irreversible — the customer will receive a refund to their original payment method. You MUST pass confirm=true to proceed. Optionally specify amountCents for a partial refund (defaults to full refund). / Reembolsa una venta POS total o parcialmente. Accion irreversible. Debes pasar confirm=true. Pasa amountCents para reembolso parcial."
   },
   {
     "name": "remove_team_member",
-    "description": "Remove a member from the workspace. The member immediately loses access. Their created records (invoices, expenses) are preserved. Cannot remove the workspace owner — transfer ownership first. Requires confirm=true to prevent accidental removal."
+    "description": "Remove a member from the workspace. The member immediately loses access. Their created records (invoices, expenses) are preserved. Cannot remove the workspace owner — transfer ownership first. Requires confirm=true to prevent accidental removal. / Elimina un miembro del espacio de trabajo. El miembro pierde acceso inmediatamente. Sus registros creados (facturas, gastos) se conservan. No se puede eliminar al propietario — transfiere la propiedad primero. Requiere confirm=true para evitar eliminaciones accidentales."
   },
   {
     "name": "resume_recurring_invoice",
-    "description": "Resume a paused recurring invoice template. The next invoice will be generated on the next scheduled cycle date after resumption."
+    "description": "Resume a paused recurring invoice template. The next invoice will be generated on the next scheduled cycle date after resumption. / Reanuda una plantilla de factura recurrente pausada. La proxima factura se generara en el siguiente ciclo programado tras la reanudacion."
   },
   {
     "name": "run_recurring_now",
-    "description": "Manually trigger immediate generation of the next invoice instance from a recurring template. Useful for billing ahead of schedule or recovering from a missed automated run. The generated invoice is created as a draft; review and send separately. ..."
+    "description": "Manually trigger immediate generation of the next invoice instance from a recurring template. Useful for billing ahead of schedule or recovering from a missed automated run. The generated invoice is created as a draft; review and send separately. Example: templateId='rec_abc123' / Genera manualmente la siguiente instancia de una factura recurrente. Util para facturar antes de lo programado o recuperar un ciclo perdido. La factura generada se crea como borrador; revisar y enviar por separado."
   },
   {
     "name": "search_invoices",
-    "description": "Search and filter invoices. Supports filtering by status and date range. The query parameter searches across client names and invoice content. Example: query='Acme', status='paid', from='2026-01-01', to='2026-03-31'"
+    "description": "Search and filter invoices. Supports filtering by status and date range. The query parameter searches across client names and invoice content. Example: query='Acme', status='paid', from='2026-01-01', to='2026-03-31' / Busca y filtra facturas. Soporta filtrado por estado y rango de fechas. El parametro query busca en nombres de clientes y contenido de facturas."
   },
   {
     "name": "send_einvoice",
-    "description": "Dispatch an e-invoice to the recipient via the selected transport channel. Returns immediately with a workflowRunId — use get_einvoice_status to poll until completion. \\n\\n Supported formats (11 total):\\n • xrechnung-cii — XRechnung CII syntax (Ge..."
+    "description": "Dispatch an e-invoice to the recipient via the selected transport channel. Returns immediately with a workflowRunId — use get_einvoice_status to poll until completion. \n\nSupported formats (11 total):\n  • xrechnung-cii — XRechnung CII syntax (Germany B2G mandatory)\n  • xrechnung-ubl — XRechnung UBL 2.1 syntax (Germany B2G alternative)\n  • facturx-en16931 — Factur-X EN16931 PDF/A-3 (France, EU)\n  • facturx-extended — Factur-X Extended with trade/logistics fields (France, EU)\n  • facturx-basic — Factur-X Basic reduced field set (France, EU)\n  • facturx-minimum — Factur-X Minimum for summary invoices (France, EU)\n  • fatturapa — FatturaPA XML via SDI hub (Italy mandatory)\n  • ubl — Generic UBL 2.1 XML (EU/global)\n  • cii — Generic CII Cross Industry Invoice (EU/global)\n  • peppol-bis-3 — PEPPOL BIS Billing 3.0 network (EU/Nordic/AU/SG)\n  • facturae — Facturae 3.2.x (Spain B2G via FACe/AEAT mandatory)\n\nDispatch modes:\n  • email — attach XML/PDF and send via Resend to client email on file\n  • chorus_pro — submit to French Chorus Pro portal (facturx-* only)\n  • sdi — submit to Italian SDI hub (fatturapa only)\n  • peppol — transmit via PEPPOL access point (peppol-bis-3 only)\n  • download — generate and return a signed download URL only\n\nIf the dispatch backend is not deployed for this workspace, returns an honest 'unavailable' response — never fabricated workflow data. / Envia una factura electronica al destinatario mediante el canal de transporte seleccionado. Devuelve de forma asincrona — consultar get_einvoice_status para seguimiento."
   },
   {
     "name": "send_invoice",
-    "description": "Send an invoice to the client via email. Optionally override the recipient email address. The invoice must exist and should not already be cancelled."
+    "description": "Send an invoice to the client via email. Optionally override the recipient email address. The invoice must exist and should not already be cancelled. / Envia una factura al cliente por email. Opcionalmente se puede cambiar el email destinatario."
   },
   {
     "name": "send_quote",
-    "description": "Send a quote/estimate to the client via email. Optionally override the recipient email address. The quote must exist and should not already be expired or rejected."
+    "description": "Send a quote/estimate to the client via email. Optionally override the recipient email address. The quote must exist and should not already be expired or rejected. / Envia un presupuesto al cliente por email. Opcionalmente se puede cambiar el email destinatario."
   },
   {
     "name": "sync_channel",
-    "description": "Trigger a manual sync of a booking channel (Airbnb, Booking.com, etc.). Pulls new reservations and/or pushes calendar updates. Returns sync status and counts. / Dispara sincronizacion manual de un canal de reservas. Importa reservas nuevas y/o env..."
+    "description": "Trigger a manual sync of a booking channel (Airbnb, Booking.com, etc.). Pulls new reservations and/or pushes calendar updates. Returns sync status and counts. / Dispara sincronizacion manual de un canal de reservas. Importa reservas nuevas y/o envia actualizaciones de calendario."
   },
   {
     "name": "test_webhook",
-    "description": "Fire a synthetic test event to the webhook endpoint and return the delivery result. Useful to verify endpoint reachability, signature validation, and TLS configuration. Optionally specify the eventType to simulate (default: 'webhook.test'). Exampl..."
+    "description": "Fire a synthetic test event to the webhook endpoint and return the delivery result. Useful to verify endpoint reachability, signature validation, and TLS configuration. Optionally specify the eventType to simulate (default: 'webhook.test'). Example: id='wh_abc', eventType='invoice.paid' / Envia un evento de prueba sintetico al endpoint del webhook. Util para verificar accesibilidad, validacion de firma y configuracion TLS."
   },
   {
     "name": "ticketbai_status",
-    "description": "Poll the hacienda acknowledgement status for a TicketBAI submission. Returns the TBAI identifier, territory, and hacienda's confirmation or rejection state. \\n\\n Common status values:\\n • submitted — sent, awaiting hacienda response (check again i..."
+    "description": "Poll the hacienda acknowledgement status for a TicketBAI submission. Returns the TBAI identifier, territory, and hacienda's confirmation or rejection state. \n\nCommon status values:\n  • submitted — sent, awaiting hacienda response (check again in 30-60s)\n  • accepted — hacienda confirmed the submission (AEAT/foral treasury received)\n  • rejected — hacienda rejected (check rejectionReason for correction guidance)\n  • error — internal processing error (see error field)\n\n/ Consulta el estado de acuse de recibo de la hacienda foral para un envío TicketBAI. Devuelve el identificador TBAI, territorio y estado de confirmación o rechazo."
   },
   {
     "name": "ticketbai_submit",
-    "description": "Submit an invoice to the Basque Country TicketBAI e-invoicing system. Territory is auto-detected from the workspace address (Bizkaia → BATUZ/LROE, Gipuzkoa → Gipuzkoa TicketBAI, Araba → Araba TicketBAI). Returns the submission TicketBAI ID (TBAI i..."
+    "description": "Submit an invoice to the Basque Country TicketBAI e-invoicing system. Territory is auto-detected from the workspace address (Bizkaia → BATUZ/LROE, Gipuzkoa → Gipuzkoa TicketBAI, Araba → Araba TicketBAI). Returns the submission TicketBAI ID (TBAI identifier) and QR code URL for printing on the invoice. \n\nUse sandbox=true for test submissions against the hacienda test endpoints. Production submissions require a valid TicketBAI certificate configured in workspace settings. \n\n/ Envía una factura al sistema TicketBAI del País Vasco. El territorio se detecta automáticamente (Bizkaia→BATUZ/LROE, Gipuzkoa, Álava). Devuelve el identificador TBAI y URL del código QR para imprimir en la factura."
   },
   {
     "name": "update_client",
-    "description": "Update an existing client using PATCH semantics. Only the provided fields will be changed. Example: id='abc123', email='new@acme.com', phone='+34600123456'"
+    "description": "Update an existing client using PATCH semantics. Only the provided fields will be changed. Example: id='abc123', email='new@acme.com', phone='+34600123456' / Actualiza un cliente existente. Solo se modifican los campos proporcionados."
   },
   {
     "name": "update_deposit",
-    "description": "Update an existing deposit using PATCH semantics. Only the provided fields will be changed. Example: id='abc123', amount=750, notes='Updated retainer amount'"
+    "description": "Update an existing deposit using PATCH semantics. Only the provided fields will be changed. Example: id='abc123', amount=750, notes='Updated retainer amount' / Actualiza un deposito existente. Solo se modifican los campos proporcionados."
   },
   {
     "name": "update_expense",
-    "description": "Update an existing expense using PATCH semantics. Only the provided fields will be changed. Example: id='abc123', amount=75.00, category='travel'"
+    "description": "Update an existing expense using PATCH semantics. Only the provided fields will be changed. Example: id='abc123', amount=75.00, category='travel' / Actualiza un gasto existente. Solo se modifican los campos proporcionados."
   },
   {
     "name": "update_invoice",
-    "description": "Update an existing invoice using PATCH semantics. Only the provided fields will be changed. Example: id='abc123', status='paid' to mark an invoice as paid."
+    "description": "Update an existing invoice using PATCH semantics. Only the provided fields will be changed. Example: id='abc123', status='paid' to mark an invoice as paid. / Actualiza una factura existente. Solo se modifican los campos proporcionados."
+  },
+  {
+    "name": "update_kitchen_ticket",
+    "description": "Advance a kitchen ticket through the workflow — update its status (e.g. queued → preparing → ready → served) or reassign it to a different station. / Avanza un ticket de cocina en el flujo: actualiza estado (queued → preparing → ready → served) o reasigna a otra estacion."
   },
   {
     "name": "update_product",
-    "description": "Update an existing product using PATCH semantics. Only the provided fields will be changed. Example: id='abc123', unitPrice=2000, taxRate=21"
+    "description": "Update an existing product using PATCH semantics. Only the provided fields will be changed. Example: id='abc123', unitPrice=2000, taxRate=21 / Actualiza un producto existente. Solo se modifican los campos proporcionados."
   },
   {
     "name": "update_quote",
-    "description": "Update an existing quote using PATCH semantics. Only the provided fields will be changed. Example: id='abc123', status='accepted' to mark a quote as accepted."
+    "description": "Update an existing quote using PATCH semantics. Only the provided fields will be changed. Example: id='abc123', status='accepted' to mark a quote as accepted. / Actualiza un presupuesto existente. Solo se modifican los campos proporcionados."
   },
   {
     "name": "update_recurring_invoice",
-    "description": "Update an existing recurring invoice template using PATCH semantics. Only provided fields are changed. Changing lineItems or taxRate affects future generated invoices only, not already-created ones."
+    "description": "Update an existing recurring invoice template using PATCH semantics. Only provided fields are changed. Changing lineItems or taxRate affects future generated invoices only, not already-created ones. / Actualiza una plantilla de factura recurrente existente. Solo se modifican los campos proporcionados. Cambiar lineas o tipo impositivo afecta solo a futuras facturas generadas."
   },
   {
     "name": "update_team_member_role",
-    "description": "Change the role of an existing team member. Only workspace admins or owners can change roles. Cannot change the owner's role — use a dedicated ownership transfer flow. Example: memberId='mbr_abc123', role='admin' / Cambia el rol de un miembro exis..."
+    "description": "Change the role of an existing team member. Only workspace admins or owners can change roles. Cannot change the owner's role — use a dedicated ownership transfer flow. Example: memberId='mbr_abc123', role='admin' / Cambia el rol de un miembro existente del espacio de trabajo. Solo administradores o propietarios pueden cambiar roles. No se puede cambiar el rol del propietario — usa el flujo de transferencia de propiedad."
   },
   {
     "name": "update_time_entry",
-    "description": "Update an existing time entry using PATCH semantics. Only provided fields are changed. Example: id='te_abc123', hours=3.0, description='Frontend review + testing'"
+    "description": "Update an existing time entry using PATCH semantics. Only provided fields are changed. Example: id='te_abc123', hours=3.0, description='Frontend review + testing' / Actualiza una entrada de tiempo existente. Solo se modifican los campos proporcionados."
   },
   {
     "name": "update_vendor",
-    "description": "Update an existing vendor using PATCH semantics. Only the provided fields will be changed. Example: id='abc123', email='new@supplier.com', phone='+34600123456'"
+    "description": "Update an existing vendor using PATCH semantics. Only the provided fields will be changed. Example: id='abc123', email='new@supplier.com', phone='+34600123456' / Actualiza un proveedor existente. Solo se modifican los campos proporcionados."
   },
   {
     "name": "update_webhook",
-    "description": "Update an existing webhook configuration using PATCH semantics. Only provided fields change. Example: id='abc123', active=false to disable a webhook."
+    "description": "Update an existing webhook configuration using PATCH semantics. Only provided fields change. Example: id='abc123', active=false to disable a webhook. / Actualiza la configuracion de un webhook. Solo se modifican los campos proporcionados."
   },
   {
     "name": "validate_einvoice_xml",
-    "description": "Validate an e-invoice XML document against the specified format's schema and schematron rules. Returns a list of errors with severity, XPath location, message, and rule ID. Runs KOSIT validator (XRechnung), Mustang (EN16931), XSD, or Schematron de..."
+    "description": "Validate an e-invoice XML document against the specified format's schema and schematron rules. Returns a list of errors with severity, XPath location, message, and rule ID. Runs KOSIT validator (XRechnung), Mustang (EN16931), XSD, or Schematron depending on format. \n\nUse before dispatch to catch errors early without incurring network transmission costs. A valid=true response means the document passes all schema + business rule checks. \n\nIf the validation backend is not deployed for this workspace, returns an honest 'unavailable' response — never a fabricated valid=true. / Valida un documento XML de factura electronica contra el esquema y reglas schematron del formato especificado."
   },
   {
     "name": "verifactu_resubmit",
-    "description": "TRUST AREA — COMPLIANCE. Re-submit a failed or rejected VeriFactu submission to AEAT. Idempotent: uses the same hash chain; AEAT deduplicates by hash. Creates an audit trail entry for every resubmission attempt. Requires confirm=true. Only use on ..."
+    "description": "TRUST AREA — COMPLIANCE. Re-submit a failed or rejected VeriFactu submission to AEAT. Idempotent: uses the same hash chain; AEAT deduplicates by hash. Creates an audit trail entry for every resubmission attempt. Requires confirm=true. Only use on invoices with status='failed'. / AREA DE CONFIANZA — COMPLIANCE. Reenvio de una factura VeriFactu fallida a AEAT. Idempotente: misma cadena hash. Registra entrada de auditoria en cada intento. Requiere confirm=true. Solo para facturas con status='failed'."
   },
   {
     "name": "verifactu_status",
-    "description": "Get the VeriFactu (AEAT Spanish e-invoice chain) submission status for a specific invoice. Returns last submission timestamp, hash, AEAT response code, and QR verification URL."
+    "description": "Get the VeriFactu (AEAT Spanish e-invoice chain) submission status for a specific invoice. Returns last submission timestamp, hash, AEAT response code, and QR verification URL. / Obtiene el estado de envio VeriFactu (AEAT) para una factura especifica. Devuelve timestamp del ultimo envio, hash, respuesta AEAT y URL del codigo QR."
   }
 ]
