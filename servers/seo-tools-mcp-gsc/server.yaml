@@ -1,0 +1,51 @@
+name: seo-tools-mcp-gsc
+image: mcp/seo-tools-mcp-gsc
+type: server
+meta:
+  category: analytics
+  tags:
+    - seo
+    - google-search-console
+    - gsc
+    - analytics
+    - search
+about:
+  title: "SEO Tools: Google Search Console"
+  description:
+    "Read-only Google Search Console: Search Analytics (clicks, impressions, CTR, position),
+    URL Inspection (index status) and sitemaps. OAuth refresh token or service account."
+  icon: https://raw.githubusercontent.com/antohins/seo-tools-mcp/main/assets/logo-400.png
+source:
+  project: https://github.com/antohins/seo-tools-mcp
+  branch: main
+  commit: 74147333f3f434ae986f5f4b4a2ed0211d7d0d5f
+  dockerfile: servers/gsc/Dockerfile
+config:
+  description:
+    Google OAuth credentials for Search Console (read-only scope). Obtain a refresh token once
+    via the interactive gsc_oauth flow (run locally), then provide it here.
+  secrets:
+    - name: seo-tools-mcp-gsc.client_secret
+      env: GOOGLE_CLIENT_SECRET
+      example: <GOOGLE_CLIENT_SECRET>
+    - name: seo-tools-mcp-gsc.refresh_token
+      env: GSC_REFRESH_TOKEN
+      example: <GSC_REFRESH_TOKEN>
+  env:
+    - name: GOOGLE_CLIENT_ID
+      example: xxxxx.apps.googleusercontent.com
+      value: "{{seo-tools-mcp-gsc.client_id}}"
+    - name: GSC_SITE_URL
+      example: sc-domain:example.com
+      value: "{{seo-tools-mcp-gsc.site_url}}"
+  parameters:
+    type: object
+    properties:
+      client_id:
+        type: string
+        description: Google OAuth client ID (Desktop app).
+      site_url:
+        type: string
+        description: Default GSC property, e.g. sc-domain:example.com (optional).
+    required:
+      - client_id
