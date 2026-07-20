@@ -1,0 +1,36 @@
+name: talamus
+image: mcp/talamus
+type: server
+meta:
+  category: ai
+  tags:
+    - ai
+    - memory
+    - knowledge-graph
+    - local-first
+about:
+  title: Talamus
+  description: Local-first, source-grounded memory for AI agents with cited Markdown notes, provenance, bitemporal history, and review-gated corrections.
+  icon: https://raw.githubusercontent.com/ampres-ai/talamus/34bd2c387e7191bf25d259b96327338086fbd40b/docs/assets/talamus-mcp-icon.png
+source:
+  project: https://github.com/ampres-ai/talamus
+  commit: 34bd2c387e7191bf25d259b96327338086fbd40b
+run:
+  volumes:
+    - "{{talamus.brain_path}}:/data"
+config:
+  description: Select a writable, initialized Talamus brain. The Anthropic API key is optional and only enables LLM-backed tools when that brain uses the anthropic-api engine; local retrieval does not require it.
+  secrets:
+    - name: talamus.anthropic_api_key
+      env: ANTHROPIC_API_KEY
+      example: <ANTHROPIC_API_KEY>
+      required: false
+  parameters:
+    type: object
+    properties:
+      brain_path:
+        type: string
+        description: Absolute host path to the initialized Talamus brain/project directory
+        default: /Users/local-test/talamus-brain
+    required:
+      - brain_path
