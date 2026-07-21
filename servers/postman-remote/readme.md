@@ -1,1 +1,1 @@
-For documentation, visit [Postman MCP Server](https://github.com/postmanlabs/postman-mcp-server).
+For more information, visit [Postman MCP Server](https://www.postman.com/product/mcp-server/).
