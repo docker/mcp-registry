@@ -6,47 +6,64 @@ meta:
   tags:
     - temporal
     - workflow
+    - orchestration
     - devops
 about:
   title: Temporal
-  description: MCP support for Temporal. A comprehensive set of tools for interacting with workflows and their adjacent configurations.
+  description: Manage Temporal workflows, schedules, namespaces, task queues, and workflow execution history from MCP clients.
   icon: https://media.licdn.com/dms/image/v2/D560BAQG2k4od1BnFYw/company-logo_200_200/company-logo_200_200/0/1719946312124/temporal_technologies_logo?e=2147483647&v=beta&t=MFaqPo93l6qp8Dj0NrAdWyIk3izLBhN1i0WCBf-yVFs
 source:
   project: https://github.com/GethosTheWalrus/temporal-mcp
-  commit: bbe92ebc4375aff5e5efff6ffd7b69db8956d92b
+  commit: ff473384c861b4b995397b2e376ea3d8c4656f71
 config:
-  description: Configure your Temporal server address. For local Temporal, set the host to localhost:7233, namespace to 'default', and leave TLS settings blank. For Temporal Cloud, set the host to your namespace endpoint and authenticate via mTLS (cert + key paths) or an API key.
+  description: Configure the connection to Temporal. For a local Temporal service running on the host, use host.docker.internal:7233. For Temporal Cloud, use your namespace endpoint and provide an API key or mounted mTLS certificate paths.
+  secrets:
+    - name: temporal.api_key
+      env: TEMPORAL_API_KEY
+      example: <TEMPORAL_API_KEY>
+      description: Optional Temporal Cloud API key. TLS is enabled automatically when this is set.
   env:
     - name: TEMPORAL_HOST
-      example: localhost:7233
+      example: host.docker.internal:7233
       value: "{{temporal.temporal_host}}"
+      description: Temporal frontend host and port.
     - name: TEMPORAL_NAMESPACE
       example: default
       value: "{{temporal.temporal_namespace}}"
+      description: Temporal namespace to connect to.
     - name: TEMPORAL_TLS_ENABLED
       example: "false"
       value: "{{temporal.temporal_tls_enabled}}"
+      description: Force TLS on or off. Leave false for local development unless your Temporal endpoint requires TLS.
     - name: TEMPORAL_TLS_CLIENT_CERT_PATH
       example: /certs/client.pem
       value: "{{temporal.temporal_tls_client_cert_path}}"
+      description: Optional path inside the container to an mTLS client certificate.
     - name: TEMPORAL_TLS_CLIENT_KEY_PATH
       example: /certs/client.key
       value: "{{temporal.temporal_tls_client_key_path}}"
-    - name: TEMPORAL_API_KEY
-      example: ""
-      value: "{{temporal.temporal_api_key}}"
+      description: Optional path inside the container to an mTLS client private key.
   parameters:
     type: object
     properties:
       temporal_host:
         type: string
+        description: Temporal frontend host and port.
+        default: host.docker.internal:7233
       temporal_namespace:
         type: string
+        description: Temporal namespace to connect to.
+        default: default
       temporal_tls_enabled:
         type: string
+        description: Whether to force TLS for the Temporal connection.
+        default: "false"
       temporal_tls_client_cert_path:
         type: string
+        description: Optional path inside the container to an mTLS client certificate.
       temporal_tls_client_key_path:
         type: string
-      temporal_api_key:
-        type: string
+        description: Optional path inside the container to an mTLS client private key.
+    required:
+      - temporal_host
+      - temporal_namespace
