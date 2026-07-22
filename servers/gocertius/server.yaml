@@ -1,0 +1,60 @@
+name: gocertius
+description: MCP server for GoCertius: certified evidence, dossiers, notifications and chats via AI agents.
+image: gdigital/gocertius:1.5.1
+icon: https://unpkg.com/@g-digital/mcp-gocertius@1.5.1/assets/logo-400x400.png
+about:
+  homepage: https://github.com/g-digital-by-Garrigues/MCP_Market_Distribution
+  publisher: g-digital by Garrigues
+  license: MIT
+source:
+  repository: https://github.com/g-digital-by-Garrigues/MCP_Market_Distribution
+  directory: pending-to-publish/gocertius
+config:
+  description: |
+    Consumer credentials are required to run this MCP. See README for setup.
+  env:
+    - name: MCP_ALLOW_INSECURE_FILE_URL
+      example: 
+      description: Set to "true" to allow plain http:// fileUrl downloads in evidence_create (default https-only). Private/internal addresses are rejected regardless (resolution-time check; see the documented DNS TOCTOU limitation in the hosted-deployment runbook).
+    - name: MCP_ALLOW_UNVERIFIED_BEARER
+      example: 
+      description: Escape hatch for MCP_HTTP_PUBLIC=true WITHOUT inbound-token introspection: set to "true" ONLY when an upstream gateway already verifies Bearer tokens. The server logs a prominent warning and forwards tokens upstream unverified.
+    - name: MCP_ALLOWED_HOSTS
+      example: 
+      description: Comma-separated allowed Host headers. Empty = Host validation disabled (default). When set, requests with a Host outside the list are rejected.
+    - name: MCP_ALLOWED_ORIGINS
+      example: 
+      description: Comma-separated allowed browser Origins (DNS-rebinding defense). Empty = reject any request carrying an Origin header; non-browser clients (CLI/SDK) send no Origin and are always allowed. Use '*' to allow all.
+    - name: MCP_API_BASE_URL
+      example: 
+      description: Overrides the default upstream API host for every tool
+    - name: MCP_AUTH_EMAIL
+      example: 
+      description: Your GoCertius account email. Configure exactly one flow; do not combine it with the others.
+    - name: MCP_AUTH_PASSWORD
+      example: 
+      description: Your GoCertius account password. (See https://www.gocertius.io for credential acquisition.)
+    - name: MCP_AUTH_USER_KEY
+      example: 
+      description: Long-lived GoCertius user key, exchanged automatically for a short-lived session token. Use it for headless or automated access instead of an account password. Configure exactly one flow; do not combine it with the others. (See https://www.gocertius.io for credential acquisition.)
+    - name: MCP_HTTP_HOST
+      example: 127.0.0.1
+      description: Interface the HTTP transport binds to. Default 127.0.0.1 (localhost only). Set 0.0.0.0 to expose on all interfaces (containers do this automatically).
+    - name: MCP_HTTP_MAX_BODY_BYTES
+      example: 
+      description: Maximum accepted POST /mcp request-body size in bytes (default 16777216 = 16 MiB — sized so base64 file uploads within the documented tool limits fit). Oversized requests get a 413 JSON-RPC error before/while reading — closes a memory-exhaustion DoS vector in public deployments. Note: base64 file sources are capped by this limit BEFORE MCP_FILE_MAX_BYTES applies.
+    - name: MCP_HTTP_PUBLIC
+      example: 
+      description: Set to "true" for public/multi-tenant deployments. Activates Host validation and refuses to start unless (1) MCP_ALLOWED_ORIGINS or MCP_ALLOWED_HOSTS is set AND (2) inbound Bearer introspection is configured (MCP_SVC_INTROSPECT_URL + MCP_SVC_CLIENT_ID/SECRET) or MCP_ALLOW_UNVERIFIED_BEARER=true is set explicitly (fail-closed).
+    - name: MCP_SVC_CLIENT_ID
+      example: 
+      description: Client ID this server presents to the introspection endpoint above (its resource-server credentials). Only needed alongside MCP_SVC_INTROSPECT_URL; it does not authenticate you to GoCertius.
+    - name: MCP_SVC_CLIENT_SECRET
+      example: 
+      description: Client secret this server presents to the introspection endpoint above (its resource-server credentials). Only needed alongside MCP_SVC_INTROSPECT_URL; it does not authenticate you to GoCertius. (See https://www.gocertius.io for credential acquisition.)
+    - name: MCP_SVC_INTROSPECT_URL
+      example: 
+      description: RFC 7662 token introspection URL for inbound Bearer verification in HTTP mode. Opt-in, and required when MCP_HTTP_PUBLIC=true. Leave empty for stdio (local) use.
+    - name: PORT
+      example: 8080
+      description: HTTP port when running in hosted (HTTP) mode; ignored in stdio mode
