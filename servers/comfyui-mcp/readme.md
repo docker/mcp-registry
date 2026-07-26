@@ -5,6 +5,7 @@
 For complete documentation on the ComfyUI MCP server, visit:
 - **Official Docs:** https://comfyui-mcp.artokun.io/docs
 - **GitHub Repository:** https://github.com/artokun/comfyui-mcp
+- **Agent Panel:** https://github.com/artokun/comfyui-mcp-panel
 - **Local LLM Guide:** https://comfyui-mcp.artokun.io/docs/local-llms
 - **Discord Community:** https://discord.gg/cW9arBhzCu
 
@@ -18,6 +19,27 @@ This MCP server connects your LLM to ComfyUI, enabling:
 - **Workflow automation** (create, modify, validate, run)
 - **Model management** (search, download, list)
 - **Custom node installation** (discovery, installation, management)
+- **Autonomous sidebar agent** (ComfyUI Agent Panel) for direct canvas control
+
+## Standalone Headless + Sidebar Agent
+
+This package provides TWO ways to use comfyui-mcp:
+
+### 1. **Headless MCP Server** (this submission)
+Run the MCP server standalone in Docker or Node.js:
+- Use with Claude Desktop, Claude Code, ChatGPT, Cursor, etc.
+- Controlled purely via tool calls
+- No UI component required
+
+### 2. **ComfyUI Agent Panel** (optional sidebar)
+Install the autonomous agent directly in ComfyUI:
+- GitHub: https://github.com/artokun/comfyui-mcp-panel
+- ComfyUI-Manager: Search `comfyui-agent-panel`
+- Sidebar agent that drives your live canvas
+- Real-time workflow editing and execution
+- Works with any backend (Claude, ChatGPT, Gemini, Ollama, etc.)
+
+Use either independently or together for maximum flexibility.
 
 ## Supported LLMs
 
