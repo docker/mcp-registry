@@ -33,19 +33,19 @@ jobs:
 
       - name: Pull latest Quasimoto MCP image
         run: |
-          docker pull ghcr.io/queenfi703/quasimoto-mcp:latest
+          docker pull ghcr.io/queenfi703/quasimoto:latest
 
       - name: Get latest image digest
         id: digest
         run: |
-          DIGEST=$(docker image inspect ghcr.io/queenfi703/quasimoto-mcp:latest \
+          DIGEST=$(docker image inspect ghcr.io/queenfi703/quasimoto:latest \
             --format='{{index .RepoDigests 0}}')
           echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
 
       - name: Update docker-compose.yml
         run: |
           sed -i \
-            "s|ghcr.io/queenfi703/quasimoto-mcp@.*|${{ steps.digest.outputs.digest }}|g" \
+            "s|ghcr.io/queenfi703/quasimoto:latest@.*|${{ steps.digest.outputs.digest }}|g" \
             docker-compose.yml
 
       - name: Start DREDGE services
