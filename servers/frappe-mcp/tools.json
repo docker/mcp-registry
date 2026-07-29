@@ -1,39 +1,48 @@
 [
   {
     "name": "frappe_create_doc",
-    "description": "Create a new document of the specified DocType with the provided field values. The data object should contain field names as keys and their respective values. Frappe auto-generates document names (via naming series) for new records. Returns the created document including its system-assigned name and all field values.",
+    "description": "Create a new document of the given DocType from the supplied field values.\nUse to insert a record that does not yet exist. Use frappe_update_doc instead to change a record that already exists — this tool never updates in place, so re-running it creates a second, separately named document.\nBehavior: writes to the site and is NOT idempotent. The document is inserted as a draft (docstatus 0) and is not submitted, so submittable DocTypes such as Sales Invoice still need a submit step via frappe_run_method. Frappe assigns the name from the DocType's naming series, so the name is unknown until this call returns. Server-side validation, mandatory-field checks and DocType hooks all run on insert; a missing mandatory field or an invalid Link value raises a Frappe error and nothing is created. Requires create permission on the DocType.\nParameters: `data` keys are fieldnames (`customer_name`), not form labels ('Customer Name'); Link fields take the target document's `name`, not its title. Child tables are passed as a list of row objects under the child field's own fieldname. Omit `name` — it is assigned by the naming series and any value supplied is ignored unless the DocType prompts for naming.\nReturns: {\"data\": {...}} — the created document, including the assigned `name`.",
     "arguments": [
       {
         "name": "data",
         "type": "object",
-        "desc": "Key-value pairs of document field values to set. Keys are field names (e.g. 'customer_name', 'email_id', 'status', 'items'), values are the field values. For child table fields, provide a list of dicts. Must include at least all mandatory fields required by the target DocType."
+        "desc": "Key-value pairs of document field values to set. Keys are fieldnames (e.g. 'customer_name', 'email_id', 'status', 'items'), not form labels; Link fields take the target document's `name`. Child-table fields take a list of row objects. Must include every field the target DocType marks mandatory, or the insert is rejected."
       },
       {
         "name": "doctype",
         "type": "string",
-        "desc": "The target DocType name for the new document (e.g. 'Customer', 'Sales Invoice', 'Item', 'ToDo', 'Contact', 'Address'). Must be a valid DocType that exists on the target Frappe site."
+        "desc": "The target DocType name for the new document (e.g. 'Customer', 'Sales Invoice', 'Item', 'ToDo', 'Contact', 'Address'). Case-sensitive and must be a DocType that exists on the target Frappe site."
       }
-    ]
+    ],
+    "annotations": {
+      "title": "Create a document",
+      "openWorldHint": true
+    }
   },
   {
     "name": "frappe_delete_doc",
-    "description": "Permanently delete a document by its doctype and name. This action is irreversible — the document and all its associated data are removed from the system. Use with caution. For audit purposes, consider updating the document status to 'Cancelled' instead where applicable (e.g., for Sales Invoices, Sales Orders).",
+    "description": "Permanently delete a document by its doctype and name.\nUse only for genuinely disposable records such as ToDo or Note, or for a test document created moments earlier — the deletion is irreversible, with no undo and no recycle bin. Prefer frappe_update_doc to set a status such as 'Cancelled' whenever an audit trail matters, which covers most transactional records (Sales Invoice, Sales Order, Payment Entry, Journal Entry).\nBehavior: writes to the site. Not idempotent from the caller's point of view — a second call for the same name raises a not-found error. Frappe refuses the delete while other documents link to this one, so a link-exists error means the dependants must be handled first. Deleting a parent removes its child-table rows with it. Submitted documents must be cancelled before they can be deleted. Requires delete permission on the DocType.\nParameters: `name` is the exact `name` primary key, not a title, and a wrong value deletes the wrong record with no warning — confirm with frappe_get_doc first when there is any doubt. One document per call: there is no bulk mode and no dry-run, and the deletion is committed as soon as the call is accepted.\nReturns: {\"message\": \"ok\"} on success.",
     "arguments": [
       {
         "name": "doctype",
         "type": "string",
-        "desc": "The DocType of the document to delete (e.g. 'ToDo', 'Note', 'Contact', 'Address'). WARNING: Deleting transactional or parent documents may affect or orphan linked child records."
+        "desc": "The DocType of the document to delete (e.g. 'ToDo', 'Note', 'Contact', 'Address'). WARNING: deleting a transactional or parent document removes its child rows and may be blocked by, or orphan, linked records."
       },
       {
         "name": "name",
         "type": "string",
-        "desc": "The unique document name or ID to permanently remove from the system (e.g. 'TODO-00001', 'NOTE-00001'). This operation cannot be undone."
+        "desc": "The exact `name` primary key of the document to permanently remove (e.g. 'TODO-00001', 'NOTE-00001'). This operation cannot be undone, so verify the value identifies the intended record before calling."
       }
-    ]
+    ],
+    "annotations": {
+      "title": "Delete a document (irreversible)",
+      "destructiveHint": true,
+      "openWorldHint": true
+    }
   },
   {
     "name": "frappe_get_doc",
-    "description": "Retrieve a single document (doctype record) by its doctype and document name. Returns all fields and values of the document. Common use cases: fetch a Sales Invoice by its number, get Customer details, load an Item record, or retrieve any saved document by its unique name.",
+    "description": "Retrieve one complete document (a single DocType record) by its exact doctype and document name.\nUse when the document's name is already known, such as 'SINV-00001'. Use frappe_search_docs instead to find documents by field value, to fetch many records, or to return only a few fields; use frappe_run_method for values that are computed rather than stored on the document.\nBehavior: read-only and idempotent, with no side effects. Returns the document in whatever state it is stored — draft, submitted or cancelled — without filtering. Results respect the API user's role permissions: a document that exists but is not permitted raises a permission error, while an unknown doctype or name raises a not-found error.\nParameters: doctype and name are both case-sensitive and must match Frappe exactly. `name` is the primary key from the list view, not a title — for DocTypes using a naming series it looks like 'SINV-00001', and only for DocTypes named by field does it equal a human-readable value such as a customer name.\nReturns: {\"data\": {...}} containing every stored field, with child tables nested as arrays of row objects.",
     "arguments": [
       {
         "name": "doctype",
@@ -43,39 +52,56 @@
       {
         "name": "name",
         "type": "string",
-        "desc": "The unique document name or ID to retrieve (e.g. 'SINV-00001', 'CUST-00001', 'ITEM-00001', 'Administrator'). This is typically the `name` field shown in the Frappe list view or document form."
+        "desc": "The unique document name or ID to retrieve (e.g. 'SINV-00001', 'CUST-00001', 'ITEM-00001', 'Administrator'). This is the `name` primary key shown in the Frappe list view or document form, not a title or description field."
       }
-    ]
+    ],
+    "annotations": {
+      "title": "Get one document",
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
   },
   {
     "name": "frappe_ping",
-    "description": "Check connectivity to the configured Frappe/ERPNext site. Returns a pong response confirming the server is reachable, authenticated, and responsive. Use this as a health-check before making other calls to verify the connection is working."
+    "description": "Check connectivity and credentials against the configured Frappe/ERPNext site.\nUse first when another tool fails, to tell a network or credential problem apart from a bad doctype or document name. This is a diagnostic, not a data tool — it never reads or writes documents.\nBehavior: read-only and idempotent, with no side effects. A pong proves the site is reachable and that FRAPPE_API_KEY/FRAPPE_API_SECRET authenticate; it does not prove the API user has permission for any particular DocType. Failure surfaces as a connection error (site unreachable, wrong URL, TLS problem) or an auth error (bad key or secret).\nParameters: none by design — the target site and credentials come from the server's own environment, never from the caller, so this tool cannot be aimed at a different host.\nReturns: {\"message\": \"pong\"}.",
+    "annotations": {
+      "title": "Check Frappe connection",
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
   },
   {
     "name": "frappe_run_method",
-    "description": "Call a whitelisted server-side Python method on the Frappe site remotely. Use this for operations not covered by the standard CRUD tools — such as getting the logged user, computing stock balances, running reports, triggering workflows, or invoking custom API methods. The target method must be decorated with @frappe.whitelist() on the server.",
+    "description": "Call a whitelisted server-side Python method on the Frappe site.\nUse as the escape hatch for anything the CRUD tools cannot express — submitting or cancelling documents, running reports, computing stock balances, or invoking a custom app's API. Use frappe_get_doc, frappe_search_docs, frappe_create_doc or frappe_update_doc for ordinary record work: they validate their arguments and describe their effects, whereas this tool cannot.\nBehavior: the effect is determined entirely by the method named and may read, write, delete or enqueue background jobs, so treat every call as potentially destructive and non-idempotent unless the method is known to be safe. The target must be decorated with @frappe.whitelist(); anything else raises a permission error, as does a method whose own permission checks reject the API user. Calls run synchronously and are subject to the server's request timeout (FRAPPE_TIMEOUT, 30s by default).\nParameters: `method` is the full dotted import path — module path plus function name — not a DocType method name or a REST path. `kwargs` maps onto that method's named arguments exactly; names come from its signature, and an unexpected or missing key raises a Frappe error rather than being ignored. Values must be JSON-serialisable, with dates passed as 'YYYY-MM-DD' strings. Omitting `kwargs` calls the method with no arguments.\nReturns: {\"message\": ...} — the method's return value, whose type depends entirely on the method called.",
     "arguments": [
       {
         "name": "method",
         "type": "string",
-        "desc": "Dotted Python path to the whitelisted method to call. Examples: 'frappe.auth.get_logged_user', 'frappe.utils.get_stock_balance', 'erpnext.stock.utils.get_stock_balance', or any custom whitelisted method from your Frappe app."
+        "desc": "Full dotted Python path to the whitelisted method — module path plus function name. Examples: 'frappe.auth.get_logged_user', 'frappe.client.submit', 'erpnext.stock.utils.get_stock_balance', or any custom whitelisted method from an installed Frappe app. Not a REST path and not a DocType method name."
       },
       {
         "name": "kwargs",
         "type": "object",
-        "desc": "Optional dictionary of keyword arguments to pass to the remote method. The keys and expected values depend entirely on the specific method being called. Example for stock balance: {'item_code': 'ITEM-001', 'warehouse': 'Stores - W'}. Defaults to an empty dict when omitted.",
+        "desc": "Optional keyword arguments passed to the remote method. Keys must match that method's parameter names exactly — they depend entirely on the method being called, and an unknown key raises an error rather than being ignored. Values must be JSON-serialisable; pass dates as 'YYYY-MM-DD' strings. Example for stock balance: {'item_code': 'ITEM-001', 'warehouse': 'Stores - W'}. Defaults to no arguments when omitted.",
         "optional": true
       }
-    ]
+    ],
+    "annotations": {
+      "title": "Call a whitelisted server method",
+      "destructiveHint": true,
+      "openWorldHint": true
+    }
   },
   {
     "name": "frappe_search_docs",
-    "description": "Search or list documents of a given DocType with optional filters, field selection, pagination (default 20, max 200), and ordering. Returns a paginated list of matching documents. Use filters to narrow results by status, date range, amount, or any document field.",
+    "description": "Search or list documents of one DocType, with optional filters, field selection, ordering and pagination.\nUse to find documents by field value or to browse a DocType. Use frappe_get_doc instead when the exact document name is known and every field is wanted; use frappe_run_method for aggregates, totals or report output, which this tool cannot compute.\nBehavior: read-only and idempotent, with no side effects. Only documents the API user's role permissions allow are returned, so a short result may mean restricted access rather than no matches. An unknown doctype raises a not-found error, and an unknown fieldname in `filters`, `fields` or `order_by` raises a Frappe error rather than being silently ignored.\nParameters: `filters` entries are ANDed together — there is no OR — and each is a [field, operator, value] triple; `in`/`not in` take a list as the value and `between` takes a two-element list. `fields` should name only what is needed, since omitting it returns every field of every row and can be very large. `limit` defaults to 20 and Frappe caps it at 200; there is no offset parameter, so page by ordering on `creation` and filtering past the last value already seen.\nReturns: {\"data\": [...]} — an array of documents, empty when nothing matches.",
     "arguments": [
       {
         "name": "doctype",
         "type": "string",
-        "desc": "The DocType to search within (e.g. 'Sales Invoice', 'Customer', 'Item', 'ToDo', 'Contact'). This parameter is required."
+        "desc": "The DocType to search within (e.g. 'Sales Invoice', 'Customer', 'Item', 'ToDo', 'Contact'). Case-sensitive; exactly one DocType per call, as this tool cannot search across DocTypes."
       },
       {
         "name": "fields",
@@ -83,7 +109,7 @@
         "items": {
           "type": "string"
         },
-        "desc": "Optional list of field names to return. Limits the response to only the specified fields for efficiency. Example: ['name', 'status', 'grand_total', 'posting_date']. When omitted, all fields are returned.",
+        "desc": "Optional list of fieldnames to return. Limits the response to only the specified fields, which keeps large result sets manageable. Example: ['name', 'status', 'grand_total', 'posting_date']. When omitted, all fields are returned. Child-table fields are not expanded here — fetch the full document with frappe_get_doc for those.",
         "optional": true
       },
       {
@@ -92,42 +118,54 @@
         "items": {
           "type": "array"
         },
-        "desc": "Optional list of filter conditions. Each filter is a triple [field, operator, value]. Supported operators: =, !=, >, <, >=, <=, like, not like, in, not in, between. Example: [['status','=','Open'], ['grand_total','>','1000']].",
+        "desc": "Optional list of filter conditions, all ANDed together. Each filter is a triple [field, operator, value]. Supported operators: =, !=, >, <, >=, <=, like, not like, in, not in, between. Example: [['status','=','Open'], ['grand_total','>','1000']]. Dates are compared as 'YYYY-MM-DD' strings.",
         "optional": true
       },
       {
         "name": "limit",
         "type": "integer",
-        "desc": "Maximum number of results to return (default: 20, maximum: 200). Use for pagination. Frappe caps results at 200 per request.",
+        "desc": "Maximum number of results to return (default: 20, maximum: 200). Frappe caps results at 200 per request; there is no offset parameter, so paginate by narrowing `filters` rather than by increasing this.",
         "optional": true
       },
       {
         "name": "order_by",
         "type": "string",
-        "desc": "Field to sort by with direction. Format: 'fieldname direction'. Examples: 'creation desc' (newest first), 'modified asc' (oldest updated first), 'name asc' (alphabetical). Default ordering is by creation date descending.",
+        "desc": "Field to sort by with direction, formatted as 'fieldname direction'. Examples: 'creation desc' (newest first), 'modified asc' (oldest updated first), 'name asc' (alphabetical). The direction is required. Defaults to 'creation desc' when omitted.",
         "optional": true
       }
-    ]
+    ],
+    "annotations": {
+      "title": "Search or list documents",
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
   },
   {
     "name": "frappe_update_doc",
-    "description": "Update specific fields of an existing document identified by its doctype and name. Only the fields provided in the data object are modified; all other fields remain unchanged. Returns the updated document with all current values. Use for changing status, updating contact information, modifying amounts, or adjusting any document field.",
+    "description": "Update selected fields of an existing document, identified by its doctype and name.\nUse for partial edits: only the keys present in `data` change and every other field is left alone. Use frappe_create_doc for records that do not exist yet, and prefer this tool over frappe_delete_doc when a document should be voided rather than removed — setting a status such as 'Cancelled' preserves the audit trail.\nBehavior: writes to the site, overwriting the previous values of the fields supplied; those old values are not recoverable through this API. Idempotent — repeating an identical call leaves the document in the same state. Validation and DocType hooks run on save, so an update is accepted or rejected as a whole, never partially applied. Documents already submitted (docstatus 1) accept changes only to fields marked 'Allow on Submit'; other edits fail. Requires write permission on the DocType.\nParameters: `data` keys are fieldnames, not form labels. Supplying a child-table field replaces the entire table rather than merging rows, so to amend one row read the document with frappe_get_doc first and send back the complete row list. Fields omitted from `data` are untouched — there is no way to clear a field except by setting it explicitly to null or an empty string.\nReturns: {\"data\": {...}} — the whole document as it stands after the update.",
     "arguments": [
       {
         "name": "data",
         "type": "object",
-        "desc": "Dictionary of field names and their new values. Only the fields included here are modified; other fields retain their current values. Example: {'status': 'Cancelled', 'remarks': 'Cancelled per customer request'}."
+        "desc": "Fieldnames and their new values. Only the fields included here are modified; others retain their current values. Passing a child-table field replaces every row in that table. Example: {'status': 'Cancelled', 'remarks': 'Cancelled per customer request'}."
       },
       {
         "name": "doctype",
         "type": "string",
-        "desc": "The DocType of the document to update (e.g. 'Sales Invoice', 'Customer', 'Item', 'Sales Order'). Must match the doctype of the existing document."
+        "desc": "The DocType of the document to update (e.g. 'Sales Invoice', 'Customer', 'Item', 'Sales Order'). Case-sensitive and must match the doctype of the existing document."
       },
       {
         "name": "name",
         "type": "string",
-        "desc": "The unique document name or ID of the existing document to modify (e.g. 'SINV-00001', 'CUST-00001', 'ITEM-00001')."
+        "desc": "The `name` primary key of the existing document to modify (e.g. 'SINV-00001', 'CUST-00001', 'ITEM-00001'). The document must already exist; this tool does not create one."
       }
-    ]
+    ],
+    "annotations": {
+      "title": "Update a document",
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
   }
 ]
