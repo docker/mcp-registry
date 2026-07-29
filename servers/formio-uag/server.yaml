@@ -1,0 +1,48 @@
+name: formio-uag
+image: formio/uag
+type: server
+meta:
+  category: productivity
+  tags:
+    - forms
+    - automation
+    - data-collection
+    - workflow
+    - Form.io
+    - formio
+about:
+  title: Form.io - Universal Agent Gateway (UAG)
+  description: Turns Form.io forms, resources, and workflows into agent-readable context so an AI agent can collect, validate, and submit structured data. Form JSON schemas are converted into markdown the model can reason about, and submissions are validated against the same rules the human renderer enforces — so unstructured conversation becomes a deterministic, validated record. Tools cover listing forms, inspecting fields and their validation rules, collecting and confirming field data, fetching external or Resource-backed option data, searching existing submissions, and submitting or updating records.
+  icon: https://avatars.githubusercontent.com/u/11790256?v=4
+source:
+  project: https://github.com/formio/uag
+  commit: 7388468c69778af705df153aabf7943515651604
+config:
+  description: Configure the connection to your Form.io deployment
+  secrets:
+    - name: formio-uag.jwt_secret
+      env: JWT_SECRET
+      example: <JWT_SECRET>
+    - name: formio-uag.project_key
+      env: PROJECT_KEY
+      example: <PROJECT_KEY>
+  env:
+    - name: PROJECT
+      example: https://your-project.form.io
+      value: "{{formio-uag.project}}"
+    # The server starts without this, but it is published in the .well-known
+    # OIDC definitions and used for auth callbacks, so remote agents cannot
+    # authenticate when it is missing.
+    - name: BASE_URL
+      example: https://uag.your-domain.com
+      value: "{{formio-uag.base_url}}"
+  parameters:
+    type: object
+    properties:
+      project:
+        type: string
+      base_url:
+        type: string
+    required:
+      - project
+      - base_url
