@@ -1,1 +1,1 @@
-Docs: https://quantdata.uk/docs
+Docs: https://quantdata.uk/mcp
