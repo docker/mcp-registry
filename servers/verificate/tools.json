@@ -1,80 +1,80 @@
 [
  {
   "name": "validate_ai_output",
-  "description": "The merge gate for AI-written CODE: returns a binary approve/reject verdict with veto power. Deterministic reality gates (mock/placeholder veto, gaming and bypass detection, invented-API checks) run first and cannot be overridden; an enterprise review (ISO/IEC 25010) then scores performance, scalability, reliability and tech debt. Call this on every AI-generated diff before you accept it. For plans use validate_plan; for an advisory report without a verdict use analyze_code.",
+  "description": "The merge gate for AI-written CODE: returns a binary approve/reject verdict with veto power \u00e2\u20ac\u201d e.g. it rejects code calling the nonexistent stripe.Inventory API, or an N+1 loop with the latency arithmetic to prove it. Deterministic reality gates (mock/placeholder veto, gaming and bypass detection, invented-API checks) run first and cannot be overridden; a frontier-model review (ISO/IEC 25010) then scores performance, scalability, reliability and tech debt. Read-only: the code is analyzed, never executed. Call it on every AI-generated diff before accepting it; use validate_plan for plans, analyze_code for an advisory report without a verdict.",
   "arguments": [
    {
     "name": "ai_output",
     "type": "string",
-    "desc": "The AI-generated code to gate"
+    "desc": "The AI-generated code to gate \u00e2\u20ac\u201d a diff, function or whole file. Plain source text, any mainstream language."
    },
    {
     "name": "validation_type",
     "type": "string",
-    "desc": "code_generation (default) | text"
+    "desc": "'code_generation' (default) for source code; 'text' for prose output such as documentation or commit messages."
    },
    {
     "name": "context",
     "type": "object",
-    "desc": "Context, e.g. {\"language\": \"cpp\"}"
+    "desc": "Optional review context, e.g. {\"language\": \"cpp\", \"scale\": \"10k req/s\"}. 'language' sharpens SDK-reality checks."
    }
   ]
  },
  {
   "name": "validate_plan",
-  "description": "The gate for PLANS, designs and specs \u00e2\u20ac\u201d run BEFORE any code is written. Returns a binary verdict plus findings on completeness, feasibility, performance and scalability implications, security risks, and missing considerations. Use when an AI agent proposes an implementation plan; use validate_ai_output for the code that follows.",
+  "description": "The gate for PLANS, designs and specs \u00e2\u20ac\u201d run BEFORE any code is written, the cheapest place to catch a bad design. Returns the same binary verdict shape as validate_ai_output, with findings on completeness, feasibility, performance and scalability implications, security risks and missing considerations (e.g. it rejects a plan that polls an API every 100ms per client, with the request-volume math). Read-only: nothing is executed or stored beyond the verdict. Use validate_ai_output for the code that follows.",
   "arguments": [
    {
     "name": "plan",
     "type": "string",
-    "desc": "The plan/design/spec to validate"
+    "desc": "The implementation plan, design or spec to validate, as plain text or markdown \u00e2\u20ac\u201d e.g. a numbered migration plan or an architecture sketch."
    },
    {
     "name": "context",
     "type": "object",
-    "desc": "Optional context (system, constraints, scale targets)"
+    "desc": "Optional constraints the review should weigh, e.g. {\"system\": \"payments API\", \"scale\": \"1M users\", \"constraints\": \"PostgreSQL only\"}."
    }
   ]
  },
  {
   "name": "analyze_code",
-  "description": "Advisory deep-dive on existing code \u00e2\u20ac\u201d scores and findings, deliberately NO pass/fail verdict. Surfaces performance hot paths, scalability cliffs, reliability gaps and tech debt with concrete latency/throughput arithmetic. Use it to understand a validate_ai_output rejection, or to review code you inherited; use validate_ai_output when you need an accept/reject decision.",
+  "description": "Advisory deep-dive on existing code \u00e2\u20ac\u201d scores and findings, deliberately NO pass/fail verdict, so it never blocks an agent. Surfaces performance hot paths, scalability cliffs, reliability gaps and tech debt with concrete latency/throughput arithmetic (e.g. 'O(n\u00c2\u00b2) dedup: ~4s at 10k items'). Read-only: the code is analyzed, never executed. Use it to understand a validate_ai_output rejection or review inherited code; use validate_ai_output when you need an accept/reject decision.",
   "arguments": [
    {
     "name": "code",
     "type": "string",
-    "desc": "Code to analyze"
+    "desc": "The source code to analyze \u00e2\u20ac\u201d a function, file or pasted excerpt."
    },
    {
     "name": "analysis_type",
     "type": "string",
-    "desc": "quality | performance | scalability | security | tech_debt"
+    "desc": "Lens for the review: 'quality' (default, broad ISO/IEC 25010 pass) or a focused pass on one dimension."
    },
    {
     "name": "language",
     "type": "string",
-    "desc": "Source language (python, cpp, sql, swift, ...)"
+    "desc": "Source language, e.g. 'python', 'typescript', 'cpp', 'sql', 'swift'. Inferred if omitted; stating it sharpens findings."
    }
   ]
  },
  {
   "name": "generate_code",
-  "description": "Generate code and gate it in one step: an LLM writes the implementation, then the same protection engine as validate_ai_output vets it before you see it \u00e2\u20ac\u201d no placeholders, no invented APIs, no mock 'success' paths. Use when you want generation with the review already done.",
+  "description": "Generate code and gate it in one step: an LLM writes the implementation, then the same protection engine as validate_ai_output vets it \u00e2\u20ac\u201d retrying generation when the gate rejects. If every attempt is vetoed you still receive the last attempt, clearly marked validated:false with the gate findings \u00e2\u20ac\u201d rejected code is never presented as clean. Generation runs on our infrastructure; nothing executes in your environment.",
   "arguments": [
    {
     "name": "prompt",
     "type": "string",
-    "desc": "Code generation prompt"
+    "desc": "What to build, with any constraints worth enforcing \u00e2\u20ac\u201d e.g. 'a rate-limited retry decorator with exponential backoff, stdlib only'."
    },
    {
     "name": "language",
     "type": "string",
-    "desc": ""
+    "desc": "Target language for the generated code, e.g. 'python' (default), 'typescript', 'go', 'sql'."
    },
    {
     "name": "max_tokens",
     "type": "integer",
-    "desc": ""
+    "desc": "Generation budget. The default 4000 fits most functions/classes; raise it for multi-file scaffolds."
    }
   ]
  }
