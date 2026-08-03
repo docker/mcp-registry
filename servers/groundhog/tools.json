@@ -1,0 +1,75 @@
+[
+  {
+    "name": "read_url",
+    "description": "Fetch one web page through the stealth browser and return clean, grounded\n    content with provenance.\n\n    Hidden text injected for models but invisible to humans is stripped by default\n    and reported in `threats`. Use this to ground answers in live web content,\n    including sites that block plain fetchers.\n\n    Reads a URL you already have: use `search` to find URLs, or `research` to\n    search and read in one call. Fetches are rate limited per domain (5s apart by\n    default), so several pages from one site are not instant.",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "Absolute http(s) URL. Private and loopback addresses are refused."
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "'markdown' extracts the article; 'text' returns the page's rendered text."
+      },
+      {
+        "name": "max_tokens",
+        "type": "integer",
+        "desc": "Token budget for the content. Omit to use the server's GROUNDHOG_MAX_TOKENS (20000 by default). Must be positive."
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "When set, `matches` carries the passages most relevant to it, each with its heading and offset for citation."
+      },
+      {
+        "name": "include_hidden",
+        "type": "boolean",
+        "desc": "Keep text that is invisible to a human reader. It is reported in `threats` either way; this only controls whether it stays in the content."
+      }
+    ]
+  },
+  {
+    "name": "research",
+    "description": "Search the web and return ranked passages drawn from several sources.\n\n    One call does what `search` + repeated `read_url` would: finds pages, reads\n    them through the stealth browser, and returns the passages most relevant to\n    `query` \u2014 each attributed to its source, with that source's provenance\n    receipt and any stripped injection payloads. A source that fails is reported\n    in `sources` rather than failing the whole call.\n\n    Prefer `read_url` when you already have the URL, and `search` when you only\n    want links. This reads `max_sources` pages, rate limited per domain, so it is\n    the slowest of the three and the one to avoid for a single known page.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "The question to research. Passages are ranked against it."
+      },
+      {
+        "name": "max_sources",
+        "type": "integer",
+        "desc": "How many pages to read. Values outside 1-10 are clamped rather than rejected. Each source is a full page fetch, so this is the main cost and latency control."
+      },
+      {
+        "name": "max_tokens",
+        "type": "integer",
+        "desc": "Token budget for the returned passages. Omit to use the server's GROUNDHOG_MAX_TOKENS (20000 by default). Must be positive."
+      }
+    ]
+  },
+  {
+    "name": "search",
+    "description": "Search the web and return ranked hits (title, url, snippet, engine).\n\n    Not for reading: it returns links, never page content. Use `read_url` for one\n    known URL, or `research` when you want the answer rather than the links.\n\n    Use this to find pages, then pass the URLs you want to `read_url` for safe,\n    grounded content. Results come from a self-hosted SearXNG instance when\n    `SEARXNG_URL` is set, otherwise from a search page rendered through the\n    stealth browser. Hits are links only \u2014 nothing is fetched until you ask.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "What to search for. Must not be empty."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many hits to return. Values outside 1-25 are clamped rather than rejected."
+      }
+    ]
+  },
+  {
+    "name": "status",
+    "description": "Check whether Groundhog can reach the stealth browser. Call this to\n    diagnose setup before fetching: if `browser_reachable` is false, follow\n    `hint` to start the browser, then retry.",
+    "arguments": []
+  }
+]
