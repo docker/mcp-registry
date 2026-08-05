@@ -1,0 +1,64 @@
+[
+  {
+    "name": "spice_simulate_op",
+    "description": "Run an ngspice DC operating-point (.op) simulation on a caller-supplied circuit netlist (no .control block) and return requested node voltages. The server writes the .control block and validates the netlist for forbidden directives before running. The tool measures; it does not declare whether the c",
+    "arguments": [
+      {
+        "name": "netlist_path",
+        "type": "string",
+        "desc": "Absolute path to the SPICE netlist (.cir / .sp / .spi). The netlist must contain only circuit elements and a .op directive. Do NOT include a .control block \u2014 the server writes it. Forbidden: .control,"
+      },
+      {
+        "name": "netlist_sha256",
+        "type": "string",
+        "desc": "64-char hex SHA-256 of the netlist file. The server computes the digest of its private snapshot and raises NetlistArtifactError if it differs from this value."
+      },
+      {
+        "name": "nodes",
+        "type": "array",
+        "desc": "Node names whose DC voltages are requested (e.g. [\"out\", \"vdd\"]). Use bare names as they appear in the netlist, without the v() wrapper. The ground node is \"0\"."
+      },
+      {
+        "name": "timeout_s",
+        "type": "number",
+        "desc": "Simulation timeout in seconds (default 30, max 300)."
+      }
+    ]
+  },
+  {
+    "name": "spice_simulate_tran",
+    "description": "Run an ngspice transient (.tran) simulation on a caller-supplied circuit netlist (no .control block) and return per-node statistics (min, max, final voltage) over the full transient window. The full time series is never returned \u2014 only reduced statistics. The server writes the .control block and val",
+    "arguments": [
+      {
+        "name": "netlist_path",
+        "type": "string",
+        "desc": "Absolute path to the SPICE netlist (.cir / .sp / .spi). The netlist must contain only circuit elements and a .tran directive. Do NOT include a .control block \u2014 the server writes it. Forbidden: .contro"
+      },
+      {
+        "name": "netlist_sha256",
+        "type": "string",
+        "desc": "64-char hex SHA-256 of the netlist file. Raises NetlistArtifactError if the snapshot digest differs."
+      },
+      {
+        "name": "tstep_s",
+        "type": "number",
+        "desc": "Suggested time step in seconds (e.g. 1e-5 for 10 \u00b5s). ngspice uses this as a hint; the actual step is adaptive."
+      },
+      {
+        "name": "tstop_s",
+        "type": "number",
+        "desc": "Stop time in seconds (e.g. 6e-3 for 6 ms)."
+      },
+      {
+        "name": "nodes",
+        "type": "array",
+        "desc": "Node names whose transient statistics are requested (e.g. [\"out\", \"vdd\"]). Use bare names without the v() wrapper."
+      },
+      {
+        "name": "timeout_s",
+        "type": "number",
+        "desc": "Simulation timeout in seconds (default 30, max 300)."
+      }
+    ]
+  }
+]
