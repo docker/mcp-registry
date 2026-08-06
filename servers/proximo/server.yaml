@@ -1,0 +1,47 @@
+name: proximo
+image: mcp/proximo
+type: server
+meta:
+  category: devops
+  tags:
+    - proxmox
+    - virtualization
+    - infrastructure
+    - devops
+about:
+  title: Proximo
+  description: "Proxmox VE/PBS/PMG/PDM administration with a governed mutation path: every change is planned with its blast radius before it runs, recorded in a hash-chained tamper-evident audit ledger, and undoable wherever the platform can snapshot."
+  icon: https://raw.githubusercontent.com/john-broadway/proximo/main/docs/brand/proximo-avatar-256.png
+source:
+  project: https://github.com/john-broadway/proximo
+  commit: c87fa82a83227e1feb2c4a01666ebf4b4d69ddef
+run:
+  volumes:
+    - "{{proximo.token_file|volume-target}}:/run/proximo/pve-token:ro"
+  env:
+    PROXIMO_TOKEN_PATH: /run/proximo/pve-token
+config:
+  description: "Configure the connection to your Proxmox cluster. The API token is passed by FILE REFERENCE rather than as an environment variable: point token_file at a file on your machine containing USER@REALM!TOKENID=SECRET, chmod 600. Proximo refuses to start if that file is group- or world-readable."
+  env:
+    - name: PROXIMO_API_BASE_URL
+      example: https://pve.example.lan:8006/api2/json
+      value: "{{proximo.api_base_url}}"
+    - name: PROXIMO_NODE
+      example: pve
+      value: "{{proximo.node}}"
+  parameters:
+    type: object
+    properties:
+      api_base_url:
+        type: string
+        description: Base URL of the Proxmox VE API, including /api2/json
+      node:
+        type: string
+        description: Default Proxmox node name to operate against
+      token_file:
+        type: string
+        description: Path on your machine to a mode-600 file containing the Proxmox API token as USER@REALM!TOKENID=SECRET
+    required:
+      - api_base_url
+      - node
+      - token_file
