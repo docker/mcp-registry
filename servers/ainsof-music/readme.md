@@ -1,4 +1,4 @@
-# AINSOF Music
+# AINSOF
 
 Original, human-made production music inside your AI assistant — search the AINSOF
 catalogue by written brief or by reference link (YouTube / Spotify / Apple Music /
