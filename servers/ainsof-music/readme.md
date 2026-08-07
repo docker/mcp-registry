@@ -7,4 +7,4 @@ video straight to picture.
 
 - Documentation: https://github.com/AINSOF-Tech/mcp
 - Website: https://ainsof.io
-- Endpoint: https://mcp.ainsof.io/mcp (no authentication required)
+- Endpoint: https://mcp.ainsof.io (no authentication required)
