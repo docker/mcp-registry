@@ -1,0 +1,50 @@
+name: seo-tools-mcp-ga4
+image: mcp/seo-tools-mcp-ga4
+type: server
+meta:
+  category: analytics
+  tags:
+    - seo
+    - analytics
+    - google-analytics
+    - ga4
+about:
+  title: "SEO Tools: Google Analytics 4"
+  description:
+    "Read-only Google Analytics 4 via the Data API: arbitrary reports, traffic sources, geo,
+    devices, landing pages, events and realtime."
+  icon: https://raw.githubusercontent.com/antohins/seo-tools-mcp/main/assets/logo-400.png
+source:
+  project: https://github.com/antohins/seo-tools-mcp
+  branch: main
+  commit: eddd6a988a9ad33c944f1c73a0cb907dd3496a29
+  dockerfile: servers/ga4/Dockerfile
+config:
+  description:
+    Google OAuth credentials for Google Analytics (the ga4_oauth_start / ga4_oauth_finish tools
+    obtain the refresh token; a service-account JSON key works as an alternative).
+  secrets:
+    - name: seo-tools-mcp-ga4.client_secret
+      env: GOOGLE_CLIENT_SECRET
+      example: <GOOGLE_CLIENT_SECRET>
+    - name: seo-tools-mcp-ga4.refresh_token
+      env: GA4_REFRESH_TOKEN
+      example: <GA4_REFRESH_TOKEN>
+  env:
+    - name: GOOGLE_CLIENT_ID
+      example: "1234567890-abc.apps.googleusercontent.com"
+      value: "{{seo-tools-mcp-ga4.client_id}}"
+    - name: GA4_PROPERTY_ID
+      example: "123456789"
+      value: "{{seo-tools-mcp-ga4.property_id}}"
+  parameters:
+    type: object
+    properties:
+      client_id:
+        type: string
+        description: Google OAuth client ID (Desktop app).
+      property_id:
+        type: string
+        description: Default GA4 property id (numeric, not the G-XXXXXXX Measurement ID).
+    required:
+      - client_id
