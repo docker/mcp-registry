@@ -1,0 +1,41 @@
+name: bagel
+image: ghcr.io/extelligence-ai/bagel/ros2-kilted
+type: server
+meta:
+  category: ai
+  tags:
+    - robotics
+    - drones
+    - iot
+    - ros
+    - data-analysis
+about:
+  title: Bagel
+  description: Ask questions about robotics, drone, and IoT data in plain English. Bagel reads ROS 2 bags, MCAP, ROS text logs, PX4/ArduPilot/Betaflight flight logs, and live MQTT streams, computes every answer as DuckDB SQL over the actual messages (the query is shown for audit), and has an intelligent edge data-reduction pipeline that keeps only the windows around real events. Exports to Rerun, Lichtblick, PlotJuggler, and LeRobot datasets.
+  icon: https://avatars.githubusercontent.com/u/224125194?v=4
+source:
+  project: https://github.com/Extelligence-ai/bagel
+  commit: 7301cfd42b917edd49ca769cd045ab15deb57c75
+run:
+  command:
+    - uv
+    - run
+    - python
+    - server.py
+  volumes:
+    - "{{bagel.data_dir}}:/home/ubuntu/data"
+config:
+  description: Point Bagel at the directory containing your bags and logs
+  env:
+    - name: MCP_TRANSPORT
+      example: stdio
+      value: stdio
+  parameters:
+    type: object
+    properties:
+      data_dir:
+        type: string
+        description: "Host directory with your robot data (bags, flight logs); mounted read-write at /home/ubuntu/data inside the container - reference files as /home/ubuntu/data/<file> in prompts"
+        example: "/Users/me/robot-data"
+    required:
+      - data_dir
