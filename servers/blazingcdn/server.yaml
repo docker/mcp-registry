@@ -1,0 +1,43 @@
+name: blazingcdn
+image: mcp/blazingcdn
+type: server
+meta:
+  category: devops
+  tags:
+    - cdn
+    - devops
+    - cloud
+about:
+  title: BlazingCDN
+  description: Official BlazingCDN MCP server — manage CDN zones (TTLs, compression, on-the-fly image resizing, HLS/DASH streaming), purge and warm up cache, query traffic metrics, manage custom domains, cloud storage and the Video CDN. 52 tools, read-only by default; write and delete tools are opt-in; zone/bucket/account deletion is not implemented at all.
+  icon: https://raw.githubusercontent.com/BlazingCDN/BlazingCDN-MCP/main/assets/logo-400.png
+source:
+  project: https://github.com/BlazingCDN/BlazingCDN-MCP
+  branch: main
+  commit: 927b0cfa4d917e8cf1a644df82ea2b2e24025e58
+run:
+  allowHosts:
+    - wapi.blazingcdn.com:443
+config:
+  description: Connect with your BlazingCDN API token (sign up at blazingcdn.com, then panel — Account — API tokens)
+  secrets:
+    - name: blazingcdn.api_token
+      env: BLAZINGCDN_API_TOKEN
+      example: <YOUR_BLAZINGCDN_API_TOKEN>
+      description: Create an API token in the BlazingCDN panel (Account → API tokens)
+  env:
+    - name: BLAZINGCDN_ALLOW_WRITE
+      example: "1"
+      value: "{{blazingcdn.allow_write}}"
+    - name: BLAZINGCDN_ALLOW_DELETE
+      example: "1"
+      value: "{{blazingcdn.allow_delete}}"
+  parameters:
+    type: object
+    properties:
+      allow_write:
+        type: string
+        description: Set to 1 to enable create/update tools
+      allow_delete:
+        type: string
+        description: Set to 1 to enable delete tools (custom domains and vCDN resources only)
