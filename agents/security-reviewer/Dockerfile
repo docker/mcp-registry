@@ -45,6 +45,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Claude Code and Codex CLIs for headless operation.
+COPY .npmrc .
 RUN npm install --global \
         @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION} \
         @openai/codex@${CODEX_CLI_VERSION} \
