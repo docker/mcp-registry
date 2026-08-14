@@ -1,0 +1,66 @@
+name: kin
+image: mcp/kin
+type: server
+longLived: true
+meta:
+  category: devops
+  tags:
+    - code
+    - search
+    - developer-tools
+about:
+  title: Kin
+  description: Semantic code retrieval over a graph of entities, relationships, changes, and provenance.
+  icon: https://raw.githubusercontent.com/firelock-ai/kin/main/assets/mcp/icon-512.png
+source:
+  project: https://github.com/firelock-ai/kin
+  commit: 0c2f0dfcb7be3d29f10fd06948a061a6ca32daf4
+  buildTarget: mcp
+run:
+  volumes:
+    - "{{kin.path|volume-target}}:/repo"
+  command:
+    - "--repo"
+    - "/repo"
+config:
+  description: The repository Kin serves
+  parameters:
+    type: object
+    properties:
+      path:
+        type: string
+        default: /Users/demo/my-repo
+    required:
+      - path
+```
+```yaml
+      - name: Publish or verify immutable commit mcp image
+        shell: bash
+        env:
+          COMMIT: ${{ steps.source.outputs.commit }}
+          MCP_IMAGE: ghcr.io/firelock-ai/kin-mcp
+        run: |
+          set -euo pipefail
+          mcp_source_image="${MCP_IMAGE}:${COMMIT}"
+
+          if docker buildx imagetools inspect "$mcp_source_image" \
+              --format '{{.Manifest.Digest}}' >/dev/null 2>&1; then
+            echo "$mcp_source_image already exists; refusing to overwrite it"
+            exit 0
+          fi
+
+          docker buildx build \
+            --file Dockerfile \
+            --target mcp \
+            --load \
+            --platform linux/amd64 \
+            --provenance=false \
+            --build-arg "KIN_BUILD_GIT_SHA=${COMMIT}" \
+            --build-arg KIN_BUILD_DIRTY=false \
+            --build-arg "KIN_BUILD_BRANCH=${GITHUB_REF_NAME}" \
+            --cache-from type=gha \
+            --cache-to type=gha,mode=max \
+            --tag "$mcp_source_image" \
+            .
+
+          docker push "$mcp_source_image"
