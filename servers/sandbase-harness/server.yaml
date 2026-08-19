@@ -1,0 +1,37 @@
+name: sandbase-harness
+image: ghcr.io/sandbaseai/sandbase-harness-mcp:0.3.4
+type: server
+meta:
+  category: ai
+  tags:
+    - agent-runtime
+    - sandbox
+    - observability
+about:
+  title: SandBase Harness
+  description: Run and observe isolated coding-agent sessions through a self-hosted SandBase Harness runtime.
+  icon: https://avatars.githubusercontent.com/u/271874822?s=200&v=4
+source:
+  project: https://github.com/sandbaseai/sandbase-harness
+  commit: d79ff1cdb283952647ed04193a731e11abf8253d
+config:
+  description: Connect to a running SandBase Harness runtime API.
+  secrets:
+    - name: sandbase-harness.api_key
+      env: MANAGED_AGENTS_API_KEY
+      example: <YOUR_API_KEY>
+      description: Optional API key when authentication is enabled on the Harness runtime.
+  env:
+    - name: MANAGED_AGENTS_URL
+      example: http://host.docker.internal:3000
+      value: "{{sandbase-harness.url}}"
+      description: URL of the SandBase Harness runtime API. Use host.docker.internal for a runtime on the Docker host.
+  parameters:
+    type: object
+    required:
+      - url
+    properties:
+      url:
+        type: string
+        description: URL of the SandBase Harness runtime API.
+        default: http://host.docker.internal:3000
