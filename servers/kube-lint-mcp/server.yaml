@@ -1,0 +1,44 @@
+name: kube-lint-mcp
+image: mcp/kube-lint-mcp
+type: server
+
+meta:
+  category: devops
+  tags:
+    - devops
+    - kubernetes
+    - helm
+    - fluxcd
+    - gitops
+    - validation
+
+about:
+  title: Kube Lint MCP
+  description: >-
+    Validate Kubernetes manifests, Helm charts, Kustomize overlays, and FluxCD
+    resources with dry-run checks against a live cluster. Includes offline
+    schema validation via kubeconform. Ships with kubectl, helm, flux, and
+    kubeconform — batteries included.
+  icon: https://raw.githubusercontent.com/sophotechlabs/kube-lint-mcp/main/icon.svg
+
+source:
+  project: https://github.com/sophotechlabs/kube-lint-mcp
+  commit: 8caf93c9ae63e18fff9bcf2a573683f6b634359c
+
+run:
+  command:
+    - --transport=stdio
+  volumes:
+    - "{{kube-lint-mcp.kubeconfig}}:/home/nonroot/.kube/config:ro"
+  user: nonroot
+
+config:
+  description: Mount your kubeconfig to enable cluster validation
+  parameters:
+    type: object
+    properties:
+      kubeconfig:
+        type: string
+        description: Path to your kubeconfig file (e.g. ~/.kube/config)
+    required:
+      - kubeconfig
