@@ -1,0 +1,43 @@
+name: remote-agents
+image: mcp/remote-agents
+type: server
+meta:
+  category: devops
+  tags:
+    - devops
+    - remote
+    - ssh
+    - fleet
+    - automation
+about:
+  title: Remote Agents
+  description: Control fleets of remote machines through AI agents — run shell commands, transfer files, drive git, fan operations out across many hosts (map/reduce), and orchestrate the whole fleet. Agents connect outbound to a relay; channels are end-to-end encrypted (AES-GCM-256) by default.
+  icon: https://avatars.githubusercontent.com/u/266127935?s=400
+source:
+  project: https://github.com/47-ronn/tunshell_mcp_agents
+  commit: 4815e45ae88f88dd4bac209c476ab7fcfe024b35
+config:
+  description: Relay connection settings shared by every peer in the room.
+  secrets:
+    - name: remote-agents.token
+      env: REMOTE_AGENTS_TOKEN
+      example: your-shared-secret
+  env:
+    - name: REMOTE_AGENTS_RELAY
+      example: wss://your-relay-host
+      value: "{{remote-agents.relay}}"
+    - name: REMOTE_AGENTS_ROOM
+      example: myroom
+      value: "{{remote-agents.room}}"
+  parameters:
+    type: object
+    properties:
+      relay:
+        type: string
+        description: WebSocket URL of the relay to join (e.g. wss://your-relay-host).
+      room:
+        type: string
+        description: Relay room name the agents/MCP share.
+    required:
+      - relay
+      - room
