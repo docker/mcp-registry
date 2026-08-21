@@ -1,0 +1,48 @@
+name: rustok-wallet
+image: ghcr.io/rustok-org/rustok-wallet
+type: server
+meta:
+  category: finance
+  tags:
+    - ethereum
+    - wallet
+    - crypto
+    - defi
+    - self-custody
+about:
+  title: Rustok Ethereum Wallet
+  description: >-
+    Self-custody Ethereum agent wallet that runs entirely locally — private
+    keys live in a local Docker volume and never leave it. Read wallet context,
+    balances and DeFi positions (Aave v3, ERC-4626), preview any transaction
+    with a pre-sign simulation (decoded call, revert check, gas, risk level),
+    and sign EIP-191 messages. Transaction execution is intentionally not
+    exposed as an MCP tool. One-time onboarding required: run create-wallet
+    (see the project README) to create the keystore and back up the recovery
+    phrase before enabling this server.
+  icon: https://avatars.githubusercontent.com/u/288316369?s=200&v=4
+source:
+  project: https://github.com/rustok-org/mcp
+  commit: a0fef13d397bb3582895a353183a878a5de4b526
+run:
+  volumes:
+    - rustok-wallet:/data
+config:
+  description: Configure your Ethereum RPC endpoint and the keystore password chosen during create-wallet onboarding
+  secrets:
+    - name: rustok-wallet.keyring_password
+      env: RUSTOK_KEYRING_PASSWORD
+      example: <YOUR_KEYRING_PASSWORD>
+      description: Password that unlocks your local keystore (the one set at create-wallet)
+  env:
+    - name: RUSTOK_RPC_URLS_1
+      example: https://eth-mainnet.g.alchemy.com/v2/<key>
+      value: "{{rustok-wallet.rpc_url}}"
+  parameters:
+    type: object
+    properties:
+      rpc_url:
+        type: string
+        description: Ethereum mainnet RPC URL (an Alchemy key URL, or a public RPC)
+    required:
+      - rpc_url
