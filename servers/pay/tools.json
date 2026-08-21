@@ -1,0 +1,208 @@
+[
+  {
+    "name": "pay_status",
+    "description": "Check wallet balance and status. Shows USDC balance, open tab count, locked vs available funds.",
+    "arguments": [
+      {
+        "name": "wallet",
+        "type": "string",
+        "desc": "Wallet address to check (defaults to your own)"
+      }
+    ]
+  },
+  {
+    "name": "pay_send",
+    "description": "Send a one-shot USDC payment to an address. Amount is in micro-USDC (6 decimals): $1.00 = 1000000.",
+    "arguments": [
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "Recipient wallet address"
+      },
+      {
+        "name": "amount",
+        "type": "number",
+        "desc": "Amount in micro-USDC (6 decimals). $1.00 = 1000000. Minimum $1.00"
+      },
+      {
+        "name": "memo",
+        "type": "string",
+        "desc": "Optional payment memo"
+      }
+    ]
+  },
+  {
+    "name": "pay_request",
+    "description": "Make an HTTP request to a URL. If it returns 402 (Payment Required), payment is handled automatically via x402.",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "URL to request"
+      },
+      {
+        "name": "method",
+        "type": "string",
+        "desc": "HTTP method (default: GET)"
+      },
+      {
+        "name": "body",
+        "type": "string",
+        "desc": "Request body (for POST/PUT)"
+      },
+      {
+        "name": "headers",
+        "type": "object",
+        "desc": "Additional request headers"
+      }
+    ]
+  },
+  {
+    "name": "pay_tab_open",
+    "description": "Open a pre-funded metered tab with a provider for repeated API calls.",
+    "arguments": [
+      {
+        "name": "provider",
+        "type": "string",
+        "desc": "Provider wallet address"
+      },
+      {
+        "name": "amount",
+        "type": "number",
+        "desc": "Amount to lock in micro-USDC. Minimum $5.00 (5000000)"
+      },
+      {
+        "name": "max_charge",
+        "type": "number",
+        "desc": "Maximum amount the provider can charge per call, in micro-USDC"
+      }
+    ]
+  },
+  {
+    "name": "pay_tab_close",
+    "description": "Close a tab and settle funds. Provider receives 99% of total charged, fee wallet gets 1%, agent gets remaining balance.",
+    "arguments": [
+      {
+        "name": "tab_id",
+        "type": "string",
+        "desc": "Tab ID to close"
+      }
+    ]
+  },
+  {
+    "name": "pay_tab_charge",
+    "description": "Charge against an open tab. Only the provider can charge.",
+    "arguments": [
+      {
+        "name": "tab_id",
+        "type": "string",
+        "desc": "Tab ID to charge"
+      },
+      {
+        "name": "amount",
+        "type": "number",
+        "desc": "Amount to charge in micro-USDC"
+      }
+    ]
+  },
+  {
+    "name": "pay_tab_topup",
+    "description": "Add more USDC to an open tab. Only the agent (tab opener) can top up.",
+    "arguments": [
+      {
+        "name": "tab_id",
+        "type": "string",
+        "desc": "Tab ID to top up"
+      },
+      {
+        "name": "amount",
+        "type": "number",
+        "desc": "Amount to add in micro-USDC"
+      }
+    ]
+  },
+  {
+    "name": "pay_tab_list",
+    "description": "List all tabs with idle/low-balance flags and pending charges.",
+    "arguments": []
+  },
+  {
+    "name": "pay_fund",
+    "description": "Generate a funding link to deposit USDC into your wallet. Link expires in 1 hour.",
+    "arguments": []
+  },
+  {
+    "name": "pay_withdraw",
+    "description": "Generate a withdrawal link to pull USDC out of your wallet. Link expires in 1 hour.",
+    "arguments": []
+  },
+  {
+    "name": "pay_mint",
+    "description": "Mint testnet USDC (Base Sepolia only). Free test tokens with no real value.",
+    "arguments": [
+      {
+        "name": "amount",
+        "type": "number",
+        "desc": "Amount in whole dollars (e.g. 100 = $100.00 USDC). Testnet only."
+      }
+    ]
+  },
+  {
+    "name": "pay_discover",
+    "description": "Search for paid API services that accept USDC payments.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Search keywords"
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Filter by category"
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "desc": "Sort order: volume, newest, or name"
+      }
+    ]
+  },
+  {
+    "name": "pay_webhook_register",
+    "description": "Register a webhook to receive real-time payment event notifications with HMAC-SHA256 signature verification.",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "HTTPS URL to receive webhook events"
+      },
+      {
+        "name": "events",
+        "type": "array",
+        "desc": "Event types to subscribe to (default: all)"
+      },
+      {
+        "name": "secret",
+        "type": "string",
+        "desc": "HMAC secret for signature verification (auto-generated if omitted)"
+      }
+    ]
+  },
+  {
+    "name": "pay_webhook_list",
+    "description": "List all registered webhooks for your wallet.",
+    "arguments": []
+  },
+  {
+    "name": "pay_webhook_delete",
+    "description": "Delete a webhook registration by its ID.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Webhook registration ID to delete"
+      }
+    ]
+  }
+]
