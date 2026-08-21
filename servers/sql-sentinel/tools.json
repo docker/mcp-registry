@@ -1,0 +1,243 @@
+[
+  {
+    "name": "sqlsentinel_create_session",
+    "description": "Create a new SQL Server profiling session using Extended Events. Creates a server-side event session that captures SQL queries, stored procedure calls, and other database events. The session is created but NOT started.",
+    "arguments": [
+      { "name": "sessionName", "type": "string", "desc": "Unique name for this session (alphanumeric + underscore)" },
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" },
+      { "name": "databases", "type": "string", "desc": "Filter to specific database names (comma-separated)" },
+      { "name": "applications", "type": "string", "desc": "Filter to specific application names (comma-separated)" },
+      { "name": "logins", "type": "string", "desc": "Filter to specific SQL logins (comma-separated)" },
+      { "name": "hosts", "type": "string", "desc": "Filter to specific client hostnames (comma-separated)" },
+      { "name": "minDurationMs", "type": "number", "desc": "Minimum query duration in milliseconds. Default 0" },
+      { "name": "excludeNoise", "type": "boolean", "desc": "Auto-exclude common noise. Default true" },
+      { "name": "excludePatterns", "type": "string", "desc": "Additional regex patterns to exclude (comma-separated)" },
+      { "name": "ringBufferMb", "type": "number", "desc": "Ring buffer size in MB. Default 50" },
+      { "name": "eventTypes", "type": "string", "desc": "Event types to capture (comma-separated). Options: SqlBatchCompleted, RpcCompleted, Deadlock, BlockedProcess, etc." }
+    ]
+  },
+  {
+    "name": "sqlsentinel_start_session",
+    "description": "Start capturing events for an existing profiling session. The session must have been created first with sqlsentinel_create_session.",
+    "arguments": [
+      { "name": "sessionName", "type": "string", "desc": "Name of the profiling session" },
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_stop_session",
+    "description": "Stop capturing events for a profiling session. Events captured so far are retained.",
+    "arguments": [
+      { "name": "sessionName", "type": "string", "desc": "Name of the profiling session" },
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_drop_session",
+    "description": "Drop a profiling session and discard all captured events. WARNING: This permanently deletes all captured events.",
+    "arguments": [
+      { "name": "sessionName", "type": "string", "desc": "Name of the profiling session" },
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_list_sessions",
+    "description": "List all profiling sessions created by this MCP server. Shows session name, state (RUNNING/STOPPED), and buffer usage.",
+    "arguments": [
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_quick_capture",
+    "description": "Create AND start a profiling session in one step. Convenience tool for rapid debugging.",
+    "arguments": [
+      { "name": "sessionName", "type": "string", "desc": "Unique name for this session" },
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" },
+      { "name": "databases", "type": "string", "desc": "Filter to specific database names (comma-separated)" },
+      { "name": "applications", "type": "string", "desc": "Filter to specific application names (comma-separated)" },
+      { "name": "logins", "type": "string", "desc": "Filter to specific SQL logins (comma-separated)" },
+      { "name": "minDurationMs", "type": "number", "desc": "Minimum query duration in milliseconds" },
+      { "name": "excludeNoise", "type": "boolean", "desc": "Auto-exclude common noise" },
+      { "name": "ringBufferMb", "type": "number", "desc": "Ring buffer size in MB" },
+      { "name": "eventTypes", "type": "string", "desc": "Event types to capture (comma-separated)" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_get_events",
+    "description": "Retrieve captured events from a profiling session with filtering. Returns query events with timing, resource usage, and metadata. Supports deduplication.",
+    "arguments": [
+      { "name": "sessionName", "type": "string", "desc": "Name of the profiling session" },
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" },
+      { "name": "startTime", "type": "string", "desc": "Filter events after this time (ISO format)" },
+      { "name": "endTime", "type": "string", "desc": "Filter events before this time (ISO format)" },
+      { "name": "database", "type": "string", "desc": "Filter to specific database" },
+      { "name": "application", "type": "string", "desc": "Filter to specific application" },
+      { "name": "login", "type": "string", "desc": "Filter to specific login" },
+      { "name": "textContains", "type": "string", "desc": "Filter to queries containing this text" },
+      { "name": "textNotContains", "type": "string", "desc": "Exclude queries containing this text" },
+      { "name": "minDurationMs", "type": "number", "desc": "Minimum duration in milliseconds" },
+      { "name": "limit", "type": "number", "desc": "Maximum events to return (1-10000)" },
+      { "name": "offset", "type": "number", "desc": "Offset for pagination" },
+      { "name": "sortBy", "type": "string", "desc": "Sort order: TimestampAsc, TimestampDesc, DurationDesc, etc." },
+      { "name": "deduplicate", "type": "boolean", "desc": "Group identical queries and show counts" },
+      { "name": "responseFormat", "type": "string", "desc": "Output format: Json or Markdown" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_get_stats",
+    "description": "Get aggregate statistics from captured events. Provides summary metrics grouped by query fingerprint, database, application, or login.",
+    "arguments": [
+      { "name": "sessionName", "type": "string", "desc": "Name of the profiling session" },
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" },
+      { "name": "startTime", "type": "string", "desc": "Analysis window start (ISO format)" },
+      { "name": "endTime", "type": "string", "desc": "Analysis window end (ISO format)" },
+      { "name": "groupBy", "type": "string", "desc": "Group by: QueryFingerprint, Database, Application, Login, or None" },
+      { "name": "topN", "type": "number", "desc": "Return top N results" },
+      { "name": "responseFormat", "type": "string", "desc": "Output format: Json or Markdown" },
+      { "name": "slowQueryThresholdMs", "type": "number", "desc": "Flag queries slower than this threshold (ms)" },
+      { "name": "excessiveReadsThreshold", "type": "number", "desc": "Flag queries with logical reads above this threshold" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_analyze_sequence",
+    "description": "Analyze the sequence and timing of queries for a specific operation. Shows queries in execution order with cumulative timing and gaps.",
+    "arguments": [
+      { "name": "sessionName", "type": "string", "desc": "Name of the profiling session" },
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" },
+      { "name": "startTime", "type": "string", "desc": "Analysis window start (ISO format)" },
+      { "name": "endTime", "type": "string", "desc": "Analysis window end (ISO format)" },
+      { "name": "correlationId", "type": "string", "desc": "Text to search for in queries (e.g., order ID)" },
+      { "name": "sessionId", "type": "number", "desc": "Specific SPID/session_id to track" },
+      { "name": "responseFormat", "type": "string", "desc": "Output format: Json or Markdown" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_get_connection_info",
+    "description": "Get information about databases, applications, logins, active sessions, or current blocking.",
+    "arguments": [
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" },
+      { "name": "infoType", "type": "string", "desc": "What to retrieve: databases, applications, logins, sessions, blocking, or all" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_stream_events",
+    "description": "Capture events in real-time for a specified duration. Starts a live stream and collects all events during the capture window.",
+    "arguments": [
+      { "name": "sessionName", "type": "string", "desc": "Name of the profiling session (must be running)" },
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" },
+      { "name": "durationSeconds", "type": "number", "desc": "How long to capture events in seconds (1-300). Default 30" },
+      { "name": "database", "type": "string", "desc": "Filter to specific database" },
+      { "name": "application", "type": "string", "desc": "Filter to specific application" },
+      { "name": "login", "type": "string", "desc": "Filter to specific login" },
+      { "name": "textContains", "type": "string", "desc": "Filter to queries containing this text" },
+      { "name": "responseFormat", "type": "string", "desc": "Output format: Json or Markdown" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_get_deadlocks",
+    "description": "Retrieve deadlock events captured by a profiling session. Returns structured deadlock information including victim process, SPIDs, wait resources, and SQL text.",
+    "arguments": [
+      { "name": "sessionName", "type": "string", "desc": "Name of the profiling session" },
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" },
+      { "name": "responseFormat", "type": "string", "desc": "Output format: Json or Markdown" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_get_blocking",
+    "description": "Retrieve blocked process events captured by a profiling session. Returns blocked and blocking SPID pairs with wait resources and SQL text.",
+    "arguments": [
+      { "name": "sessionName", "type": "string", "desc": "Name of the profiling session" },
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" },
+      { "name": "responseFormat", "type": "string", "desc": "Output format: Json or Markdown" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_get_wait_stats",
+    "description": "Query sys.dm_os_wait_stats to show what SQL Server is waiting on. Does NOT require a profiling session.",
+    "arguments": [
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" },
+      { "name": "topN", "type": "number", "desc": "Number of top wait types to return" },
+      { "name": "responseFormat", "type": "string", "desc": "Output format: Json or Markdown" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_health_check",
+    "description": "Comprehensive server health report. Pulls together slowest queries, deadlocks, blocking events, wait statistics, and AI-ready insights.",
+    "arguments": [
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" },
+      { "name": "sessionName", "type": "string", "desc": "Profiling session to analyze (empty string to skip)" },
+      { "name": "slowQueryThresholdMs", "type": "number", "desc": "Threshold for slow query flagging in ms" },
+      { "name": "responseFormat", "type": "string", "desc": "Output format: Json or Markdown" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_check_permissions",
+    "description": "Check if the current SQL Server login has the required permissions for profiling (ALTER ANY EVENT SESSION, VIEW SERVER STATE).",
+    "arguments": [
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_grant_permissions",
+    "description": "Grant the required profiling permissions to a specified SQL Server login. Requires sysadmin or CONTROL SERVER.",
+    "arguments": [
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string (must use a login with sysadmin)" },
+      { "name": "targetLogin", "type": "string", "desc": "The SQL Server login to grant permissions to" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_list_tables",
+    "description": "Lists all user tables in the SQL Server database. Returns schema-qualified table names (e.g., 'dbo.Users').",
+    "arguments": [
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_describe_table",
+    "description": "Returns detailed schema information for a table including columns, indexes, constraints, and foreign keys.",
+    "arguments": [
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" },
+      { "name": "name", "type": "string", "desc": "Table name, optionally schema-qualified (e.g., 'dbo.Users')" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_create_table",
+    "description": "Creates a new table in the SQL Server database. Expects a valid CREATE TABLE SQL statement.",
+    "arguments": [
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" },
+      { "name": "sql", "type": "string", "desc": "CREATE TABLE SQL statement" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_insert_data",
+    "description": "Inserts data into a table. Expects a valid INSERT SQL statement.",
+    "arguments": [
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" },
+      { "name": "sql", "type": "string", "desc": "INSERT SQL statement" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_read_data",
+    "description": "Executes a SELECT query against the SQL Server database and returns the results.",
+    "arguments": [
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" },
+      { "name": "sql", "type": "string", "desc": "SELECT SQL query to execute" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_update_data",
+    "description": "Updates data in a table. Expects a valid UPDATE SQL statement.",
+    "arguments": [
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" },
+      { "name": "sql", "type": "string", "desc": "UPDATE SQL statement" }
+    ]
+  },
+  {
+    "name": "sqlsentinel_drop_table",
+    "description": "Drops a table from the SQL Server database. Expects a valid DROP TABLE SQL statement.",
+    "arguments": [
+      { "name": "connectionString", "type": "string", "desc": "SQL Server connection string" },
+      { "name": "sql", "type": "string", "desc": "DROP TABLE SQL statement" }
+    ]
+  }
+]
