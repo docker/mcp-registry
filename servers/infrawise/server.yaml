@@ -1,0 +1,51 @@
+name: infrawise
+image: mcp/infrawise
+type: server
+meta:
+  category: devops
+  tags:
+    - aws
+    - devops
+    - database
+about:
+  title: Infrawise
+  description: >-
+    AWS infrastructure analysis for AI coding assistants. Extracts DynamoDB,
+    Lambda, SQS, SNS, S3, EventBridge, API Gateway, PostgreSQL, MySQL, MongoDB,
+    Kafka and IaC (Terraform/CDK/CloudFormation) into a graph and serves 16
+    deterministic, rule-based tools: exact table schemas and GSIs, Lambda
+    trigger event shapes, DLQ coverage, missing indexes, IaC drift. Never reads
+    secret values, never writes to AWS.
+  icon: https://sidd27.github.io/infrawise/favicon.png
+source:
+  project: https://github.com/Sidd27/infrawise
+  commit: e6c8df5f3b55425c4bf317c61940315ea33aecd4
+run:
+  volumes:
+    - "{{infrawise.project_dir}}:/project"
+config:
+  description: Mount the project directory containing infrawise.yaml and provide AWS credentials
+  secrets:
+    - name: infrawise.aws_secret_access_key
+      env: AWS_SECRET_ACCESS_KEY
+      example: your-aws-secret-access-key
+  env:
+    - name: AWS_ACCESS_KEY_ID
+      example: AKIAIOSFODNN7EXAMPLE
+      value: "{{infrawise.aws_access_key_id}}"
+    - name: AWS_REGION
+      example: us-east-1
+      value: "{{infrawise.aws_region}}"
+  parameters:
+    type: object
+    properties:
+      project_dir:
+        type: string
+        description: Absolute path to the project containing infrawise.yaml
+      aws_access_key_id:
+        type: string
+      aws_region:
+        type: string
+        default: us-east-1
+    required:
+      - project_dir
