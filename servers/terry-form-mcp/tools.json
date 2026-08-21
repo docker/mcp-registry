@@ -1,0 +1,468 @@
+[
+  {
+    "name": "terry",
+    "description": "Execute Terraform operations (init, validate, fmt, plan, show, graph, providers, version) with comprehensive output and security validation. The primary tool for running Terraform commands in a safe, containerized environment.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Workspace path relative to /mnt/workspace"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["init", "validate", "fmt", "plan", "show", "graph", "providers", "version"]
+          },
+          "description": "Array of Terraform actions to execute",
+          "default": ["plan"]
+        },
+        "vars": {
+          "type": "object",
+          "description": "Terraform variables for plan action"
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "terry_workspace_list",
+    "description": "List all available Terraform workspaces in /mnt/workspace. Returns workspace paths with initialization status, state file presence, provider information, and last modified timestamps.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "terry_version",
+    "description": "Get Terraform version information and provider selections. Returns version details and available provider information for troubleshooting compatibility issues.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "terry_environment_check",
+    "description": "Comprehensive environment check for Terraform and LSP integration. Checks container environment, available tools (terraform, terraform-ls), paths, and configuration.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "terry_lsp_debug",
+    "description": "Debug terraform-ls functionality and LSP client state. Tests terraform-ls availability, version, and basic functionality for troubleshooting LSP integration issues.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "terry_workspace_info",
+    "description": "Analyze Terraform workspace structure and provide recommendations. Shows file structure, configuration status, LSP readiness, and recommended next actions for workspace setup.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Workspace path relative to /mnt/workspace",
+          "default": "."
+        }
+      }
+    }
+  },
+  {
+    "name": "terry_lsp_init",
+    "description": "Manually initialize LSP client for a specific workspace. Useful for troubleshooting LSP initialization issues or switching between workspaces.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "workspace_path": {
+          "type": "string",
+          "description": "Workspace path relative to /mnt/workspace"
+        }
+      },
+      "required": ["workspace_path"]
+    }
+  },
+  {
+    "name": "terry_file_check",
+    "description": "Check Terraform file syntax and readiness for LSP operations. Validates file exists, is readable, and has basic Terraform syntax (blocks, resources, data sources).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "file_path": {
+          "type": "string",
+          "description": "File path relative to /mnt/workspace"
+        }
+      },
+      "required": ["file_path"]
+    }
+  },
+  {
+    "name": "terry_workspace_setup",
+    "description": "Create a properly structured Terraform workspace ready for LSP operations. Sets up basic files (main.tf, variables.tf, outputs.tf) and directory structure with best practice templates.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Workspace path relative to /mnt/workspace"
+        },
+        "project_name": {
+          "type": "string",
+          "description": "Name of the project",
+          "default": "terraform-project"
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "terraform_validate_lsp",
+    "description": "Validate a Terraform file using terraform-ls Language Server. Provides detailed diagnostics including errors, warnings, and syntax validation with line numbers and character positions.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "file_path": {
+          "type": "string",
+          "description": "Path to Terraform file relative to workspace (e.g., 'main.tf' or 'modules/vpc/main.tf')"
+        },
+        "workspace_path": {
+          "type": "string",
+          "description": "Optional workspace directory (defaults to parent directory of file)"
+        }
+      },
+      "required": ["file_path"]
+    }
+  },
+  {
+    "name": "terraform_hover",
+    "description": "Get documentation and information for Terraform resource at cursor position. Returns detailed descriptions, argument specifications, and attribute documentation for resources, data sources, and providers.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "file_path": {
+          "type": "string",
+          "description": "Path to Terraform file relative to workspace"
+        },
+        "line": {
+          "type": "integer",
+          "description": "Line number (0-based)",
+          "minimum": 0
+        },
+        "character": {
+          "type": "integer",
+          "description": "Character position (0-based)",
+          "minimum": 0
+        },
+        "workspace_path": {
+          "type": "string",
+          "description": "Optional workspace directory"
+        }
+      },
+      "required": ["file_path", "line", "character"]
+    }
+  },
+  {
+    "name": "terraform_complete",
+    "description": "Get completion suggestions for Terraform code at cursor position. Returns intelligent completions for resource types, arguments, attribute references, and module calls based on context.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "file_path": {
+          "type": "string",
+          "description": "Path to Terraform file relative to workspace"
+        },
+        "line": {
+          "type": "integer",
+          "description": "Line number (0-based)",
+          "minimum": 0
+        },
+        "character": {
+          "type": "integer",
+          "description": "Character position (0-based)",
+          "minimum": 0
+        },
+        "workspace_path": {
+          "type": "string",
+          "description": "Optional workspace directory"
+        }
+      },
+      "required": ["file_path", "line", "character"]
+    }
+  },
+  {
+    "name": "terraform_format_lsp",
+    "description": "Format a Terraform file using terraform-ls Language Server. Applies canonical Terraform formatting with proper indentation, alignment, and style according to HashiCorp standards.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "file_path": {
+          "type": "string",
+          "description": "Path to Terraform file relative to workspace"
+        },
+        "workspace_path": {
+          "type": "string",
+          "description": "Optional workspace directory"
+        }
+      },
+      "required": ["file_path"]
+    }
+  },
+  {
+    "name": "terraform_lsp_status",
+    "description": "Get the status of the terraform-ls Language Server integration. Returns initialization status, capabilities, and workspace root for troubleshooting LSP issues.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "terry_analyze",
+    "description": "Analyze Terraform configuration for best practices. Scans for missing descriptions, hardcoded values, missing tags, and provides a quality score with actionable recommendations.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Workspace path relative to /mnt/workspace"
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "terry_security_scan",
+    "description": "Run security scan on Terraform configuration. Detects vulnerabilities like public S3 buckets, unencrypted resources, open security groups, and IAM policy issues with CIS benchmark IDs and remediation guidance.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Workspace path relative to /mnt/workspace"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "description": "Minimum severity to report",
+          "default": "medium"
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "terry_recommendations",
+    "description": "Get recommendations for Terraform configuration improvement. Provides focus-specific guidance for security, cost optimization, performance, or reliability with impact and effort estimates.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Workspace path relative to /mnt/workspace"
+        },
+        "focus": {
+          "type": "string",
+          "enum": ["cost", "security", "performance", "reliability"],
+          "description": "Area of focus for recommendations",
+          "default": "security"
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "tf_cloud_list_workspaces",
+    "description": "List Terraform Cloud workspaces for an organization. Returns workspace metadata including environment, Terraform version, current run status, and resource counts. Requires TF_CLOUD_TOKEN environment variable.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "organization": {
+          "type": "string",
+          "description": "Terraform Cloud organization name",
+          "pattern": "^[a-zA-Z0-9_-]+$"
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Maximum number of workspaces to return",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        }
+      },
+      "required": ["organization"]
+    }
+  },
+  {
+    "name": "tf_cloud_get_workspace",
+    "description": "Get detailed information about a specific Terraform Cloud workspace. Returns configuration, VCS integration, state version, execution mode, and resource count. Requires TF_CLOUD_TOKEN.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "organization": {
+          "type": "string",
+          "description": "Terraform Cloud organization name",
+          "pattern": "^[a-zA-Z0-9_-]+$"
+        },
+        "workspace": {
+          "type": "string",
+          "description": "Workspace name",
+          "pattern": "^[a-zA-Z0-9_-]+$"
+        }
+      },
+      "required": ["organization", "workspace"]
+    }
+  },
+  {
+    "name": "tf_cloud_list_runs",
+    "description": "List runs for a Terraform Cloud workspace. Returns run history with status, timestamps, resource changes, and cost estimation data. Requires TF_CLOUD_TOKEN.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "organization": {
+          "type": "string",
+          "description": "Terraform Cloud organization name",
+          "pattern": "^[a-zA-Z0-9_-]+$"
+        },
+        "workspace": {
+          "type": "string",
+          "description": "Workspace name",
+          "pattern": "^[a-zA-Z0-9_-]+$"
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Maximum number of runs to return",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 10
+        }
+      },
+      "required": ["organization", "workspace"]
+    }
+  },
+  {
+    "name": "tf_cloud_get_state_outputs",
+    "description": "Get state outputs from a Terraform Cloud workspace. Returns current state outputs with values, types, and sensitivity markers. Sensitive values are masked. Requires TF_CLOUD_TOKEN.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "organization": {
+          "type": "string",
+          "description": "Terraform Cloud organization name",
+          "pattern": "^[a-zA-Z0-9_-]+$"
+        },
+        "workspace": {
+          "type": "string",
+          "description": "Workspace name",
+          "pattern": "^[a-zA-Z0-9_-]+$"
+        }
+      },
+      "required": ["organization", "workspace"]
+    }
+  },
+  {
+    "name": "github_clone_repo",
+    "description": "Clone or update a GitHub repository into the workspace. Supports branch selection and force updates. Requires GITHUB_APP_ID and GITHUB_APP_PRIVATE_KEY environment variables for authentication.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "type": "string",
+          "description": "Repository owner/organization"
+        },
+        "repo": {
+          "type": "string",
+          "description": "Repository name"
+        },
+        "branch": {
+          "type": "string",
+          "description": "Branch to clone (optional)"
+        },
+        "force": {
+          "type": "boolean",
+          "description": "Force update if repository exists",
+          "default": false
+        }
+      },
+      "required": ["owner", "repo"]
+    }
+  },
+  {
+    "name": "github_list_terraform_files",
+    "description": "List Terraform files in a GitHub repository. Supports path filtering and custom file patterns for finding .tf, .tfvars, and other Terraform-related files. Requires GitHub App authentication.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "type": "string",
+          "description": "Repository owner/organization"
+        },
+        "repo": {
+          "type": "string",
+          "description": "Repository name"
+        },
+        "path": {
+          "type": "string",
+          "description": "Subdirectory path (optional)",
+          "default": ""
+        },
+        "pattern": {
+          "type": "string",
+          "description": "File pattern to match",
+          "default": "*.tf"
+        }
+      },
+      "required": ["owner", "repo"]
+    }
+  },
+  {
+    "name": "github_get_terraform_config",
+    "description": "Analyze Terraform configuration in a GitHub repository. Returns detailed analysis including providers, modules, resources, variables, outputs, and configuration structure. Requires GitHub App authentication.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "type": "string",
+          "description": "Repository owner/organization"
+        },
+        "repo": {
+          "type": "string",
+          "description": "Repository name"
+        },
+        "config_path": {
+          "type": "string",
+          "description": "Path to Terraform configuration in repository"
+        }
+      },
+      "required": ["owner", "repo", "config_path"]
+    }
+  },
+  {
+    "name": "github_prepare_workspace",
+    "description": "Prepare a Terraform workspace from a GitHub repository. Clones repository, extracts Terraform configuration, and sets up workspace ready for execution. Requires GitHub App authentication.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "type": "string",
+          "description": "Repository owner/organization"
+        },
+        "repo": {
+          "type": "string",
+          "description": "Repository name"
+        },
+        "config_path": {
+          "type": "string",
+          "description": "Path to Terraform configuration in repository"
+        },
+        "workspace_name": {
+          "type": "string",
+          "description": "Custom workspace name (optional)"
+        }
+      },
+      "required": ["owner", "repo", "config_path"]
+    }
+  }
+]
