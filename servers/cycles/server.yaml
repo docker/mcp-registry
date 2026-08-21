@@ -1,0 +1,73 @@
+name: cycles
+image: mcp/cycles
+type: server
+meta:
+  category: devops
+  tags:
+    - budget
+    - cost-control
+    - governance
+    - agents
+    - metering
+about:
+  title: Cycles
+  description: Runtime budget authority for AI agents — reserve, enforce, and reconcile spend across providers. Agents reserve budget before costly operations (LLM calls, tool invocations, external actions), commit actual usage afterward, and are denied when policy or balance would be exceeded. 9 tools covering the reserve/commit/release lifecycle, preflight decisions, balances, and usage events.
+  icon: https://www.google.com/s2/favicons?domain=runcycles.io&sz=64
+source:
+  project: https://github.com/runcycles/cycles-mcp-server
+  commit: d1d67f9122c1983760bde2ef587e74bf454f9d0a
+config:
+  description: Connection to your self-hosted Cycles server
+  secrets:
+    - name: cycles.api_key
+      env: CYCLES_API_KEY
+      example: your-cycles-api-key
+  env:
+    - name: CYCLES_BASE_URL
+      example: https://api.runcycles.io
+      value: "{{cycles.base_url}}"
+    - name: CYCLES_DEFAULT_TENANT
+      example: acme
+      value: "{{cycles.default_tenant}}"
+    - name: CYCLES_DEFAULT_WORKSPACE
+      example: prod
+      value: "{{cycles.default_workspace}}"
+    - name: CYCLES_DEFAULT_APP
+      example: support-bot
+      value: "{{cycles.default_app}}"
+    - name: CYCLES_DEFAULT_WORKFLOW
+      example: ticket-triage
+      value: "{{cycles.default_workflow}}"
+    - name: CYCLES_DEFAULT_AGENT
+      example: researcher
+      value: "{{cycles.default_agent}}"
+    - name: CYCLES_DEFAULT_TOOLSET
+      example: web-tools
+      value: "{{cycles.default_toolset}}"
+  parameters:
+    type: object
+    required:
+      - base_url
+    properties:
+      base_url:
+        type: string
+        description: URL of your Cycles server
+        example: https://api.runcycles.io
+      default_tenant:
+        type: string
+        description: Optional default tenant merged into tool calls that omit the subject
+      default_workspace:
+        type: string
+        description: Optional default workspace merged into tool calls that omit the subject
+      default_app:
+        type: string
+        description: Optional default app merged into tool calls that omit the subject
+      default_workflow:
+        type: string
+        description: Optional default workflow merged into tool calls that omit the subject
+      default_agent:
+        type: string
+        description: Optional default agent merged into tool calls that omit the subject
+      default_toolset:
+        type: string
+        description: Optional default toolset merged into tool calls that omit the subject
