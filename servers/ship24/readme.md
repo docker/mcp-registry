@@ -1,1 +1,1 @@
- Docs: https://docs.ship24.com
+Docs: https://docs.ship24.com
