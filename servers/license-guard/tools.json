@@ -1,0 +1,74 @@
+[
+  {
+    "name": "check_dependency_license",
+    "description": "Determine whether adding or keeping a single open source dependency creates a legal obligation, given how this project ships. Call this BEFORE adding a new dependency to a project, and when auditing an existing one. A permissive result means no source-disclosure duty; a blocked result means the license obligates you and the dependency should be replaced or the shipping model reconsidered.",
+    "arguments": [
+      {
+        "name": "ecosystem",
+        "type": "string",
+        "desc": "Package registry the dependency comes from: npm, pypi, go or cargo",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Package name as written in the manifest, e.g. \"express\", \"requests\", \"github.com/gin-gonic/gin\"",
+        "required": true
+      },
+      {
+        "name": "version",
+        "type": "string",
+        "desc": "Exact version if known. Omit to use the latest published version, which is disclosed in the result",
+        "required": false
+      },
+      {
+        "name": "distribution_model",
+        "type": "string",
+        "desc": "How the software reaches its users: saas, distributed-binary, on-prem-delivery, internal-only or library-published. This determines the answer",
+        "required": true
+      },
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": "Where the dependency sits. One of runtime, dev, build, test, optional. Use dev, build or test for anything that does not end up in the shipped artifact",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "check_manifest_licenses",
+    "description": "Scan an entire dependency manifest and report every dependency whose license creates an obligation for this shipping model. Use when reviewing a project as a whole, preparing for due diligence, or after a large dependency change. Pass a package-lock.json when one exists: problematic licenses usually arrive as transitive dependencies rather than ones you added directly, and only a lockfile reveals those.",
+    "arguments": [
+      {
+        "name": "content",
+        "type": "string",
+        "desc": "Full text of a lockfile or manifest. Accepted: package-lock.json, pnpm-lock.yaml, yarn.lock, requirements.txt, pyproject.toml, poetry.lock, uv.lock, go.mod, go.sum, Cargo.toml, Cargo.lock",
+        "required": true
+      },
+      {
+        "name": "distribution_model",
+        "type": "string",
+        "desc": "How the software reaches its users: saas, distributed-binary, on-prem-delivery, internal-only or library-published",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "explain_license",
+    "description": "Given an SPDX license identifier or expression, explain what it requires across every shipping model at once. Use when the question is about the license itself rather than a specific package — for example when comparing AGPL-3.0 against GPL-3.0 for a hosted service, or deciding what a project may safely depend on.",
+    "arguments": [
+      {
+        "name": "license",
+        "type": "string",
+        "desc": "SPDX identifier or expression, e.g. \"AGPL-3.0-only\", \"Apache-2.0\", or \"(MIT OR GPL-2.0-only)\"",
+        "required": true
+      },
+      {
+        "name": "linkage",
+        "type": "string",
+        "desc": "How the dependency is linked: dynamic, static or separate-process. Matters for LGPL-family licenses",
+        "required": false
+      }
+    ]
+  }
+]
