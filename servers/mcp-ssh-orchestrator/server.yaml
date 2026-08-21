@@ -1,0 +1,72 @@
+name: mcp-ssh-orchestrator
+image: ghcr.io/samerfarida/mcp-ssh-orchestrator
+type: server
+meta:
+  category: security
+  tags:
+    - ssh
+    - automation
+    - infrastructure
+    - security
+    - AI
+about:
+  title: SSH Orchestrator
+  description: Zero-trust MCP server that gives AI assistants governed SSH access with policy enforcement, network controls, and comprehensive audit logging.
+  icon: https://raw.githubusercontent.com/samerfarida/mcp-ssh-orchestrator/main/assets/logo/logo-v1-512.png
+source:
+  project: https://github.com/samerfarida/mcp-ssh-orchestrator
+  commit: f38027f7a4e60cee6a4f72f5dc36762f28bc024f
+config:
+  description: Configure local folders for SSH Orchestrator state
+  secrets:
+    - name: mcp-ssh-orchestrator.ssh_key_passphrase_01
+      env: SSH_KEY_PASSPHRASE_01
+      example: <SSH_KEY_PASSPHRASE_01>
+    - name: mcp-ssh-orchestrator.ssh_key_passphrase_02
+      env: SSH_KEY_PASSPHRASE_02
+      example: <SSH_KEY_PASSPHRASE_02>
+    - name: mcp-ssh-orchestrator.ssh_key_passphrase_03
+      env: SSH_KEY_PASSPHRASE_03
+      example: <SSH_KEY_PASSPHRASE_03>
+    - name: mcp-ssh-orchestrator.ssh_key_passphrase_04
+      env: SSH_KEY_PASSPHRASE_04
+      example: <SSH_KEY_PASSPHRASE_04>
+    - name: mcp-ssh-orchestrator.ssh_key_passphrase_05
+      env: SSH_KEY_PASSPHRASE_05
+      example: <SSH_KEY_PASSPHRASE_05>
+    - name: mcp-ssh-orchestrator.ssh_password_secret_01
+      env: SSH_PASSWORD_SECRET_01
+      example: <SSH_PASSWORD_SECRET_01>
+    - name: mcp-ssh-orchestrator.ssh_password_secret_02
+      env: SSH_PASSWORD_SECRET_02
+      example: <SSH_PASSWORD_SECRET_02>
+    - name: mcp-ssh-orchestrator.ssh_password_secret_03
+      env: SSH_PASSWORD_SECRET_03
+      example: <SSH_PASSWORD_SECRET_03>
+    - name: mcp-ssh-orchestrator.ssh_password_secret_04
+      env: SSH_PASSWORD_SECRET_04
+      example: <SSH_PASSWORD_SECRET_04>
+    - name: mcp-ssh-orchestrator.ssh_password_secret_05
+      env: SSH_PASSWORD_SECRET_05
+      example: <SSH_PASSWORD_SECRET_05>
+  parameters:
+    type: object
+    properties:
+      config_path:
+        type: string
+        description: Absolute path to the orchestrator config directory (e.g. /Users/you/mcp-ssh/config) that contains the {credentials.yml,policies.yml,servers.yml} files
+      keys_path:
+        type: string
+        description: Absolute path to the directory containing SSH keys for the orchestrator (e.g. /Users/you/mcp-ssh/keys) that contains the {private.key(s),known_hosts} files
+      secrets_path:
+        type: string
+        description: Absolute path to the secrets directory for the orchestrator (e.g. /Users/you/mcp-ssh/secrets) that contains the {.env} files
+    required:
+      - config_path
+      - keys_path
+
+run:
+  volumes:
+    - "{{mcp-ssh-orchestrator.config_path}}:/app/config:ro"
+    - "{{mcp-ssh-orchestrator.keys_path}}:/app/keys:ro"
+    - "{{mcp-ssh-orchestrator.secrets_path}}:/app/secrets:ro"
