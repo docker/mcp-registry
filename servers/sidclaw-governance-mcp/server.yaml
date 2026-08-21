@@ -1,0 +1,46 @@
+name: sidclaw-governance-mcp
+image: mcp/sidclaw-governance-mcp
+type: server
+meta:
+  category: security
+  tags:
+    - security
+    - governance
+    - policy
+    - approval
+    - audit
+    - mcp
+about:
+  title: SidClaw Governance MCP
+  description: Governance proxy for MCP servers. Wraps any upstream MCP server with policy evaluation, human approval workflows, and tamper-proof audit trails.
+  icon: https://avatars.githubusercontent.com/u/225085398?s=200&v=4
+source:
+  project: https://github.com/sidclawhq/platform
+  commit: aa3ddd6
+  directory: .
+run:
+  command:
+    - sidclaw-mcp-proxy
+    - --transport
+    - stdio
+config:
+  secrets:
+    - name: sidclaw.api_key
+      env: SIDCLAW_API_KEY
+      example: ai_your_key_here
+    - name: sidclaw.agent_id
+      env: SIDCLAW_AGENT_ID
+      example: claude-code-db-agent
+  env:
+    - name: sidclaw.upstream_cmd
+      env: SIDCLAW_UPSTREAM_CMD
+      description: Command for upstream MCP server
+      example: npx
+    - name: sidclaw.upstream_args
+      env: SIDCLAW_UPSTREAM_ARGS
+      description: Comma-separated args for upstream server
+      example: "-y,@modelcontextprotocol/server-postgres,postgresql://localhost/mydb"
+    - name: sidclaw.approval_mode
+      env: SIDCLAW_APPROVAL_MODE
+      description: "error (default, returns immediately) or block (waits for approval)"
+      example: error
