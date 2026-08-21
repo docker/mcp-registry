@@ -1,0 +1,166 @@
+name: pgedge-postgres
+image: ghcr.io/pgedge/postgres-mcp
+type: server
+meta:
+  category: database
+  tags:
+    - postgresql
+    - database
+    - sql
+    - vector-search
+    - hybrid-search
+about:
+  title: pgEdge Postgres
+  description: Enterprise-grade PostgreSQL integration with natural language queries, hybrid search (pgvector + BM25), and Docker deployment. Works with PostgreSQL 14+ and all major cloud providers.
+  icon: https://avatars.githubusercontent.com/u/112007662?v=4
+source:
+  project: https://github.com/pgEdge/pgedge-postgres-mcp
+  commit: 67121476b6bb9b2d4aa875c711f08abeb287eadb
+  dockerfile: Dockerfile.server
+config:
+  description: Configure the connection to pgEdge Postgres
+  secrets:
+    - name: pgedge-postgres.pgedge_db_password
+      env: PGEDGE_DB_PASSWORD
+      example: your-database-password
+    - name: pgedge-postgres.openai_api_key
+      env: OPENAI_API_KEY
+      example: sk-your-openai-api-key
+    - name: pgedge-postgres.voyage_api_key
+      env: VOYAGE_API_KEY
+      example: pa-your-voyage-api-key
+    - name: pgedge-postgres.anthropic_api_key
+      env: ANTHROPIC_API_KEY
+      example: sk-ant-your-anthropic-api-key
+  env:
+    - name: PGEDGE_DB_HOST
+      example: host.docker.internal
+      value: '{{pgedge-postgres.pgedge_db_host}}'
+    - name: PGEDGE_DB_PORT
+      example: "5432"
+      value: '{{pgedge-postgres.pgedge_db_port}}'
+    - name: PGEDGE_DB_NAME
+      example: postgres
+      value: '{{pgedge-postgres.pgedge_db_name}}'
+    - name: PGEDGE_DB_USER
+      example: postgres
+      value: '{{pgedge-postgres.pgedge_db_user}}'
+    - name: PGEDGE_DB_SSLMODE
+      example: prefer
+      value: '{{pgedge-postgres.pgedge_db_sslmode}}'
+    - name: PGEDGE_DB_ALLOW_WRITES
+      example: "false"
+      value: '{{pgedge-postgres.pgedge_db_allow_writes}}'
+    - name: PGEDGE_EMBEDDING_ENABLED
+      example: "false"
+      value: '{{pgedge-postgres.pgedge_embedding_enabled}}'
+    - name: PGEDGE_EMBEDDING_PROVIDER
+      example: ollama
+      value: '{{pgedge-postgres.pgedge_embedding_provider}}'
+    - name: PGEDGE_EMBEDDING_MODEL
+      example: nomic-embed-text
+      value: '{{pgedge-postgres.pgedge_embedding_model}}'
+    - name: PGEDGE_OLLAMA_URL
+      example: http://host.docker.internal:11434
+      value: '{{pgedge-postgres.pgedge_ollama_url}}'
+    - name: PGEDGE_LLM_ENABLED
+      example: "false"
+      value: '{{pgedge-postgres.pgedge_llm_enabled}}'
+    - name: PGEDGE_LLM_PROVIDER
+      example: anthropic
+      value: '{{pgedge-postgres.pgedge_llm_provider}}'
+    - name: PGEDGE_LLM_MODEL
+      example: claude-sonnet-4-5-20250514
+      value: '{{pgedge-postgres.pgedge_llm_model}}'
+    - name: PGEDGE_LLM_MAX_TOKENS
+      example: "4096"
+      value: '{{pgedge-postgres.pgedge_llm_max_tokens}}'
+    - name: PGEDGE_LLM_TEMPERATURE
+      example: "0.7"
+      value: '{{pgedge-postgres.pgedge_llm_temperature}}'
+    - name: PGEDGE_KB_ENABLED
+      example: "false"
+      value: '{{pgedge-postgres.pgedge_kb_enabled}}'
+    - name: PGEDGE_HTTP_ENABLED
+      example: "false"
+      value: '{{pgedge-postgres.pgedge_http_enabled}}'
+    - name: PGEDGE_HTTP_ADDRESS
+      example: :8080
+      value: '{{pgedge-postgres.pgedge_http_address}}'
+    - name: PGEDGE_AUTH_ENABLED
+      example: "true"
+      value: '{{pgedge-postgres.pgedge_auth_enabled}}'
+    - name: INIT_TOKENS
+      example: ""
+      value: '{{pgedge-postgres.init_tokens}}'
+    - name: INIT_USERS
+      example: ""
+      value: '{{pgedge-postgres.init_users}}'
+    - name: PGEDGE_CUSTOM_DEFINITIONS_PATH
+      example: ""
+      value: '{{pgedge-postgres.pgedge_custom_definitions_path}}'
+    - name: PGEDGE_LLM_DB_SWITCHING
+      value: "false"
+    - name: PGEDGE_DB_HOSTS
+      value: ""
+    - name: PGEDGE_DB_TARGET_SESSION_ATTRS
+      value: ""
+    - name: PGEDGE_DATA_DIR
+      value: /app/data
+    - name: PGEDGE_KB_DATABASE_PATH
+      value: ""
+    - name: PGEDGE_KB_EMBEDDING_PROVIDER
+      value: ""
+    - name: PGEDGE_KB_EMBEDDING_MODEL
+      value: ""
+  parameters:
+    type: object
+    properties:
+      pgedge_db_host:
+        type: string
+      pgedge_db_port:
+        type: string
+      pgedge_db_name:
+        type: string
+      pgedge_db_user:
+        type: string
+      pgedge_db_sslmode:
+        type: string
+      pgedge_db_allow_writes:
+        type: string
+      pgedge_embedding_enabled:
+        type: string
+      pgedge_embedding_provider:
+        type: string
+      pgedge_embedding_model:
+        type: string
+      pgedge_ollama_url:
+        type: string
+      pgedge_llm_enabled:
+        type: string
+      pgedge_llm_provider:
+        type: string
+      pgedge_llm_model:
+        type: string
+      pgedge_llm_max_tokens:
+        type: string
+      pgedge_llm_temperature:
+        type: string
+      pgedge_kb_enabled:
+        type: string
+      pgedge_http_enabled:
+        type: string
+      pgedge_http_address:
+        type: string
+      pgedge_auth_enabled:
+        type: string
+      init_tokens:
+        type: string
+      init_users:
+        type: string
+      pgedge_custom_definitions_path:
+        type: string
+    required:
+      - pgedge_db_host
+      - pgedge_db_name
+      - pgedge_db_user
