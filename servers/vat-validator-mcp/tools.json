@@ -1,0 +1,50 @@
+[
+  {
+    "name": "validate_vat",
+    "description": "Call BEFORE issuing or paying any EU, UK, or Australian invoice. Auto-detects country from prefix and validates against EU VIES (27 states), UK HMRC, or Australian ABR in real time. Returns valid/invalid verdict, registered company name, and address. Name mismatch between invoice and registry is the primary invoice fraud signal.",
+    "arguments": [
+      { "name": "vat_number", "description": "VAT number with country prefix (e.g. DE123456789, GB123456789, AU12345678)", "required": true }
+    ]
+  },
+  {
+    "name": "validate_uk_vat",
+    "description": "Call BEFORE paying any UK invoice. Validates UK VAT numbers directly against HMRC API in real time. Returns company name, registered address, deregistration date if applicable, and HMRC consultation number for audit trail.",
+    "arguments": [
+      { "name": "vat_number", "description": "UK VAT number with or without GB prefix", "required": true }
+    ]
+  },
+  {
+    "name": "get_vat_rates",
+    "description": "Call BEFORE generating any quote, invoice, or cross-border pricing calculation. Returns current VAT standard and reduced rates for all 27 EU member states, UK, and Australia. One call replaces 29 separate government publications.",
+    "arguments": [
+      { "name": "country_code", "description": "ISO 2-letter country code (e.g. DE, FR, GB). Leave blank for all countries.", "required": false }
+    ]
+  },
+  {
+    "name": "batch_validate",
+    "description": "Validates up to 10 VAT numbers in a single call across EU, UK, and Australia. Use for supplier onboarding batches, monthly vendor compliance checks, or CRM data cleaning. One call replaces 10 separate validate_vat calls.",
+    "arguments": [
+      { "name": "vat_numbers", "description": "Array of VAT numbers with country prefixes (max 10)", "required": true }
+    ]
+  },
+  {
+    "name": "analyse_vat_risk",
+    "description": "Call AFTER validate_vat when the number is valid but fraud risk assessment is needed before payment. AI-powered analysis returns CLEAR/REVIEW/BLOCK with specific reasons: name mismatches, newly registered entities, shell company indicators, dormant status.",
+    "arguments": [
+      { "name": "vat_number", "description": "The VAT number that was validated", "required": true },
+      { "name": "validation_result", "description": "Full result object returned by validate_vat or validate_uk_vat", "required": true },
+      { "name": "invoice_amount", "description": "Optional invoice amount in local currency", "required": false },
+      { "name": "invoice_company_name", "description": "Optional company name as it appears on the invoice", "required": false }
+    ]
+  },
+  {
+    "name": "compare_invoice_details",
+    "description": "Call BEFORE approving any invoice payment. AI-powered comparison of invoice details against official VAT registry records. Detects name mismatches, wrong addresses, and fraudulent VAT numbers. Returns MATCH/PARTIAL_MATCH/MISMATCH/UNVERIFIABLE with field-level discrepancies.",
+    "arguments": [
+      { "name": "invoice_company_name", "description": "Company name as it appears on the invoice", "required": true },
+      { "name": "invoice_vat_number", "description": "VAT number as it appears on the invoice", "required": true },
+      { "name": "validation_result", "description": "Full result object returned by validate_vat or validate_uk_vat", "required": true },
+      { "name": "invoice_address", "description": "Optional address as it appears on the invoice", "required": false }
+    ]
+  }
+]
