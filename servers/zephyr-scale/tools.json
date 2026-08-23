@@ -1,0 +1,205 @@
+[
+  {
+    "name": "list_projects",
+    "description": "List all Jira projects that have Zephyr Scale test data. Use this first to discover available project keys before calling other tools.",
+    "arguments": []
+  },
+  {
+    "name": "get_folder_tree_with_counts",
+    "description": "Get the complete folder/test-suite hierarchy for a project with test case counts per folder. Best tool for QA Leads and PMs to understand coverage structure. Runs concurrent API calls for speed.",
+    "arguments": [
+      {
+        "name": "project_key",
+        "description": "Jira project key, e.g. 'PROJ', 'APP', 'QA'",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "search_test_cases",
+    "description": "Search test cases by scenario keyword across name, labels, objective, precondition, and custom fields. Supports multi-term AND matching. Optionally searches test step text with deep_search=true.",
+    "arguments": [
+      {
+        "name": "query",
+        "description": "Search terms, e.g. 'password reset', 'login', 'api timeout'",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "project_key",
+        "description": "Jira project key. Strongly recommended for large deployments.",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "max_results",
+        "description": "Max results to return (default 20, max 100)",
+        "type": "number",
+        "required": false
+      },
+      {
+        "name": "deep_search",
+        "description": "Also search test step text — slower but more thorough (default false)",
+        "type": "boolean",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "get_test_case",
+    "description": "Get full details of a single test case including all ordered test steps (description, test data, expected result per step), labels, status, priority, owner, custom fields, and Jira links.",
+    "arguments": [
+      {
+        "name": "test_case_key",
+        "description": "Zephyr test case key, e.g. 'PROJ-T42', 'APP-T123'",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "get_test_cases_in_folder",
+    "description": "List all test cases directly inside a specific folder/test suite. Use get_folder_tree_with_counts() first to find folder IDs.",
+    "arguments": [
+      {
+        "name": "folder_id",
+        "description": "Numeric folder ID from get_folder_tree_with_counts()",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "project_key",
+        "description": "Jira project key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "max_results",
+        "description": "Max test cases to return (default 100, max 1000)",
+        "type": "number",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "get_release_summary",
+    "description": "Get test coverage summary for a specific release or feature area by matching folder names. Answers 'How many tests do we have for the 4.2 release?' — ideal for PM release readiness reviews.",
+    "arguments": [
+      {
+        "name": "project_key",
+        "description": "Jira project key, e.g. 'PROJ', 'APP'",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "release_name",
+        "description": "Partial folder name to match, e.g. '4.2', 'Authentication', 'DevOps'",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "get_test_cycles",
+    "description": "List test execution cycles for a project. Test cycles group test cases for a sprint, release, or milestone. Returns cycle keys needed by get_test_execution_stats().",
+    "arguments": [
+      {
+        "name": "project_key",
+        "description": "Jira project key. If omitted, returns cycles across all projects.",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "max_results",
+        "description": "Max cycles to return (default 25)",
+        "type": "number",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "get_test_execution_stats",
+    "description": "Get pass/fail/blocked/not-run execution stats for a test cycle. Shows completion percentage and full status breakdown — answers 'Are we ready to release?'",
+    "arguments": [
+      {
+        "name": "test_cycle_key",
+        "description": "Zephyr test cycle key, e.g. 'PROJ-R1'. Use get_test_cycles() to find keys.",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "find_tests_linked_to_jira",
+    "description": "Find all Zephyr test cases linked to a specific Jira issue (story, bug, or task). Traces test coverage back to requirements — answers 'What tests cover this story?'",
+    "arguments": [
+      {
+        "name": "jira_issue_key",
+        "description": "Jira issue key, e.g. 'PROJ-1234', 'APP-567'",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "search_test_cycles",
+    "description": "Search test cycles by name keyword. Fetches all cycles for the project and filters by case-insensitive AND matching on cycle name — answers 'Find the regression cycle for sprint 12'.",
+    "arguments": [
+      {
+        "name": "query",
+        "description": "Search terms, e.g. 'regression', 'sprint 12', 'release 4.2'",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "project_key",
+        "description": "Jira project key, e.g. 'PROJ', 'APP'. If omitted, searches all projects.",
+        "type": "string",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "get_test_cycle_scenario_map",
+    "description": "Show which scenario/feature areas a test cycle covers with pass/fail counts per area. Groups executions by folder path to produce a coverage heatmap — answers 'Which features did this cycle cover and where are failures?'",
+    "arguments": [
+      {
+        "name": "cycle_key",
+        "description": "Zephyr test cycle key, e.g. 'PROJ-R1', 'APP-R42'",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "project_key",
+        "description": "Jira project key, e.g. 'PROJ', 'APP'",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "get_cycles_covering_scenario",
+    "description": "Reverse lookup: find which test cycles have executed tests related to a scenario keyword. Searches for matching test cases then finds which cycles ran them — answers 'Which cycles cover the login scenario?'",
+    "arguments": [
+      {
+        "name": "scenario",
+        "description": "Keyword to match test cases, e.g. 'login', 'data bridge'",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "project_key",
+        "description": "Jira project key, e.g. 'PROJ', 'APP'",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "max_test_cases",
+        "description": "Max test cases to check for cycle coverage (default 10, max 15)",
+        "type": "number",
+        "required": false
+      }
+    ]
+  }
+]
