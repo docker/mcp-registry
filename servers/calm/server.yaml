@@ -1,0 +1,38 @@
+name: calm
+image: mcp/calm
+type: server
+meta:
+  category: code
+  tags:
+    - code
+    - code-intelligence
+    - call-graph
+    - refactoring
+    - code-search
+about:
+  title: CALM
+  description: CALM (Coding Agent Liveness Map) gives coding agents a live, graph-verified map of a codebase — real call graphs with confidence-graded edges, hybrid search, and hash-verified edits behind hard safety gates on hub symbols — instead of grep. Local-first, no code leaves the container.
+  icon: https://avatars.githubusercontent.com/u/211117866?s=200&v=4
+source:
+  project: https://github.com/Eilodon/CALM
+  branch: v0.3.4
+  commit: d1f26863d4e9c58cf05b4f1d757521671058d5b1
+  dockerfile: Containerfile
+run:
+  command:
+    - serve
+    - --project-root
+    - /project
+  volumes:
+    - "{{calm.project_path}}:/project"
+  disableNetwork: true
+config:
+  description: The project directory CALM indexes and edits — mounted read-write at /project (CALM's edit tools write files; its index lives in /project/.calm)
+  parameters:
+    type: object
+    properties:
+      project_path:
+        type: string
+        default: /Users/demo/project
+    required:
+      - project_path
