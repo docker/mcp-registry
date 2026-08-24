@@ -1,0 +1,57 @@
+[
+  {
+    "name": "list_stories",
+    "description": "All approved stories in this repository: id, title, epic, local status (todo|doing|review|done), and how many acceptance criteria each carries. The list IS the approved scope - nothing else is in spec."
+  },
+  {
+    "name": "get_story",
+    "description": "One approved story in full: title, epic, and every acceptance criterion with its id, statement, and check type (build | tests | command | manual). Read this BEFORE implementing the story - the criteria are the approved definition of done.",
+    "arguments": [
+      {
+        "name": "story_id",
+        "type": "string",
+        "desc": "Story id as listed by list_stories"
+      }
+    ]
+  },
+  {
+    "name": "next_story",
+    "description": "The next approved story that is not yet done, per local story state. Use this to pick up work without guessing at priorities."
+  },
+  {
+    "name": "set_story_status",
+    "description": "Record story progress: status is doing | review | done. Writes LOCAL story state only (the repo's tracker-sync artifact) - never a configured external tracker, and never the approved criteria.",
+    "arguments": [
+      {
+        "name": "story_id",
+        "type": "string",
+        "desc": "Story id as listed by list_stories"
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "doing | review | done"
+      },
+      {
+        "name": "comment",
+        "type": "string",
+        "desc": "Optional progress note"
+      }
+    ]
+  },
+  {
+    "name": "check_story",
+    "description": "Run this story's acceptance criteria against the working tree with the SAME engine as the merge gate (linebreak-gate check). Returns pass | fail | needs-signoff per criterion - verify your work here BEFORE pushing instead of discovering failures at the merge.",
+    "arguments": [
+      {
+        "name": "story_id",
+        "type": "string",
+        "desc": "Story id as listed by list_stories"
+      }
+    ]
+  },
+  {
+    "name": "spec_status",
+    "description": "Is there an approved spec bundle: version, source phase, approver, story count, and the approval signature state (verified | invalid | signed-unverified | unsigned), verified entirely offline."
+  }
+]
