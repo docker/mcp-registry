@@ -1,0 +1,122 @@
+[
+  {
+    "name": "answer_pending_input",
+    "description": "Answer a run that is paused on a human-input request (from list_pending_inputs). For an approval, set approved=true/false. For an input request, set value to the requested text. A successful answer starts a continuation run: the returned run_id is that new continuation run, not the parked run, and is the id to poll with get_run_result.",
+    "arguments": []
+  },
+  {
+    "name": "cancel_run",
+    "description": "Stop an in-flight agent run. Cancellation is asynchronous: a successful call returns status \"cancelling\"; poll get_run_result until the run becomes \"cancelled\". A run that already finished cannot be cancelled.",
+    "arguments": []
+  },
+  {
+    "name": "create_agent",
+    "description": "Get or create an agent by name: a persistent cloud environment running plori's agent, with its own disk, tools, and memory. Create one when the work should accumulate somewhere the user can return to: a project with files that build up, a repo to keep checked out, tools to install once and reuse, or a long job to hand off. You do not need one for a question you can answer yourself or for a one-off script with no state worth keeping. If the account already has an agent with this name, that agent is returned (marked \"existing\": true) instead of a duplicate — safe to call repeatedly, and the right way to reconnect to an agent you used before. Creation is subject to the account's plan limits (agent count, model tier); model is ignored when an existing agent is returned (use set_agent_model to change it).",
+    "arguments": []
+  },
+  {
+    "name": "create_workflow",
+    "description": "Create an empty workflow. Returns the new workflow, including its id and — for a webhook trigger — its hook URL. trigger_kind defaults to \"manual\" (run it on demand with run_workflow); \"cron\" needs a cron_expr; \"webhook\" mints a public hook URL. A new workflow has no steps and cannot run yet: ask one of your agents to build them (invoke_agent with a message like \"build the steps for workflow <id>: <what it should do>\" — the agent has the build tools), then fire it with run_workflow.",
+    "arguments": []
+  },
+  {
+    "name": "delete_agent",
+    "description": "Permanently delete an agent and revoke its disk. This cannot be undone.",
+    "arguments": []
+  },
+  {
+    "name": "edit_workflow",
+    "description": "Apply a batch of constrained edits as one new draft version under base_version compare-and-swap. Supported ops are set_params, add_step, remove_step, and add_router. Read the exact current definition with get_workflow_version first; a stale base_version is rejected instead of overwriting concurrent work. Editing does not activate the draft.",
+    "arguments": []
+  },
+  {
+    "name": "get_agent",
+    "description": "Get one agent's details (name, type, model, status) by its id.",
+    "arguments": []
+  },
+  {
+    "name": "get_credits",
+    "description": "Get the authenticated account's US-dollar balance and plan. Running agents spends this prepaid balance, so check it before invoking. For where the money went, use get_usage instead. balance_usd is the dollar-formatted balance.",
+    "arguments": []
+  },
+  {
+    "name": "get_disk",
+    "description": "Get the authenticated account's disk state (included, purchased, used bytes, and monthly cost).",
+    "arguments": []
+  },
+  {
+    "name": "get_run_result",
+    "description": "Get a run's status, started/ended/heartbeat timestamps, attributed credits and tokens (null when unavailable), and, if it has completed, the assistant's reply, plus a \"url\" that opens the run's session in the web app. Use to poll a run started with invoke_agent wait=false. Credit/token counters advance after each completed model call; unchanged counters while a tool is running are normal, so use last_heartbeat_at to judge liveness. A failed run includes its cause and whether it is retryable. Status \"awaiting_input\" includes the pending request details inline for answer_pending_input.",
+    "arguments": []
+  },
+  {
+    "name": "get_usage",
+    "description": "Get the authenticated account's usage rollup (US-dollar spend by meter and by agent, recent runs). Use this to answer where the money went; for the current balance use get_credits.",
+    "arguments": []
+  },
+  {
+    "name": "get_workflow",
+    "description": "Get one workflow's metadata and step projection. The projection is the version pinned for execution (active_version), falling back to current_version for a draft that has not been activated.",
+    "arguments": []
+  },
+  {
+    "name": "get_workflow_execution",
+    "description": "Get one workflow execution's status, timing, credits, and full per-step input/output payloads from the persisted execution. Use to poll a run started with run_workflow or inspect what each step returned; list_workflow_executions deliberately omits step payloads.",
+    "arguments": []
+  },
+  {
+    "name": "get_workflow_version",
+    "description": "Get one exact workflow version, including its full builder definition with step parameter values and its value-light projection. Use current_version from get_workflow unless you intentionally need an older version.",
+    "arguments": []
+  },
+  {
+    "name": "invoke_agent",
+    "description": "Send a message to an agent and get its reply. Use this for work that should outlive a single request: files written now and read next week, software installed once and reused, a repo kept checked out, or a long job handed off and read later. Do not use it for a stateless snippet you can run inline, with no state worth keeping: a plain code sandbox is cheaper and faster for that. By default waits up to ~25s for the turn to finish and returns the assistant's reply; if it is still running by then it returns a run_id with status \"running\" to poll via get_run_result. Agent turns can take minutes (research, multi-step or tool-heavy work). This call blocks your own turn while it waits, and no MCP client backgrounds it — so if the user is not waiting on this reply, or you expect a long turn, pass wait=false to get a run_id back immediately and poll get_run_result on your own cadence instead of holding the call open. Running an agent spends credits, and an account's plan caps how many runs it may have in flight at once across all its agents (over the cap returns 429; wait for a run to finish and retry). Turns on one agent are not queued for you. Pass idempotency_key when you might retry this call: a retry carrying the same key returns the original run instead of starting and billing a second one. If the run pauses on a human-input request it returns status \"awaiting_input\" with the pending request details inline (respond with answer_pending_input). Every result also carries a \"url\" that opens this run's exact session in the web app, so a human can go read it.",
+    "arguments": []
+  },
+  {
+    "name": "list_agents",
+    "description": "List the agents owned by the authenticated account, with their model and live session status.",
+    "arguments": []
+  },
+  {
+    "name": "list_connections",
+    "description": "List the authenticated account's third-party OAuth connections, including each provider's status, authorization and expiry times, and configured scopes. status is the re-authentication predicate: authorized needs no action; reconnect_needed or unauthorized does. Tokens refresh lazily when used, so an authorized row may have a past expires_at; authorized with expires_at=null means the grant never expires. Token and client-secret material is never returned.",
+    "arguments": []
+  },
+  {
+    "name": "list_pending_inputs",
+    "description": "List the agent's runs that are paused awaiting a human approval or input (the HITL queue). A row with a \"consent_tool\" is a write-consent approval: answering it with always_allow=true also stops the agent asking for that tool.",
+    "arguments": []
+  },
+  {
+    "name": "list_runs",
+    "description": "List an agent's run history (most recent first), with each run's status.",
+    "arguments": []
+  },
+  {
+    "name": "list_workflow_executions",
+    "description": "List a workflow's recent executions (most recent first), including status, fault, trigger source, timing, credits, and timestamps.",
+    "arguments": []
+  },
+  {
+    "name": "list_workflows",
+    "description": "List the workflows owned by the authenticated account, with each one's status, trigger, current version, and the agent that holds it (agent_id). Each workflow belongs to one agent — the one that built it — and that agent is the only one that can edit or run it from a chat. Pass agent_id to list just that agent's workflows, or agent_id=\"none\" for the unassigned ones (created here or in the web app with no agent).",
+    "arguments": []
+  },
+  {
+    "name": "run_workflow",
+    "description": "Run a workflow now — a real execution with real side effects, billed like any run (1 credit + model usage). Waits briefly and returns the execution: terminal if it finished, else status \"running\" to poll with get_workflow_execution. The workflow must have steps built already (ask an agent via invoke_agent if it has none).",
+    "arguments": []
+  },
+  {
+    "name": "schedule_run",
+    "description": "Schedule a ONE-SHOT deferred run of an agent: it will be invoked once, later, with the given prompt, billed like any run, and appears in list_runs when it fires. Provide either delay_seconds (relative) or fire_at (an RFC3339 timestamp). For a recurring schedule, use create_workflow with a cron trigger instead.",
+    "arguments": []
+  },
+  {
+    "name": "set_agent_model",
+    "description": "Change an agent's model. Takes effect on the agent's next turn. The default is Auto (plan-scaled); an explicit frontier model requires a paid plan.",
+    "arguments": []
+  }
+]
