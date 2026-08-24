@@ -1,0 +1,69 @@
+name: lightning-enable-mcp
+image: refinedelement/lightning-enable-mcp:1.16.1
+type: server
+meta:
+  category: finance
+  tags:
+    - bitcoin
+    - lightning
+    - payments
+    - agents
+about:
+  title: Lightning Enable
+  description: >-
+    Lets AI agents pay Bitcoin Lightning invoices and access L402-protected
+    APIs, with per-request and session spending budgets. Agents can also act
+    as sellers — issuing and verifying L402 payment challenges — and
+    discover, request, and settle paid services from other agents over the
+    Agent Service Agreement protocol. Configure one wallet: Strike, your own
+    LND node, Nostr Wallet Connect, or OpenNode.
+  icon: https://www.lightningenable.com/images/logo-icon.png
+source:
+  project: https://github.com/refined-element/lightning-enable-mcp
+  branch: main
+  directory: python/lightning-enable-mcp
+  commit: e88dc45bc2dd51801c840c77a0c762f5cfb1a527
+config:
+  description: >-
+    Configure a Lightning wallet for the agent to pay from (Strike, your own
+    LND node, Nostr Wallet Connect, or OpenNode — only one is required) and,
+    optionally, a Lightning Enable API key to unlock the L402 producer and
+    Agent Service Agreement tools.
+  secrets:
+    - name: lightning-enable-mcp.strike_api_key
+      env: STRIKE_API_KEY
+      example: your_strike_api_key
+      description: Strike API key. Supports L402 (returns a payment preimage).
+    - name: lightning-enable-mcp.lnd_macaroon_hex
+      env: LND_MACAROON_HEX
+      example: your_lnd_admin_macaroon_in_hex
+      description: Admin macaroon (hex) for your own LND node. Pair with LND_REST_HOST below. Always returns preimage, so L402 is guaranteed to work.
+    - name: lightning-enable-mcp.nwc_connection_string
+      env: NWC_CONNECTION_STRING
+      example: "nostr+walletconnect://<pubkey>?relay=<relay-url>&secret=<secret>"
+      description: Nostr Wallet Connect URI (CoinOS, CLINK, Alby Hub). Supports L402.
+    - name: lightning-enable-mcp.opennode_api_key
+      env: OPENNODE_API_KEY
+      example: your_opennode_api_key
+      description: OpenNode API key. Direct payments only — does not return a preimage, so L402 is not supported.
+    - name: lightning-enable-mcp.lightning_enable_api_key
+      env: LIGHTNING_ENABLE_API_KEY
+      example: your_lightning_enable_api_key
+      description: Optional. Unlocks the L402 producer tools and the Agent Service Agreement tools. Requires a Lightning Enable Agentic Commerce subscription.
+  env:
+    - name: LND_REST_HOST
+      example: localhost:8080
+      value: "{{lightning-enable-mcp.lnd_rest_host}}"
+    - name: OPENNODE_ENVIRONMENT
+      example: production
+      value: "{{lightning-enable-mcp.opennode_environment}}"
+  parameters:
+    type: object
+    properties:
+      lnd_rest_host:
+        type: string
+        description: LND REST API host, e.g. localhost:8080. Required only when paying with LND_MACAROON_HEX.
+      opennode_environment:
+        type: string
+        description: "OpenNode environment: production or dev (testnet). Defaults to production."
+        default: production
