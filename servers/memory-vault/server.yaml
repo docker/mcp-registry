@@ -1,0 +1,52 @@
+name: memory-vault
+image: mcp/memory-vault
+type: server
+meta:
+    category: ai
+    tags:
+        - ai
+        - memory
+        - rag
+        - vector-search
+        - postgres
+        - pgvector
+        - self-hosted
+about:
+    title: Memory Vault
+    description: |
+        Local-first AI memory layer for Claude and other MCP clients. Hybrid search (semantic + keyword) over your knowledge base, backed by Postgres + pgvector. Self-hosted, MIT-licensed, no telemetry.
+    icon: https://avatars.githubusercontent.com/u/270030627?v=4
+source:
+    project: https://github.com/MihaiBuilds/memory-vault
+    commit: 5586ebc86179b03d353ecf02b3ffb91f87c56510
+    dockerfile: Dockerfile.mcp
+config:
+    description: Configure the connection to Memory Vault
+    secrets:
+        - name: memory-vault.db_password
+          env: DB_PASSWORD
+          example: memory_vault
+    env:
+        - name: DB_HOST
+          example: host.docker.internal
+          value: '{{memory-vault.db_host}}'
+        - name: DB_PORT
+          example: "5432"
+          value: '{{memory-vault.db_port}}'
+        - name: DB_NAME
+          example: memory_vault
+          value: '{{memory-vault.db_name}}'
+        - name: DB_USER
+          example: memory_vault
+          value: '{{memory-vault.db_user}}'
+    parameters:
+        type: object
+        properties:
+            db_host:
+                type: string
+            db_port:
+                type: string
+            db_name:
+                type: string
+            db_user:
+                type: string
