@@ -1,0 +1,37 @@
+name: ssh
+image: mcp/ssh
+type: server
+meta:
+  category: devops
+  tags:
+    - ssh
+    - devops
+    - remote-execution
+    - sysadmin
+about:
+  title: SSH
+  description: Remote server work over SSH — run commands, move files with checksum verification, search logs and audit hosts, from a cloud VPS down to a BusyBox router. Destructive commands are checked before they reach the shell.
+  icon: https://raw.githubusercontent.com/hypnosis/ssh-mcp-server/main/assets/icon-512.png
+source:
+  project: https://github.com/hypnosis/ssh-mcp-server
+  commit: dd548340622b35b61716f386652cd19ab9a263d4
+run:
+  volumes:
+    - "{{ssh.profiles_file}}:/profiles/ssh-profiles.json:ro"
+    - "{{ssh.ssh_directory}}:/home/node/.ssh:ro"
+config:
+  description: The profiles file naming the machines this server may reach, and the SSH directory holding the keys those profiles use. Inside the container the keys are at /home/node/.ssh, so let each profile's privateKeyPath point there.
+  env:
+    - name: SSH_PROFILES_FILE
+      example: /profiles/ssh-profiles.json
+      value: /profiles/ssh-profiles.json
+  parameters:
+    type: object
+    properties:
+      profiles_file:
+        type: string
+      ssh_directory:
+        type: string
+    required:
+      - profiles_file
+      - ssh_directory
