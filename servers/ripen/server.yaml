@@ -1,0 +1,40 @@
+name: ripen
+image: ghcr.io/frankieramirez/ripen:v1.0.0
+type: server
+meta:
+  category: devops
+  tags:
+    - devops
+    - containers
+    - docker
+    - compose
+    - portainer
+about:
+  title: Ripen
+  description: Ripen, a fail-closed image updater
+  icon: https://avatars.githubusercontent.com/u/915310?s=200&v=4
+source:
+  project: https://github.com/frankieramirez/ripen
+  commit: 31dfb794165fadcefd64cd7803f3c79cef91baf6
+run:
+  command:
+    - mcp
+    - --config
+    - /config/policy.yaml
+  volumes:
+    - "{{ripen.policy_path}}:/config/policy.yaml:ro"
+    - "{{ripen.state_path}}:/data:ro"
+config:
+  description: The Ripen policy file and state directory, both mounted read-only. The policy's state_file must be the container path /data/ripen.db.
+  parameters:
+    type: object
+    properties:
+      policy_path:
+        type: string
+        description: Host path to policy.yaml
+      state_path:
+        type: string
+        description: Host path to the directory that holds ripen.db
+    required:
+      - policy_path
+      - state_path
