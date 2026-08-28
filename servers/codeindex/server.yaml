@@ -1,0 +1,39 @@
+name: codeindex
+image: mcp/codeindex
+type: server
+meta:
+  category: development
+  tags:
+    - development
+    - code-analysis
+about:
+  title: codeindex
+  description: >-
+    Answers code questions structurally instead of reading whole files — where a
+    symbol is defined, the body of one function, what calls it, imports in both
+    directions, and what a change breaks. tree-sitter across 40+ languages, 16
+    tools, no API key and nothing to configure.
+  icon: https://raw.githubusercontent.com/munhq/codeindex/main/docs/brand/icon-512.png
+source:
+  project: https://github.com/munhq/codeindex
+  branch: main
+  commit: 29d621964550004cf142be2167f652467f5dfb34
+run:
+  # codeindex indexes the repository it is pointed at, so the path the user
+  # chooses is bind-mounted and passed as --workspace. Nothing is written there.
+  command:
+    - "--workspace"
+    - "{{codeindex.workspace|volume-target}}"
+  volumes:
+    - "{{codeindex.workspace|volume}}"
+  # The index is built from the mounted files; the server never calls out.
+  disableNetwork: true
+config:
+  description: The repository codeindex should index
+  parameters:
+    type: object
+    properties:
+      workspace:
+        type: string
+    required:
+      - workspace
