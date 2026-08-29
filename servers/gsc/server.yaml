@@ -1,0 +1,35 @@
+name: gsc
+image: mcp/gsc
+type: server
+meta:
+  category: search
+  tags:
+    - claude
+    - google-search-console
+    - model-context-protocol
+    - seo
+    - typescript
+about:
+  title: Google Search Console
+  description: Seven tools over Google Search Console - search performance by query, page, country or device, striking-distance keywords sitting at average position 8 to 25, sitemap status, and URL index inspection. Five tools read; sitemap submit and delete write. Uses a saved installed-app OAuth credential, not a service account or an API key.
+  icon: https://avatars.githubusercontent.com/u/120674402?v=4
+source:
+  project: https://github.com/conorbronsdon/gsc-mcp
+  commit: b9a31219b44310f18ccb64ef8ecd736adcf7a0b6
+config:
+  description: Configure the path to a saved Google Search Console OAuth credential
+  env:
+    - name: GSC_CREDENTIALS_PATH
+      value: "/app/.config/gws/searchconsole_credentials.json"
+      example: "/Users/you/.config/gws/searchconsole_credentials.json"
+  parameters:
+    type: object
+    properties:
+      credentials_path:
+        type: string
+        description: path to the saved installed-app OAuth credential (eg $HOME/.config/gws/searchconsole_credentials.json)
+    required:
+      - credentials_path
+run:
+  volumes:
+    - "{{gsc.credentials_path}}:/app/.config/gws/searchconsole_credentials.json:ro"
