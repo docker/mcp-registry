@@ -1,0 +1,40 @@
+name: sandbase-harness
+image: ghcr.io/sandbaseai/sandbase-harness-mcp:0.3.8
+type: server
+meta:
+  category: ai
+  tags:
+    - agent-runtime
+    - agent-harness
+    - sandbox
+    - sessions
+    - self-hosted
+about:
+  title: SandBase Harness
+  description: Local-first, self-hosted runtime and MCP bridge for creating, running, inspecting, and stopping sandboxed AI agent sessions with artifacts, approvals, audit, and replay.
+  icon: https://avatars.githubusercontent.com/u/207462174?s=200&v=4
+source:
+  project: https://github.com/sandbaseai/sandbase-harness
+  branch: main
+  commit: 5e1264afdc6192382bf12277c2996dd164d572cd
+  dockerfile: Dockerfile.mcp
+config:
+  description: Configure the connection to a SandBase Harness API deployment.
+  secrets:
+    - name: sandbase-harness.managed_agents_api_key
+      env: MANAGED_AGENTS_API_KEY
+      example: YOUR_HARNESS_API_KEY
+      required: false
+  env:
+    - name: MANAGED_AGENTS_URL
+      example: http://host.docker.internal:3000
+      value: "{{sandbase-harness.managed_agents_url}}"
+  parameters:
+    type: object
+    properties:
+      managed_agents_url:
+        type: string
+        description: Base URL of the connected SandBase Harness API.
+        example: http://host.docker.internal:3000
+    required:
+      - managed_agents_url
