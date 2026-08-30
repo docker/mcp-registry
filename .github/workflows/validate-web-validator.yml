@@ -1,0 +1,22 @@
+name: Validate Web Validator Registry Entry
+
+on:
+  push:
+    branches: ["agent/add-web-validator-remote"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.x"
+          cache: true
+      - run: go run ./cmd/validate --name web-validator
+      - run: go run ./cmd/build --tools web-validator
+      - run: go run ./cmd/catalog web-validator
