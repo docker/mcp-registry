@@ -1,0 +1,33 @@
+name: Validate TrendPulse Docker MCP submission
+
+on:
+  push:
+    branches:
+      - feat/add-trendpulse
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate registry metadata
+        run: go run ./cmd/validate -name trendpulse
+
+      - name: Build Docker-managed image and discover tools
+        run: go run ./cmd/build --tools trendpulse
+
+      - name: Generate catalog entry
+        run: go run ./cmd/catalog trendpulse
