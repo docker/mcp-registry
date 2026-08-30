@@ -1,0 +1,47 @@
+name: Validate Docker MCP submission
+
+on:
+  push:
+    branches:
+      - feat/add-digestseo-geo-remote
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout submission branch
+        uses: actions/checkout@v4
+        with:
+          path: submission
+
+      - name: Checkout current Docker registry
+        uses: actions/checkout@v4
+        with:
+          repository: docker/mcp-registry
+          ref: main
+          path: upstream
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Overlay submission on current upstream
+        run: |
+          rm -rf upstream/servers/digestseo-geo
+          cp -R submission/servers/digestseo-geo upstream/servers/digestseo-geo
+
+      - name: Run current registry validator
+        working-directory: upstream
+        run: go run ./cmd/validate -name digestseo-geo
+
+      - name: Generate catalog entry
+        working-directory: upstream
+        run: go run ./cmd/catalog digestseo-geo
