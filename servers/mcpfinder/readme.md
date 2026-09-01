@@ -1,1 +1,1 @@
-Docs: https://mcpfinder.dsh.sh/llms-full.txt
+Docs: https://findanmcp.com/llms-full.txt
