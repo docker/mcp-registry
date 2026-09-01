@@ -1,0 +1,37 @@
+name: gitkraken
+image: mcp/gitkraken
+type: server
+meta:
+  category: devops
+  tags:
+    - git
+    - devops
+    - issues
+    - pull-requests
+about:
+  title: GitKraken
+  description: Work with Git repositories, issues, and pull requests through GitKraken.
+  icon: https://avatars.githubusercontent.com/u/92606490?v=4
+source:
+  project: https://github.com/gitkraken/mcp
+  commit: de51c47b5238ef529ec842d62a850ff689a53adf
+run:
+  volumes:
+    - "{{gitkraken.paths|volume|into}}"
+  user: "{{gitkraken.container_user}}"
+config:
+  description: Configure the local repository paths GitKraken is allowed to access and, when needed on Linux, the numeric container identity used to access them.
+  parameters:
+    type: object
+    properties:
+      paths:
+        type: array
+        items:
+          type: string
+        default:
+          - /Users/local-test
+      container_user:
+        type: string
+        description: Optional numeric UID or UID:GID (for example, 1000 or 1000:1000) used to access bind-mounted repositories. Leave empty to use the image's built-in non-root user.
+    required:
+      - paths
