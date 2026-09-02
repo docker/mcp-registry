@@ -1,0 +1,363 @@
+[
+  {
+    "name": "expense_add",
+    "description": "Record one expense. The amount is the gross amount on the receipt; vat_rate splits it into net and VAT. If no category is given, the stored category rules are matched against the merchant. Amounts are integer minor units in the expense's own currency.",
+    "arguments": [
+      {
+        "name": "amount",
+        "type": "number",
+        "desc": "Gross amount on the receipt, in major units, e.g. 12.34"
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": "ISO code, default EUR"
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Category, e.g. software, travel, office. Omit to let the category rules decide"
+      },
+      {
+        "name": "merchant",
+        "type": "string",
+        "desc": "Who was paid, e.g. Adobe"
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "ISO date YYYY-MM-DD, default today"
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Project or client this belongs to"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "receipt_path",
+        "type": "string",
+        "desc": "Absolute path to the receipt file; it is checked and hashed"
+      },
+      {
+        "name": "billable",
+        "type": "boolean",
+        "desc": "Rebillable to the client, default false"
+      },
+      {
+        "name": "vat_rate",
+        "type": "number",
+        "desc": "VAT percent already included in amount"
+      }
+    ]
+  },
+  {
+    "name": "expense_list",
+    "description": "List expenses in a date range, optionally filtered by project, category or billable flag. Totals are grouped by currency and never mixed.",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "ISO date, inclusive"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "ISO date, inclusive"
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "billable",
+        "type": "boolean",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "expense_update",
+    "description": "Change any field of a stored expense by id. Only the fields you pass are changed.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Expense id from expense_add or expense_list"
+      },
+      {
+        "name": "amount",
+        "type": "number",
+        "desc": ""
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "merchant",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "billable",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
+        "name": "vat_rate",
+        "type": "number",
+        "desc": ""
+      },
+      {
+        "name": "rebilled",
+        "type": "boolean",
+        "desc": "false clears the rebilled marker so the expense can be billed again"
+      }
+    ]
+  },
+  {
+    "name": "expense_delete",
+    "description": "Delete one expense by id. The receipt file itself is left on disk.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "receipt_attach",
+    "description": "Attach a receipt file to a stored expense. The file must exist; its path and sha256 are stored so a later audit can prove the file has not changed.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the receipt file"
+      }
+    ]
+  },
+  {
+    "name": "category_rules",
+    "description": "Replace the merchant-to-category rules, or call with no rules to list them. Each match is tried as a case-insensitive regular expression, and as a plain substring if it is not valid regex. The first matching rule wins, and rules are applied by expense_add when no category is given.",
+    "arguments": [
+      {
+        "name": "rules",
+        "type": "array",
+        "desc": "The full rule list. Omit to list the current rules"
+      }
+    ]
+  },
+  {
+    "name": "expense_summary",
+    "description": "Totals for a date range grouped by category, project, month or merchant. Every group is reported per currency with the gross, the net and the VAT; currencies are never added together.",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "ISO date, inclusive"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "ISO date, inclusive"
+      },
+      {
+        "name": "group_by",
+        "type": "string",
+        "desc": "How to group the totals"
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "billable",
+        "type": "boolean",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "mileage_add",
+    "description": "Record a business trip as an expense. Money is distance x rate, using the built-in rate table (PL 1.15 PLN/km, UK 0.45 GBP/mile, US 0.70 USD/mile, EU 0.30 EUR/km) unless you pass your own rate. Give either km or miles.",
+    "arguments": [
+      {
+        "name": "km",
+        "type": "number",
+        "desc": "Distance in kilometres"
+      },
+      {
+        "name": "miles",
+        "type": "number",
+        "desc": "Distance in miles"
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "ISO date, default today"
+      },
+      {
+        "name": "purpose",
+        "type": "string",
+        "desc": "Why the trip was made, e.g. client meeting in Krakow"
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "region",
+        "type": "string",
+        "desc": "Which rate to use. Default US for miles, EU for km"
+      },
+      {
+        "name": "rate_per_km",
+        "type": "number",
+        "desc": "Your own rate per supplied unit, overriding the table"
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": "Currency for your own rate, default the region currency"
+      },
+      {
+        "name": "billable",
+        "type": "boolean",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "expense_export",
+    "description": "Write the expenses in a date range to a csv, xlsx or json file and return its path. Nothing partial is ever written: if a limit is hit the file is not created at all.",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "ISO date, inclusive"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "ISO date, inclusive"
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Where to write it. Default is the server data directory"
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "billable",
+        "type": "boolean",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "expense_to_invoice",
+    "description": "Turn the unbilled billable expenses of one project into invoice line items shaped exactly as invoice_create expects: description, quantity, unit_price, tax_rate. unit_price is the net amount, tax_rate is the VAT rate, so the invoice recomputes the same tax. Line items are grouped per currency because one invoice carries one currency. The expenses are marked as rebilled.",
+    "arguments": [
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Project or client to rebill"
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "ISO date, inclusive"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "ISO date, inclusive"
+      },
+      {
+        "name": "markup_percent",
+        "type": "number",
+        "desc": "Percent added to each net amount. Pro"
+      },
+      {
+        "name": "include_rebilled",
+        "type": "boolean",
+        "desc": "Include expenses already marked as rebilled, default false"
+      },
+      {
+        "name": "mark_rebilled",
+        "type": "boolean",
+        "desc": "Mark the expenses as rebilled, default true"
+      }
+    ]
+  },
+  {
+    "name": "license_status",
+    "description": "Show whether this server runs in free or Pro mode and where to upgrade.",
+    "arguments": []
+  },
+  {
+    "name": "license_activate",
+    "description": "Activate a Pro license key (format MCPL1.xxx.yyy). Verified offline and saved locally.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "License key from the checkout confirmation page"
+      }
+    ]
+  }
+]
