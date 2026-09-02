@@ -1,12 +1,11 @@
 # Zopnight
 
-Read-only cloud cost and infrastructure governance across AWS, Azure and GCP. 85 tools covering
-cost overview and trends, cost by provider/resource/tag/team, budgets, resources and resource
-groups, schedules and overrides, recommendations, tagging policies, audit logs, anomalies,
-Kubernetes resources and pod logs.
+ZopDev MCP: cloud cost and infrastructure governance across AWS, Azure, GCP, Databricks and
+Snowflake. 263 tools (155 read, 108 write) covering cost, resources, schedules, recommendations,
+budgets, governance and diagnostics over a hosted remote MCP endpoint. Read-only by default, with
+optional scoped writes.
 
-Hosted remote server — nothing to install, no npm package or Docker image required. Read-only:
-all write operations are refused with `mcp_write_not_allowed`.
+Hosted remote server — nothing to install, no npm package or Docker image required.
 
 - server link - https://api.zop.dev/mcp-server
 - learn doc - https://zop.dev/learn/mcp-server?utm_source=docker-mcp-registry&utm_medium=listing&utm_campaign=mcp-directory
