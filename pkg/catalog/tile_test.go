@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -54,5 +55,70 @@ func TestWriteYamlPreservesLongLived(t *testing.T) {
 	}
 	if !strings.Contains(string(contents), "longLived: true") {
 		t.Errorf("WriteYaml() output does not contain longLived: true:\n%s", contents)
+	}
+}
+
+func TestMarshalJSONPreservesLongLived(t *testing.T) {
+	contents, err := json.Marshal(TopLevel{
+		Version:     Version,
+		Name:        Name,
+		DisplayName: DisplayName,
+		Registry: TileList{
+			{
+				Name: "long-lived-server",
+				Tile: Tile{LongLived: true},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(contents), `"longLived":true`) {
+		t.Errorf("json.Marshal() output does not contain \"longLived\":true:\n%s", contents)
+	}
+}
+
+func TestMarshalJSONOmitsLongLivedWhenFalse(t *testing.T) {
+	contents, err := json.Marshal(TopLevel{
+		Version:     Version,
+		Name:        Name,
+		DisplayName: DisplayName,
+		Registry: TileList{
+			{
+				Name: "regular-server",
+				Tile: Tile{LongLived: false},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(contents), "longLived") {
+		t.Errorf("json.Marshal() output contains longLived for a regular server:\n%s", contents)
+	}
+}
+
+func TestWriteYamlOmitsLongLivedWhenFalse(t *testing.T) {
+	catalogFile := filepath.Join(t.TempDir(), "catalog.yaml")
+	if err := WriteYaml(catalogFile, TopLevel{
+		Version:     Version,
+		Name:        Name,
+		DisplayName: DisplayName,
+		Registry: TileList{
+			{
+				Name: "regular-server",
+				Tile: Tile{LongLived: false},
+			},
+		},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	contents, err := os.ReadFile(catalogFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(contents), "longLived") {
+		t.Errorf("WriteYaml() output contains longLived for a regular server:\n%s", contents)
 	}
 }
