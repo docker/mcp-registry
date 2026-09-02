@@ -1,0 +1,303 @@
+[
+  {
+    "name": "license_status",
+    "description": "Show whether this server runs in free or Pro mode and where to upgrade.",
+    "arguments": []
+  },
+  {
+    "name": "license_activate",
+    "description": "Activate a Pro license key (format MCPL1.xxx.yyy). Verified offline and saved locally.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "License key from the checkout confirmation page"
+      }
+    ]
+  },
+  {
+    "name": "timer_start",
+    "description": "Start tracking time on a project. Only one timer runs at a time: starting a new one stops and logs the previous one.",
+    "arguments": [
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Project or client name, e.g. 'acme-website'"
+      },
+      {
+        "name": "task",
+        "type": "string",
+        "desc": "What you are working on right now"
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "desc": "Free-form tags, e.g. ['dev','meeting']"
+      },
+      {
+        "name": "rate",
+        "type": "number",
+        "desc": "Hourly rate for this timer only; defaults to the project rate"
+      }
+    ]
+  },
+  {
+    "name": "timer_stop",
+    "description": "Stop the running timer and log it as a time entry. Returns the duration and the entry id.",
+    "arguments": [
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "Optional note stored with the entry"
+      }
+    ]
+  },
+  {
+    "name": "timer_status",
+    "description": "Show the running timer, how long it has been running, and today's total so far.",
+    "arguments": []
+  },
+  {
+    "name": "entry_add",
+    "description": "Log time you already worked. Give start plus either end or minutes.",
+    "arguments": [
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Project or client name"
+      },
+      {
+        "name": "task",
+        "type": "string",
+        "desc": "What the work was"
+      },
+      {
+        "name": "start",
+        "type": "string",
+        "desc": "ISO 8601 start time, e.g. 2026-09-02T09:00:00"
+      },
+      {
+        "name": "end",
+        "type": "string",
+        "desc": "ISO 8601 end time (or use minutes)"
+      },
+      {
+        "name": "minutes",
+        "type": "number",
+        "desc": "Duration in minutes (alternative to end)"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "Optional note"
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "desc": "Optional tags"
+      },
+      {
+        "name": "billable",
+        "type": "boolean",
+        "desc": "Default true; set false for non-billable work"
+      },
+      {
+        "name": "rate",
+        "type": "number",
+        "desc": "Hourly rate override for this entry"
+      }
+    ]
+  },
+  {
+    "name": "entry_list",
+    "description": "List logged time entries as a compact table. Free tier shows the last 7 days.",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "ISO date/time lower bound"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "ISO date/time upper bound"
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Filter by project name"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum rows, newest first (default 50)"
+      }
+    ]
+  },
+  {
+    "name": "entry_delete",
+    "description": "Delete one time entry by id.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Entry id from entry_list"
+      }
+    ]
+  },
+  {
+    "name": "entry_edit",
+    "description": "Change fields of an existing entry. Only the fields you pass are changed.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Entry id from entry_list"
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "task",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "start",
+        "type": "string",
+        "desc": "ISO 8601"
+      },
+      {
+        "name": "end",
+        "type": "string",
+        "desc": "ISO 8601"
+      },
+      {
+        "name": "minutes",
+        "type": "number",
+        "desc": "New duration in minutes, keeps start"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "desc": ""
+      },
+      {
+        "name": "billable",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
+        "name": "rate",
+        "type": "number",
+        "desc": "Hourly rate override for this entry"
+      }
+    ]
+  },
+  {
+    "name": "project_set_rate",
+    "description": "Set the hourly rate used to turn tracked hours into money for a project.",
+    "arguments": [
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Project or client name"
+      },
+      {
+        "name": "hourly_rate",
+        "type": "number",
+        "desc": "Hourly rate, e.g. 85"
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": "Currency code, default USD"
+      }
+    ]
+  },
+  {
+    "name": "report",
+    "description": "Total tracked hours and money for a period, grouped by project, day, task or tag. Free tier covers the last 7 days.",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "ISO date/time start of the period"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "ISO date/time end of the period"
+      },
+      {
+        "name": "group_by",
+        "type": "string",
+        "desc": "project | day | task | tag (tag is Pro)"
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "table (default), json or csv"
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Optional project filter"
+      }
+    ]
+  },
+  {
+    "name": "export_csv",
+    "description": "Write time entries to a CSV file you can hand to a bookkeeper or import into a spreadsheet. Free tier exports the last 7 days.",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "ISO date/time lower bound"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "ISO date/time upper bound"
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Optional project filter"
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Target file path; defaults to a file in the local data directory"
+      }
+    ]
+  },
+  {
+    "name": "invoice_summary",
+    "description": "Turn tracked time into invoice line items for one project: hours, rate, amount per task, plus the total.",
+    "arguments": [
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Project or client to invoice"
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "ISO date/time start of the billing period"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "ISO date/time end of the billing period"
+      }
+    ]
+  }
+]

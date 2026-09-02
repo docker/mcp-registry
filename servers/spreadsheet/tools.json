@@ -1,0 +1,241 @@
+[
+  {
+    "name": "license_status",
+    "description": "Show whether this server runs in free or Pro mode and where to upgrade.",
+    "arguments": []
+  },
+  {
+    "name": "license_activate",
+    "description": "Activate a Pro license key (format MCPL1.xxx.yyy). Verified offline and saved locally.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "License key from the checkout confirmation page"
+      }
+    ]
+  },
+  {
+    "name": "sheet_info",
+    "description": "Open an xlsx or csv file and describe it: sheet names, size, guessed header row, per-column type, sample values and empty counts. Start here before reading or querying.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the .xlsx/.xlsm/.xlsb/.ods/.csv/.tsv file (~ is expanded)"
+      }
+    ]
+  },
+  {
+    "name": "sheet_read",
+    "description": "Read rows from a sheet as a text table, JSON records or CSV. Use limit/offset to page through big files, or range for an A1 block like B2:F40.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "sheet",
+        "type": "string",
+        "desc": "Sheet name; defaults to the first sheet"
+      },
+      {
+        "name": "range",
+        "type": "string",
+        "desc": "A1 range such as A1:D50; overrides limit/offset"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Rows to return, default 100"
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Rows to skip, default 0"
+      },
+      {
+        "name": "as",
+        "type": "string",
+        "desc": "Output format, default table"
+      }
+    ]
+  },
+  {
+    "name": "sheet_query",
+    "description": "Filter, pick columns and sort rows without writing any code. where uses a small safe expression language: comparisons = != > >= < <= plus contains / startswith / endswith, combined with AND, OR, NOT and parentheses. Column names with spaces go in brackets: [Unit Price] > 10 AND [Region] contains \"north\". Strings use single or double quotes.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "sheet",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "where",
+        "type": "string",
+        "desc": "Filter, e.g. [Qty] >= 5 AND ([Status] = \"open\" OR [Status] = \"new\")"
+      },
+      {
+        "name": "select",
+        "type": "array",
+        "desc": "Column names to return; default all"
+      },
+      {
+        "name": "sort",
+        "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Default 100"
+      },
+      {
+        "name": "as",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "sheet_stats",
+    "description": "Per-column count, empty count, distinct values, min, max, sum, mean and median. Numbers are parsed from currency and percent text too.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "sheet",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "columns",
+        "type": "array",
+        "desc": "Limit to these columns; default all"
+      }
+    ]
+  },
+  {
+    "name": "sheet_find",
+    "description": "Search every cell for text (case insensitive) and return cell addresses with a preview of the row it is on.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "Text to look for"
+      },
+      {
+        "name": "sheet",
+        "type": "string",
+        "desc": "Sheet name; default searches every sheet"
+      }
+    ]
+  },
+  {
+    "name": "sheet_write",
+    "description": "Write rows to a spreadsheet. rows may be objects (keys become headers) or arrays (first array is the header row). mode new_file writes a brand new file and refuses to clobber an existing one; append adds the rows under the existing data; overwrite replaces the file contents. Format follows the extension of out_path (.xlsx, .csv, .tsv, .json).",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Source file for append/overwrite, or the intended file for new_file"
+      },
+      {
+        "name": "sheet",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "rows",
+        "type": "array",
+        "desc": "Array of objects, or array of arrays with a header row first"
+      },
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write; default is a new file next to the source for new_file, or the source itself for append/overwrite"
+      }
+    ]
+  },
+  {
+    "name": "sheet_add_column",
+    "description": "Add a computed column and save the result to a NEW file (the source is never modified unless out_path points at it). formula uses the same expression language as sheet_query over the columns of each row, e.g. \"[Qty] * [Unit Price]\" or '[Country] = \"PL\"'. Alternatively pass values, one per data row.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "sheet",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the new column"
+      },
+      {
+        "name": "formula",
+        "type": "string",
+        "desc": "Expression over row columns, e.g. \"[Qty] * [Unit Price]\""
+      },
+      {
+        "name": "values",
+        "type": "array",
+        "desc": "Explicit values, one per data row"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Output file; default <source>-plus-<column>.<same ext>"
+      }
+    ]
+  },
+  {
+    "name": "sheet_convert",
+    "description": "Convert a sheet to csv, xlsx or json. Writes a new file next to the source unless out_path is given.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "sheet",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  }
+]
