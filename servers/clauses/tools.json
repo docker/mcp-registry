@@ -1,0 +1,253 @@
+[
+  {
+    "name": "clause_add",
+    "description": "Save a reusable contract or proposal clause to the library. Use {{variables}} in the body for the facts that change per client, for example {{client}}, {{fee}} or {{late_fee_percent}}. Free tier: 10 own clauses on top of the 25 starters.",
+    "arguments": [
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Clause heading, for example 'Late Payment'"
+      },
+      {
+        "name": "body",
+        "type": "string",
+        "desc": "The clause text. {{variable}} placeholders are filled at assembly time"
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Grouping, for example parties, scope, payment, expenses, ip, confidentiality"
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "desc": ""
+      },
+      {
+        "name": "variables",
+        "type": "array",
+        "desc": "Declared variable names. Anything {{...}} in the body is detected anyway"
+      },
+      {
+        "name": "jurisdiction",
+        "type": "string",
+        "desc": "Where the clause is meant to apply, for example 'PL' or 'England and Wales'"
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "ISO language code, default en"
+      }
+    ]
+  },
+  {
+    "name": "clause_get",
+    "description": "Return a clause in full by id or by title, with its variables and, in Pro, its revision count.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Clause id, for example late-fees"
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Clause title; a partial title matches too"
+      }
+    ]
+  },
+  {
+    "name": "clause_update",
+    "description": "Change the text, category, tags, variables or jurisdiction of a clause. In Pro the previous text is kept as a version; in the free tier the change is applied without history.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Clause id or exact title"
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "body",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "desc": ""
+      },
+      {
+        "name": "variables",
+        "type": "array",
+        "desc": ""
+      },
+      {
+        "name": "jurisdiction",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "clause_delete",
+    "description": "Remove a clause from the library. A deleted starter clause is not re-seeded on the next call.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Clause id or exact title"
+      }
+    ]
+  },
+  {
+    "name": "clause_list",
+    "description": "List every clause, newest categories first, optionally narrowed to one category.",
+    "arguments": [
+      {
+        "name": "category",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "clause_search",
+    "description": "Ranked search over clause titles, tags, categories and bodies. Title and tag matches outrank body matches. Filtering by jurisdiction or tags is a Pro feature.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Words to look for, for example 'late payment interest'"
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "desc": "Pro: every tag listed must be present"
+      },
+      {
+        "name": "jurisdiction",
+        "type": "string",
+        "desc": "Pro: exact jurisdiction match"
+      }
+    ]
+  },
+  {
+    "name": "clause_import",
+    "description": "Bulk-load clauses from a file. Markdown form: '## Title', optional 'category:' / 'tags:' / 'variables:' lines, blank line, body. JSON form: an array of clauses. JSON import is a Pro feature; markdown import works in the free tier within the free clause cap.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to a .md or .json file"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace clauses whose title already exists instead of skipping them"
+      }
+    ]
+  },
+  {
+    "name": "clause_export",
+    "description": "Write the whole library to a file. Markdown export is free; JSON export is a Pro feature.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Destination file path"
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "json (Pro) or markdown (free)"
+      }
+    ]
+  },
+  {
+    "name": "contract_assemble",
+    "description": "Build a contract or proposal from library clauses: orders them, fills {{variables}} from the values you pass, leaves every missing fact as a bracketed prompt like [late fee percent], prepends the not-legal-advice line, and writes a .docx or a markdown file. Free tier: up to 8 clauses per document.",
+    "arguments": [
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Document title, for example 'Service Agreement - Beta Corp'"
+      },
+      {
+        "name": "clause_ids",
+        "type": "array",
+        "desc": "Clause ids in the order they should appear"
+      },
+      {
+        "name": "categories",
+        "type": "array",
+        "desc": "Instead of ids: every clause in these categories, ordered by category"
+      },
+      {
+        "name": "values",
+        "type": "object",
+        "desc": "Variable values, for example {\"fee\":\"4500\",\"late_fee_percent\":\"2\"}"
+      },
+      {
+        "name": "client",
+        "type": "string",
+        "desc": "Client name; also fills the {{client}} variable"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write the file. Default: the server data directory"
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "docx (default) or markdown"
+      }
+    ]
+  },
+  {
+    "name": "variables_list",
+    "description": "Given a set of clauses, list every {{variable}} they use and which clause uses it, so nothing is missed before assembling.",
+    "arguments": [
+      {
+        "name": "clause_ids",
+        "type": "array",
+        "desc": "Clause ids or titles"
+      }
+    ]
+  },
+  {
+    "name": "license_status",
+    "description": "Show whether this server runs in free or Pro mode and where to upgrade.",
+    "arguments": []
+  },
+  {
+    "name": "license_activate",
+    "description": "Activate a Pro license key (format MCPL1.xxx.yyy). Verified offline and saved locally.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "License key from the checkout confirmation page"
+      }
+    ]
+  }
+]
