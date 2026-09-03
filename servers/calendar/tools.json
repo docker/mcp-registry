@@ -1,0 +1,227 @@
+[
+  {
+    "name": "license_status",
+    "description": "Show whether this server runs in free or Pro mode and where to upgrade.",
+    "arguments": []
+  },
+  {
+    "name": "license_activate",
+    "description": "Activate a Pro license key (format MCPL1.xxx.yyy). Verified offline and saved locally.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "License key from the checkout confirmation page"
+      }
+    ]
+  },
+  {
+    "name": "ics_import",
+    "description": "Read a calendar export and keep it locally under a name. Give exactly one of path (a .ics file on this machine), text (the file contents pasted in), or url (a public .ics or webcal feed; Pro). Google Calendar, Apple Calendar and Outlook exports are all read. Importing the same name again replaces that calendar.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to a .ics file on this machine"
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "Public https:// or webcal:// .ics feed. Fetched once, only because you asked; Pro feature"
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "The .ics file contents, pasted"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "What to call this calendar, e.g. \"work\" or \"family\""
+      }
+    ]
+  },
+  {
+    "name": "calendars_list",
+    "description": "Every calendar imported into this server: its name, where it came from, how many event definitions it holds and when it was imported.",
+    "arguments": []
+  },
+  {
+    "name": "events_list",
+    "description": "Every event between two dates, with recurring events expanded to their real occurrences and sorted by start. Times are shown in your own zone (the shared business profile's timezone, else this machine's) unless you pass zone. Each row carries an id you can pass to event_export or event_to_time_entry.",
+    "arguments": [
+      {
+        "name": "calendar",
+        "type": "string",
+        "desc": "One calendar name; default every imported calendar"
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "First day, YYYY-MM-DD"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "Last day, YYYY-MM-DD, included"
+      },
+      {
+        "name": "zone",
+        "type": "string",
+        "desc": "Show local times in this zone or city instead of your own"
+      }
+    ]
+  },
+  {
+    "name": "events_search",
+    "description": "Find events whose title, description, location or attendees contain a phrase. Searches every imported calendar. Without from/to it looks a year back and a year forward on Pro, and the free window either side of today.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Words to look for, case-insensitive"
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "First day, YYYY-MM-DD"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "Last day, YYYY-MM-DD, included"
+      }
+    ]
+  },
+  {
+    "name": "free_busy",
+    "description": "Where the time actually went and what is left: merged busy blocks from the calendars you name, and the gaps inside your working hours where nothing is booked. Events marked free/transparent do not count as busy; whole-day events block the day.",
+    "arguments": [
+      {
+        "name": "calendars",
+        "type": "array",
+        "desc": "Calendar names; default all of them"
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "First day, YYYY-MM-DD"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "Last day, YYYY-MM-DD, included"
+      },
+      {
+        "name": "work_start",
+        "type": "string",
+        "desc": "Start of your working day, HH:MM, default 09:00"
+      },
+      {
+        "name": "work_end",
+        "type": "string",
+        "desc": "End of your working day, HH:MM, default 17:00"
+      },
+      {
+        "name": "zone",
+        "type": "string",
+        "desc": "Zone the working hours and the output are in; default your own"
+      }
+    ]
+  },
+  {
+    "name": "conflicts",
+    "description": "Every pair of events that overlap in time, with how many minutes they collide. Across all imported calendars unless you name one, so a work meeting clashing with a family event is caught. Whole-day events are reported separately from timed clashes.",
+    "arguments": [
+      {
+        "name": "calendar",
+        "type": "string",
+        "desc": "One calendar name; default every imported calendar"
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "First day, YYYY-MM-DD"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "Last day, YYYY-MM-DD, included"
+      }
+    ]
+  },
+  {
+    "name": "next_event",
+    "description": "The next event that has not started yet, with how long until it begins. Looks ahead up to a year.",
+    "arguments": [
+      {
+        "name": "calendar",
+        "type": "string",
+        "desc": "One calendar name; default every imported calendar"
+      }
+    ]
+  },
+  {
+    "name": "event_export",
+    "description": "Write chosen events to a new .ics file you can send or import elsewhere. Either pass ids (from events_list) or a from/to window to export everything in it. Times are written in UTC so the file lands correctly in any client.",
+    "arguments": [
+      {
+        "name": "ids",
+        "type": "array",
+        "desc": "Event ids from events_list, events_search or next_event"
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "First day, YYYY-MM-DD (alternative to ids)"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "Last day, YYYY-MM-DD, included"
+      },
+      {
+        "name": "calendar",
+        "type": "string",
+        "desc": "With from/to: limit to one calendar"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write the .ics file"
+      }
+    ]
+  },
+  {
+    "name": "event_to_time_entry",
+    "description": "Take one event and return the exact arguments for the time-tracker's entry_add, so a meeting that already happened becomes billable time without retyping it. It does not write anything: pass the JSON straight to entry_add.",
+    "arguments": [
+      {
+        "name": "event_id",
+        "type": "string",
+        "desc": "Event id from events_list, events_search or next_event"
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Project or client the meeting is billed to"
+      },
+      {
+        "name": "rate",
+        "type": "string",
+        "desc": "Hourly rate for this entry; a number (120) or the words the user said ('120 euros an hour')"
+      }
+    ]
+  },
+  {
+    "name": "ics_forget",
+    "description": "Remove one imported calendar and the local copy of its .ics file. Nothing else is touched.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "The calendar name from calendars_list"
+      }
+    ]
+  }
+]

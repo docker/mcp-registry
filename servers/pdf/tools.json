@@ -1,0 +1,263 @@
+[
+  {
+    "name": "pdf_info",
+    "description": "Page count, page sizes in points and millimetres, paper name, metadata (title, author, producer, dates) and whether the file is encrypted. Read-only: the file is never modified. Free tier: unlimited.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the PDF file. ~ is expanded; a relative path is resolved against the working directory"
+      }
+    ]
+  },
+  {
+    "name": "pdf_count",
+    "description": "Page count per file plus the total, for any number of PDFs. Read-only. A file that cannot be read is reported per file; the others still count. Free tier: unlimited.",
+    "arguments": [
+      {
+        "name": "paths",
+        "type": "array",
+        "desc": "Paths to the PDF files"
+      }
+    ]
+  },
+  {
+    "name": "pdf_merge",
+    "description": "Join several PDFs into one, in the order given. Page sizes are kept as they are - a merged file may have mixed page sizes, and the answer says so. Inputs are never modified. Free tier: up to 5 files per merge.",
+    "arguments": [
+      {
+        "name": "paths",
+        "type": "array",
+        "desc": "The PDFs to join, in the order they should appear"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write the merged PDF"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if a file is already there. Default false: an existing file is never overwritten"
+      }
+    ]
+  },
+  {
+    "name": "pdf_split",
+    "description": "Write one new PDF per range. Ranges are 1-based and may be open-ended: \"1-3,5,7-\" gives pages 1-3, page 5, and page 7 to the end. The input is never modified. Free tier: files up to 30 pages.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "The PDF to split"
+      },
+      {
+        "name": "ranges",
+        "type": "string",
+        "desc": "Comma-separated 1-based page ranges, e.g. \"1-3,5,7-\". An open-ended range runs to the last page"
+      },
+      {
+        "name": "out_path_pattern",
+        "type": "string",
+        "desc": "Output path with a placeholder: {n} is the part number (1, 2, 3...), {range} is the range itself (e.g. 1-3), {name} is the input file name without .pdf. Example: ~/out/{name}-{range}.pdf"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace existing outputs. Default false: nothing is overwritten and nothing is written at all if any target exists"
+      }
+    ]
+  },
+  {
+    "name": "pdf_pages",
+    "description": "Pull selected pages out into one new PDF, in the order written: \"2,4-6\" gives four pages. Asking for a page twice copies it twice. The input is never modified. Free tier: files up to 30 pages.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "The source PDF"
+      },
+      {
+        "name": "pages",
+        "type": "string",
+        "desc": "1-based pages and ranges to keep, in output order, e.g. \"2,4-6\" or \"5,1,1\""
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write the extracted PDF"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if it exists. Default false"
+      }
+    ]
+  },
+  {
+    "name": "pdf_rotate",
+    "description": "Turn pages by a multiple of 90 degrees, clockwise for a positive number. The rotation is added to whatever the page already had, which is what a sideways scan needs. Writes a new file; the input is never modified. Free tier: files up to 30 pages.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "The source PDF"
+      },
+      {
+        "name": "degrees",
+        "type": "integer",
+        "desc": "90, 180, 270 or -90. Positive turns clockwise. Added to the page's existing rotation"
+      },
+      {
+        "name": "pages",
+        "type": "string",
+        "desc": "Which pages to turn, e.g. \"1\" or \"2,4-6\". Omit for every page"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write the rotated PDF"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if it exists. Default false"
+      }
+    ]
+  },
+  {
+    "name": "pdf_stamp",
+    "description": "Draw a word such as PAID or DRAFT across the pages, in a colour and position you choose. Writes a new file; the input is never modified. Free tier: the PAID and DRAFT presets in their preset colours.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "The source PDF"
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "What to stamp. PAID and DRAFT are presets with their own colour; any other text is Pro"
+      },
+      {
+        "name": "position",
+        "type": "string",
+        "desc": "Where on the page. Default center, which is drawn on the 45-degree diagonal like a real stamp"
+      },
+      {
+        "name": "opacity",
+        "type": "number",
+        "desc": "0 to 1. Default 0.35 in the centre, 0.85 in a corner"
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "desc": "Hex code such as #1b7f3b, or a name: red, green, blue, black, gray, orange, purple. Pro"
+      },
+      {
+        "name": "font_size",
+        "type": "number",
+        "desc": "Point size. By default the stamp is sized to fit the page width"
+      },
+      {
+        "name": "pages",
+        "type": "string",
+        "desc": "Which pages to stamp, e.g. \"1\" or \"2,4-6\". Omit for every page"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write the stamped PDF"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if it exists. Default false"
+      }
+    ]
+  },
+  {
+    "name": "pdf_watermark_business",
+    "description": "Put your own business name and VAT id in the footer of every page, from the shared business profile that mcp-invoice and mcp-docx write. Use it before sending a document out. Pro.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "The source PDF"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write the footed PDF"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if it exists. Default false"
+      },
+      {
+        "name": "pages",
+        "type": "string",
+        "desc": "Which pages, e.g. \"1\". Omit for every page"
+      }
+    ]
+  },
+  {
+    "name": "pdf_reorder",
+    "description": "Write a new PDF with the pages in the order you give. The order must name every page exactly once, so nothing is dropped by accident - use pdf_pages when you do want a subset. Pro.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "The source PDF"
+      },
+      {
+        "name": "order",
+        "type": "array",
+        "desc": "The 1-based page numbers in their new order, e.g. [3,1,2] for a three-page file. Every page must appear exactly once"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write the reordered PDF"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if it exists. Default false"
+      }
+    ]
+  },
+  {
+    "name": "pdf_text",
+    "description": "Best-effort text extraction: the page content streams are decompressed and the text-showing operators are read. It works on PDFs written with standard fonts (exports from word processors, invoices, reports). It returns nothing for a scan - there is no OCR - and glyph indices instead of letters when a font ships a custom encoding, and it says which case you are in. Read-only. Free tier: unlimited.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "The PDF to read"
+      },
+      {
+        "name": "pages",
+        "type": "string",
+        "desc": "Which pages, e.g. \"1\" or \"2,4-6\". Omit for every page"
+      }
+    ]
+  },
+  {
+    "name": "license_status",
+    "description": "Show whether this server runs in free or Pro mode and where to upgrade.",
+    "arguments": []
+  },
+  {
+    "name": "license_activate",
+    "description": "Activate a Pro license key (format MCPL1.xxx.yyy). Verified offline and saved locally.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "License key from the checkout confirmation page"
+      }
+    ]
+  }
+]
