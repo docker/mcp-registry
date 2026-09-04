@@ -1,0 +1,234 @@
+[
+  {
+    "name": "license_status",
+    "description": "Show whether this server runs in free or Pro mode and where to upgrade."
+  },
+  {
+    "name": "license_activate",
+    "description": "Activate a Pro license key (format MCPL1.xxx.yyy). Verified offline and saved locally.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "License key from the checkout confirmation page"
+      }
+    ]
+  },
+  {
+    "name": "zip_create",
+    "description": "Call this tool to pack files or a whole directory (with glob patterns) into a new .zip at out_path. Entry names are always relative, so the archive cannot write outside where it is unpacked.",
+    "arguments": [
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write the .zip. A directory, a missing parent or an existing file without overwrite is refused before anything is packed"
+      },
+      {
+        "name": "paths",
+        "type": "array",
+        "desc": "Files to pack, each stored under its own file name. A directory here contributes its whole tree under its own name"
+      },
+      {
+        "name": "dir",
+        "type": "string",
+        "desc": "Pack this directory's tree; entry names are relative to it"
+      },
+      {
+        "name": "patterns",
+        "type": "array",
+        "desc": "Only entries matching one of these globs (* and ? inside a segment, ** across segments; a pattern with no slash also matches the file name at any depth)"
+      },
+      {
+        "name": "exclude",
+        "type": "array",
+        "desc": "Drop entries matching one of these globs, applied after patterns"
+      },
+      {
+        "name": "level",
+        "type": "integer",
+        "desc": "Deflate level 0 to 9, default 6. 0 stores without compressing"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if a file is already there. Default false: an existing file is never overwritten"
+      },
+      {
+        "name": "password",
+        "type": "string",
+        "desc": "Not supported. Passing it is refused rather than ignored, so no one believes an archive is encrypted when it is not"
+      }
+    ]
+  },
+  {
+    "name": "zip_list",
+    "description": "Call this tool to list an archive's entries with sizes, compressed sizes and ratios, and to flag what is dangerous in it: absolute paths, .., symlinks, encrypted entries, duplicate names and compression bombs.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the .zip file. Read-only: the archive is never modified and nothing is extracted"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many entries to print, largest first (default 50). The totals always cover every entry"
+      },
+      {
+        "name": "patterns",
+        "type": "array",
+        "desc": "Only entries matching one of these globs"
+      },
+      {
+        "name": "max_ratio",
+        "type": "number",
+        "desc": "Flag an entry whose uncompressed/compressed ratio is above this. Default 100"
+      }
+    ]
+  },
+  {
+    "name": "zip_extract",
+    "description": "Call this tool to unpack an archive into out_dir. Traversal, absolute-path and symlink entries are refused, a size and ratio cap stops a zip bomb, and dry_run reports exactly what would be written.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the .zip file"
+      },
+      {
+        "name": "out_dir",
+        "type": "string",
+        "desc": "Directory to unpack into. It is created if missing; every file written is checked to land inside it"
+      },
+      {
+        "name": "patterns",
+        "type": "array",
+        "desc": "Only entries matching one of these globs (* and ? inside a segment, ** across segments)"
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Report what would be written, byte counts included, and write nothing"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace files that already exist in out_dir. Default false: the whole extraction is refused if any would be replaced"
+      },
+      {
+        "name": "skip_unsafe",
+        "type": "boolean",
+        "desc": "Skip the dangerous entries and extract the rest, naming what was skipped. Default false: one bad entry refuses the whole archive"
+      },
+      {
+        "name": "max_total_mb",
+        "type": "number",
+        "desc": "Refuse if the selected entries declare more than this uncompressed. Default 1024"
+      },
+      {
+        "name": "max_ratio",
+        "type": "number",
+        "desc": "Refuse an entry whose uncompressed/compressed ratio is above this. Default 100"
+      }
+    ]
+  },
+  {
+    "name": "zip_add",
+    "description": "Call this tool to add files to an existing archive. The archive is rebuilt from its entries and written tmp-then-rename, so a failure part way leaves the original file exactly as it was.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the existing .zip file"
+      },
+      {
+        "name": "paths",
+        "type": "array",
+        "desc": "Files to add, each stored under its own file name. A directory contributes its tree under its own name"
+      },
+      {
+        "name": "prefix",
+        "type": "string",
+        "desc": "Put the new entries under this folder inside the archive, for example \"invoices\""
+      },
+      {
+        "name": "replace",
+        "type": "boolean",
+        "desc": "Replace an entry whose name is already in the archive. Default false: a name clash is refused and nothing is changed"
+      },
+      {
+        "name": "level",
+        "type": "integer",
+        "desc": "Deflate level 0 to 9 for the new entries, default 6"
+      },
+      {
+        "name": "password",
+        "type": "string",
+        "desc": "Not supported. Passing it is refused rather than ignored"
+      }
+    ]
+  },
+  {
+    "name": "zip_extract_text",
+    "description": "Call this tool to read one text entry out of an archive without unpacking anything: give the entry name and the text comes back inline. Binary entries are refused by name rather than printed as noise.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the .zip file"
+      },
+      {
+        "name": "entry",
+        "type": "string",
+        "desc": "Exact entry name, as zip_list prints it. A glob is accepted when it matches exactly one entry"
+      },
+      {
+        "name": "max_chars",
+        "type": "integer",
+        "desc": "Stop after this many characters (default 200000). The answer says when it was cut"
+      }
+    ]
+  },
+  {
+    "name": "zip_bundle_month",
+    "description": "Call this tool to zip one month of invoices, quotes and exports written by the sibling servers into their default output folders. Best effort: it names every folder it looked in and what it found.",
+    "arguments": [
+      {
+        "name": "month",
+        "type": "string",
+        "desc": "Month as YYYY-MM. Default: this month. Files are chosen by their modification date"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write the .zip. Default: <data dir>/bundles/<month>.zip"
+      },
+      {
+        "name": "servers",
+        "type": "array",
+        "desc": "Only these sibling servers: invoice, quotes, expense-tracker, docx, resume. Default: all five"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if it exists. Default false"
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Report what would go in and write nothing"
+      }
+    ]
+  },
+  {
+    "name": "zip_history",
+    "description": "List the archives this server created, newest first, with their entry counts and sizes, plus how many of this month's free allowance are left.",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many rows to show, newest first (default 20)"
+      }
+    ]
+  }
+]
