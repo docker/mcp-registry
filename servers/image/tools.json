@@ -1,0 +1,298 @@
+[
+  {
+    "name": "image_info",
+    "description": "Format, pixel dimensions, megapixels, file size in bytes and whether the image carries an alpha channel. Read-only: the file is never modified. Free tier: unlimited, at any size.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the image file. ~ is expanded; a relative path is resolved against the working directory"
+      }
+    ]
+  },
+  {
+    "name": "image_resize",
+    "description": "Write a resized copy. fit: \"inside\" scales to fit the box and keeps the aspect ratio; \"cover\" fills the box and crops the overflow; \"exact\" stretches to the given width and height. With only one of width or height, the other follows the aspect ratio. The input is never modified. Free tier: sources up to 4 MP.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the image file. ~ is expanded; a relative path is resolved against the working directory"
+      },
+      {
+        "name": "width",
+        "type": "integer",
+        "desc": "Target width in pixels"
+      },
+      {
+        "name": "height",
+        "type": "integer",
+        "desc": "Target height in pixels"
+      },
+      {
+        "name": "fit",
+        "type": "string",
+        "desc": "inside = fit within the box, cover = fill and crop, exact = stretch"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Path of the file to write. The extension decides the output format; without a known one the input's format is kept"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if it already exists. Default false. Never allows an output to be one of the inputs"
+      }
+    ]
+  },
+  {
+    "name": "image_convert",
+    "description": "Re-encode an image as PNG, JPEG, BMP, GIF or TIFF. quality is a JPEG parameter only and is reported as ignored for the lossless formats. Converting an image with transparency to JPEG flattens it onto white, and the answer says so. Free tier: sources up to 4 MP.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the image file. ~ is expanded; a relative path is resolved against the working directory"
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "The output format"
+      },
+      {
+        "name": "quality",
+        "type": "integer",
+        "desc": "JPEG quality 1-100, default 80. Ignored for the other formats"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Path of the file to write. The extension decides the output format; without a known one the input's format is kept"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if it already exists. Default false. Never allows an output to be one of the inputs"
+      }
+    ]
+  },
+  {
+    "name": "image_compress",
+    "description": "Re-encode an image smaller and report the byte count before and after. quality (default 80) applies when the output is a JPEG; for a PNG output only max_width reduces bytes, and the answer says which of the two did the work. Free tier: sources up to 4 MP.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the image file. ~ is expanded; a relative path is resolved against the working directory"
+      },
+      {
+        "name": "quality",
+        "type": "integer",
+        "desc": "JPEG quality 1-100, default 80"
+      },
+      {
+        "name": "max_width",
+        "type": "integer",
+        "desc": "Scale down so the width is at most this, keeping the aspect ratio. Never scales up"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Path of the file to write. The extension decides the output format; without a known one the input's format is kept"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if it already exists. Default false. Never allows an output to be one of the inputs"
+      }
+    ]
+  },
+  {
+    "name": "image_crop",
+    "description": "Cut a rectangle out of an image. x and y are the top-left corner in pixels, counted from the top-left of the image. A rectangle that runs past an edge is refused with the image's real size, never silently clamped. Free tier: sources up to 4 MP.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the image file. ~ is expanded; a relative path is resolved against the working directory"
+      },
+      {
+        "name": "x",
+        "type": "integer",
+        "desc": "Left edge of the crop, in pixels from the left of the image"
+      },
+      {
+        "name": "y",
+        "type": "integer",
+        "desc": "Top edge of the crop, in pixels from the top of the image"
+      },
+      {
+        "name": "width",
+        "type": "integer",
+        "desc": "Width of the crop in pixels"
+      },
+      {
+        "name": "height",
+        "type": "integer",
+        "desc": "Height of the crop in pixels"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Path of the file to write. The extension decides the output format; without a known one the input's format is kept"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if it already exists. Default false. Never allows an output to be one of the inputs"
+      }
+    ]
+  },
+  {
+    "name": "image_thumbnails",
+    "description": "One thumbnail per input, written into out_dir as <name>-thumb.<ext>. Each thumbnail fits inside size by size and keeps its aspect ratio, so a wide photo stays wide. Every output path is reserved before any file is written, so a collision does not leave a half-done batch. Free tier: up to 5 files per call and sources up to 4 MP.",
+    "arguments": [
+      {
+        "name": "paths",
+        "type": "array",
+        "desc": "The image files to make thumbnails of"
+      },
+      {
+        "name": "size",
+        "type": "integer",
+        "desc": "Longest side of the thumbnail in pixels, default 256"
+      },
+      {
+        "name": "out_dir",
+        "type": "string",
+        "desc": "Directory to write the thumbnails into. It is created if missing"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if it already exists. Default false. Never allows an output to be one of the inputs"
+      }
+    ]
+  },
+  {
+    "name": "image_watermark",
+    "description": "Draw text over an image at a chosen corner and opacity. With no text the shared business profile name is used, the same profile mcp-invoice and mcp-docx write. The text is drawn white on a translucent dark plate so it stays legible on a light photo. Free tier: the profile name; Pro: any text you pass.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the image file. ~ is expanded; a relative path is resolved against the working directory"
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "The watermark text. Default: the business name from the shared profile. Custom text is Pro"
+      },
+      {
+        "name": "position",
+        "type": "string",
+        "desc": "Where to draw it"
+      },
+      {
+        "name": "opacity",
+        "type": "number",
+        "desc": "0.05 to 1, default 0.5"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Path of the file to write. The extension decides the output format; without a known one the input's format is kept"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if it already exists. Default false. Never allows an output to be one of the inputs"
+      }
+    ]
+  },
+  {
+    "name": "image_strip_metadata",
+    "description": "Write a copy carrying pixels and nothing else. It works by decoding the image and re-encoding it from the raw pixels: EXIF, GPS coordinates, the camera and lens, the capture time, XMP and colour-profile blocks are not carried across, because the encoder writes only what it is given. The pixels are the same; the bytes are not. Free tier: sources up to 4 MP.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the image file. ~ is expanded; a relative path is resolved against the working directory"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Path of the file to write. The extension decides the output format; without a known one the input's format is kept"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if it already exists. Default false. Never allows an output to be one of the inputs"
+      }
+    ]
+  },
+  {
+    "name": "image_batch_resize",
+    "description": "Resize every image into out_dir, keeping each one's aspect ratio, named <name>-<W>x<H>.<ext>. With one of width or height the other follows; with both, each image is scaled to fit inside that box. Free tier: up to 5 files per call and sources up to 4 MP.",
+    "arguments": [
+      {
+        "name": "paths",
+        "type": "array",
+        "desc": "The image files to resize"
+      },
+      {
+        "name": "width",
+        "type": "integer",
+        "desc": "Target width in pixels"
+      },
+      {
+        "name": "height",
+        "type": "integer",
+        "desc": "Target height in pixels"
+      },
+      {
+        "name": "out_dir",
+        "type": "string",
+        "desc": "Directory to write into. It is created if missing"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if it already exists. Default false. Never allows an output to be one of the inputs"
+      }
+    ]
+  },
+  {
+    "name": "image_dominant_colors",
+    "description": "The colours that cover most of an image, as hex codes with the share of pixels each one covers, for picking a background or a brand palette. Read-only. Pro only.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the image file. ~ is expanded; a relative path is resolved against the working directory"
+      },
+      {
+        "name": "count",
+        "type": "integer",
+        "desc": "How many colours to report, default 5"
+      }
+    ]
+  },
+  {
+    "name": "license_status",
+    "description": "Show whether this server runs in free or Pro mode and where to upgrade.",
+    "arguments": []
+  },
+  {
+    "name": "license_activate",
+    "description": "Activate a Pro license key (format MCPL1.xxx.yyy). Verified offline and saved locally.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "License key from the checkout confirmation page"
+      }
+    ]
+  }
+]
