@@ -1,0 +1,287 @@
+[
+  {
+    "name": "quote_create",
+    "description": "Quote a client: line items with quantity and unit price in minor units, VAT per line or the business default, an optional discount and a validity window. Returns the quote id and the totals.",
+    "arguments": [
+      {
+        "name": "client",
+        "type": "string",
+        "desc": "Client name or id. A name the invoice server already knows brings its address, email and VAT id onto the quote"
+      },
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "The line items being quoted"
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": "Defaults to your business default currency"
+      },
+      {
+        "name": "validity_days",
+        "type": "integer",
+        "desc": "Days the quote stays valid, counted from the quote date and inclusive. Default 30"
+      },
+      {
+        "name": "valid_until",
+        "type": "string",
+        "desc": "YYYY-MM-DD, an explicit last valid day. Wins over validity_days"
+      },
+      {
+        "name": "issue_date",
+        "type": "string",
+        "desc": "YYYY-MM-DD, defaults to today in your business profile's timezone"
+      },
+      {
+        "name": "discount_percent",
+        "type": "number",
+        "desc": "Discount applied to every line, in percent"
+      },
+      {
+        "name": "tax_rate",
+        "type": "number",
+        "desc": "VAT percent for lines with no rate of their own. Defaults to the business default"
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "desc": "Free text printed under the totals, e.g. scope or exclusions"
+      },
+      {
+        "name": "client_email",
+        "type": "string",
+        "desc": "Only if the user gave it; otherwise the stored client's email is used"
+      },
+      {
+        "name": "client_address",
+        "type": "string",
+        "desc": "Postal address for the QUOTE FOR block, newlines allowed"
+      },
+      {
+        "name": "client_vat_id",
+        "type": "string",
+        "desc": "Client VAT / tax registration id"
+      }
+    ]
+  },
+  {
+    "name": "quote_list",
+    "description": "Every quote with its client, total, validity and state (open, expired, accepted or declined). Filter by state, by client or by quote date range.",
+    "arguments": [
+      {
+        "name": "state",
+        "type": "string (open, expired, accepted, declined, all)",
+        "desc": "Default \"all\". \"open\" excludes quotes whose validity has run out; \"expired\" is only those"
+      },
+      {
+        "name": "client",
+        "type": "string",
+        "desc": "Only quotes for clients whose name contains this text"
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "YYYY-MM-DD, earliest quote date"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "YYYY-MM-DD, latest quote date"
+      }
+    ]
+  },
+  {
+    "name": "quote_get",
+    "description": "The full stored record for one quote: every line with its unit price and VAT, the totals, the validity date, the notes and, when it was accepted, the invoice it became.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Quote id such as Q-2026-0001, or an exact client name"
+      }
+    ]
+  },
+  {
+    "name": "quote_update",
+    "description": "Revise a quote that is still open: line items, currency, discount, VAT default, validity or notes. Totals are recomputed. An accepted or declined quote is never edited.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Quote id such as Q-2026-0001"
+      },
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "Replaces every line item"
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "discount_percent",
+        "type": "number",
+        "desc": ""
+      },
+      {
+        "name": "tax_rate",
+        "type": "number",
+        "desc": "VAT percent for lines with no rate of their own"
+      },
+      {
+        "name": "validity_days",
+        "type": "integer",
+        "desc": "Recomputes valid_until from the quote date"
+      },
+      {
+        "name": "valid_until",
+        "type": "string",
+        "desc": "YYYY-MM-DD. Wins over validity_days, and is how an expired quote is extended"
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "client_email",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "client_address",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "client_vat_id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "quote_send_text",
+    "description": "Turn a quote into a plain-text summary with the line table, the VAT lines, the total and the validity date, ready to paste into an email. Free on every tier.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Quote id such as Q-2026-0001"
+      },
+      {
+        "name": "greeting",
+        "type": "string",
+        "desc": "Opening line, default \"Hello\" plus the client name"
+      },
+      {
+        "name": "sign_off",
+        "type": "string",
+        "desc": "Closing line, default your business name from the shared profile"
+      }
+    ]
+  },
+  {
+    "name": "quote_accept",
+    "description": "Mark a quote accepted and turn it into an invoice: created directly in the invoice server when its store is present, otherwise returned as invoice_create-ready line items. The numbers are copied, never recomputed.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Quote id such as Q-2026-0001"
+      },
+      {
+        "name": "create_invoice",
+        "type": "string (auto, always, never)",
+        "desc": "Default \"auto\": create the invoice when the invoice store exists, otherwise hand back the items. \"never\" only marks it accepted"
+      },
+      {
+        "name": "issue_date",
+        "type": "string",
+        "desc": "YYYY-MM-DD for the invoice, defaults to today"
+      },
+      {
+        "name": "due_days",
+        "type": "integer",
+        "desc": "Days until the invoice is due, defaults to your payment terms"
+      },
+      {
+        "name": "allow_expired",
+        "type": "boolean",
+        "desc": "Accept a quote whose validity has run out. Default false: an expired quote is refused so the price is re-confirmed first"
+      }
+    ]
+  },
+  {
+    "name": "quote_decline",
+    "description": "Mark a quote as lost, with an optional reason, so it stops counting against the open quotes and shows up in the win rate. An accepted quote is never turned back.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Quote id such as Q-2026-0001"
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Why it was lost, e.g. \"price\" or \"went in-house\". Kept on the record"
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "YYYY-MM-DD, defaults to today"
+      }
+    ]
+  },
+  {
+    "name": "quote_pdf",
+    "description": "Call this tool to write the A4 PDF of one quote and return the file path. Same layout as the invoice PDF, with the validity date and an acceptance block. Pro.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Quote id such as Q-2026-0001"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write the file. Defaults to the quotes data directory under pdf/"
+      }
+    ]
+  },
+  {
+    "name": "quote_report",
+    "description": "Totals per currency for open, accepted, declined and expired quotes, with counts, the value still open and the win rate. Pro.",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "YYYY-MM-DD, earliest quote date to count"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "YYYY-MM-DD, latest quote date to count"
+      }
+    ]
+  },
+  {
+    "name": "license_status",
+    "description": "Show whether this server runs in free or Pro mode and where to upgrade.",
+    "arguments": []
+  },
+  {
+    "name": "license_activate",
+    "description": "Activate a Pro license key (format MCPL1.xxx.yyy). Verified offline and saved locally.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "License key from the checkout confirmation page"
+      }
+    ]
+  }
+]
