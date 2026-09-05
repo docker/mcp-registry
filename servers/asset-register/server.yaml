@@ -1,0 +1,28 @@
+name: asset-register
+image: mcp/asset-register
+type: server
+meta:
+  category: finance
+  tags:
+    - finance
+    - fixed-assets
+    - depreciation
+    - capital-allowances
+    - accounting
+    - tax
+about:
+  title: Asset Register
+  description: "Keeps a fixed asset register and depreciates it on the rates the tax authorities actually publish, entirely on your machine. You give it what you bought, what it cost, when it went into use and which category it falls in; it gives back the rate, the useful life, the convention, the full schedule year by year or month by month, one month's journal entry, and the gain or loss when you sell. Three tables ship with it: the Polish annual rates from the annex to the CIT and PIT acts keyed to the KST classification, 33 rows with the declining-balance eligibility of each and the art. 16k switch back to straight line; the UK capital allowance pools at 18 and 6 percent with the annual investment allowance; and the US MACRS GDS half-year percentages for the 3, 5 and 7 year classes exactly as IRS Pub 946 Table A-1 publishes them. The tables are bundled files rather than a live feed, so the same asset depreciated twice gives the same answer, and every rate carries the authority, the instrument, the source URL and the date it took effect. The convention belongs to the table rather than to the caller and every answer names it: Poland charges from the month AFTER the asset enters the register, so an asset in service on 15 March starts on 1 April and year one is nine twelfths; the MACRS percentages already carry the half-year convention, which is why a five-year class runs six periods; a UK writing down allowance is a pool allowance and is not prorated by month at all. Money is integer minor units end to end and the schedule is allocated by cumulative rounding, so the periods sum to cost less residual to the minor unit and the monthly rows sum to their own year. A value that could not be stated with confidence from the public text was left out rather than guessed, and a category outside a table is refused by name instead of approximated to the neighbouring one. Currencies are never added together, because there is no exchange rate in this server to be silently wrong. The monthly journal balances debit against credit per line and in total and hands back ready-made expense_add arguments for the sibling expense-tracker server rather than writing into its ledger. No account, no API key, no network call: everything lives under the local data directory and licence keys are verified offline."
+  icon: https://raw.githubusercontent.com/theluckystrike/mcp-servers/4378f31fea67b36090d989dcc3e57225db1fd4e8/assets/asset-register-logo.png
+source:
+  project: https://github.com/theluckystrike/mcp-servers
+  branch: main
+  commit: 4378f31fea67b36090d989dcc3e57225db1fd4e8
+  dockerfile: servers/asset-register/Dockerfile
+config:
+  description: Optional Pro license key. The server is fully usable without it.
+  secrets:
+    - name: asset-register.license_key
+      env: MCP_LICENSE_KEY
+      example: <MCP_LICENSE_KEY>
+      required: false
