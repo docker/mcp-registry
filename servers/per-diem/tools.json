@@ -1,0 +1,263 @@
+[
+  {
+    "name": "perdiem_rates",
+    "description": "List a scheme's bundled daily allowance rates with the authority, instrument, source URL and effective date they came from. Filter by country or city. Free and unlimited.",
+    "arguments": [
+      {
+        "name": "scheme",
+        "type": "string",
+        "desc": "\"pl\" Polish delegation regulation, \"uk\" HMRC benchmark scale rates, \"us\" GSA CONUS standard. Omit for every scheme"
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Country name or ISO code, e.g. Germany or DE. Matched exactly first, then as a substring"
+      },
+      {
+        "name": "city",
+        "type": "string",
+        "desc": "City or locality name, for the schemes that publish per-city rates"
+      }
+    ]
+  },
+  {
+    "name": "perdiem_calc",
+    "description": "Calculate the daily travel allowance for one trip: the amount per day and the total in the scheme's currency, with the partial-day fraction and the meal deductions the scheme's own rule applies. Free and unlimited.",
+    "arguments": [
+      {
+        "name": "scheme",
+        "type": "string",
+        "desc": "\"pl\" Polish delegation regulation, \"uk\" HMRC benchmark scale rates, \"us\" GSA CONUS standard"
+      },
+      {
+        "name": "destination",
+        "type": "string",
+        "desc": "Country or locality, e.g. \"Germany\", \"Poland\", \"United Kingdom\", \"United States\""
+      },
+      {
+        "name": "start",
+        "type": "string",
+        "desc": "When the trip began, ISO 8601 WITH a zone: \"2026-03-28T22:00:00+01:00\", or \"2026-03-28T22:00\" together with timezone"
+      },
+      {
+        "name": "end",
+        "type": "string",
+        "desc": "When it ended, same form as start. It must be after start as an instant"
+      },
+      {
+        "name": "timezone",
+        "type": "string",
+        "desc": "IANA id such as \"Europe/Warsaw\". Required when start or end carries no offset; also the zone the US scheme counts calendar days in"
+      },
+      {
+        "name": "meals_provided",
+        "type": "array",
+        "desc": "Per day, in order: the free meals the traveller was given that day, e.g. [[\"breakfast\"],[\"breakfast\",\"lunch\"]]. Each one reduces that day's allowance by the scheme's own percentage or amount"
+      },
+      {
+        "name": "meals_provided_daily",
+        "type": "array",
+        "desc": "The same free meals on every day. Ignored for any day that meals_provided already names"
+      },
+      {
+        "name": "lodging_nights",
+        "type": "integer",
+        "desc": "Nights of accommodation. What this pays depends on the scheme and the answer says so"
+      },
+      {
+        "name": "late_evening",
+        "type": "array",
+        "desc": "UK only, per day: the journey was ongoing at 8pm and a meal was bought after it, which adds the 10.00 GBP supplement"
+      },
+      {
+        "name": "fiscal_year",
+        "type": "string",
+        "desc": "US only, e.g. \"FY2025\". Defaults to the current bundled fiscal year"
+      }
+    ]
+  },
+  {
+    "name": "trip_record",
+    "description": "Calculate a trip and save it under a name, with the traveller taken from the shared business profile. Returns the TRIP-YYYY-NNNN id. Free tier: 5 trips a calendar month.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "What to call it, e.g. \"Berlin client workshop\""
+      },
+      {
+        "name": "scheme",
+        "type": "string",
+        "desc": "\"pl\" Polish delegation regulation, \"uk\" HMRC benchmark scale rates, \"us\" GSA CONUS standard"
+      },
+      {
+        "name": "destination",
+        "type": "string",
+        "desc": "Country or locality, e.g. \"Germany\", \"Poland\", \"United Kingdom\", \"United States\""
+      },
+      {
+        "name": "start",
+        "type": "string",
+        "desc": "When the trip began, ISO 8601 WITH a zone: \"2026-03-28T22:00:00+01:00\", or \"2026-03-28T22:00\" together with timezone"
+      },
+      {
+        "name": "end",
+        "type": "string",
+        "desc": "When it ended, same form as start. It must be after start as an instant"
+      },
+      {
+        "name": "timezone",
+        "type": "string",
+        "desc": "IANA id such as \"Europe/Warsaw\". Required when start or end carries no offset; also the zone the US scheme counts calendar days in"
+      },
+      {
+        "name": "meals_provided",
+        "type": "array",
+        "desc": "Per day, in order: the free meals the traveller was given that day, e.g. [[\"breakfast\"],[\"breakfast\",\"lunch\"]]. Each one reduces that day's allowance by the scheme's own percentage or amount"
+      },
+      {
+        "name": "meals_provided_daily",
+        "type": "array",
+        "desc": "The same free meals on every day. Ignored for any day that meals_provided already names"
+      },
+      {
+        "name": "lodging_nights",
+        "type": "integer",
+        "desc": "Nights of accommodation. What this pays depends on the scheme and the answer says so"
+      },
+      {
+        "name": "late_evening",
+        "type": "array",
+        "desc": "UK only, per day: the journey was ongoing at 8pm and a meal was bought after it, which adds the 10.00 GBP supplement"
+      },
+      {
+        "name": "fiscal_year",
+        "type": "string",
+        "desc": "US only, e.g. \"FY2025\". Defaults to the current bundled fiscal year"
+      },
+      {
+        "name": "traveller",
+        "type": "string",
+        "desc": "Who travelled. Defaults to the shared business profile's name"
+      },
+      {
+        "name": "purpose",
+        "type": "string",
+        "desc": "Why the trip happened; kept on the record and carried onto the expense payload"
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Project or client this belongs to; carried onto the expense payload"
+      }
+    ]
+  },
+  {
+    "name": "trip_list",
+    "description": "List saved trips with the scheme, destination, dates and total on each, and a total per currency. Filter by scheme, destination, traveller, project and start date range. Free and unlimited.",
+    "arguments": [
+      {
+        "name": "scheme",
+        "type": "string",
+        "desc": "Default \"all\""
+      },
+      {
+        "name": "destination",
+        "type": "string",
+        "desc": "Only trips to a destination containing this text"
+      },
+      {
+        "name": "traveller",
+        "type": "string",
+        "desc": "Only trips by this traveller"
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Only trips on this project"
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "YYYY-MM-DD, earliest start date"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "YYYY-MM-DD, latest start date"
+      }
+    ]
+  },
+  {
+    "name": "trip_export",
+    "description": "Return the exact expense_add arguments for a saved trip, one payload per currency, ready to pass to the expense-tracker server. It writes nothing itself: see the note in the answer. Pro.",
+    "arguments": [
+      {
+        "name": "trip",
+        "type": "string",
+        "desc": "Trip id such as TRIP-2026-0001, or an exact or partial trip name"
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Expense category to put on the payload. Default \"travel\""
+      },
+      {
+        "name": "billable",
+        "type": "boolean",
+        "desc": "Rebillable to the client. Default: true when the trip has a project, false otherwise"
+      },
+      {
+        "name": "split_lodging",
+        "type": "boolean",
+        "desc": "Return lodging as its own expense rather than folded into the subsistence total. Default true"
+      },
+      {
+        "name": "mark_exported",
+        "type": "boolean",
+        "desc": "Stamp exported_at on the trip so a later export can see it already went out. Default false"
+      }
+    ]
+  },
+  {
+    "name": "perdiem_report",
+    "description": "Total the saved trips per scheme and per calendar month, in each scheme's own currency, with the day count and the trips behind every figure. Pro.",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "YYYY-MM, earliest month by start date"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "YYYY-MM, latest month by start date"
+      },
+      {
+        "name": "scheme",
+        "type": "string",
+        "desc": "Default \"all\""
+      },
+      {
+        "name": "traveller",
+        "type": "string",
+        "desc": "Only this traveller"
+      }
+    ]
+  },
+  {
+    "name": "license_status",
+    "description": "Show whether this server runs in free or Pro mode and where to upgrade."
+  },
+  {
+    "name": "license_activate",
+    "description": "Activate a Pro license key (format MCPL1.xxx.yyy). Verified offline and saved locally.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "License key from the checkout confirmation page"
+      }
+    ]
+  }
+]
