@@ -1,0 +1,304 @@
+[
+  {
+    "name": "credit_note_create",
+    "description": "Issue a credit note against one invoice: the whole invoice, a gross amount, or named lines with quantities. Line totals are stored negative in minor units and the invoice's VAT rates are reused.",
+    "arguments": [
+      {
+        "name": "invoice",
+        "type": "string",
+        "desc": "The invoice number to credit, e.g. INV-2026-0001"
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Why the money is being given back, e.g. \"returned goods\" or \"billed twice\". Printed on the document"
+      },
+      {
+        "name": "amount_minor",
+        "type": "integer",
+        "desc": "Credit this GROSS amount, VAT included, in minor units. Split across the invoice's VAT rates in proportion to each rate's share of the total"
+      },
+      {
+        "name": "lines",
+        "type": "array",
+        "desc": "Credit only these invoice lines. Leave out with amount_minor for a full credit note"
+      },
+      {
+        "name": "issue_date",
+        "type": "string",
+        "desc": "YYYY-MM-DD, defaults to today in your business profile's timezone"
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "desc": "Free text printed under the totals"
+      }
+    ]
+  },
+  {
+    "name": "credit_note_list",
+    "description": "Every credit note with its invoice, client, reason and negative total. Filter by invoice number, by client or by issue date range.",
+    "arguments": [
+      {
+        "name": "invoice",
+        "type": "string",
+        "desc": "Only credit notes issued against this invoice number"
+      },
+      {
+        "name": "client",
+        "type": "string",
+        "desc": "Only credit notes for clients whose name contains this text"
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "YYYY-MM-DD, earliest issue date"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "YYYY-MM-DD, latest issue date"
+      }
+    ]
+  },
+  {
+    "name": "credit_note_get",
+    "description": "The full stored record for one credit note: every negated line, the VAT lines, the totals, the reason and the invoice it was issued against.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Credit note id such as CN-2026-0001, or an exact client name"
+      }
+    ]
+  },
+  {
+    "name": "credit_note_pdf",
+    "description": "Call this tool to write the A4 PDF of one credit note and return the file path. The invoice layout, titled CREDIT NOTE and carrying the invoice number it reverses. Pro.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Credit note id such as CN-2026-0001"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write the file. Defaults to the billing-docs data directory under pdf/"
+      }
+    ]
+  },
+  {
+    "name": "credit_note_text",
+    "description": "Turn a credit note into a plain-text summary with the negated line table, the VAT lines, the total and the invoice it reverses, ready to paste into an email. Free on every tier.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Credit note id such as CN-2026-0001"
+      },
+      {
+        "name": "greeting",
+        "type": "string",
+        "desc": "Opening line, default \"Hello\" plus the client name"
+      },
+      {
+        "name": "sign_off",
+        "type": "string",
+        "desc": "Closing line, default your business name from the shared profile"
+      }
+    ]
+  },
+  {
+    "name": "purchase_order_create",
+    "description": "Order from a supplier: line items with quantity and unit price in minor units, VAT, a currency and an expected delivery date. You are the buyer, from the shared business profile.",
+    "arguments": [
+      {
+        "name": "supplier",
+        "type": "string",
+        "desc": "Supplier name or client id. A name the invoice server already knows brings its address, email and VAT id onto the order"
+      },
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "What is being ordered"
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": "Defaults to your business default currency"
+      },
+      {
+        "name": "expected_delivery_date",
+        "type": "string",
+        "desc": "YYYY-MM-DD, when the goods or work are due"
+      },
+      {
+        "name": "issue_date",
+        "type": "string",
+        "desc": "YYYY-MM-DD, defaults to today in your business profile's timezone"
+      },
+      {
+        "name": "discount_percent",
+        "type": "number",
+        "desc": "Discount applied to every line, in percent"
+      },
+      {
+        "name": "tax_rate",
+        "type": "number",
+        "desc": "VAT percent for lines with no rate of their own. Defaults to the business default"
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "desc": "Free text printed under the totals, e.g. delivery address or terms"
+      },
+      {
+        "name": "supplier_email",
+        "type": "string",
+        "desc": "Only if the user gave it; otherwise the stored client's email is used"
+      },
+      {
+        "name": "supplier_address",
+        "type": "string",
+        "desc": "Postal address for the SUPPLIER block, newlines allowed"
+      },
+      {
+        "name": "supplier_vat_id",
+        "type": "string",
+        "desc": "Supplier VAT / tax registration id"
+      }
+    ]
+  },
+  {
+    "name": "purchase_order_list",
+    "description": "Every purchase order with its supplier, total, expected delivery date and status (open, partially received or received). Filter by status, by supplier or by order date range.",
+    "arguments": [
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Default \"all\""
+      },
+      {
+        "name": "supplier",
+        "type": "string",
+        "desc": "Only orders to suppliers whose name contains this text"
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "YYYY-MM-DD, earliest order date"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "YYYY-MM-DD, latest order date"
+      }
+    ]
+  },
+  {
+    "name": "purchase_order_get",
+    "description": "The full stored record for one purchase order: the buyer and supplier blocks, every line with its unit price and VAT, the totals, the expected delivery date and what has been received.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Purchase order id such as PO-2026-0001, or an exact supplier name"
+      }
+    ]
+  },
+  {
+    "name": "purchase_order_pdf",
+    "description": "Call this tool to write the A4 PDF of one purchase order and return the file path. The invoice layout, titled PURCHASE ORDER, with the buyer, the supplier and the delivery date. Pro.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Purchase order id such as PO-2026-0001"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write the file. Defaults to the billing-docs data directory under pdf/"
+      }
+    ]
+  },
+  {
+    "name": "purchase_order_text",
+    "description": "Turn a purchase order into a plain-text summary with the line table, the VAT lines, the total and the delivery date, ready to paste into an email to the supplier. Free on every tier.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Purchase order id such as PO-2026-0001"
+      },
+      {
+        "name": "greeting",
+        "type": "string",
+        "desc": "Opening line, default \"Hello\" plus the supplier name"
+      },
+      {
+        "name": "sign_off",
+        "type": "string",
+        "desc": "Closing line, default your business name from the shared profile"
+      }
+    ]
+  },
+  {
+    "name": "purchase_order_receive",
+    "description": "Record that a purchase order arrived, in full or in part. A partial receipt keeps the order open and is kept on the record with its date and note; a full receipt closes it.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Purchase order id such as PO-2026-0001"
+      },
+      {
+        "name": "partial",
+        "type": "boolean",
+        "desc": "True when only some of the order arrived. The order stays open and can be received again. Default false"
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "YYYY-MM-DD, defaults to today"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "What arrived, e.g. \"8 of 10 units, 2 back-ordered\""
+      }
+    ]
+  },
+  {
+    "name": "billing_docs_report",
+    "description": "What has been credited back per currency, against how many invoices, and what is still on order per currency, with the purchase orders whose delivery date has passed. Pro.",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "YYYY-MM-DD, earliest document date to count"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "YYYY-MM-DD, latest document date to count"
+      }
+    ]
+  },
+  {
+    "name": "license_status",
+    "description": "Show whether this server runs in free or Pro mode and where to upgrade."
+  },
+  {
+    "name": "license_activate",
+    "description": "Activate a Pro license key (format MCPL1.xxx.yyy). Verified offline and saved locally.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "License key from the checkout confirmation page"
+      }
+    ]
+  }
+]
