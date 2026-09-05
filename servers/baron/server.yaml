@@ -1,0 +1,99 @@
+name: baron
+image: mcp/baron
+type: server
+meta:
+  category: devops
+  tags:
+    - devops
+    - github
+    - azure-devops
+    - linear
+    - issues
+    - pull-requests
+    - ci
+    - workflow
+    - coding-agents
+about:
+  title: Baron
+  description: |-
+    Lets a coding agent drive your work tracker and source control through one normalized contract: read, create and transition issues, cut branches, open and land pull requests, watch CI and record project memory, across GitHub, Azure DevOps and Linear. Providers map their native states onto shared roles (backlog, ready, in_progress, in_review, done), so the same prompts and recipes work whichever tracker a team uses.
+    Mount a project that holds a `.baron/policy.json` (created by `npx @lonca/baron init` in that project) and the server runs every call against that project's policy and credentials.
+  icon: https://avatars.githubusercontent.com/u/287505098?s=200&v=4
+source:
+  project: https://github.com/loncadev/baron
+  commit: 946be651e176fe097a2d81392daaa702e28b1bbe
+run:
+  volumes:
+    - "{{baron.project_path}}:/project"
+  env:
+    # The catalog image is rebuilt and re-pinned by Docker, so the "a newer version is on npm"
+    # notice the server otherwise appends would point users at a fix they cannot apply here.
+    BARON_NO_UPDATE_CHECK: "1"
+config:
+  description: Point Baron at the project whose `.baron/policy.json` it should run against, and supply credentials for the providers that policy binds. Only the providers you use need values.
+  secrets:
+    - name: baron.github_token
+      env: GITHUB_TOKEN
+      example: <GITHUB_TOKEN>
+      description: GitHub token with repo scope (or fine-grained access to Issues, Pull requests, Contents and Actions on the target repository).
+      required: false
+    - name: baron.azure_devops_token
+      env: AZURE_DEVOPS_TOKEN
+      example: <AZURE_DEVOPS_TOKEN>
+      description: Azure DevOps personal access token with Work Items, Code and Build access.
+      required: false
+    - name: baron.linear_api_key
+      env: LINEAR_API_KEY
+      example: <LINEAR_API_KEY>
+      description: Linear personal API key.
+      required: false
+  env:
+    # At tools-listing time the example is what the container sees, and /app carries a committed
+    # policy so the server starts without a mounted project. At run time the mounted project wins.
+    - name: BARON_ROOT
+      example: /app
+      value: /project
+    - name: GITHUB_OWNER
+      example: octocat
+      value: "{{baron.github_owner}}"
+    - name: GITHUB_REPO
+      example: hello-world
+      value: "{{baron.github_repo}}"
+    - name: AZURE_DEVOPS_ORG
+      example: my-org
+      value: "{{baron.azure_devops_org}}"
+    - name: AZURE_DEVOPS_PROJECT
+      example: My Project
+      value: "{{baron.azure_devops_project}}"
+    - name: AZURE_DEVOPS_REPO
+      example: my-repo
+      value: "{{baron.azure_devops_repo}}"
+    - name: LINEAR_TEAM
+      example: ENG
+      value: "{{baron.linear_team}}"
+  parameters:
+    type: object
+    properties:
+      project_path:
+        type: string
+        description: Host path of the project that contains .baron/policy.json (run `npx @lonca/baron init` there first).
+      github_owner:
+        type: string
+        description: GitHub repository owner (user or organisation).
+      github_repo:
+        type: string
+        description: GitHub repository name.
+      azure_devops_org:
+        type: string
+        description: Azure DevOps organisation name.
+      azure_devops_project:
+        type: string
+        description: Azure DevOps project name.
+      azure_devops_repo:
+        type: string
+        description: Azure DevOps repository name.
+      linear_team:
+        type: string
+        description: Linear team key.
+    required:
+      - project_path
