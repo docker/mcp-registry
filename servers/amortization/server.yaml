@@ -1,0 +1,28 @@
+name: amortization
+image: mcp/amortization
+type: server
+meta:
+  category: finance
+  tags:
+    - finance
+    - loans
+    - leases
+    - amortization
+    - interest
+    - accounting
+about:
+  title: Amortization
+  description: "Works out loan and lease schedules, entirely on your machine, from the terms of a credit agreement: the amount, the nominal annual rate in basis points, how often interest compounds, how often a payment falls due, the term in periods, the method, any arrangement fee and any balloon. It returns the level payment, the effective annual rate beside the nominal one, the total interest, and the schedule period by period with opening balance, payment, interest, principal and closing balance. It answers what settling or overpaying early costs and saves, gross and net of any penalty, and hands back the double entry for a payment in the same account names the sibling cash book uses. Every figure is an integer in minor units and every closing balance reaches the balloon, or zero, exactly. Two decisions carry the arithmetic. Compounding frequency and payment frequency are two different clocks, so the rate for one payment period is the equivalent rate taken through the compounding clock, (1 + r/m)^(m/p) - 1, and never the nominal rate divided by the number of payments: on EUR 10,000 at a nominal 12 percent compounded monthly repaid in four quarterly instalments that is 3.0301 percent rather than 3.0000, which sets the total interest at 768.84 instead of 761.08, 1.0 percent of the whole interest bill in the lender's favour and invisible in a quote. And rounding the level payment once is not a rounding detail, it is a term change: at 250 basis points over 360 annual periods the same half unit repeats until the balance clears at period 356, four periods before the term ends, with a final payment of 4,165, so the schedule stops where the debt does rather than filling out the term with rows the borrower does not owe on a balance that has gone negative. A residual is absorbed in the final period's interest and principal split and never in the payment, because the payment is what the borrower is contractually due to pay and the split is not, and it is only absorbed while it is still drift a term could actually accumulate. No interest figure is ever negative anywhere, and a sweep of 720 schedules across rates, terms, methods, balloons and frequencies is the alarm on it. No schedule is stored: every row is derived from the terms on the call, because a stored schedule is a second copy of a figure the rate and the term already decide. It reads no sibling store and writes into none. No account, no API key, no network call: everything lives under the local data directory and licence keys are verified offline."
+  icon: https://raw.githubusercontent.com/theluckystrike/mcp-servers/d980af53a3b19063d8af2e78226fc1215d6535a0/assets/amortization-logo.png
+source:
+  project: https://github.com/theluckystrike/mcp-servers
+  branch: main
+  commit: d980af53a3b19063d8af2e78226fc1215d6535a0
+  dockerfile: servers/amortization/Dockerfile
+config:
+  description: Optional Pro license key. The server is fully usable without it.
+  secrets:
+    - name: amortization.license_key
+      env: MCP_LICENSE_KEY
+      example: <MCP_LICENSE_KEY>
+      required: false
