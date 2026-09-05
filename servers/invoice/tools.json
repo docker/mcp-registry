@@ -1,0 +1,292 @@
+[
+  {
+    "name": "business_set",
+    "description": "Store the issuer profile printed at the top of every invoice: your name, address, VAT id, bank details and defaults (currency, tax rate, payment terms, invoice number prefix). Call this once before creating invoices.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Your business or freelancer name"
+      },
+      {
+        "name": "address",
+        "type": "string",
+        "desc": "Postal address, newlines allowed"
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "vat_id",
+        "type": "string",
+        "desc": "VAT / tax registration id"
+      },
+      {
+        "name": "iban",
+        "type": "string",
+        "desc": "IBAN or account number for payment"
+      },
+      {
+        "name": "bank",
+        "type": "string",
+        "desc": "Bank name / BIC"
+      },
+      {
+        "name": "logo_path",
+        "type": "string",
+        "desc": "Path to a PNG or JPG logo (Pro)"
+      },
+      {
+        "name": "default_currency",
+        "type": "string",
+        "desc": "ISO code, e.g. EUR, USD, JPY. Default EUR"
+      },
+      {
+        "name": "default_tax_rate",
+        "type": "number",
+        "desc": "Default VAT percent applied to items without their own rate"
+      },
+      {
+        "name": "payment_terms_days",
+        "type": "number",
+        "desc": "Default days until due. Default 14"
+      },
+      {
+        "name": "invoice_prefix",
+        "type": "string",
+        "desc": "Invoice number prefix, default INV (custom prefix is Pro)"
+      }
+    ]
+  },
+  {
+    "name": "client_add",
+    "description": "Store a client so invoices can refer to them by name. Re-adding the same name updates the stored details.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "address",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "vat_id",
+        "type": "string",
+        "desc": "Client VAT id, printed for reverse-charge invoices"
+      }
+    ]
+  },
+  {
+    "name": "client_list",
+    "description": "List every stored client with their id, address, email and VAT id.",
+    "arguments": []
+  },
+  {
+    "name": "invoice_create",
+    "description": "Create an invoice for a client from a list of items. Allocates the next invoice number (never reused), computes subtotal, discount, tax lines per rate and the total. Amounts are held as integer minor units; every line is rounded first, then summed.",
+    "arguments": [
+      {
+        "name": "client",
+        "type": "string",
+        "desc": "Client name or id. Unknown names are added automatically"
+      },
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "Line items"
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "issue_date",
+        "type": "string",
+        "desc": "YYYY-MM-DD, defaults to today"
+      },
+      {
+        "name": "due_days",
+        "type": "number",
+        "desc": "Days until due, defaults to your payment terms"
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "desc": "Free text printed under the totals"
+      },
+      {
+        "name": "discount_percent",
+        "type": "number",
+        "desc": "Discount percent applied to every line before tax, 0-100"
+      }
+    ]
+  },
+  {
+    "name": "invoice_from_hours",
+    "description": "Shortcut for the common case: bill one client for N hours at an hourly rate. Creates a single-line invoice.",
+    "arguments": [
+      {
+        "name": "client",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "hours",
+        "type": "number",
+        "desc": ""
+      },
+      {
+        "name": "rate",
+        "type": "number",
+        "desc": "Hourly rate in major units"
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Line description, default 'Consulting services'"
+      },
+      {
+        "name": "tax_rate",
+        "type": "number",
+        "desc": ""
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "issue_date",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "due_days",
+        "type": "number",
+        "desc": ""
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "discount_percent",
+        "type": "number",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "invoice_list",
+    "description": "List invoices, optionally filtered by status (unpaid, paid, partial), client, and an issue-date range.",
+    "arguments": [
+      {
+        "name": "status",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "client",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "YYYY-MM-DD inclusive"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "YYYY-MM-DD inclusive"
+      }
+    ]
+  },
+  {
+    "name": "invoice_get",
+    "description": "Return the full stored record for one invoice number, including every line and tax breakdown.",
+    "arguments": [
+      {
+        "name": "number",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "invoice_mark_paid",
+    "description": "Record a payment. Without an amount the invoice is marked fully paid; a smaller amount marks it partial and reports the remaining balance.",
+    "arguments": [
+      {
+        "name": "number",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "paid_date",
+        "type": "string",
+        "desc": "YYYY-MM-DD, defaults to today"
+      },
+      {
+        "name": "amount",
+        "type": "number",
+        "desc": "Amount received in major units. Omit for the full total"
+      }
+    ]
+  },
+  {
+    "name": "invoice_pdf",
+    "description": "Render an invoice as an A4 PDF you can send: issuer block, client block, dates, item table with wrapped descriptions, subtotal, discount, tax lines per rate, total, payment details and notes. Returns the file path.",
+    "arguments": [
+      {
+        "name": "number",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write the PDF. Defaults to the data directory"
+      }
+    ]
+  },
+  {
+    "name": "overdue_report",
+    "description": "List every unpaid or partly paid invoice past its due date with days overdue, plus outstanding totals per currency. Pro.",
+    "arguments": [
+      {
+        "name": "as_of",
+        "type": "string",
+        "desc": "YYYY-MM-DD, defaults to today"
+      }
+    ]
+  },
+  {
+    "name": "license_status",
+    "description": "Show whether this server runs in free or Pro mode and where to upgrade.",
+    "arguments": []
+  },
+  {
+    "name": "license_activate",
+    "description": "Activate a Pro license key (format MCPL1.xxx.yyy). Verified offline and saved locally.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "License key from the checkout confirmation page"
+      }
+    ]
+  }
+]

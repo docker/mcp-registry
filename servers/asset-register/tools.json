@@ -1,0 +1,292 @@
+[
+  {
+    "name": "asset_add",
+    "description": "Add one fixed asset to the register and return its id with the rate, useful life and convention taken from the bundled tax table. Cost and residual are whole minor units. Free tier holds ten assets.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "What the asset is, e.g. \"MacBook Pro 16\" or \"Delivery van\""
+      },
+      {
+        "name": "scheme",
+        "type": "string",
+        "desc": "\"pl\" Polish KST annex rates, \"uk\" HMRC capital allowance pools, \"us\" IRS MACRS GDS. Omit to derive it from the shared business profile currency"
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "A code or name from the bundled table, e.g. \"487\" or \"Computers and computer sets\" (pl), \"main\" (uk), \"5-year\" (us). Read assets://categories for the list"
+      },
+      {
+        "name": "cost_minor",
+        "type": "integer",
+        "desc": "Acquisition cost in MINOR units (integer cents/grosze), e.g. 549900 for 5499.00. Never a decimal"
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": "ISO code. Defaults to the shared business profile currency, else the scheme table currency"
+      },
+      {
+        "name": "purchase_date",
+        "type": "string",
+        "desc": "ISO date YYYY-MM-DD the asset was bought"
+      },
+      {
+        "name": "in_service_date",
+        "type": "string",
+        "desc": "ISO date YYYY-MM-DD the asset entered use and the register. Defaults to purchase_date"
+      },
+      {
+        "name": "residual_minor",
+        "type": "integer",
+        "desc": "Residual or salvage value in MINOR units, default 0. Must be less than cost. MACRS ignores it and the answer says so"
+      },
+      {
+        "name": "method",
+        "type": "string",
+        "desc": "\"straight-line\" or \"declining-balance\". Default: the table row method, straight-line for the Polish annex and the reducing-balance pool rate for the UK"
+      },
+      {
+        "name": "life_years",
+        "type": "number",
+        "desc": "Override the useful life derived from the table, in years. The answer reports that it was an override"
+      },
+      {
+        "name": "rate_pct",
+        "type": "number",
+        "desc": "Override the annual percentage derived from the table. Use for a lowered Polish rate under art. 16i"
+      },
+      {
+        "name": "declining_coefficient",
+        "type": "number",
+        "desc": "Declining-balance coefficient. Polish default 2.0, capped by the table; ignored with straight-line"
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Project, department or cost centre this asset belongs to"
+      },
+      {
+        "name": "note",
+        "type": "string"
+      }
+    ]
+  },
+  {
+    "name": "asset_list",
+    "description": "List the assets in the register with cost, method, rate and net book value at a date, filtered by scheme, category, project, currency or disposal state. Free and unlimited.",
+    "arguments": [
+      {
+        "name": "scheme",
+        "type": "string",
+        "desc": "Only assets on this tax scheme"
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Only assets in this table category code or name"
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Only assets on this project or cost centre"
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": "Only assets held in this currency"
+      },
+      {
+        "name": "as_of",
+        "type": "string",
+        "desc": "Value the register at this month or date, YYYY-MM or YYYY-MM-DD. Default today"
+      },
+      {
+        "name": "include_disposed",
+        "type": "boolean",
+        "desc": "Include assets already disposed of. Default false"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum rows, default and ceiling 2000"
+      }
+    ]
+  },
+  {
+    "name": "asset_schedule",
+    "description": "Build the depreciation schedule for a stored asset, or price one not yet in the register, per year or per month, to zero or residual, with the table convention applied and the periods summing exactly to the base. Free.",
+    "arguments": [
+      {
+        "name": "asset",
+        "type": "string",
+        "desc": "Asset id such as ASSET-2026-0001, or an exact or partial name. Omit and pass the fields below to price an asset that is not in the register"
+      },
+      {
+        "name": "scheme",
+        "type": "string",
+        "desc": "Scheme, when pricing an asset that is not in the register"
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Table category code or name, when pricing an asset that is not in the register"
+      },
+      {
+        "name": "cost_minor",
+        "type": "integer",
+        "desc": "Cost in MINOR units, when pricing an asset that is not in the register"
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": "ISO code, when pricing an asset that is not in the register"
+      },
+      {
+        "name": "purchase_date",
+        "type": "string",
+        "desc": "ISO date YYYY-MM-DD, when pricing an asset that is not in the register"
+      },
+      {
+        "name": "in_service_date",
+        "type": "string",
+        "desc": "ISO date YYYY-MM-DD the asset entered use. Defaults to purchase_date"
+      },
+      {
+        "name": "residual_minor",
+        "type": "integer",
+        "desc": "Residual in MINOR units, default 0"
+      },
+      {
+        "name": "method",
+        "type": "string",
+        "desc": "\"straight-line\" or \"declining-balance\""
+      },
+      {
+        "name": "life_years",
+        "type": "number",
+        "desc": "Override the useful life from the table, in years"
+      },
+      {
+        "name": "rate_pct",
+        "type": "number",
+        "desc": "Override the annual percentage from the table"
+      },
+      {
+        "name": "declining_coefficient",
+        "type": "number",
+        "desc": "Declining-balance coefficient; ignored with straight-line"
+      },
+      {
+        "name": "granularity",
+        "type": "string",
+        "desc": "\"year\" for one row per period, \"month\" for the monthly charge. Default \"year\""
+      }
+    ]
+  },
+  {
+    "name": "asset_journal",
+    "description": "Return the depreciation journal for one month: debit depreciation expense and credit accumulated depreciation, per asset and in total, plus an expense_add-ready payload per currency. It writes nothing itself. Pro.",
+    "arguments": [
+      {
+        "name": "month",
+        "type": "string",
+        "desc": "The month to journal, YYYY-MM. A date YYYY-MM-DD is read as its month"
+      },
+      {
+        "name": "scheme",
+        "type": "string",
+        "desc": "Only assets on this tax scheme"
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Only assets on this project or cost centre"
+      },
+      {
+        "name": "expense_account",
+        "type": "string",
+        "desc": "Debit account name. Default \"Depreciation expense\""
+      },
+      {
+        "name": "accumulated_account",
+        "type": "string",
+        "desc": "Credit account name. Default \"Accumulated depreciation\""
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Expense category to put on the expense_add payload. Default \"depreciation\""
+      }
+    ]
+  },
+  {
+    "name": "asset_dispose",
+    "description": "Record the sale, scrapping or write-off of an asset on a date for a proceeds amount, and return the gain or loss against net book value at that date. Free.",
+    "arguments": [
+      {
+        "name": "asset",
+        "type": "string",
+        "desc": "Asset id such as ASSET-2026-0001, or an exact or partial name"
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "ISO date YYYY-MM-DD the asset left the business. It cannot be before the in-service date"
+      },
+      {
+        "name": "proceeds_minor",
+        "type": "integer",
+        "desc": "Sale proceeds in MINOR units, default 0 for a scrapping or a write-off"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "What happened, e.g. sold to a dealer, written off after a fire"
+      }
+    ]
+  },
+  {
+    "name": "asset_report",
+    "description": "Report net book value by category and currency at a date, the year's depreciation charge, and every disposal in the year with its gain or loss. Pro.",
+    "arguments": [
+      {
+        "name": "year",
+        "type": "integer",
+        "desc": "Calendar year to report, e.g. 2026. Default the year of as_of, else this year"
+      },
+      {
+        "name": "as_of",
+        "type": "string",
+        "desc": "Value the register at this month or date, YYYY-MM or YYYY-MM-DD. Default the last day of the year"
+      },
+      {
+        "name": "scheme",
+        "type": "string",
+        "desc": "Only assets on this tax scheme"
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Only assets on this project or cost centre"
+      }
+    ]
+  },
+  {
+    "name": "license_status",
+    "description": "Show whether this server runs in free or Pro mode and where to upgrade."
+  },
+  {
+    "name": "license_activate",
+    "description": "Activate a Pro license key (format MCPL1.xxx.yyy). Verified offline and saved locally.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "License key from the checkout confirmation page"
+      }
+    ]
+  }
+]

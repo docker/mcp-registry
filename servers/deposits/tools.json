@@ -1,0 +1,260 @@
+[
+  {
+    "name": "deposit_record",
+    "description": "Record a security or retainer deposit received from a client, in minor units, with its currency, the date it arrived and the bank reference. Returns the DEP-YYYY-NNNN id.",
+    "arguments": [
+      {
+        "name": "client",
+        "type": "string",
+        "desc": "Client name or client id. A name the invoice server already knows brings its address, email and VAT id onto the deposit"
+      },
+      {
+        "name": "amount_minor",
+        "type": "integer",
+        "desc": "What was received, in MINOR units: 50000 = 500.00 EUR, 50000 = JPY 50000. Never a decimal"
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "security: held against damage or non-payment. retainer: held against work not yet invoiced"
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": "Defaults to your business default currency"
+      },
+      {
+        "name": "received_date",
+        "type": "string",
+        "desc": "YYYY-MM-DD, the day the money arrived. Defaults to today"
+      },
+      {
+        "name": "reference",
+        "type": "string",
+        "desc": "Bank reference, transfer note or cheque number the money arrived with"
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "desc": "Free text kept on the record and printed on the statement"
+      },
+      {
+        "name": "client_email",
+        "type": "string",
+        "desc": "Only if the user gave it; otherwise the stored client's email is used"
+      },
+      {
+        "name": "client_address",
+        "type": "string",
+        "desc": "Postal address for the statement's client block, newlines allowed"
+      },
+      {
+        "name": "client_vat_id",
+        "type": "string",
+        "desc": "Client VAT / tax registration id"
+      }
+    ]
+  },
+  {
+    "name": "deposit_list",
+    "description": "List deposits with what was received, applied, refunded and still held on each. Filter by client, by status held, applied or refunded, by kind and by received date range.",
+    "arguments": [
+      {
+        "name": "client",
+        "type": "string",
+        "desc": "Only deposits for this client id, exact name, or a name containing this text"
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Default \"all\". held means some of the money is still held"
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "Default \"all\""
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "YYYY-MM-DD, earliest received date"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "YYYY-MM-DD, latest received date"
+      }
+    ]
+  },
+  {
+    "name": "deposit_apply",
+    "description": "Apply part or all of a held deposit to one invoice: records that amount as a payment on the invoice through the invoice engine. Refuses more than is held or more than the invoice still owes.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Deposit id such as DEP-2026-0001, or an exact client name"
+      },
+      {
+        "name": "invoice",
+        "type": "string",
+        "desc": "The invoice number to apply it to, e.g. INV-2026-0001"
+      },
+      {
+        "name": "amount_minor",
+        "type": "integer",
+        "desc": "How much of the deposit to apply, in minor units. Defaults to the smaller of what is held and what the invoice still owes"
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "YYYY-MM-DD, the day the deposit was set against the invoice. Defaults to today"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "Free text kept on the application row"
+      }
+    ]
+  },
+  {
+    "name": "deposit_refund",
+    "description": "Give part or all of a held deposit back to the client, with the date and how it was sent. Refuses more than is still held. The invoice server is not touched: a refund is not a payment.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Deposit id such as DEP-2026-0001, or an exact client name"
+      },
+      {
+        "name": "amount_minor",
+        "type": "integer",
+        "desc": "How much to give back, in minor units. Defaults to everything still held"
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "YYYY-MM-DD, the day the money went back. Defaults to today"
+      },
+      {
+        "name": "method",
+        "type": "string",
+        "desc": "How it was sent, e.g. \"bank transfer to the account it came from\". Printed on the statement"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "Free text kept on the refund row"
+      }
+    ]
+  },
+  {
+    "name": "deposit_balance",
+    "description": "Answer \"how much of theirs am I holding?\" for one client or for everyone: received, applied to invoices, refunded and still held, one row per currency, never added across currencies.",
+    "arguments": [
+      {
+        "name": "client",
+        "type": "string",
+        "desc": "Client id, exact name or a name containing this text. Leave out for every client"
+      },
+      {
+        "name": "as_of",
+        "type": "string",
+        "desc": "YYYY-MM-DD, count only deposits received on or before this day"
+      }
+    ]
+  },
+  {
+    "name": "deposit_statement_text",
+    "description": "Turn one client's deposits into a plain-text statement with every movement in date order and the closing balance, ready to paste into an email. Free on every tier.",
+    "arguments": [
+      {
+        "name": "client",
+        "type": "string",
+        "desc": "Client id, exact name or a name containing this text"
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": "Only needed when the client has deposits in more than one currency"
+      },
+      {
+        "name": "as_of",
+        "type": "string",
+        "desc": "YYYY-MM-DD printed as the statement date. Defaults to today"
+      },
+      {
+        "name": "greeting",
+        "type": "string",
+        "desc": "Opening line, default \"Hello\" plus the client name"
+      },
+      {
+        "name": "sign_off",
+        "type": "string",
+        "desc": "Closing line, default your business name from the shared profile"
+      }
+    ]
+  },
+  {
+    "name": "deposit_statement_pdf",
+    "description": "Call this tool to write one client's A4 deposit statement and return the file path. Titled DEPOSIT STATEMENT, every movement in date order, closing with what is still held. Pro.",
+    "arguments": [
+      {
+        "name": "client",
+        "type": "string",
+        "desc": "Client id, exact name or a name containing this text"
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": "Only needed when the client has deposits in more than one currency"
+      },
+      {
+        "name": "as_of",
+        "type": "string",
+        "desc": "YYYY-MM-DD printed as the statement date. Defaults to today"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write the PDF; defaults to the deposits data directory under pdf/. Use a .pdf path: the bytes written are always PDF"
+      }
+    ]
+  },
+  {
+    "name": "deposits_report",
+    "description": "What is held per currency, the oldest held deposits, and every deposit received more than N days ago with none of it applied to an invoice. Pro.",
+    "arguments": [
+      {
+        "name": "older_than_days",
+        "type": "integer",
+        "desc": "Flag deposits received this many days ago or more with nothing applied. Default 90"
+      },
+      {
+        "name": "as_of",
+        "type": "string",
+        "desc": "YYYY-MM-DD to count from. Defaults to today"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many oldest held deposits to list. Default 10"
+      }
+    ]
+  },
+  {
+    "name": "license_status",
+    "description": "Show whether this server runs in free or Pro mode and where to upgrade."
+  },
+  {
+    "name": "license_activate",
+    "description": "Activate a Pro license key (format MCPL1.xxx.yyy). Verified offline and saved locally.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "License key from the checkout confirmation page"
+      }
+    ]
+  }
+]

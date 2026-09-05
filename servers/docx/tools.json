@@ -1,0 +1,341 @@
+[
+  {
+    "name": "business_set",
+    "description": "Store the sender profile printed on every proposal, contract and letter: your name, address, email, VAT id, bank details and defaults (currency, payment terms). Same profile shape as mcp-invoice. Call this once before creating documents.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Your business or freelancer name"
+      },
+      {
+        "name": "address",
+        "type": "string",
+        "desc": "Postal address, newlines allowed"
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "vat_id",
+        "type": "string",
+        "desc": "VAT / tax registration id"
+      },
+      {
+        "name": "iban",
+        "type": "string",
+        "desc": "IBAN or account number for payment"
+      },
+      {
+        "name": "bank",
+        "type": "string",
+        "desc": "Bank name / BIC"
+      },
+      {
+        "name": "logo_path",
+        "type": "string",
+        "desc": "Path to a PNG or JPG logo for the letterhead (Pro)"
+      },
+      {
+        "name": "brand_color",
+        "type": "string",
+        "desc": "Letterhead colour as a hex code, e.g. 1F3864 (Pro)"
+      },
+      {
+        "name": "default_currency",
+        "type": "string",
+        "desc": "ISO code, e.g. EUR, USD. Default EUR"
+      },
+      {
+        "name": "default_tax_rate",
+        "type": "number",
+        "desc": "Default VAT percent, quoted on proposals"
+      },
+      {
+        "name": "payment_terms_days",
+        "type": "number",
+        "desc": "Default days until payment is due. Default 14"
+      },
+      {
+        "name": "invoice_prefix",
+        "type": "string",
+        "desc": "Reference prefix used by mcp-invoice; kept here so one profile serves both"
+      },
+      {
+        "name": "tax_rate",
+        "type": "number",
+        "desc": "Alias for default_tax_rate"
+      },
+      {
+        "name": "vat_rate",
+        "type": "number",
+        "desc": "Alias for default_tax_rate"
+      },
+      {
+        "name": "vat",
+        "type": "number",
+        "desc": "Alias for default_tax_rate"
+      }
+    ]
+  },
+  {
+    "name": "doc_create",
+    "description": "Write a real .docx file from structured sections: headings, paragraphs, bullet or numbered lists and tables. Choose plain, letter (sender block top right, date, addressee) or proposal (letterhead band and cover title) layout. Returns the file path. Free and unlimited.",
+    "arguments": [
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Document title, used as the top heading and the file name"
+      },
+      {
+        "name": "sections",
+        "type": "array",
+        "desc": "Sections in order"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write the .docx. Defaults to the data directory"
+      },
+      {
+        "name": "style",
+        "type": "string",
+        "desc": "Layout, default plain"
+      },
+      {
+        "name": "recipient",
+        "type": "string",
+        "desc": "Addressee block for the letter layout"
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "Date line for the letter layout, default today"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if a file is already there. Default false: an existing file is never overwritten"
+      }
+    ]
+  },
+  {
+    "name": "doc_from_markdown",
+    "description": "Turn markdown into a .docx: ATX headings, paragraphs, bullet and numbered lists, GFM pipe tables, fenced code blocks as monospace, and **bold** / *italic* / `code` inline. Returns the file path. Free and unlimited.",
+    "arguments": [
+      {
+        "name": "markdown",
+        "type": "string",
+        "desc": "The markdown source"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write the .docx. Defaults to the data directory"
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Document title; defaults to the first heading in the markdown"
+      },
+      {
+        "name": "style",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if a file is already there. Default false: an existing file is never overwritten"
+      }
+    ]
+  },
+  {
+    "name": "doc_read",
+    "description": "Extract the text of an existing .docx: headings with their levels, paragraphs, list items and tables, in document order. Works on files Word, Google Docs or this server produced. Free and unlimited.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the .docx file"
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "text (default) returns the readable text, json returns the block structure"
+      }
+    ]
+  },
+  {
+    "name": "doc_to_html",
+    "description": "Convert a .docx to semantic HTML you can open in a browser and print to PDF. Direct PDF output is deliberately not offered: every pure-JS Word-to-PDF path needs a native dependency or a headless browser, and this server stays install-free, so printing the HTML is the supported route. Free and unlimited.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the .docx file"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write the .html. Defaults next to the source file"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if a file is already there. Default false: an existing file is never overwritten"
+      }
+    ]
+  },
+  {
+    "name": "doc_fill_template",
+    "description": "Replace {{placeholders}} in an existing .docx and write a new file, keeping every style, table, header, footer and image of the original. Placeholders split across runs by Word's editor are handled, because the substitution runs on the joined text of each paragraph. Call with no values to list the placeholders a template contains.",
+    "arguments": [
+      {
+        "name": "template_path",
+        "type": "string",
+        "desc": "Path to the .docx template containing {{placeholders}}"
+      },
+      {
+        "name": "values",
+        "type": "object",
+        "desc": "Placeholder name to value, e.g. {client: \"Acme\", fee: \"EUR 4,500.00\"}"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write the filled .docx. Defaults to <template>-filled.docx"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if a file is already there. Default false: an existing file is never overwritten"
+      }
+    ]
+  },
+  {
+    "name": "proposal_create",
+    "description": "Produce a client-ready .docx proposal from the parts you already know: summary, scope, deliverables, a timeline table, price and terms. Uses your business_set profile for the letterhead and allocates a reference number that is never reused. Free tier: 3 proposals or contracts per calendar month.",
+    "arguments": [
+      {
+        "name": "client",
+        "type": "string",
+        "desc": "Client name, printed as 'Prepared for'"
+      },
+      {
+        "name": "project_title",
+        "type": "string",
+        "desc": "Project title"
+      },
+      {
+        "name": "summary",
+        "type": "string",
+        "desc": "One or two paragraphs on the problem and the approach"
+      },
+      {
+        "name": "scope",
+        "type": "array",
+        "desc": "What is in scope, one bullet each"
+      },
+      {
+        "name": "deliverables",
+        "type": "array",
+        "desc": "What the client receives, one bullet each"
+      },
+      {
+        "name": "timeline",
+        "type": "array",
+        "desc": "Phases and their durations, rendered as a table"
+      },
+      {
+        "name": "price",
+        "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "valid_until",
+        "type": "string",
+        "desc": "YYYY-MM-DD, the date the quote expires"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if a file is already there. Default false: an existing file is never overwritten"
+      }
+    ]
+  },
+  {
+    "name": "contract_create",
+    "description": "Produce a plain freelance service agreement .docx: parties, services, term, fee and schedule, plus standard clauses on intellectual property, confidentiality, independent contractor status, liability and termination. This is a template skeleton with labelled placeholders for a lawyer to review, not legal advice. Free tier: 3 proposals or contracts per calendar month.",
+    "arguments": [
+      {
+        "name": "client",
+        "type": "string",
+        "desc": "The client's legal name"
+      },
+      {
+        "name": "services",
+        "type": "string",
+        "desc": "What you will do, one or two sentences"
+      },
+      {
+        "name": "start_date",
+        "type": "string",
+        "desc": "YYYY-MM-DD"
+      },
+      {
+        "name": "end_date",
+        "type": "string",
+        "desc": "YYYY-MM-DD, omit for an open-ended engagement"
+      },
+      {
+        "name": "fee",
+        "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "governing_law",
+        "type": "string",
+        "desc": "e.g. 'the laws of Poland'"
+      },
+      {
+        "name": "clauses",
+        "type": "array",
+        "desc": "Extra clauses to append, one paragraph each"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace out_path if a file is already there. Default false: an existing file is never overwritten"
+      }
+    ]
+  },
+  {
+    "name": "license_status",
+    "description": "Show whether this server runs in free or Pro mode and where to upgrade.",
+    "arguments": []
+  },
+  {
+    "name": "license_activate",
+    "description": "Activate a Pro license key (format MCPL1.xxx.yyy). Verified offline and saved locally.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "License key from the checkout confirmation page"
+      }
+    ]
+  }
+]

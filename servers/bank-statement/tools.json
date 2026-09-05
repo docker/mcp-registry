@@ -1,0 +1,262 @@
+[
+  {
+    "name": "statement_import",
+    "description": "Read a bank CSV export into the local ledger. Columns are detected from the headers (date, description, one signed amount or a debit and a credit column, currency, balance), amounts are read in the file's own locale, and every line already stored is skipped rather than doubled. Returns what was detected, what was stored, and what was skipped and why.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the .csv file exported from the bank. ~ is expanded"
+      },
+      {
+        "name": "account",
+        "type": "string",
+        "desc": "Name for this account, e.g. \"business EUR\". Default: the file name without its extension. Later imports of the same account are deduplicated against it"
+      },
+      {
+        "name": "bank",
+        "type": "string",
+        "desc": "Bank profile. Default \"auto\": the headers decide. \"generic\" skips profile detection and uses the header heuristics alone"
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Delete every transaction already stored for this account before importing, instead of merging. Use it when the bank reissued a corrected export"
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": "Currency for rows where the file names none. Without it EUR is assumed and the response says so"
+      }
+    ]
+  },
+  {
+    "name": "transactions_list",
+    "description": "List stored transactions in a date range, optionally for one account or category, or only the ones no rule has categorised yet. Totals are reported per currency and never added across currencies.",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "ISO date YYYY-MM-DD, inclusive. Default: the start of the current month"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "ISO date YYYY-MM-DD, inclusive. Default: today"
+      },
+      {
+        "name": "account",
+        "type": "string",
+        "desc": "Limit to one account, as named at import"
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Only transactions in this category"
+      },
+      {
+        "name": "uncategorized",
+        "type": "boolean",
+        "desc": "Only transactions with no category yet"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Rows returned, default 200. Totals always cover the whole range"
+      }
+    ]
+  },
+  {
+    "name": "transactions_search",
+    "description": "Find transactions whose description, counterparty, category or account contains the query. Case-insensitive substring search, never a regex, so a query with brackets in it cannot hang the server.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Text to look for, e.g. \"spotify\" or \"acme\""
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "ISO date, inclusive"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "ISO date, inclusive"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Rows returned, default 100"
+      }
+    ]
+  },
+  {
+    "name": "category_rules",
+    "description": "Set the rules that categorise transactions, or call with no arguments to list them. Each rule is matched against the counterparty and the description: a plain match is a case-insensitive substring, and regex: true compiles it only when the pattern cannot backtrack exponentially. Setting rules re-applies them to every stored transaction that has no category yet.",
+    "arguments": [
+      {
+        "name": "rules",
+        "type": "array",
+        "desc": "The complete rule list; it replaces the stored one. Omit to list the current rules"
+      },
+      {
+        "name": "reapply_all",
+        "type": "boolean",
+        "desc": "Also overwrite categories set by an earlier rule or by hand. Default false: only uncategorised transactions are touched"
+      }
+    ]
+  },
+  {
+    "name": "transaction_categorize",
+    "description": "Set the category on one or more transactions by id. Nothing is changed unless every id exists, so a typo cannot half-apply.",
+    "arguments": [
+      {
+        "name": "ids",
+        "type": "array",
+        "desc": "Transaction ids, as returned by transactions_list or transactions_search"
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Category to set. Pass an empty string to clear it"
+      }
+    ]
+  },
+  {
+    "name": "statement_summary",
+    "description": "Money in, money out and the net for a date range, grouped by category, month, account or counterparty. Every total is reported per currency; amounts in different currencies are never added together and never converted.",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "ISO date, inclusive. Default: the start of the current month"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "ISO date, inclusive. Default: today"
+      },
+      {
+        "name": "group_by",
+        "type": "string",
+        "desc": "Default category"
+      },
+      {
+        "name": "account",
+        "type": "string",
+        "desc": "Limit the summary to one account"
+      },
+      {
+        "name": "top",
+        "type": "integer",
+        "desc": "Groups returned per currency, largest net first. Default 25"
+      }
+    ]
+  },
+  {
+    "name": "reconcile_expenses",
+    "description": "Match bank debits against the expenses recorded by mcp-expense-tracker: same currency, same amount, and a date within a few days. Reports what matched, which bank lines have no expense behind them and which expenses never reached the bank. The expense ledger is only ever read, never written.",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "ISO date, inclusive"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "ISO date, inclusive"
+      },
+      {
+        "name": "account",
+        "type": "string",
+        "desc": "Limit to one bank account"
+      },
+      {
+        "name": "window_days",
+        "type": "integer",
+        "desc": "Allowed gap between the expense date and the bank date, default 3. A card payment usually settles a day or two after the receipt"
+      }
+    ]
+  },
+  {
+    "name": "recurring_detect",
+    "description": "Find the charges that come back: the same counterparty, an amount that barely moves and a steady cadence. Reports the cadence, the typical amount, when it was last taken, when it is next due and what it costs per year, per currency.",
+    "arguments": [
+      {
+        "name": "months",
+        "type": "integer",
+        "desc": "How far back to look, default 3. Two occurrences are enough to see a cadence, three make it certain"
+      },
+      {
+        "name": "account",
+        "type": "string",
+        "desc": "Limit to one account"
+      },
+      {
+        "name": "min_occurrences",
+        "type": "integer",
+        "desc": "Occurrences required before a charge counts as recurring, default 2"
+      }
+    ]
+  },
+  {
+    "name": "statement_export",
+    "description": "Write the transactions of a date range to a .csv or .json file and return the path. The file is written atomically, so a failed export never leaves a half-written file behind.",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "ISO date, inclusive"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "ISO date, inclusive"
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "csv for a spreadsheet, json for a program"
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Where to write the file. ~ is expanded; the parent directory must exist"
+      },
+      {
+        "name": "account",
+        "type": "string",
+        "desc": "Limit to one account"
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Limit to one category"
+      }
+    ]
+  },
+  {
+    "name": "accounts_list",
+    "description": "List the imported accounts with their bank, currency, transaction count and date range.",
+    "arguments": []
+  },
+  {
+    "name": "license_status",
+    "description": "Show whether this server runs in free or Pro mode and where to upgrade.",
+    "arguments": []
+  },
+  {
+    "name": "license_activate",
+    "description": "Activate a Pro license key (format MCPL1.xxx.yyy). Verified offline and saved locally.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "License key from the checkout confirmation page"
+      }
+    ]
+  }
+]

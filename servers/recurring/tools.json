@@ -1,0 +1,254 @@
+[
+  {
+    "name": "schedule_create",
+    "description": "Define a repeating invoice: a client, the line items, how often to bill (weekly, monthly, quarterly, yearly or every N days), when it starts and optionally when it ends. Nothing is invoiced until invoice_generate_due runs. Month steps keep the start date's day of month and clamp it to shorter months, so a schedule starting on the 31st bills on the 28th/29th in February and back on the 31st in March.",
+    "arguments": [
+      {
+        "name": "client",
+        "type": "string",
+        "desc": "Client name or id, as in the invoice server. Unknown names are created on the first generated invoice"
+      },
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "The line items billed every period"
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": "Defaults to your business default currency"
+      },
+      {
+        "name": "every",
+        "type": "string",
+        "desc": "How often to bill: \"weekly\", \"monthly\", \"quarterly\", \"yearly\", or {days: 10}"
+      },
+      {
+        "name": "start_date",
+        "type": "string",
+        "desc": "YYYY-MM-DD. The first invoice falls on this date"
+      },
+      {
+        "name": "end_date",
+        "type": "string",
+        "desc": "YYYY-MM-DD, INCLUSIVE: an occurrence landing exactly on it is still generated"
+      },
+      {
+        "name": "due_days",
+        "type": "integer",
+        "desc": "Days until each invoice is due, defaults to your payment terms"
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "desc": "Free text printed under the totals of every generated invoice"
+      },
+      {
+        "name": "auto_generate",
+        "type": "boolean",
+        "desc": "Marks the schedule for the monthly_billing_run prompt. Default false. Nothing runs in the background either way: invoices are created only when invoice_generate_due is called"
+      },
+      {
+        "name": "anchor_day",
+        "type": "integer",
+        "desc": "Pro: bill on this day of month instead of the start date's day. 31 means the last day of every month"
+      },
+      {
+        "name": "end_of_month",
+        "type": "boolean",
+        "desc": "Pro: always bill on the last day of the month"
+      }
+    ]
+  },
+  {
+    "name": "schedule_list",
+    "description": "Every schedule with its cadence, per-period amount, next due date and status (active or paused).",
+    "arguments": [
+      {
+        "name": "status",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "schedule_get",
+    "description": "The full stored record for one schedule: items, cadence, dates, rules and how many invoices it has generated.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Schedule id, or a client name"
+      }
+    ]
+  },
+  {
+    "name": "schedule_update",
+    "description": "Change a schedule's client, items, currency, cadence, dates, due days, notes or auto_generate flag. Periods already invoiced are never re-issued, so changing the amount affects future invoices only.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "client",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "items",
+        "type": "array",
+        "desc": ""
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "every",
+        "type": "string",
+        "desc": "How often to bill: \"weekly\", \"monthly\", \"quarterly\", \"yearly\", or {days: 10}"
+      },
+      {
+        "name": "start_date",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "end_date",
+        "type": "string",
+        "desc": "null clears the end date"
+      },
+      {
+        "name": "due_days",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "auto_generate",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
+        "name": "anchor_day",
+        "type": "string",
+        "desc": "Pro"
+      },
+      {
+        "name": "end_of_month",
+        "type": "boolean",
+        "desc": "Pro"
+      }
+    ]
+  },
+  {
+    "name": "schedule_pause",
+    "description": "Stop a schedule from generating invoices without deleting it. Its history is kept and it can be resumed.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "schedule_resume",
+    "description": "Make a paused schedule active again. Periods that fell due while it was paused are still due and will be created by the next invoice_generate_due.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "schedule_delete",
+    "description": "Remove a schedule. Invoices it already generated stay in the invoice server untouched and its generation history is kept as an audit trail. Note that re-creating the same schedule afterwards gives it a NEW id, so its old periods count as unbilled again: invoice_generate_due will warn that another schedule for that client already covered them.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "schedule_upcoming",
+    "description": "Table of every schedule occurrence falling due in the next N days, with the amount per occurrence and the total per currency. Free covers 30 days.",
+    "arguments": [
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Days ahead, default 30"
+      }
+    ]
+  },
+  {
+    "name": "invoice_generate_due",
+    "description": "Create a real invoice in the invoice server for every schedule occurrence on or before as_of that has not been invoiced yet, and render each PDF. Idempotent: one invoice per schedule per period, keyed by the occurrence date, so running it twice creates nothing the second time. Reports what was created and what was skipped. Free and unlimited.",
+    "arguments": [
+      {
+        "name": "as_of",
+        "type": "string",
+        "desc": "YYYY-MM-DD, defaults to today"
+      },
+      {
+        "name": "schedule_id",
+        "type": "string",
+        "desc": "Only this schedule"
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "List what would be created without creating anything. Default false"
+      }
+    ]
+  },
+  {
+    "name": "schedule_history",
+    "description": "The audit log for one schedule: every period it has generated, the invoice number, dates, amount and PDF path.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "forecast",
+    "description": "Expected invoiced revenue per calendar month per currency from every active schedule. Free covers 3 months ahead; Pro covers up to 120.",
+    "arguments": [
+      {
+        "name": "months",
+        "type": "integer",
+        "desc": "Months ahead including this one, default 12"
+      }
+    ]
+  },
+  {
+    "name": "license_status",
+    "description": "Show whether this server runs in free or Pro mode and where to upgrade.",
+    "arguments": []
+  },
+  {
+    "name": "license_activate",
+    "description": "Activate a Pro license key (format MCPL1.xxx.yyy). Verified offline and saved locally.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "License key from the checkout confirmation page"
+      }
+    ]
+  }
+]

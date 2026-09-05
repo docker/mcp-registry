@@ -1,0 +1,28 @@
+name: statement-of-account
+image: mcp/statement-of-account
+type: server
+meta:
+  category: finance
+  tags:
+    - finance
+    - accounts-receivable
+    - aging
+    - dunning
+    - invoicing
+    - accounting
+about:
+  title: Statement Of Account
+  description: "Builds a client statement of account and the payment chaser that follows it, entirely on your machine, out of books other servers own: the invoice ledger, the credit notes and the deposits. A statement is one client, one period and one currency, and it carries the balance carried in at the start, every invoice issued, every payment received, every credit note given, the deposits applied broken out of the receipts rather than added on top of them, and the balance at the end. The movements come back in date order and the opening balance plus their sum is the closing balance, so the document reconciles line by line and not only at the bottom. Aging splits what is still open into 0-30, 31-60, 61-90 and over 90 days past the due date AS AT the date asked for, in both directions: an invoice issued after that date is not on the books, a payment made after it has not happened, and a credit note issued after it has not been given. That dated subtraction is the step most aging reports skip, and skipping it is not a small error: on one worked month, aging at a date two days before a payment landed reports the correct 2,500.00 outstanding with 500.00 thirty-one days late, while the ordinary rule of subtracting today's paid figure and bucketing by due date reports 1,700.00 outstanding and nothing overdue at all. Due today is not overdue, so day zero sits in a not-yet-due line reported beside the four buckets rather than hidden inside them. On the invoice the paid amount is the authority and the payment rows are only the attribution, so money a deposit application put on an invoice without writing a payment row still appears, and when the two books disagree the difference is reported by name rather than scaled away or dropped. This server writes into no book it reports on: the only file it owns is a register of the statements it built, and no balance is ever read back out of it, so every figure is recomputed from the ledgers when you ask. A sibling store that is missing is read as absent and a sibling store that failed to parse is never read as empty, because turning a balance that could not be computed into a balance of nothing owed is the one failure that is invisible in the document and expensive in the world. Currencies are never added together, because there is no exchange rate here to be silently wrong. The dunning letter escalates in tone and never in figures, and no level states a late fee, an interest rate or a legal cost: this server holds no contract terms, no statutory rate and no jurisdiction, and a demand for money is the last place to put an invented number. No account, no API key, no network call: everything lives under the local data directory and licence keys are verified offline."
+  icon: https://raw.githubusercontent.com/theluckystrike/mcp-servers/882b07dbfdd1b787b0aafe5fedf4cebf4abab70f/assets/statement-of-account-logo.png
+source:
+  project: https://github.com/theluckystrike/mcp-servers
+  branch: main
+  commit: 882b07dbfdd1b787b0aafe5fedf4cebf4abab70f
+  dockerfile: servers/statement-of-account/Dockerfile
+config:
+  description: Optional Pro license key. The server is fully usable without it.
+  secrets:
+    - name: statement-of-account.license_key
+      env: MCP_LICENSE_KEY
+      example: <MCP_LICENSE_KEY>
+      required: false

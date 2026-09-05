@@ -1,0 +1,164 @@
+[
+  {
+    "name": "rates_latest",
+    "description": "The most recent European Central Bank daily reference rates, re-expressed against any base. The answer always states the rate date, because ECB rates are published once a day around 16:00 CET on TARGET business days and a Sunday carries Friday's rate. Rates are cached locally and refreshed only when the copy is more than 6 hours old, so repeated calls and offline machines cost nothing.",
+    "arguments": [
+      {
+        "name": "base",
+        "type": "string",
+        "desc": "Base currency, default EUR. A rate of 1.0812 for USD means 1 base = 1.0812 USD"
+      },
+      {
+        "name": "quotes",
+        "type": "array",
+        "desc": "Only these currencies. Omit for all of them"
+      }
+    ]
+  },
+  {
+    "name": "convert",
+    "description": "Convert an amount between any two ECB-quoted currencies, today or on a past date. Cross rates go through the euro because that is the only pair the ECB publishes; the rate is stated to 6 decimals and the result is rounded to the target currency's own ISO 4217 minor units, so JPY comes back whole and BHD to three places. Every answer states the rate date it used. A weekend or holiday date falls back to the last published rate on or before it, and says so.",
+    "arguments": [
+      {
+        "name": "amount",
+        "type": "number",
+        "desc": "Amount in major units of the from currency, e.g. 100 or 12.34"
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "Currency the amount is in"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "Currency to convert into"
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "ISO date YYYY-MM-DD. Omit for the latest published rate. Past dates beyond 90 days are Pro"
+      }
+    ]
+  },
+  {
+    "name": "convert_many",
+    "description": "One amount, one source currency, many targets, all off the same ECB rate date. Each result is rounded to that target's own minor units.",
+    "arguments": [
+      {
+        "name": "amount",
+        "type": "number",
+        "desc": ""
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "to",
+        "type": "array",
+        "desc": "Target currencies"
+      }
+    ]
+  },
+  {
+    "name": "fx_rates_for",
+    "description": "Return exactly the object that the expense tracker's expense_to_invoice takes as fx_rates: {\"EUR\": 1.08, \"GBP\": 1.27} meaning 1 unit of that currency = X units of the target. Call this when a rebill or an invoice spans more than one currency, then pass the fx_rates object straight through with target_currency, instead of asking the user for rates. The rate date is returned alongside so it can be written on the invoice.",
+    "arguments": [
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "The currency the invoice will be issued in"
+      },
+      {
+        "name": "currencies",
+        "type": "array",
+        "desc": "The other currencies present, e.g. [\"EUR\", \"GBP\"]"
+      }
+    ]
+  },
+  {
+    "name": "rate_history",
+    "description": "The ECB rate for one currency pair over a window, with min, max, average and the change across the window. Give days for a trailing window, or from_date and to_date for an explicit one. Only TARGET business days have rates, so a 30-day window holds about 21 rows. Free reads up to 90 days; Pro reads the whole series back to 1999-01-04.",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Trailing window in calendar days, default 30"
+      },
+      {
+        "name": "from_date",
+        "type": "string",
+        "desc": "ISO date, inclusive. Overrides days"
+      },
+      {
+        "name": "to_date",
+        "type": "string",
+        "desc": "ISO date, inclusive, default today"
+      },
+      {
+        "name": "max_rows",
+        "type": "integer",
+        "desc": "Cap the table, default 200. min/max/avg still cover the whole window"
+      }
+    ]
+  },
+  {
+    "name": "rate_on",
+    "description": "The ECB rate for a pair on one date. The ECB quotes every currency per 1 euro, so \"the ECB rate for USD\" is from EUR to USD, not the other way round; ask for the inverse only if the user did. If the ECB published nothing that day - every weekend, 1 January, Good Friday, Easter Monday, 1 May, 25 and 26 December - the last published rate on or before it is returned and the answer says which date that was and why. Free covers the last 90 days; Pro covers every date back to 1999-01-04.",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "ISO date YYYY-MM-DD"
+      }
+    ]
+  },
+  {
+    "name": "currencies_list",
+    "description": "Every currency in the ECB daily reference set, with its rate against the euro and the number of decimal places it is rounded to. Anything not on this list cannot be converted here.",
+    "arguments": []
+  },
+  {
+    "name": "cache_status",
+    "description": "What is cached on this machine, how old it is, and when it will next be refreshed. Answer this before trusting a rate on a machine that has been offline.",
+    "arguments": []
+  },
+  {
+    "name": "license_status",
+    "description": "Show whether this server runs in free or Pro mode and where to upgrade.",
+    "arguments": []
+  },
+  {
+    "name": "license_activate",
+    "description": "Activate a Pro license key (format MCPL1.xxx.yyy). Verified offline and saved locally.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "License key from the checkout confirmation page"
+      }
+    ]
+  }
+]

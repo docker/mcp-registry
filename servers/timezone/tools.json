@@ -1,0 +1,231 @@
+[
+  {
+    "name": "license_status",
+    "description": "Show whether this server runs in free or Pro mode and where to upgrade.",
+    "arguments": []
+  },
+  {
+    "name": "license_activate",
+    "description": "Activate a Pro license key (format MCPL1.xxx.yyy). Verified offline and saved locally.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "License key from the checkout confirmation page"
+      }
+    ]
+  },
+  {
+    "name": "now",
+    "description": "The current time in one or more places. Accepts IANA zones (Europe/Warsaw), city names (Warsaw), country names (Poland) or abbreviations (PST, IST). With no zones it reports this machine's local zone and UTC.",
+    "arguments": [
+      {
+        "name": "zones",
+        "type": "array",
+        "desc": "Places or IANA zones, e.g. ['Warsaw','New York','India']"
+      }
+    ]
+  },
+  {
+    "name": "convert_time",
+    "description": "Convert a time from one place to others. The input time is read as wall-clock time in from_zone unless it carries an offset or a trailing Z. Accepts '2026-09-10 15:00', an ISO timestamp, or a phrase like '3pm tomorrow'.",
+    "arguments": [
+      {
+        "name": "time",
+        "type": "string",
+        "desc": "'2026-09-10 15:00', '2026-09-10T15:00:00Z', '3pm tomorrow', 'now'"
+      },
+      {
+        "name": "from_zone",
+        "type": "string",
+        "desc": "Place the time is given in, e.g. 'Warsaw' or 'Europe/Warsaw'"
+      },
+      {
+        "name": "to_zones",
+        "type": "array",
+        "desc": "Places to convert into"
+      }
+    ]
+  },
+  {
+    "name": "overlap",
+    "description": "The window each day when every listed place is inside working hours. Computed on a real date, so a DST week that widens or narrows the overlap is reflected.",
+    "arguments": [
+      {
+        "name": "zones",
+        "type": "array",
+        "desc": "Places, e.g. ['Warsaw','New York','Bangalore']"
+      },
+      {
+        "name": "work_start",
+        "type": "string",
+        "desc": "Local working day start, default 09:00"
+      },
+      {
+        "name": "work_end",
+        "type": "string",
+        "desc": "Local working day end, default 17:00"
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "Date to compute on, YYYY-MM-DD, default today"
+      }
+    ]
+  },
+  {
+    "name": "find_meeting_slots",
+    "description": "Rank the times when every participant is inside their own working hours. Ranked by fairness: the score is the WORST participant's distance from 13:00 local, so a slot that is 07:00 for one person never outranks one that suits everybody. Weekends in the first participant's zone are skipped.",
+    "arguments": [
+      {
+        "name": "participants",
+        "type": "array",
+        "desc": "Who has to attend, with their zone and optional working hours"
+      },
+      {
+        "name": "duration_minutes",
+        "type": "integer",
+        "desc": "Meeting length in minutes, default 60, at most 1440"
+      },
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "How many days ahead to search, default 5, at most 366"
+      },
+      {
+        "name": "earliest_date",
+        "type": "string",
+        "desc": "First date to consider, YYYY-MM-DD, default today"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many slots to return, default 8"
+      },
+      {
+        "name": "recurring",
+        "type": "boolean",
+        "desc": "Pro: also report the weekly recurring times that work on every searched weekday"
+      }
+    ]
+  },
+  {
+    "name": "dst_changes",
+    "description": "The clock changes in a place for a year, with the exact UTC instant and the offset before and after. Use it to check whether a recurring call moves for one of you in March or October.",
+    "arguments": [
+      {
+        "name": "zone",
+        "type": "string",
+        "desc": "Place or IANA zone"
+      },
+      {
+        "name": "year",
+        "type": "integer",
+        "desc": "Calendar year, default this year"
+      }
+    ]
+  },
+  {
+    "name": "business_days",
+    "description": "Business days between two dates in a place, excluding weekends and any holidays you pass. This tool has no national holiday calendar: unless you pass holidays, only weekends are excluded, so do not report the answer as a public-holiday-adjusted count. Use it for delivery dates and payment terms across a client's calendar.",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "Start date, YYYY-MM-DD (inclusive)"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "End date, YYYY-MM-DD (inclusive)"
+      },
+      {
+        "name": "zone",
+        "type": "string",
+        "desc": "Place whose calendar to use"
+      },
+      {
+        "name": "holidays",
+        "type": "array",
+        "desc": "Dates to exclude, YYYY-MM-DD"
+      }
+    ]
+  },
+  {
+    "name": "contacts_set",
+    "description": "Remember a client or teammate's time zone and working hours so you can say 'find a slot with Maria and Raj' later.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Their name"
+      },
+      {
+        "name": "zone",
+        "type": "string",
+        "desc": "Their place or IANA zone"
+      },
+      {
+        "name": "work_start",
+        "type": "string",
+        "desc": "Local day start, default 09:00"
+      },
+      {
+        "name": "work_end",
+        "type": "string",
+        "desc": "Local day end, default 17:00"
+      }
+    ]
+  },
+  {
+    "name": "contacts_list",
+    "description": "Everyone you have saved, with their current local time and whether they are inside working hours right now.",
+    "arguments": []
+  },
+  {
+    "name": "ics_create",
+    "description": "Write a .ics calendar file for one meeting. Times are stored in UTC, so the invite lands at the right local time in every attendee's calendar with no time zone block to go stale.",
+    "arguments": [
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Event title"
+      },
+      {
+        "name": "start",
+        "type": "string",
+        "desc": "Start time, read in `zone` unless it carries an offset"
+      },
+      {
+        "name": "zone",
+        "type": "string",
+        "desc": "Place the start time is given in"
+      },
+      {
+        "name": "duration_minutes",
+        "type": "integer",
+        "desc": "Length in minutes, at most 1440"
+      },
+      {
+        "name": "attendees",
+        "type": "array",
+        "desc": "Email addresses, or names"
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Body text"
+      },
+      {
+        "name": "location",
+        "type": "string",
+        "desc": "Where, or a meeting link"
+      },
+      {
+        "name": "out_path",
+        "type": "string",
+        "desc": "Where to write the file; default meeting.ics in the data dir"
+      }
+    ]
+  }
+]
