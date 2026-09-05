@@ -1,0 +1,28 @@
+name: deposits
+image: mcp/deposits
+type: server
+meta:
+  category: finance
+  tags:
+    - finance
+    - deposits
+    - retainer
+    - security-deposit
+    - invoicing
+    - freelance
+about:
+  title: Deposits
+  description: "Holds security and retainer deposits per client, on the same engine as your invoices, entirely on your machine. A deposit is the client's money sitting on your account: it has to be recorded when it arrives, set against an invoice when the work is billed, given back when it is not, and answered for at any point in between. Applying a deposit records that amount as a payment on the invoice held by the sibling invoice server, so invoice lists and overdue reports stop chasing money you are already holding, and it ADDS to what was already paid rather than replacing it. That distinction is the point of the server: the invoice server's own payment tool SETS the amount paid, so a EUR 200.00 bank transfer followed by a EUR 300.00 deposit routed through that tool leaves the invoice recording EUR 300.00 paid and the client chased for the EUR 200.00 that actually arrived, where deposit_apply leaves it at EUR 500.00. Balances answer what is still held per client with one row per currency, never added across currencies. Applying more than is held, or more than the invoice still owes, is refused, and so is refunding more than is still held. A refund is not written to the invoice, because a refund is not a payment. Statements come out as an A4 PDF or as plain text to paste into an email, and take the business name, address, VAT id and default currency from the one shared profile the invoice server already holds. No account, no API key, no network call: everything lives under the local data directory and licence keys are verified offline."
+  icon: https://raw.githubusercontent.com/theluckystrike/mcp-servers/8418a5639808a7fffea96f07862dc85318800b0b/assets/deposits-logo.png
+source:
+  project: https://github.com/theluckystrike/mcp-servers
+  branch: main
+  commit: 8418a5639808a7fffea96f07862dc85318800b0b
+  dockerfile: servers/deposits/Dockerfile
+config:
+  description: Optional Pro license key. The server is fully usable without it.
+  secrets:
+    - name: deposits.license_key
+      env: MCP_LICENSE_KEY
+      example: <MCP_LICENSE_KEY>
+      required: false
