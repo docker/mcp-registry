@@ -7,6 +7,7 @@ meta:
     - devops
     - github
     - azure-devops
+    - jira
     - linear
     - issues
     - pull-requests
@@ -16,12 +17,12 @@ meta:
 about:
   title: Baron
   description: |-
-    Lets a coding agent drive your work tracker and source control through one normalized contract: read, create and transition issues, cut branches, open and land pull requests, watch CI and record project memory, across GitHub, Azure DevOps and Linear. Providers map their native states onto shared roles (backlog, ready, in_progress, in_review, done), so the same prompts and recipes work whichever tracker a team uses.
+    Lets a coding agent drive your work tracker and source control through one normalized contract: read, create and transition issues, cut branches, open and land pull requests, watch CI and record project memory, across GitHub, Azure DevOps, Jira and Linear. Providers map their native states onto shared roles (backlog, ready, in_progress, in_review, done), so the same prompts and recipes work whichever tracker a team uses.
     Mount a project that holds a `.baron/policy.json` (created by `npx @lonca/baron init` in that project) and the server runs every call against that project's policy and credentials.
   icon: https://avatars.githubusercontent.com/u/287505098?s=200&v=4
 source:
   project: https://github.com/loncadev/baron
-  commit: 946be651e176fe097a2d81392daaa702e28b1bbe
+  commit: 13b8290982d2058fe4b026c47d12c383fcd4e22f
 run:
   volumes:
     - "{{baron.project_path}}:/project"
@@ -47,6 +48,11 @@ config:
       example: <LINEAR_API_KEY>
       description: Linear personal API key.
       required: false
+    - name: baron.jira_api_token
+      env: JIRA_API_TOKEN
+      example: <JIRA_API_TOKEN>
+      description: Jira Cloud API token from id.atlassian.com, for the account in JIRA_EMAIL.
+      required: false
   env:
     # At tools-listing time the example is what the container sees, and /app carries a committed
     # policy so the server starts without a mounted project. At run time the mounted project wins.
@@ -71,6 +77,15 @@ config:
     - name: LINEAR_TEAM
       example: ENG
       value: "{{baron.linear_team}}"
+    - name: JIRA_SITE
+      example: https://acme.atlassian.net
+      value: "{{baron.jira_site}}"
+    - name: JIRA_EMAIL
+      example: dev@example.com
+      value: "{{baron.jira_email}}"
+    - name: JIRA_PROJECT
+      example: PROJ
+      value: "{{baron.jira_project}}"
   parameters:
     type: object
     properties:
@@ -95,5 +110,14 @@ config:
       linear_team:
         type: string
         description: Linear team key.
+      jira_site:
+        type: string
+        description: Jira Cloud site root, e.g. https://acme.atlassian.net.
+      jira_email:
+        type: string
+        description: Atlassian account email the API token belongs to.
+      jira_project:
+        type: string
+        description: Jira project key (PROJ in PROJ-123).
     required:
       - project_path
