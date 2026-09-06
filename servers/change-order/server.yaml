@@ -1,0 +1,29 @@
+name: change-order
+image: mcp/change-order
+type: server
+meta:
+  category: finance
+  tags:
+    - finance
+    - change-order
+    - variation-order
+    - scope-change
+    - contract-value
+    - invoicing
+    - quotes
+about:
+  title: Change Order
+  description: "Change orders against a quote or a work order, kept locally the way a variation is kept on site: what was added, what was taken out and what changed, each with a quantity, a unit price in minor units, a reason and a date; a status that moves draft to sent, sent to approved or rejected, draft or sent to void, with every step dated and a step dated before the last one refused; and the running contract value as the original plus the deltas the client has APPROVED, with pending draft and sent deltas shown apart and never added in. The original contract value is stated ONCE per reference, on the first change order, and inherited by every later one; a different figure is refused by name, because a contract with two original values has two running values and the customer sees whichever was typed last. No delta is stored: the delta, the VAT and the running value are derived from the lines on every call with the invoice server's own computeTotals, so there is no second implementation to disagree. The decision the whole server rests on is that a changed line is TWO items, not one, because one net item shows the customer nothing they can check: 3 x 450.00 becoming 5 x 420.00 is +750.00, and an item of quantity 1 at 750.00 reproduces from nothing on the change order the client signed, where a reversal of -3 x 450.00 and the revised 5 x 420.00 both reproduce on a calculator and sum to the same +750.00 because roundHalfUp is symmetric in sign. That symmetry is what lets a removal ride as a negative quantity through invoice_create, and it is what quote_create refuses, so the quote payload carries a ready flag instead of a promise. Once approved, the delta comes back as invoice_create-ready items in MAJOR units and quote_create-ready items in MINOR units in one call, the scale named against each, and the unit suite feeds the MINOR figure into the invoice engine as though it were MAJOR and asserts the net is exactly 100x, re-derived from each payload's own items: 11,701,200 against the correct 117,012 on the worked change order. Lines go only on a draft; a sent change order that needs another line is voided and raised again, so the client's approval always refers to what they were sent, and a draft cannot be approved directly because approval is the client's answer to something they were sent. A reference with no change order on file has no running value and says so rather than starting from nothing but its own delta. No account, no API key, no network call: everything lives under the local data directory, the one file outside it is the shared business profile read read-only, and licence keys are verified offline."
+  icon: https://raw.githubusercontent.com/theluckystrike/mcp-servers/8f37031e265b59cf9c0c9c0bddb089b6f320d7b9/assets/change-order-logo.png
+source:
+  project: https://github.com/theluckystrike/mcp-servers
+  branch: main
+  commit: 8f37031e265b59cf9c0c9c0bddb089b6f320d7b9
+  dockerfile: servers/change-order/Dockerfile
+config:
+  description: Optional Pro license key. The server is fully usable without it.
+  secrets:
+    - name: change-order.license_key
+      env: MCP_LICENSE_KEY
+      example: <MCP_LICENSE_KEY>
+      required: false
