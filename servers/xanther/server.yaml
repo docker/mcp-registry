@@ -1,0 +1,45 @@
+name: xanther
+type: server
+meta:
+  category: devops
+  tags:
+    - code-intelligence
+    - knowledge-graph
+    - memory
+    - neo4j
+    - devops
+about:
+  title: Xanther
+  description: Code intelligence and agent memory. Indexes a codebase into a Neo4j knowledge graph and gives agents architecture context, semantic search, impact analysis, and cross-session recall.
+  icon: https://avatars.githubusercontent.com/u/182288589?s=200&v=4
+source:
+  project: https://github.com/Xanther-Ai/xanther-context-engine
+  branch: main
+  commit: 707d1cd1e3e3803487126833e72c62491769e4a5
+  dockerfile: Dockerfile.mcp
+config:
+  description: Configure the connection to Neo4j and (for semantic search / full-mode indexing) OpenRouter
+  secrets:
+    - name: xanther.neo4j_password
+      env: NEO4J_PASSWORD
+      example: your_neo4j_password
+    - name: xanther.openrouter_api_key
+      env: OPENROUTER_API_KEY
+      example: sk-or-v1-your-key-here
+  env:
+    - name: NEO4J_URI
+      example: bolt://localhost:7687
+      value: "{{xanther.neo4j_uri}}"
+    - name: NEO4J_USER
+      example: neo4j
+      value: "{{xanther.neo4j_user}}"
+  parameters:
+    type: object
+    properties:
+      neo4j_uri:
+        type: string
+      neo4j_user:
+        type: string
+    required:
+      - neo4j_uri
+      - neo4j_user
