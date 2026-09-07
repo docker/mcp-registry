@@ -1,1 +1,1 @@
-Docs: https://contracko.com/docs/llm-agent-access
+Docs: https://contracko.com/mcp/contract-management
