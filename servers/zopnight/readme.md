@@ -1,7 +1,7 @@
 # ZopDev MCP
 
 Cloud cost and infrastructure governance across AWS, Azure, GCP, Databricks and Snowflake.
-289 tools (165 read, 124 write) covering cost, resources, schedules, recommendations,
+263 tools (155 read, 108 write) covering cost, resources, schedules, recommendations,
 budgets, governance and diagnostics over a hosted remote MCP endpoint. Read-only by default, with
 optional scoped writes.
 
