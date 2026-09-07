@@ -1,0 +1,45 @@
+name: obsidian-tc
+image: mcp/obsidian-tc
+type: server
+meta:
+  category: productivity
+  tags:
+    - obsidian
+    - productivity
+    - notes
+    - knowledge-management
+    - pkm
+    - search
+about:
+  title: Obsidian Turbocharged
+  description: Governed, agent-ready MCP server for Obsidian vaults. Three meta-tools expose ~163 governed capabilities across 31 domains (notes, links, search, metadata, structured documents, automation, git, knowledge graph) behind folder ACLs and human-in-the-loop confirmation, with fused BM25 + vector + graph retrieval. Multi-vault native; embeddings are pluggable (local Ollama by default).
+  icon: https://avatars.githubusercontent.com/u/278549586?s=200&v=4
+source:
+  project: https://github.com/The-40-Thieves/obsidian-tc
+  branch: main
+  commit: ce92265e865ab9ce839f428d34714ebe858f0e37
+run:
+  command:
+    - "{{obsidian-tc.vault_path|volume-target|into}}"
+  volumes:
+    - "{{obsidian-tc.vault_path|volume|into}}"
+config:
+  description: >-
+    Mount the vault folder you want obsidian-tc to serve. This boots the zero-config path
+    documented in the project README (`obsidian-tc /path/to/vault`): a single vault named `main`,
+    auth off, no folder ACL — full read/write/delete over the mounted vault, which the project
+    documents as an accepted local-only posture. Multi-vault setups, folder ACLs, HITL
+    confirmation, and non-default embedding providers all need a JSON config file passed via
+    OBSIDIAN_TC_CONFIG instead of a vault path; this catalog entry does not cover that path — see
+    the deviation note in the pull request that added this entry.
+  parameters:
+    type: object
+    properties:
+      vault_path:
+        type: array
+        items:
+          type: string
+        default:
+          - /Users/local-test/vault
+    required:
+      - vault_path
