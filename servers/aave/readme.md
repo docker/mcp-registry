@@ -1,1 +1,1 @@
-Docs: https://mcp.aave.com/llms.txt
+Docs: https://aave.com/docs/mcp
