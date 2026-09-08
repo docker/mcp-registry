@@ -1,1 +1,1 @@
-Docs: https://docs.parallel.ai/search/mcp-server/quickstart
+Docs: https://docs.parallel.ai/integrations/mcp/search-mcp
