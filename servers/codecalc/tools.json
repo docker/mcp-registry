@@ -1,0 +1,985 @@
+[
+  {
+    "name": "list_languages",
+    "description": "List every language codecalc can execute, with extension, compile flag, and what this machine resolved. `status` is `installed` (its command was found on the sandbox PATH) or `supported` (nothing for it here); `status_basis` is `resolved`, meaning nothing was executed to check. Run `codecalc doctor --deep` to promote a runtime to `available` by actually running it.\n\n    `tier` is a DIFFERENT axis from `status`: `status` says whether THIS\n    machine resolved the command (resolution); `tier` says whether codecalc's\n    own CI has actually executed this language and asserted on its output\n    (reliability) \u2014 `tested`, `best_effort` (declared, plausibly works, never\n    CI-checked), or `plan_only` (never validated anywhere). A language can be\n    `installed` here and still be `best_effort` or worse \u2014 that combination is\n    exactly \"the toolchain resolved and may still be broken\".",
+    "arguments": []
+  },
+  {
+    "name": "list_execution_providers",
+    "description": "List execution providers (execution BACKENDS \u2014 local subprocess, gVisor-strict, remote) and their machine-readable capabilities.\n\n    This is about which BACKEND runs your code, not which LANGUAGE it runs \u2014\n    a provider's `ready`/`strict` fields are resolution facts about the\n    backend itself. Per-language reliability (how much codecalc's CI has\n    actually verified a given language's toolchain, vs merely resolved it) is\n    a separate axis reported by `list_languages`/`runtimes_status`/`codecalc\n    doctor` as `tier`; a `ready` provider says nothing about whether a\n    specific language running through it has ever been execution-tested.",
+    "arguments": []
+  },
+  {
+    "name": "execute_code",
+    "description": "Execute `code` in `language` in a sandbox.\n\n    Returns stdout, stderr, exit_code, duration_ms, cpu_ms, peak_memory_kb,\n    verdict (OK/TLE/MLE/OLE/RTE).\n\n    - `session_id`: run inside a session workspace (see session_start); with a\n      stateful session (python3/node) interpreter state persists across calls.\n      Also reports `artifacts_created` (files just created/modified) since\n      that workspace outlives the call; a sessionless run has none. See\n      `session_run` for the same field plus inline content blocks.\n    - `max_memory_mb` / `max_cpu`: per-call resource ceilings.\n    - `max_output_kb`: raise/lower the stdout+stderr cap (default 64 KiB\n      each). Any value is honoured up to a hard ceiling of 240 KiB per\n      stream; above that it is clamped to 240, because it is what the\n      `anthropic/maxResultSizeChars` this tool advertises in its `_meta`\n      already assumes \u2014 the cap leaves no headroom to raise past it without\n      the real result exceeding that hint. A run whose real output needs\n      more than 240 KiB belongs in a session instead: leave `max_output_kb`\n      at its default (0) with `session_id` set (below), and oversized output\n      SPILLS to a full-fidelity file readable via `session_read_file` rather\n      than truncating \u2014 see the spill paragraph further down. An EXPLICIT\n      `max_output_kb`, even under the 240 KiB ceiling, is honoured as a\n      literal cap with no spill.\n    - `no_net`: block network egress. Linux: enforced in-kernel via a\n      seccomp-bpf filter. macOS / no-seccomp kernel: best-effort symbol\n      shim, disclosed in `unenforced` when that's the only guarantee that\n      held. See SECURITY.md.\n    - `compact`: drop the diagnostic fields (timings, workdir, platform). Never\n      drops `unenforced`, `output_error`, `artifacts_created`, or\n      `dependencies` \u2014 if a guarantee you asked for was not applied, or a\n      declared install failed, a compact result still says so.\n    - `dependencies`: packages to install before the code runs (merged with a\n      PEP 723 `# /// script` block for python3, deduped by normalized name with\n      this argument winning; the only source for node). A block ALONE, with no\n      `dependencies` argument, is enough to trigger an install \u2014 see\n      SECURITY.md. Installed BEFORE the sandboxed step, through the same\n      confined `install_package` path \u2014 never inside the sandbox \u2014 and\n      refused (`capability_not_requested`) without installing anything when\n      `no_net=True` or the capability policy denies or strictly limits\n      network. Bounded by a fixed install-time budget separate from\n      `timeout` (120s aggregate across every dependency;\n      `codecalc.dependencies.DEFAULT_DEPENDENCY_INSTALL_BUDGET_SECONDS`) and,\n      session-less, by `CODECALC_SESSION_DISK_QUOTA_MB` on the run's own\n      workdir \u2014 either one exceeded refuses the run with a stamped, coded\n      error naming the ceiling. See the `dependencies` field on the result.\n\n    With `session_id` set and `max_output_kb` left at its default, output that\n    would otherwise be truncated is instead SPILLED: the inline\n    `stdout`/`stderr` still carry the same truncated prefix as before, and\n    `stdout_spill`/`stderr_spill` name a `codecalc://session/{sid}/files/...`\n    resource carrying the fuller stream (session_read_file or the resource\n    route reads it back) \u2014 capped at 4 MiB, `..._spill_capped: true` if even\n    that was not enough to hold everything. Passing an EXPLICIT\n    `max_output_kb` is honoured as a literal ceiling with no spill, same as\n    before. Session-LESS runs (no `session_id`) have no workspace to spill\n    into and keep the old truncate-and-drop behaviour.\n    ",
+    "arguments": [
+      {
+        "name": "language",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "code",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "stdin",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "timeout",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "max_memory_mb",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "max_output_kb",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "max_cpu",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "no_net",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
+        "name": "compact",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
+        "name": "provider",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "dependencies",
+        "type": "array",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "session_start",
+    "description": "Start a persistent session. python3/node get a stateful REPL worker\n    (variables/imports persist across execute_code calls); other languages get\n    a persistent workspace directory. Returns session_id.",
+    "arguments": [
+      {
+        "name": "language",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "session_stop",
+    "description": "Stop a session: kill its REPL worker (if any) and delete its workspace.",
+    "arguments": [
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "session_list",
+    "description": "List active sessions and their languages/state.",
+    "arguments": []
+  },
+  {
+    "name": "session_files",
+    "description": "List workspace files, optionally using a bounded cursor page.",
+    "arguments": [
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "page_size",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "cursor",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "session_write_file",
+    "description": "Write a file into a session workspace (relative path, no escapes).\n    Use this to seed input data for executed code.",
+    "arguments": [
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "content",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "session_artifacts",
+    "description": "List files created by executed code in a session (excluding runner\n    internals like main.py/run.out).",
+    "arguments": [
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "install_package",
+    "description": "Install a package for a language (uv pip / npm / gem / go get / cargo add...).\n\n    With session_id, installs into that session's workspace so executed code\n    can import it. Without, installs into a shared cache.\n\n    NETWORK: yes, always. The package manager fetches from its registry (PyPI,\n    npm, rubygems, crates.io). codecalc opens no socket itself; the child\n    process does.\n\n    NOT SANDBOXED: the installer runs as a direct subprocess of the server, so\n    install-time hooks (npm postinstall, Python build backends, Cargo build\n    scripts) execute with the server user's filesystem access. The environment\n    is still restricted to the allowlist, so secrets do not leak, but the\n    filesystem is not confined. Do not point this at untrusted input. See\n    SECURITY.md.\n    ",
+    "arguments": [
+      {
+        "name": "language",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "package",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "version",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "execute_code_stream",
+    "description": "Execute code and STREAM progress + partial output as it runs.\n\n    Unlike execute_code (which returns only at exit), this reports progress\n    notifications to the client while the program runs, so agents can see\n    output before the process finishes. Returns the same result shape and\n    applies the SAME ceilings: max_memory_mb, max_output_kb and max_cpu are\n    forwarded to the executor exactly as execute_code forwards them \u2014\n    including the same clamp: `max_output_kb` cannot be raised past a hard\n    ceiling of 240 KiB per stream, since that ceiling is what the\n    `anthropic/maxResultSizeChars` this tool advertises in its `_meta`\n    already assumes.\n\n    One difference, deliberate: the wall-clock cap is 300s here against\n    execute_code's 120s, because streaming exists for runs long enough to\n    want progress.\n\n    `dependencies`: same as execute_code's (PEP 723 merge, `no_net`/policy\n    refusal, 120s budget, workdir quota) \u2014 installed before streaming\n    starts; a refusal/failed install is the stream's only event.\n    ",
+    "arguments": [
+      {
+        "name": "language",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "code",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "stdin",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "timeout",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "max_memory_mb",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "max_output_kb",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "max_cpu",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "no_net",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
+        "name": "provider",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "dependencies",
+        "type": "array",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "run_submit",
+    "description": "Submit code for BACKGROUND execution; returns a run_id immediately.\n\n    Same request shape as execute_code (minus session_id: a run is a\n    standalone process, not a session workspace). The work proceeds on a\n    background worker; poll it with run_inspect(run_id) and, if needed, stop\n    it early with run_cancel(run_id).\n\n    Use this instead of execute_code when you would rather not hold an MCP\n    call open for the whole computation. `timeout` is still the WORK's own\n    deadline (same 120s ceiling as execute_code) \u2014 it bounds the run, not how\n    long you wait to collect it.\n\n    `max_output_kb` is forwarded to the run exactly as execute_code forwards\n    it, including the same clamp to a hard ceiling of 240 KiB per stream\n    (see execute_code's docstring). This tool's OWN reply carries no\n    output \u2014 it is a small run_id handle, which is why it carries no\n    `anthropic/maxResultSizeChars` `_meta` itself. The eventual terminal\n    `run_inspect(run_id)` is what\n    returns the full envelope this call's `max_output_kb` produced \u2014 same\n    shape execute_code returns, and `run_inspect` advertises the SAME\n    `anthropic/maxResultSizeChars` execute_code does, so the clamp applied\n    here is what keeps that advertised value true.\n\n    Admission is capped (CODECALC_MAX_ACTIVE_RUNS, default 64): past that\n    many runs still running/cancelling at once, this returns a\n    resource_exhausted error rather than growing without bound \u2014 call\n    run_inspect/run_cancel to make room, or wait for one to finish.\n\n    Retention: see run_inspect.\n\n    `dependencies`: same semantics as execute_code's own `dependencies` (PEP\n    723 merge, `no_net`/policy refusal, 120s budget, workdir quota). A\n    refusal is returned directly with no run created. Otherwise this call\n    still returns immediately: the install itself runs on the background\n    worker, ahead of the code, and a failed install becomes the run's own\n    terminal error \u2014 readable via run_inspect(run_id) like any other\n    outcome, same `dependencies` field execute_code returns. Its temp\n    workdir is freed on first collection (inspect, the next submission's own\n    reap of finished runs, or a startup sweep after a restart).\n    ",
+    "arguments": [
+      {
+        "name": "language",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "code",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "stdin",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "timeout",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "max_memory_mb",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "max_output_kb",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "max_cpu",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "no_net",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
+        "name": "provider",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "dependencies",
+        "type": "array",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "run_inspect",
+    "description": "Poll a background run started with run_submit.\n\n    While running: {\"ok\": True, \"state\": \"running\"|\"cancelling\", \"run_id\",\n    \"provider_id\", \"started_at\", \"deadline\"}.\n\n    Once terminal (`state` \"finished\"/\"cleaned\"/\"recovered\"), this returns\n    the SAME result shape execute_code returns \u2014 stdout/stderr/exit_code/\n    verdict/unenforced/provider (the interface_version/provider_id/limits\n    receipt)/... \u2014 merged with a small set of run_* extras (run_id,\n    provider_id, started_at, deadline, state, cleaned; see server.py's\n    _RUN_EXTRA_KEYS). This terminal reply carries the same\n    `anthropic/maxResultSizeChars` `_meta` execute_code advertises (see\n    server.py's `_LARGE_RESULT_TOOLS`) \u2014 it is the same envelope, once the\n    run started with run_submit has finished, and run_submit's own\n    `max_output_kb` is clamped the same way execute_code's is so that value\n    stays true here too. Read `ok` and `verdict` on a terminal result to tell\n    a clean finish from a failure; a run stopped by run_cancel is only\n    reflected there for a provider that actually supports cancellation (see\n    run_cancel's own docstring) \u2014 check the result the same way you would\n    any other run.\n\n    Retention: a finished run's result stays inspectable for the life of\n    this server process \u2014 call this as many times as you like; nothing is\n    consumed by reading it. What IS released on the first terminal read is\n    the PROVIDER's own resources for that run (RunSupervisor.cleanup(),\n    idempotent on repeat calls) \u2014 the in-memory record of the run itself is\n    not evicted; there is no cap or TTL on it here, deliberately: the durable\n    state machine, leases and TTL-based eviction are out of this residual's\n    scope (see run_supervisor.py's own docstring). A long-lived server that\n    calls run_submit very many times will grow this table; the on-disk\n    crash-recovery journal underneath it is already bounded\n    (RunSupervisor.max_completed), independent of this.\n    ",
+    "arguments": [
+      {
+        "name": "run_id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "run_cancel",
+    "description": "Cancel a background run started with run_submit.\n\n    Idempotent: calling this on a run that is already finished/cleaned\n    reports `cancelled: false, state: <its actual terminal state>` rather\n    than erroring \u2014 matching execute_code's own \"no partial result\" rule,\n    there is nothing partial to hand back either way.\n\n    Propagation depends on the SELECTED PROVIDER (see\n    list_execution_providers' `cancel` capability). The built-in `local`\n    provider does not support stopping a run once it has started; that is\n    reported honestly here rather than silently pretended to have worked \u2014\n    the computation keeps running to completion and its result stays\n    available via run_inspect, so bound it in advance with run_submit's own\n    `timeout` instead. A provider that DOES advertise `cancel: true` reaches\n    the full spawned process tree the same way execute_code's own\n    cancellation does \u2014 RunSupervisor already owns that; this tool only\n    calls it.\n    ",
+    "arguments": [
+      {
+        "name": "run_id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "evaluate_expression",
+    "description": "Symbolically evaluate an expression to a value or closed form via\n    sympify: 'integrate(x**2, x)', 'sqrt(144) + 2**10'. Not simplification \u2014\n    for simplified/factored/expanded forms, use simplify_expression. Not\n    exact numeric arithmetic on plain arithmetic \u2014 use calc_exact for that.\n    Returns `value` (if the result is a number) or the evaluated expression,\n    plus `type`.",
+    "arguments": [
+      {
+        "name": "expression",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "truth_table",
+    "description": "Build the truth table for a boolean expression: 'a and b or not c', 'p xor q', 'a implies b'.",
+    "arguments": [
+      {
+        "name": "expression",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "z3_check",
+    "description": "Check an SMT-LIB2 formula with Z3: sat/unsat/unknown plus a model. Example:\n    '(declare-const x Int)(assert (> x 5))(check-sat)'.\n\n    `unsat` is graded `solver_proven` \u2014 see `grade_basis` for the engine\n    version and timeout bound it was decided within. `sat` is graded\n    `ungraded`: it's a real decided answer, just not a proof \u2014 reserving\n    `solver_proven` for `unsat` means a counterexample can never wear a\n    proof grade. `unknown` carries no proof either way and is also graded\n    `ungraded`.\n    ",
+    "arguments": [
+      {
+        "name": "smt2",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "solve_linear",
+    "description": "Solve a system of equations; `system` is ';'-separated equations, `variables` comma-separated. Example: system='x + y = 10; x - y = 2', variables='x, y'.",
+    "arguments": [
+      {
+        "name": "system",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "variables",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "matrix",
+    "description": "Structured matrix operations: det, inverse, eigenvalues, transpose, rank, trace.\n\n    `evaluate_expression` refuses `Matrix([[1,2],[3,4]])` on purpose \u2014 `[`/`]`\n    are denied there to block subscript-based RCE escapes, and a matrix\n    literal is collateral from that (correctly aimed) screen. This tool is\n    the structured replacement: `rows` is a JSON array of arrays (row-major),\n    never a string to parse. Each entry is either a JSON number, used\n    directly, or a scalar expression string ('1/2', 'sqrt(2)', 'x+1'),\n    screened per-entry the same way evaluate_expression screens its input\n    before anything reaches SymPy. `op` is one of det/inverse/eigenvalues/\n    transpose/rank/trace. Example: rows=[[1,2],[3,4]], op='det' -> -2.\n    ",
+    "arguments": [
+      {
+        "name": "rows",
+        "type": "array",
+        "desc": ""
+      },
+      {
+        "name": "op",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "analyze_complexity",
+    "description": "Estimate the asymptotic (Big-O) time complexity of a code snippet via structural analysis.",
+    "arguments": [
+      {
+        "name": "code",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "benchmark",
+    "description": "Empirically measure time complexity by running code at increasing input sizes.\n\n    Contract: the code must read an integer N from stdin (first line) and do work\n    sized by N. codecalc runs it at each size in `sizes` (comma-separated) and fits\n    the growth curve to estimate Big-O (O(1), O(log n), O(n), O(n log n), O(n^2)...).\n    Example python: 'import sys\\nn=int(sys.stdin.readline()); s=0\\nfor i in range(n): s+=i\\nprint(s)'\n    ",
+    "arguments": [
+      {
+        "name": "code",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "sizes",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "timeout",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "compare_execution",
+    "description": "Run the same code in multiple languages side by side.\n\n    `snippets` maps language name -> code (each snippet must be valid in its own\n    language). Returns per-language stdout/stderr/exit/duration plus which was fastest.\n    Example: {\"python3\": \"print(6*7)\", \"node\": \"console.log(6*7)\"}\n\n    `dependencies` is NOT supported here (a truthy value is a `validation`\n    error) \u2014 this tool fans out across every language with no per-language\n    install plumbing behind it; use `install_package`/\n    `execute_code(dependencies=...)` beforehand instead. A `# /// script`\n    block in a snippet is likewise never installed, but is DISCLOSED, not\n    dropped: a python3 row that carries one gets\n    `dependencies: {\"status\": \"unsupported\", \"reason\": ...}`.\n    ",
+    "arguments": [
+      {
+        "name": "snippets",
+        "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "stdin",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "timeout",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "dependencies",
+        "type": "object",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "runtimes_status",
+    "description": "Check every language runtime for available updates (NON-MUTATING).\n\n    Reports current vs latest version per language, which package manager owns\n    it (mise/rustup/swiftly/apt/npm/uv), and the exact command that would run.\n    Optional `languages` = comma-separated subset, e.g. \"python3,node,rust\".\n\n    Each entry also carries `tier` (registry.RELIABILITY_TIERS) \u2014 see\n    list_languages for what `tested`/`best_effort`/`plan_only` mean. A\n    current, up-to-date toolchain can still be `best_effort`: `tier` is\n    orthogonal to whether the update check below found a newer version.\n\n    NETWORK: yes. Non-mutating refers to this machine's runtimes, not to\n    traffic \u2014 each package manager is asked what the latest version is, and\n    they answer by contacting their own remote index.\n    ",
+    "arguments": [
+      {
+        "name": "languages",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "update_runtimes",
+    "description": "Update language runtimes. SAFE BY DEFAULT: with apply=False this is a\n    dry run \u2014 it returns the update commands that WOULD run without changing\n    anything. Pass apply=True to actually execute them (mise up, rustup update,\n    swiftly update, apt-get upgrade of language packages, npm -g update, uv tool\n    upgrade). `languages` = comma-separated subset; empty = all.\n\n    PRIVILEGE: the apt manager updates system packages and its command begins\n    with `sudo`. Those commands do NOT run unless the HOST has set\n    CODECALC_ALLOW_RUNTIME_APPLY=1; without it they are reported as skipped\n    with `ok: false` and the variable named, and the rest still run. Every\n    entry carries an `elevated` flag either way. mise/rustup/swiftly/npm/uv\n    touch user-owned toolchains and are never gated.\n\n    NETWORK: yes, on both paths. apply=False still asks each manager what the\n    latest version is, which is a remote lookup; apply=True additionally\n    downloads and installs. \"Dry run\" bounds what changes on disk, not what is\n    sent.\n    ",
+    "arguments": [
+      {
+        "name": "languages",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "apply",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
+        "name": "timeout",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "session_read_file",
+    "description": "Read a file from a session workspace.\n\n    Text files return content. With as_image=True (or for image files), the\n    file is returned as an inline image the model can see. Use session_files\n    to discover paths; session_artifacts lists what executed code produced.\n    ",
+    "arguments": [
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "max_bytes",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "as_image",
+        "type": "boolean",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "session_run",
+    "description": "Run a multi-file program in a session: execute `entry_file`, which may\n    import other files already in the session workspace (helper.py, data/...).\n\n    Runs as a fresh process in the session workdir (not the REPL worker), so\n    relative imports and data files resolve. Returns stdout/stderr/verdict\n    plus the entry file's path. Oversized output spills into the session\n    workspace the same way execute_code's does \u2014 see its docstring for\n    `stdout_spill`/`stderr_spill`.\n\n    Reports `artifacts_created` and inlines small ones as extra content\n    blocks (image/text/link), capped at 8 blocks / 4 MiB encoded;\n    `truncated_inline: true` past either cap. `dependencies` installs\n    packages before running, same rule as execute_code's \u2014 see its docstring.\n\n    This tool takes no `max_output_kb` (its inline stdout/stderr stay at the\n    64 KiB default and spill past that, same as execute_code's session\n    branch) but the `anthropic/maxResultSizeChars` `_meta` it advertises\n    covers only that text envelope \u2014 the JSON result serialized as the\n    reply's `content` text block. The inlined artifact blocks above\n    (image/text/link, up to 8 of them within the 4 MiB encoded budget) are\n    SEPARATE MCP content blocks, outside the text block this hint bounds.\n\n    Every run copies `entry_file`'s own source into the runner's private\n    scratch subdirectory before executing it \u2014 never into a root-level\n    `main.<ext>` file a session's own files could collide with. A session's\n    own `main.py` (or the equivalent for another language) at the session\n    root is never touched by running a different entry file.\n    ",
+    "arguments": [
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "entry_file",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "stdin",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "timeout",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "dependencies",
+        "type": "array",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "convert_units",
+    "description": "Convert a value between units (dimensional analysis via sympy).\n\n    Supports metric/imperial length, mass, time, speed, energy, power, force,\n    pressure, temperature (\u00b0C/\u00b0F/K), volume, area, data sizes, frequency.\n    Examples: ('60','mph','km/h'), ('100','celsius','fahrenheit'),\n    ('1','gb','mib'). Use list_units for the full alias table.\n    ",
+    "arguments": [
+      {
+        "name": "value",
+        "type": "number",
+        "desc": ""
+      },
+      {
+        "name": "from_unit",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "to_unit",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "physical_constants",
+    "description": "Look up a physical constant (speed_of_light, planck, avogadro,\n    gravity, electron_mass, gas_constant, ...) or list all 22 with values.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "list_units",
+    "description": "List every supported unit alias for convert_units.",
+    "arguments": []
+  },
+  {
+    "name": "calc_exact",
+    "description": "EXACT arithmetic: 0.1 + 0.2 == 0.3 is True here (False in plain Python).\n\n    Everything is an exact rational, integers are arbitrary precision. Supports\n    + - * / // % ** comparisons, bitwise ops (& | ^ << >> ~) on integers, and\n    whitelisted math functions (sqrt, log, sin, ...) plus pi/e/tau. Use BEFORE\n    asserting any computed number: thresholds, ratios, overflows, 'X is N% of Y'.\n    Examples: '2**64 - 1', 'comb(52,5)', '0.1+0.2 == 0.3', '0xff & 0x0f'.\n    ",
+    "arguments": [
+      {
+        "name": "expr",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "compare_threshold",
+    "description": "Exact threshold check with a verdict and the shortfall when it fails.\n\n    `a OP b` with op in ==, !=, >, >=, <, <= (= accepted for ==). Both sides\n    are evaluated exactly and printed as fractions \u2014 a threshold comparison\n    written out cannot be gotten backwards. Example: ('1/25', '>', '0.05').\n    ",
+    "arguments": [
+      {
+        "name": "a",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "op",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "b",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "percentage",
+    "description": "Exact share and percentage of PART / TOTAL (rationals accepted).",
+    "arguments": [
+      {
+        "name": "part",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "total",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "calc_stats",
+    "description": "Mean, median, sample stdev, and coefficient of variation (CV) for a\n    sample of numbers. Pairs with percentiles for distribution shape\n    (p50/p90/p95/p99) on the same sample, and with benchmark or\n    verify_optimization, which are common sources of the timing samples this\n    tool summarizes. CV > 0.2 flags run-to-run noise that swamps the effect.\n    Returns n/mean/median/stdev/cv plus a cv_note.\n    ",
+    "arguments": [
+      {
+        "name": "nums",
+        "type": "array",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "percentiles",
+    "description": "p50/p90/p95/p99 by nearest-rank AND linear interpolation.\n\n    Warns when n < 100 that p99 is just the maximum wearing a label.\n    ",
+    "arguments": [
+      {
+        "name": "nums",
+        "type": "array",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "collision_probability",
+    "description": "Birthday-bound hash collision probability: 1 - exp(-n^2 / (2*2^b)).\n\n    Sizes hashes: 1e6 items into 64 bits is ~2.7e-8; 1e5 into 32 bits is ~0.69\n    \u2014 the answer to 'can I truncate this to 8 hex chars?' (no).\n    ",
+    "arguments": [
+      {
+        "name": "items",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "bits",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "data_sizes",
+    "description": "Byte counts for a plain integer, both binary (KiB/MiB/GiB/TiB, /1024)\n    and decimal (KB/MB/GB/TB, /1000) \u2014 the gap between them is where '291 MB'\n    and '277 MiB' silently disagree by 5%. For units other than bytes, use\n    convert_units. For a duration, not a byte count, use human_duration.\n    Returns `bytes` plus `binary` and `decimal` dicts of unit -> value.\n    ",
+    "arguments": [
+      {
+        "name": "n",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "human_duration",
+    "description": "Humanised duration (e.g. '2d 3h 4m 5s') plus per-day and per-30d rates\n    for a number of seconds. For converting an epoch timestamp to a calendar\n    date, use epoch_time \u2014 this tool is for elapsed time, not a point in\n    time. For byte counts, not seconds, use data_sizes. Returns `human`,\n    `per_day`, `per_30d`, and the echoed `seconds`.",
+    "arguments": [
+      {
+        "name": "seconds",
+        "type": "number",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "epoch_time",
+    "description": "Epoch seconds/millis/micros/nanos to ISO 8601 UTC (implausible readings\n    suppressed).",
+    "arguments": [
+      {
+        "name": "n",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "base_repr",
+    "description": "hex/oct/bin of N; with WIDTH, two's complement and signed-overflow\n    detection. `base_repr(3000000000, 32)` says plainly it does not fit i32.",
+    "arguments": [
+      {
+        "name": "n",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "width",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "radix_convert",
+    "description": "Convert a value between ANY bases 2..36, fractions included; bases that\n    cannot represent the fraction (e.g. 0.1 in base 2) are flagged\n    non-terminating. `radix_convert('zz', 36, 7)` is one call.",
+    "arguments": [
+      {
+        "name": "value",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "from_base",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "to_base",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "float_repr",
+    "description": "What binary64 actually stores for X: exact value, raw bits, ULP, both\n    neighbours, and whether the literal is representable. `float_repr(0.1)`\n    shows 0.1000000000000000055511151231257827...; `float_repr(0.25)` says\n    EXACT. Above 2^53 warns consecutive integers are indistinguishable.",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "int_widths",
+    "description": "Which widths (i8..i64/u8..u64) hold N, and the wrapped value where they\n    do not. Flags anything past 2^53 as unable to round-trip through a JS\n    number or JSON float. `int_widths(3000000000)` shows the i32 wrap.",
+    "arguments": [
+      {
+        "name": "n",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "bit_analysis",
+    "description": "popcount, bit length, trailing zeros, power-of-two check, next power of\n    two, and (with align) padding needed to reach an alignment boundary.",
+    "arguments": [
+      {
+        "name": "n",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "align",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "bitop",
+    "description": "Programmer-mode bit ops: and or xor nand nor xnor not shl shr sar rol ror\n    at width 8/16/32/64. Every result shows unsigned, signed (two's complement),\n    hex, octal and binary. shr is logical (zero-fill); sar is arithmetic\n    (sign-propagating) \u2014 0x80 shr 1 = 0x40 (+64) but 0x80 sar 1 = 0xC0 (-64).\n    A left shift that drops bits says OVERFLOW and shows the unbounded answer.\n    ",
+    "arguments": [
+      {
+        "name": "a",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "op",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "b",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "width",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "algebraic_equiv",
+    "description": "Are two expressions algebraically identical? Refs: 'is (a*b)/c the same\n    as a*(b/c)?' answered exactly. Caveat: symbolic identity says nothing\n    about float rounding, integer truncation or modular overflow.",
+    "arguments": [
+      {
+        "name": "a",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "b",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "solve_expression",
+    "description": "Solve a single equation in one variable for its roots or crossover\n    point: 'x**2 - 4 = 0', '2*x + 1 = 7'. For a system of several equations,\n    use solve_linear. For general constraint satisfiability (inequalities,\n    boolean constraints, multiple solvers), use z3_check. Returns\n    `solutions` as a list of strings alongside the parsed `equation` and\n    `variable`.",
+    "arguments": [
+      {
+        "name": "expr",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "var",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "limit_expression",
+    "description": "Asymptotic behaviour: limit of EXPR as var -> point (default oo).\n    'limit_expression(\"n*log(n)/n**2\", \"n\")' returns 0 \u2014 settles complexity\n    arguments faster than arguing.",
+    "arguments": [
+      {
+        "name": "expr",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "var",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "point",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "simplify_expression",
+    "description": "Simplified, factored, and expanded forms of an expression \u2014\n    algebraic rewriting, not solving and not a numeric value. For roots of\n    an equation, use solve_expression. For an exact numeric result, use\n    calc_exact. Returns `simplified`, `factored`, and `expanded` as strings\n    alongside the parsed `original`.",
+    "arguments": [
+      {
+        "name": "expr",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "verify_translation",
+    "description": "PROVE that a port is equivalent: run both programs, compare their output.\n\n    You write the translation \u2014 you are the language model. This runs your\n    source and your port on the same inputs and reports, per input, whether\n    they matched, diverged, or could not be compared (a runtime that is missing\n    or a program that failed on both sides is INCONCLUSIVE, never a pass).\n\n    Use it after porting anything: python3 -> go, node -> rust, a rewritten\n    function against the original. Pair with compare_edge_cases to find the\n    inputs worth testing.\n\n    A pass is graded `cross_checked` (two independent implementations, run\n    and agreeing \u2014 see `grade_basis` for which runtimes). A non-pass is\n    graded `ungraded`: never a softer positive grade.\n    ",
+    "arguments": [
+      {
+        "name": "source_code",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "source_language",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "target_code",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "target_language",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "test_inputs",
+        "type": "array",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "compare_edge_cases",
+    "description": "Run the same logic in N languages on edge-case inputs and flag divergence.\n\n    `snippets` maps language -> code (provide a correct snippet per language;\n    write one per language). Default inputs cover empty,\n    zero, negative, and float-precision cases: ['', '0', '1', '-1', '10',\n    '100', '0.1\\n0.2']. Returns a per-input matrix plus a divergences list\n    where languages disagree on identical input.\n    ",
+    "arguments": [
+      {
+        "name": "snippets",
+        "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "inputs",
+        "type": "array",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "verify_optimization",
+    "description": "PROVE an optimisation: same outputs, and measurably AND SIGNIFICANTLY faster.\n\n    You write the optimised version. This runs both against the same inputs to\n    confirm they still agree, then TIMES both at increasing sizes (5 runs each)\n    and compares. Accepted only if the median ratio clears `min_speedup` AND a\n    one-sided Mann-Whitney U test rejects \"not faster\" at every measured size\n    (two or three) or a Bonferroni-corrected majority (more); a single size\n    can never be accepted \u2014 a ratio alone is not evidence the gap is real\n    rather than noise; see the result's `inference` field for the per-size U\n    statistic, p-value, and effect size behind the verdict.\n\n    A rejection tells you which gate failed and by how much \u2014 \"correct, 1.3x\n    median, but only 1/4 sizes significant\" is the answer an optimiser that\n    fabricates wins cannot give. A candidate that is faster but wrong fails the\n    first gate, and its speed is never measured, because a faster wrong answer\n    is not an optimisation.\n\n    An accepted result is graded `cross_checked` (see `grade_basis` for the\n    runtime and the measured speedup). A rejection \u2014 wrong, not faster enough,\n    or not significantly faster \u2014 is graded `ungraded`: correctness alone does\n    not earn a grade for the optimisation claim this tool exists to answer.\n    ",
+    "arguments": [
+      {
+        "name": "original",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "candidate",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "test_inputs",
+        "type": "array",
+        "desc": ""
+      },
+      {
+        "name": "sizes",
+        "type": "array",
+        "desc": ""
+      },
+      {
+        "name": "min_speedup",
+        "type": "number",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "extract_function",
+    "description": "Extract a named function (with its imports + referenced helpers) into a\n    standalone program and run it in the sandbox.\n\n    python3 gets exact ast extraction; other languages best-effort block\n    extraction (pass `call` to execute non-python). Returns the extracted\n    program and per-input runs.\n    ",
+    "arguments": [
+      {
+        "name": "code",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "function_name",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "call",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "test_inputs",
+        "type": "array",
+        "desc": ""
+      }
+    ]
+  }
+]
