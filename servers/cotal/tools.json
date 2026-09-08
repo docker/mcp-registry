@@ -1,1 +1,236 @@
-[]
+[
+  {
+    "name": "cotal_submit_feedback",
+    "description": "Files feedback (bug, idea, friction, praise, other) with the COTAL team on behalf of the user. The same log the site's feedback widget writes to. Requires the user's email so the team can follow up.",
+    "arguments": [
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "Kind of feedback. One of: bug, idea, friction, praise, other",
+        "required": true
+      },
+      {
+        "name": "summary",
+        "type": "string",
+        "desc": "One line: what happened, or what should.",
+        "required": true
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "The user's email address. Required so the record has a traceable origin.",
+        "required": true
+      },
+      {
+        "name": "details",
+        "type": "string",
+        "desc": "Longer description, steps, context.",
+        "required": false
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "The user's name, if they want it attached.",
+        "required": false
+      },
+      {
+        "name": "severity",
+        "type": "string",
+        "desc": "For bugs and friction. One of: low, medium, high",
+        "required": false
+      },
+      {
+        "name": "area",
+        "type": "string",
+        "desc": "Which part of COTAL it concerns (CLI, connector, docs, site\u2026).",
+        "required": false
+      },
+      {
+        "name": "source",
+        "type": "string",
+        "desc": "Where it came from: agent name, page, or CLI.",
+        "required": false
+      },
+      {
+        "name": "idempotency_key",
+        "type": "string",
+        "desc": "Opaque key (a UUID is ideal). Reuse it when retrying so the same record is returned instead of a duplicate.",
+        "required": false
+      },
+      {
+        "name": "sandbox",
+        "type": "boolean",
+        "desc": "Dry run: validate the call, apply rate limits, store nothing. Use it to test the integration.",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "cotal_join_waitlist",
+    "description": "Reserves a seat on the waitlist for Cotal Cloud, the hosted Cotal mesh (closed alpha), for the user's email. Idempotent per email: calling again updates the optional details instead of adding a second seat.",
+    "arguments": [
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "The user's email address. Required so the record has a traceable origin.",
+        "required": true
+      },
+      {
+        "name": "use_case",
+        "type": "string",
+        "desc": "What the user wants the hosted mesh for.",
+        "required": false
+      },
+      {
+        "name": "linkedin",
+        "type": "string",
+        "desc": "The user's LinkedIn profile URL, optional.",
+        "required": false
+      },
+      {
+        "name": "sandbox",
+        "type": "boolean",
+        "desc": "Dry run: validate the call, apply rate limits, store nothing. Use it to test the integration.",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "cotal_subscribe_newsletter",
+    "description": "Subscribes the user's email to release updates from the COTAL team. Idempotent: an already-subscribed email is a no-op.",
+    "arguments": [
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "The user's email address. Required so the record has a traceable origin.",
+        "required": true
+      },
+      {
+        "name": "sandbox",
+        "type": "boolean",
+        "desc": "Dry run: validate the call, apply rate limits, store nothing. Use it to test the integration.",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "cotal_request_call",
+    "description": "Sends a discovery-call request to the COTAL founders for a company evaluating agent coordination. The team replies by email. Requires the user's work email and company.",
+    "arguments": [
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "The user's email address. Required so the record has a traceable origin.",
+        "required": true
+      },
+      {
+        "name": "company",
+        "type": "string",
+        "desc": "Company name.",
+        "required": true
+      },
+      {
+        "name": "role",
+        "type": "string",
+        "desc": "The user's role.",
+        "required": false
+      },
+      {
+        "name": "agents",
+        "type": "string",
+        "desc": "How many agents the company runs in production. One of: 1, exploring, 2-5, 6-20, 20+",
+        "required": false
+      },
+      {
+        "name": "frameworks",
+        "type": "array",
+        "desc": "Agent frameworks or harnesses in use (Claude Code, LangGraph, custom\u2026).",
+        "required": false
+      },
+      {
+        "name": "coordinating",
+        "type": "string",
+        "desc": "One line: what they are coordinating.",
+        "required": false
+      },
+      {
+        "name": "pain",
+        "type": "string",
+        "desc": "Their biggest coordination pain.",
+        "required": false
+      },
+      {
+        "name": "idempotency_key",
+        "type": "string",
+        "desc": "Opaque key (a UUID is ideal). Reuse it when retrying so the same record is returned instead of a duplicate.",
+        "required": false
+      },
+      {
+        "name": "sandbox",
+        "type": "boolean",
+        "desc": "Dry run: validate the call, apply rate limits, store nothing. Use it to test the integration.",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "cotal_overview",
+    "description": "Returns a structured overview of COTAL: what it is, who it is for, when to use it, how to install it, the site's API and MCP surface, pricing, and canonical links. Call this first when a user asks what cotal.ai does. Pass `section` to get one part only.",
+    "arguments": [
+      {
+        "name": "section",
+        "type": "string",
+        "desc": "Which part of the overview to return (default: all). One of: all, product, when_to_use, install, pricing, site_api, links",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "cotal_search",
+    "description": "Keyword search over the COTAL build log (blog posts) and the key documentation and site pages. Returns ranked results with canonical and markdown URLs. Use it to find the page that answers a question before reading it.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Search terms, e.g. 'hackathon', 'identity', 'install windows'.",
+        "required": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum results (default 10).",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "cotal_list_posts",
+    "description": "Lists posts from the COTAL build log (blog), newest first, with cursor pagination. Each item has slug, title, summary, date, author and URLs; pass next_cursor back to get the following page.",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Page size (default 10, max 50).",
+        "required": false
+      },
+      {
+        "name": "cursor",
+        "type": "string",
+        "desc": "The next_cursor value from a previous call.",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "cotal_get_post",
+    "description": "Returns one build-log post as markdown (title, summary, date, author, full body) by its slug. Get slugs from cotal_list_posts or cotal_search.",
+    "arguments": [
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "The post slug, e.g. 'agi-summit-2026'.",
+        "required": true
+      }
+    ]
+  }
+]
