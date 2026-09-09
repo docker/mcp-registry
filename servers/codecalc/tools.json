@@ -26,52 +26,62 @@
       {
         "name": "stdin",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "timeout",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "session_id",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "max_memory_mb",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "max_output_kb",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "max_cpu",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "no_net",
         "type": "boolean",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "compact",
         "type": "boolean",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "provider",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "dependencies",
         "type": "array",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
@@ -82,18 +92,25 @@
       {
         "name": "language",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
   {
     "name": "session_stop",
-    "description": "Stop a session: kill its REPL worker (if any) and delete its workspace.",
+    "description": "Stop a session: kill its REPL worker (if any) and delete its workspace.\n    Also deletes every session_snapshot saved for it, unless keep_snapshots=True.",
     "arguments": [
       {
         "name": "session_id",
         "type": "string",
         "desc": ""
+      },
+      {
+        "name": "keep_snapshots",
+        "type": "boolean",
+        "desc": "",
+        "optional": true
       }
     ]
   },
@@ -114,17 +131,20 @@
       {
         "name": "path",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "page_size",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "cursor",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
@@ -161,8 +181,43 @@
     ]
   },
   {
+    "name": "session_snapshot",
+    "description": "Archive or restore a session's workspace files. `action`:\n\n    - \"save\": tar.gz the session's current files (same rules as\n      session_artifacts: .codecalc-run/ excluded, symlinks/hardlinks\n      refused) into a snapshot stored OUTSIDE the workspace, so sandboxed\n      code can never read or tamper with it. Returns snapshot_id.\n    - \"restore\": extract snapshot_id's files into a brand-new session\n      (default) or, with replace=True, wipe and recreate session_id's OWN\n      workspace first. Only files are restored \u2014 a python3/node session's\n      REPL variables/imports are never part of a snapshot.\n    - \"list\": snapshots saved for session_id, oldest first.\n    - \"delete\": remove one snapshot (snapshot_id required).\n\n    Snapshots are deleted when their session is stopped\n    (session_stop(keep_snapshots=True) to keep them).",
+    "arguments": [
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "snapshot_id",
+        "type": "string",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "label",
+        "type": "string",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "replace",
+        "type": "boolean",
+        "desc": "",
+        "optional": true
+      }
+    ]
+  },
+  {
     "name": "install_package",
-    "description": "Install a package for a language (uv pip / npm / gem / go get / cargo add...).\n\n    With session_id, installs into that session's workspace so executed code\n    can import it. Without, installs into a shared cache.\n\n    NETWORK: yes, always. The package manager fetches from its registry (PyPI,\n    npm, rubygems, crates.io). codecalc opens no socket itself; the child\n    process does.\n\n    NOT SANDBOXED: the installer runs as a direct subprocess of the server, so\n    install-time hooks (npm postinstall, Python build backends, Cargo build\n    scripts) execute with the server user's filesystem access. The environment\n    is still restricted to the allowlist, so secrets do not leak, but the\n    filesystem is not confined. Do not point this at untrusted input. See\n    SECURITY.md.\n    ",
+    "description": "Install a package for a language (uv pip / npm / gem / go get / cargo add...).\n\n    Asks the caller to confirm before installing (a protocol-level gate, not\n    just the `anthropic/requiresUserInteraction` `_meta` hint \u2014 see\n    codecalc/confirmation.py); a declined or malformed confirmation refuses\n    with no install attempted.\n\n    With session_id, installs into that session's workspace so executed code\n    can import it. Without, installs into a shared cache.\n\n    NETWORK: yes, always. The package manager fetches from its registry (PyPI,\n    npm, rubygems, crates.io). codecalc opens no socket itself; the child\n    process does.\n\n    NOT SANDBOXED: the installer runs as a direct subprocess of the server, so\n    install-time hooks (npm postinstall, Python build backends, Cargo build\n    scripts) execute with the server user's filesystem access. The environment\n    is still restricted to the allowlist, so secrets do not leak, but the\n    filesystem is not confined. Do not point this at untrusted input. See\n    SECURITY.md.\n    ",
     "arguments": [
       {
         "name": "language",
@@ -177,12 +232,14 @@
       {
         "name": "session_id",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "version",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
@@ -203,42 +260,148 @@
       {
         "name": "stdin",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "timeout",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "max_memory_mb",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "max_output_kb",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "max_cpu",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "no_net",
         "type": "boolean",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "provider",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "dependencies",
         "type": "array",
+        "desc": "",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "trace_execution",
+    "description": "Debug WHY, line by line, for the ONE input you actually ran it on:\n    which statements fired, in what order, with what variable values at\n    each step, and which if/elif/while/for/try branch was taken versus\n    never taken. Want just the printed output instead? Use execute_code.\n\n    Returns `events`: ordered `{step, line, event, func, locals}`, one entry\n    per traced line/call/return/exception in YOUR code only (library\n    internals excluded). `locals` on each entry is only the names that\n    changed since the previous step in that same call \u2014 not a full dump\n    every line. A `return` entry also carries `return_value`; an\n    `exception` entry carries `exception_type`/`exception_message`.\n\n    Also returns `branches` (hit count per if/elif/while/for/try line),\n    `lines_executed` / `lines_never_executed` (coverage from a static parse),\n    and `truncated`/`truncated_reason` when `max_events` or an internal\n    size ceiling stopped RECORDING early (the underlying stdout/exit code\n    are unaffected either way).\n\n    TRUST: the trace is produced BY the traced program at its OWN privilege\n    \u2014 a debugging aid, not an attestation of behaviour, exactly as\n    trustworthy as that program's own stdout. `discarded_events` /\n    `events_consistent` are a best-effort tamper/corruption signal (never a\n    guarantee) computed independently of the file's own content.\n    `unenforced` may additionally note \"only the main thread is traced\"\n    (sys.settrace is per-thread) or, fallback backend only, an OLE\n    `exit_code` race.\n\n    PYTHON3 ONLY for now; any other `language` is refused up front. For a\n    structural Big-O guess with nothing executed, use analyze_complexity.\n    `provider`: only 'local' (default) is supported here.\n    ",
+    "arguments": [
+      {
+        "name": "language",
+        "type": "string",
         "desc": ""
+      },
+      {
+        "name": "code",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "stdin",
+        "type": "string",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "timeout",
+        "type": "integer",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "max_events",
+        "type": "integer",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "max_memory_mb",
+        "type": "integer",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "max_output_kb",
+        "type": "integer",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "max_cpu",
+        "type": "integer",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "no_net",
+        "type": "boolean",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "provider",
+        "type": "string",
+        "desc": "",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "branch_reachability",
+    "description": "Which if/elif/else arms and while/for loops of this python3\n    function can ever run, which are dead code, and what inputs reach\n    each \u2014 decided with z3, without running the program.\n\n    Use trace_execution instead to see what happened on one run. Use\n    z3_check, not this, when you already have an SMT-LIB2 script to solve\n    directly rather than Python source to translate.\n\n    `inputs` (name -> 'int'/'bool'/'str') narrows or overrides a parameter's\n    type; unannotated parameters default to int. Each branch reports\n    `verdict` (reachable/dead/unknown), a `witness` when reachable, and\n    `boundary_inputs` (min/max/equality-edge for each comparison in its own\n    guard) \u2014 every input dict is shaped to drop straight into\n    compare_edge_cases's `test_inputs`. Refuses, naming the construct and\n    line, prior to any z3 call: floats, attribute access, comprehensions,\n    try/except, imports, data-dependent loop bounds, and anything else\n    outside `+ - * // %`, `and/or/not`, `== != < <= > >=`, and\n    `abs/min/max/len` on int/bool/str. A `for` loop of at most 32\n    iterations is unrolled exactly; a longer `for`, or a `while`, is\n    checked one iteration at a time \u2014 a branch can still come back\n    reachable there, but never `dead`, and anything past the loop that\n    depends on what it computed comes back `unknown` rather than a guess.\n    ",
+    "arguments": [
+      {
+        "name": "language",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "code",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "inputs",
+        "type": "object",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "timeout",
+        "type": "integer",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "max_branches",
+        "type": "integer",
+        "desc": "",
+        "optional": true
       }
     ]
   },
@@ -259,42 +422,50 @@
       {
         "name": "stdin",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "timeout",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "max_memory_mb",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "max_output_kb",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "max_cpu",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "no_net",
         "type": "boolean",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "provider",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "dependencies",
         "type": "array",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
@@ -322,7 +493,7 @@
   },
   {
     "name": "evaluate_expression",
-    "description": "Symbolically evaluate an expression to a value or closed form via\n    sympify: 'integrate(x**2, x)', 'sqrt(144) + 2**10'. Not simplification \u2014\n    for simplified/factored/expanded forms, use simplify_expression. Not\n    exact numeric arithmetic on plain arithmetic \u2014 use calc_exact for that.\n    Returns `value` (if the result is a number) or the evaluated expression,\n    plus `type`.",
+    "description": "Use evaluate_expression, not calc_exact, for something other than\n    plain arithmetic on literal values. Symbolically evaluate to a value or\n    closed form via sympify: 'integrate(x**2, x)', 'sqrt(144) + 2**10'. Not\n    simplification \u2014 for simplified/factored/expanded forms, use\n    simplify_expression. Returns `value` (if the result is a number) or the\n    evaluated expression, plus `type`.",
     "arguments": [
       {
         "name": "expression",
@@ -344,7 +515,7 @@
   },
   {
     "name": "z3_check",
-    "description": "Check an SMT-LIB2 formula with Z3: sat/unsat/unknown plus a model. Example:\n    '(declare-const x Int)(assert (> x 5))(check-sat)'.\n\n    `unsat` is graded `solver_proven` \u2014 see `grade_basis` for the engine\n    version and timeout bound it was decided within. `sat` is graded\n    `ungraded`: it's a real decided answer, just not a proof \u2014 reserving\n    `solver_proven` for `unsat` means a counterexample can never wear a\n    proof grade. `unknown` carries no proof either way and is also graded\n    `ungraded`.\n    ",
+    "description": "Use z3_check, not solve_expression, for satisfiability over\n    inequalities, boolean combinations, or several variables at once: sat/\n    unsat/unknown plus a model. Example:\n    '(declare-const x Int)(assert (> x 5))(check-sat)'.\n\n    `unsat` is graded `solver_proven` \u2014 see `grade_basis` for the engine\n    version and timeout bound it was decided within. `sat` is graded\n    `ungraded`: it's a real decided answer, just not a proof \u2014 reserving\n    `solver_proven` for `unsat` means a counterexample can never wear a\n    proof grade. `unknown` carries no proof either way and is also graded\n    `ungraded`.\n    ",
     "arguments": [
       {
         "name": "smt2",
@@ -355,7 +526,7 @@
   },
   {
     "name": "solve_linear",
-    "description": "Solve a system of equations; `system` is ';'-separated equations, `variables` comma-separated. Example: system='x + y = 10; x - y = 2', variables='x, y'.",
+    "description": "Deprecated alias for symbolic(op=\"solve_linear\"); removed in the next\n    minor release. Use solve_linear, not solve_expression, for a system of\n    equations sharing variables. `system` is ';'-separated equations,\n    `variables` comma-separated. Example: system='x + y = 10; x - y = 2',\n    variables='x, y'.",
     "arguments": [
       {
         "name": "system",
@@ -397,7 +568,8 @@
       {
         "name": "language",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
@@ -413,17 +585,20 @@
       {
         "name": "language",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "sizes",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "timeout",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
@@ -439,17 +614,20 @@
       {
         "name": "stdin",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "timeout",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "dependencies",
         "type": "object",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
@@ -460,28 +638,32 @@
       {
         "name": "languages",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
   {
     "name": "update_runtimes",
-    "description": "Update language runtimes. SAFE BY DEFAULT: with apply=False this is a\n    dry run \u2014 it returns the update commands that WOULD run without changing\n    anything. Pass apply=True to actually execute them (mise up, rustup update,\n    swiftly update, apt-get upgrade of language packages, npm -g update, uv tool\n    upgrade). `languages` = comma-separated subset; empty = all.\n\n    PRIVILEGE: the apt manager updates system packages and its command begins\n    with `sudo`. Those commands do NOT run unless the HOST has set\n    CODECALC_ALLOW_RUNTIME_APPLY=1; without it they are reported as skipped\n    with `ok: false` and the variable named, and the rest still run. Every\n    entry carries an `elevated` flag either way. mise/rustup/swiftly/npm/uv\n    touch user-owned toolchains and are never gated.\n\n    NETWORK: yes, on both paths. apply=False still asks each manager what the\n    latest version is, which is a remote lookup; apply=True additionally\n    downloads and installs. \"Dry run\" bounds what changes on disk, not what is\n    sent.\n    ",
+    "description": "Update language runtimes. SAFE BY DEFAULT: with apply=False this is a\n    dry run \u2014 it returns the update commands that WOULD run without changing\n    anything. Pass apply=True to actually execute them (mise up, rustup update,\n    swiftly update, apt-get upgrade of language packages, npm -g update, uv tool\n    upgrade). `languages` = comma-separated subset; empty = all.\n\n    apply=True asks the caller to confirm first (a protocol-level gate, not\n    just the `anthropic/requiresUserInteraction` `_meta` hint \u2014 see\n    codecalc/confirmation.py); apply=False is never gated, since nothing runs.\n\n    PRIVILEGE: the apt manager updates system packages and its command begins\n    with `sudo`. Those commands do NOT run unless the HOST has set\n    CODECALC_ALLOW_RUNTIME_APPLY=1; without it they are reported as skipped\n    with `ok: false` and the variable named, and the rest still run. Every\n    entry carries an `elevated` flag either way. mise/rustup/swiftly/npm/uv\n    touch user-owned toolchains and are never gated.\n\n    NETWORK: yes, on both paths. apply=False still asks each manager what the\n    latest version is, which is a remote lookup; apply=True additionally\n    downloads and installs. \"Dry run\" bounds what changes on disk, not what is\n    sent.\n    ",
     "arguments": [
       {
         "name": "languages",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "apply",
         "type": "boolean",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "timeout",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
@@ -502,12 +684,14 @@
       {
         "name": "max_bytes",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "as_image",
         "type": "boolean",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
@@ -528,22 +712,26 @@
       {
         "name": "language",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "stdin",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "timeout",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "dependencies",
         "type": "array",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
@@ -575,18 +763,19 @@
       {
         "name": "name",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
   {
     "name": "list_units",
-    "description": "List every supported unit alias for convert_units.",
+    "description": "List every supported unit alias \u2014 all aliases and spellings \u2014 for convert_units.",
     "arguments": []
   },
   {
     "name": "calc_exact",
-    "description": "EXACT arithmetic: 0.1 + 0.2 == 0.3 is True here (False in plain Python).\n\n    Everything is an exact rational, integers are arbitrary precision. Supports\n    + - * / // % ** comparisons, bitwise ops (& | ^ << >> ~) on integers, and\n    whitelisted math functions (sqrt, log, sin, ...) plus pi/e/tau. Use BEFORE\n    asserting any computed number: thresholds, ratios, overflows, 'X is N% of Y'.\n    Examples: '2**64 - 1', 'comb(52,5)', '0.1+0.2 == 0.3', '0xff & 0x0f'.\n    ",
+    "description": "Use calc_exact, not evaluate_expression, for a literal arithmetic\n    expression with no symbols in it. EXACT arithmetic: 0.1 + 0.2 == 0.3 is\n    True here (False in plain Python).\n\n    Everything is an exact rational, integers are arbitrary precision. Supports\n    + - * / // % ** comparisons, bitwise ops (& | ^ << >> ~) on integers, and\n    whitelisted math functions (sqrt, log, sin, ...) plus pi/e/tau. Use BEFORE\n    asserting any computed number: thresholds, ratios, overflows, 'X is N% of Y'.\n    Examples: '2**64 - 1', 'comb(52,5)', '0.1+0.2 == 0.3', '0xff & 0x0f'.\n    ",
     "arguments": [
       {
         "name": "expr",
@@ -683,7 +872,7 @@
   },
   {
     "name": "human_duration",
-    "description": "Humanised duration (e.g. '2d 3h 4m 5s') plus per-day and per-30d rates\n    for a number of seconds. For converting an epoch timestamp to a calendar\n    date, use epoch_time \u2014 this tool is for elapsed time, not a point in\n    time. For byte counts, not seconds, use data_sizes. Returns `human`,\n    `per_day`, `per_30d`, and the echoed `seconds`.",
+    "description": "Convert a SPAN of elapsed seconds (not a point-in-time timestamp) into\n    a humanised duration (e.g. '2d 3h 4m 5s') plus per-day and per-30d rates.\n    For an epoch timestamp to a calendar date, use epoch_time instead. For\n    byte counts, not seconds, use data_sizes. Returns `human`, `per_day`,\n    `per_30d`, and the echoed `seconds`.",
     "arguments": [
       {
         "name": "seconds",
@@ -704,8 +893,55 @@
     ]
   },
   {
+    "name": "bits",
+    "description": "Programmer-mode integer facts and operations, selected by `mode` \u2014\n    replaces bit_analysis, bitop, int_widths and base_repr, each now a\n    deprecated one-minor-release alias for one of the four modes below.\n    Every mode returns exactly that alias's own result, plus `mode`\n    (additive).\n\n    mode=\"analysis\" (was bit_analysis) \u2014 facts about a single N: popcount,\n    bit length, trailing zeros, power-of-two check, next power of two, and\n    (with `align`) padding needed to reach an alignment boundary. Used by\n    this mode: `n` (required), `align` (optional).\n\n    mode=\"op\" (was bitop) \u2014 apply an operation to `a` (and `b`, required\n    unless op=\"not\") at a fixed `width` (8/16/32/64, default 64): and/or/\n    xor/nand/nor/xnor/not/shl/shr/sar/rol/ror. Every result shows unsigned,\n    signed (two's complement), hex, octal and binary. shr is logical\n    (zero-fill); sar is arithmetic (sign-propagating) \u2014 0x80 shr 1 = 0x40\n    (+64) but 0x80 sar 1 = 0xC0 (-64). A left shift that drops bits says\n    OVERFLOW and shows the unbounded answer. Used by this mode: `a`, `op`\n    (required), `b` (required unless op=\"not\"), `width` (optional, default\n    64).\n\n    mode=\"widths\" (was int_widths) \u2014 which widths (i8..i64/u8..u64) hold\n    `n`, and the wrapped value where they do not; flags anything past 2^53\n    as unable to round-trip through a JS number or JSON float. Used by this\n    mode: `n` (required).\n\n    mode=\"repr\" (was base_repr) \u2014 hex/oct/bin of `n`; with `width`, two's\n    complement and signed-overflow detection. Used by this mode: `n`\n    (required), `width` (optional; None skips width analysis entirely).\n    ",
+    "arguments": [
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "n",
+        "type": "integer",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "align",
+        "type": "integer",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "a",
+        "type": "integer",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "op",
+        "type": "string",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "b",
+        "type": "integer",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "width",
+        "type": "integer",
+        "desc": "",
+        "optional": true
+      }
+    ]
+  },
+  {
     "name": "base_repr",
-    "description": "hex/oct/bin of N; with WIDTH, two's complement and signed-overflow\n    detection. `base_repr(3000000000, 32)` says plainly it does not fit i32.",
+    "description": "Deprecated alias for bits(mode=\"repr\"); removed in the next minor\n    release. Use base_repr, not int_widths, for a single specified width.\n    hex/oct/bin of N; with WIDTH, two's complement and signed-overflow\n    detection. `base_repr(3000000000, 32)` says plainly it does not fit i32.",
     "arguments": [
       {
         "name": "n",
@@ -715,7 +951,8 @@
       {
         "name": "width",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
@@ -731,12 +968,14 @@
       {
         "name": "from_base",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "to_base",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
@@ -753,7 +992,7 @@
   },
   {
     "name": "int_widths",
-    "description": "Which widths (i8..i64/u8..u64) hold N, and the wrapped value where they\n    do not. Flags anything past 2^53 as unable to round-trip through a JS\n    number or JSON float. `int_widths(3000000000)` shows the i32 wrap.",
+    "description": "Deprecated alias for bits(mode=\"widths\"); removed in the next minor\n    release. Use int_widths, not base_repr, to scan across widths, not just\n    one. Which widths (i8..i64/u8..u64) hold N, and the wrapped value where\n    they do not. Flags anything past 2^53 as unable to round-trip through a\n    JS number or JSON float. `int_widths(3000000000)` shows the i32 wrap.",
     "arguments": [
       {
         "name": "n",
@@ -764,7 +1003,7 @@
   },
   {
     "name": "bit_analysis",
-    "description": "popcount, bit length, trailing zeros, power-of-two check, next power of\n    two, and (with align) padding needed to reach an alignment boundary.",
+    "description": "Deprecated alias for bits(mode=\"analysis\"); removed in the next minor\n    release. Use bit_analysis, not bitop, for facts about a single N:\n    popcount, bit length, trailing zeros, power-of-two check, next power of\n    two, and (with align) padding needed to reach an alignment boundary.",
     "arguments": [
       {
         "name": "n",
@@ -774,13 +1013,14 @@
       {
         "name": "align",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
   {
     "name": "bitop",
-    "description": "Programmer-mode bit ops: and or xor nand nor xnor not shl shr sar rol ror\n    at width 8/16/32/64. Every result shows unsigned, signed (two's complement),\n    hex, octal and binary. shr is logical (zero-fill); sar is arithmetic\n    (sign-propagating) \u2014 0x80 shr 1 = 0x40 (+64) but 0x80 sar 1 = 0xC0 (-64).\n    A left shift that drops bits says OVERFLOW and shows the unbounded answer.\n    ",
+    "description": "Deprecated alias for bits(mode=\"op\"); removed in the next minor\n    release. Use bitop, not bit_analysis, to apply an operation (and/or/xor/\n    not/shifts/rotates) rather than describe a value. Programmer-mode bit\n    ops: and or xor nand nor xnor not shl shr sar rol ror at width\n    8/16/32/64. Every result shows unsigned, signed (two's complement), hex,\n    octal and binary. shr is logical (zero-fill); sar is arithmetic\n    (sign-propagating) \u2014 0x80 shr 1 = 0x40 (+64) but 0x80 sar 1 = 0xC0\n    (-64). A left shift that drops bits says OVERFLOW and shows the\n    unbounded answer.\n    ",
     "arguments": [
       {
         "name": "a",
@@ -795,12 +1035,14 @@
       {
         "name": "b",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "width",
         "type": "integer",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
@@ -821,8 +1063,49 @@
     ]
   },
   {
+    "name": "symbolic",
+    "description": "Symbolic algebra, selected by `op` \u2014 replaces solve_expression,\n    solve_linear, simplify_expression and limit_expression, each now a\n    deprecated one-minor-release alias for one of the four ops below. Every\n    op returns exactly that alias's own result, plus `op` (additive).\n\n    op=\"solve\" (was solve_expression) \u2014 the roots of one equation:\n    'x**2 - 4 = 0', '2*x + 1 = 7'. For a system of several equations, use\n    op=\"solve_linear\". For general constraint satisfiability (inequalities,\n    boolean constraints, multiple solvers), use z3_check. Returns\n    `solutions` as a list of strings alongside the parsed `equation` and\n    `variable`. Used by this op: `expr` (required), `var` (optional,\n    default \"x\").\n\n    op=\"solve_linear\" (was solve_linear) \u2014 a system of equations sharing\n    variables. `system` is ';'-separated equations, `variables`\n    comma-separated. Example: system='x + y = 10; x - y = 2',\n    variables='x, y'. Used by this op: `system`, `variables` (both\n    required).\n\n    op=\"simplify\" (was simplify_expression) \u2014 simplify, factor, and expand\n    an expression \u2014 algebraic forms, not solving (use op=\"solve\") and not a\n    numeric value (use calc_exact). Returns `simplified`, `factored`, and\n    `expanded` as strings alongside the parsed `original`. Used by this op:\n    `expr` (required).\n\n    op=\"limit\" (was limit_expression) \u2014 asymptotic behaviour: limit of\n    `expr` as `var` -> `point` (default \"oo\"). 'symbolic(\"limit\",\n    \"n*log(n)/n**2\", \"n\")' returns 0 \u2014 settles complexity arguments faster\n    than arguing. Used by this op: `expr` (required), `var` (optional,\n    default \"x\"), `point` (optional, default \"oo\").\n    ",
+    "arguments": [
+      {
+        "name": "op",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "expr",
+        "type": "string",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "var",
+        "type": "string",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "point",
+        "type": "string",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "system",
+        "type": "string",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "variables",
+        "type": "string",
+        "desc": "",
+        "optional": true
+      }
+    ]
+  },
+  {
     "name": "solve_expression",
-    "description": "Solve a single equation in one variable for its roots or crossover\n    point: 'x**2 - 4 = 0', '2*x + 1 = 7'. For a system of several equations,\n    use solve_linear. For general constraint satisfiability (inequalities,\n    boolean constraints, multiple solvers), use z3_check. Returns\n    `solutions` as a list of strings alongside the parsed `equation` and\n    `variable`.",
+    "description": "Deprecated alias for symbolic(op=\"solve\"); removed in the next minor\n    release. Use solve_expression, not z3_check, for the roots of one\n    equation: 'x**2 - 4 = 0', '2*x + 1 = 7'. For a system of several\n    equations, use solve_linear. For general constraint satisfiability\n    (inequalities, boolean constraints, multiple solvers), use z3_check.\n    Returns `solutions` as a list of strings alongside the parsed\n    `equation` and `variable`.",
     "arguments": [
       {
         "name": "expr",
@@ -832,13 +1115,14 @@
       {
         "name": "var",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
   {
     "name": "limit_expression",
-    "description": "Asymptotic behaviour: limit of EXPR as var -> point (default oo).\n    'limit_expression(\"n*log(n)/n**2\", \"n\")' returns 0 \u2014 settles complexity\n    arguments faster than arguing.",
+    "description": "Deprecated alias for symbolic(op=\"limit\"); removed in the next minor\n    release. Asymptotic behaviour: limit of EXPR as var -> point (default\n    oo). 'limit_expression(\"n*log(n)/n**2\", \"n\")' returns 0 \u2014 settles\n    complexity arguments faster than arguing.",
     "arguments": [
       {
         "name": "expr",
@@ -848,18 +1132,20 @@
       {
         "name": "var",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "point",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
   {
     "name": "simplify_expression",
-    "description": "Simplified, factored, and expanded forms of an expression \u2014\n    algebraic rewriting, not solving and not a numeric value. For roots of\n    an equation, use solve_expression. For an exact numeric result, use\n    calc_exact. Returns `simplified`, `factored`, and `expanded` as strings\n    alongside the parsed `original`.",
+    "description": "Deprecated alias for symbolic(op=\"simplify\"); removed in the next\n    minor release. Simplify, factor, and expand an expression \u2014 algebraic\n    forms, not solving (use solve_expression) and not a numeric value (use\n    calc_exact). Returns `simplified`, `factored`, and `expanded` as\n    strings alongside the parsed `original`.",
     "arguments": [
       {
         "name": "expr",
@@ -870,7 +1156,7 @@
   },
   {
     "name": "verify_translation",
-    "description": "PROVE that a port is equivalent: run both programs, compare their output.\n\n    You write the translation \u2014 you are the language model. This runs your\n    source and your port on the same inputs and reports, per input, whether\n    they matched, diverged, or could not be compared (a runtime that is missing\n    or a program that failed on both sides is INCONCLUSIVE, never a pass).\n\n    Use it after porting anything: python3 -> go, node -> rust, a rewritten\n    function against the original. Pair with compare_edge_cases to find the\n    inputs worth testing.\n\n    A pass is graded `cross_checked` (two independent implementations, run\n    and agreeing \u2014 see `grade_basis` for which runtimes). A non-pass is\n    graded `ungraded`: never a softer positive grade.\n    ",
+    "description": "PROVE that a port is equivalent: run both programs, compare their output.\n\n    You write the translation \u2014 you are the language model. This runs your\n    source and your port on the same inputs and reports, per input, whether\n    they matched, diverged, or could not be compared (a runtime that is missing\n    or a program that failed on both sides is INCONCLUSIVE, never a pass).\n\n    Use it after porting anything: python3 -> go, node -> rust, a rewritten\n    function against the original. Pair with compare_edge_cases to find the\n    inputs worth testing.\n\n    Matching tolerates only line-ending/trailing-whitespace noise;\n    stdout_raw carries what actually ran.\n\n    A pass is graded `cross_checked` (two independent implementations, run\n    and agreeing \u2014 see `grade_basis` for which runtimes). A non-pass is\n    graded `ungraded`: never a softer positive grade.\n    ",
     "arguments": [
       {
         "name": "source_code",
@@ -895,7 +1181,8 @@
       {
         "name": "test_inputs",
         "type": "array",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
@@ -911,7 +1198,8 @@
       {
         "name": "inputs",
         "type": "array",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
@@ -937,17 +1225,20 @@
       {
         "name": "test_inputs",
         "type": "array",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "sizes",
         "type": "array",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "min_speedup",
         "type": "number",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   },
@@ -973,12 +1264,14 @@
       {
         "name": "call",
         "type": "string",
-        "desc": ""
+        "desc": "",
+        "optional": true
       },
       {
         "name": "test_inputs",
         "type": "array",
-        "desc": ""
+        "desc": "",
+        "optional": true
       }
     ]
   }
