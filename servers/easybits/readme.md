@@ -1,20 +1,27 @@
 ## EasyBits
 
-Cloud storage and AI toolkit for agents. Manage files, databases, documents, presentations, websites, and forms — all via MCP.
+The cloud for AI agents. A persistent Linux microVM the agent can keep working in, plus the
+storage, data and publishing it needs around it — all via MCP.
 
 ### Features
 
-- **Files**: Upload, share, optimize images, bulk operations
-- **Databases**: Create libSQL databases, query, import data
-- **Documents**: Generate PDFs, quotations, multi-page docs with HTML
-- **Presentations**: Create slide decks with themes and templates
-- **Websites**: Build and deploy static sites
-- **Forms**: Create forms with automatic submission storage
+- **Sandboxes**: Firecracker microVMs with root and real internet. Snapshot, suspend and
+  resume in under a second; the box survives the call instead of being destroyed.
+- **Hosting**: turn a box into a deployed app with a public URL and its own domain, with
+  releases, rollback and daily backups.
+- **Web**: search, fetch and structured extraction from pages that block ordinary scrapers.
+- **Files**: upload, version and serve over a CDN; share links, image optimization, bulk ops.
+- **Databases**: create libSQL databases, query, import data.
+- **Documents**: generate PDFs, multi-page documents and presentations from HTML.
+- **Websites & forms**: deploy static sites; collect submissions.
+- **Voice & video**: transcription, speech and rendered video projects.
 
 ### Setup
 
-1. Get your API key at https://www.easybits.cloud
-2. Set `EASYBITS_API_KEY` environment variable
+1. Get your API key at https://www.easybits.cloud/dash/developer
+2. Set the `EASYBITS_API_KEY` environment variable
+
+The endpoint also supports OAuth 2.1 with dynamic client registration.
 
 ### Also available via npm
 
