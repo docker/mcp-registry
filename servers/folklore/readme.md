@@ -10,7 +10,8 @@ No account or API key is required. Accepts no patient, phenotype, family,
 segregation or private case context. Results support qualified professional
 review and are not a diagnosis or treatment recommendation.
 
-The endpoint uses stateless MCP 2026-07-28 discovery via `server/discover`.
-A legacy inspector that only performs `initialize` is not compatible.
-Dynamic tool discovery is retained; an empty tools.json is not a successful
-Docker inspector or Toolkit compatibility result.
+A public initialize probe offering MCP 2025-03-26 returned HTTP 200 and
+serverInfo version 1.4.2 on 2026-09-11. This supersedes the older assertion
+that every initialize-based inspector is incompatible. Docker must still run
+its own complete inspector and Toolkit checks. Dynamic tool discovery is
+retained; an empty tools.json is not proof of successful verification.
