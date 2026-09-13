@@ -1,1 +1,136 @@
-[]
+[
+  {
+    "name": "stocks",
+    "title": "Buy Tokenized Stocks",
+    "description": "Buy tokenized stocks on Base using only the user\u2019s prepaid Vaaya balance, never the welcome credit or the GitHub credit line. Commands: list (supported token tickers), portfolio (owned stocks and buying power), quote {symbol, amount_cents}, buy {symbol, amount_cents, idempotency_key}, order {order_id}. When the user asks to buy a specified stock and dollar amount, resolve its supported token ticker (Apple = AAPLc) and call buy directly; no activation or additional approval step. amount_cents is the maximum total prepaid spend including provider fees. Use a unique idempotency_key for each intended purchase and reuse it on retries. Query order until confirmed/failed; queued/submitted is not success. Do not increase the user\u2019s spend or retry a failed purchase as a new order without instruction. Ask only for missing or ambiguous purchase details. If prepaid_required or buyingPowerCents is insufficient, offer a $10/$30/$100 prepaid pack: POST /api/v1/topup with pack_cents 1000/3000/10000 and the same account bearer token returns a Stripe Checkout url. With authorization for that pack amount, the user\u2019s Instinct agent can pay the URL in its browser using the card saved in Instinct; otherwise give the URL to the user. Vaaya cannot charge Instinct\u2019s card directly. Do not include card details or tokens in a handoff. Check GET /api/v1/wallet wallet.prepaid_cents, then portfolio buyingPowerCents before resuming the same purchase key. A share purchase alone does not authorize a top-up. Stop on needs_review as well as failed.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "command": {
+          "type": "string",
+          "enum": [
+            "list",
+            "portfolio",
+            "quote",
+            "buy",
+            "order"
+          ],
+          "description": "list (supported tickers), portfolio (holdings + buying power), quote, buy, or order (status by id)."
+        },
+        "symbol": {
+          "type": "string",
+          "description": "Token ticker from list, e.g. AAPLc. Required for quote and buy."
+        },
+        "amount_cents": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 1000000,
+          "description": "Maximum prepaid spend in cents, pool fees included. Required for quote and buy."
+        },
+        "idempotency_key": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 128,
+          "description": "Unique per intended purchase; reuse it on retries. Required for buy."
+        },
+        "order_id": {
+          "type": "string",
+          "description": "Order id returned by buy. Required for order."
+        }
+      },
+      "required": [
+        "command"
+      ],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "description": "Error code/message when ok=false."
+        },
+        "message": {
+          "type": "string",
+          "description": "Human-readable failure detail."
+        },
+        "stocks": {
+          "type": "array",
+          "description": "list: supported stocks with symbol, name, address, priceUsd and staleness."
+        },
+        "funding": {
+          "type": "string",
+          "description": "list: always prepaid_only."
+        },
+        "id": {
+          "type": "string",
+          "description": "quote/buy/order: quote id or order id."
+        },
+        "symbol": {
+          "type": "string",
+          "description": "Token ticker, e.g. AAPLc."
+        },
+        "amountCents": {
+          "type": "number",
+          "description": "Prepaid cents reserved for the purchase."
+        },
+        "estimatedTokens": {
+          "type": "string",
+          "description": "quote: expected token amount."
+        },
+        "minimumTokens": {
+          "type": "string",
+          "description": "quote: guaranteed minimum after 50 bps slippage."
+        },
+        "expiresAt": {
+          "type": "string",
+          "description": "quote: ISO 8601 expiry (60s)."
+        },
+        "status": {
+          "type": "string",
+          "description": "buy/order: queued | approving | ready | submitted | confirmed | failed | needs_review."
+        },
+        "chargedCents": {
+          "type": "number",
+          "description": "buy/order: cents actually charged once confirmed."
+        },
+        "tokens": {
+          "type": "string",
+          "description": "buy/order: tokens delivered once confirmed."
+        },
+        "txHash": {
+          "type": "string",
+          "description": "buy/order: Base transaction hash once broadcast."
+        },
+        "buyingPowerCents": {
+          "type": "number",
+          "description": "portfolio: prepaid cents available for stocks."
+        },
+        "address": {
+          "type": "string",
+          "description": "portfolio: the user stock wallet on Base."
+        },
+        "totalValueUsd": {
+          "type": "string",
+          "description": "portfolio: holdings value at the latest feed price."
+        },
+        "holdings": {
+          "type": "array",
+          "description": "portfolio: per-stock tokens, shares, valueUsd and staleness."
+        },
+        "orders": {
+          "type": "array",
+          "description": "portfolio: recent orders."
+        }
+      },
+      "additionalProperties": true
+    },
+    "annotations": {
+      "title": "Buy Tokenized Stocks",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  }
+]
