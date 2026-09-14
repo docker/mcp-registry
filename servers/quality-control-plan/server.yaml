@@ -1,0 +1,38 @@
+# Docker MCP Catalog entry — copy to servers/quality-control-plan/server.yaml in a fork of
+# github.com/docker/mcp-registry and open a PR. Docker builds the image from the mirror's
+# Dockerfile (installs quality-control-plan-mcp from npm) and reviews the PR.
+# Before the PR: push the mirror (icon.png at its root) and set source.commit to the mirror HEAD.
+name: quality-control-plan
+image: mcp/quality-control-plan
+type: server
+meta:
+  category: productivity
+  tags:
+    - productivity
+    - manufacturing
+    - quality-control
+    - inspection
+    - pdf
+about:
+  title: Quality Control Plan Generator
+  description: Generate quality control plans and inspection reports from technical-drawing PDFs — tolerances, fits, threads, GD&T and surface finishes extracted automatically, balloon numbering, acceptance limits, ballooned drawing PDF and Excel measurement report. By Imnoo, the engine behind quality-check-protocol.imnoo.com.
+  icon: https://raw.githubusercontent.com/imnoo-team/quality-control-plan-mcp/main/icon.png
+source:
+  project: https://github.com/imnoo-team/quality-control-plan-mcp
+  commit: b6f0f3d4ed0f68a0bef507cca9515a6c27410510
+config:
+  description: Optional. Without a token the drawing analysis runs on the free tier (1 drawing per day per IP); everything else runs inside the container.
+  secrets:
+    - name: quality-control-plan.imnoo_access_token
+      env: IMNOO_ACCESS_TOKEN
+      example: <IMNOO_ACCESS_TOKEN>
+  env:
+    - name: QCP_APP_URL
+      example: https://quality-check-protocol.imnoo.com
+      value: '{{quality-control-plan.qcp_app_url}}'
+  parameters:
+    type: object
+    properties:
+      qcp_app_url:
+        type: string
+        default: https://quality-check-protocol.imnoo.com
