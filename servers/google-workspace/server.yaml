@@ -1,0 +1,47 @@
+name: google-workspace
+type: server
+metadata:
+  category: productivity
+  tags:
+    - google
+    - workspace
+    - gmail
+    - drive
+    - sheets
+    - calendar
+    - docs
+    - forms
+    - chat
+    - productivity
+    - email
+    - collaboration
+title: Google Workspace MCP Server
+description: >
+  Comprehensive Model Context Protocol server for Google Workspace APIs.
+  Provides unified access to Gmail, Google Drive, Google Sheets, Google Calendar,
+  Google Docs, Google Forms, and Google Chat. Enables reading emails, managing files,
+  manipulating spreadsheets, scheduling events, editing documents, creating forms,
+  and sending chat messages - all through a single MCP interface.
+icon: https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png
+source:
+  project: https://github.com/PaulJeyasinghph/google-workspace-mcp
+  commit: d76dd4fac3d47ae98007ce44c6d28cd3e1e5e079
+config:
+  secrets:
+    - name: GOOGLE_CLIENT_SECRET
+      description: >
+        Google OAuth 2.0 Client Secret JSON file content.
+        Create this at https://console.cloud.google.com/apis/credentials.
+        Required APIs: Gmail, Drive, Sheets, Calendar, Docs, Forms, Chat.
+      required: true
+  volumes:
+    - name: credentials
+      description: >
+        Volume to persist OAuth tokens between container restarts.
+        Mounted at /data/credentials in the container.
+      mountPath: /data/credentials
+      required: true
+  env:
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      description: Path to the credentials file within the container
+      default: /data/credentials/client_secret.json
