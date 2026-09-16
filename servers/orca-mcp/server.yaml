@@ -1,0 +1,43 @@
+name: orca-mcp
+image: ghcr.io/buildcontext/orca-mcp:0.2.13
+type: server
+meta:
+  category: devops
+  tags:
+    - orca
+    - orchestration
+    - worktree
+    - agents
+    - devops
+about:
+  title: orca-mcp
+  description: External MCP bridge for Orca — worktrees, agent sessions, and supervised multi-agent orchestration over stdio or Streamable HTTP.
+  icon: https://avatars.githubusercontent.com/u/182288589?s=200&v=4
+source:
+  project: https://github.com/BuildContext/orca-mcp
+  commit: 25ba32f821328c3f49b250509e02b9666f6397f0
+config:
+  description: Master bridge token and optional Orca CLI overrides (RCE-class host bridge — restrict toolsets on shared hosts).
+  secrets:
+    - name: orca-mcp.orca_bridge_token
+      env: ORCA_BRIDGE_TOKEN
+      example: <openssl rand -hex 32>
+  env:
+    - name: ORCA_CLI_COMMAND
+      example: orca
+      value: '{{orca-mcp.orca_cli_command}}'
+    - name: ORCA_BRIDGE_TOOLSETS
+      example: status,dispatch
+      value: '{{orca-mcp.orca_bridge_toolsets}}'
+  parameters:
+    type: object
+    properties:
+      orca_cli_command:
+        type: string
+        description: Override path/name of the Orca CLI binary
+      orca_bridge_toolsets:
+        type: string
+        description: Comma-separated capability tiers (status,dispatch,admin)
+run:
+  command:
+    - --stdio
