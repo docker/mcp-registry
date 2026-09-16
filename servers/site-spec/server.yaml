@@ -1,0 +1,34 @@
+name: site-spec
+image: mcp/site-spec
+type: server
+meta:
+  category: devops
+  tags:
+    - seo
+    - accessibility
+    - website-audit
+    - structured-data
+    - llms-txt
+about:
+  title: Site-Spec
+  description: Audit and repair the layer of a website a browser never shows you, from inside the agent that built it. audit_site crawls a live URL or a local build directory and returns every finding with a check id, severity, file and whether it is auto-fixable, covering robots.txt and llms.txt policy, canonical and noindex signals, structured data, Open Graph, security and cache headers, accessibility semantics and the tracker surface. fix_issue applies the deterministic repair for one check id, dry-run by default. Every check is rule-based, so the same site always produces the same report.
+  icon: https://avatars.githubusercontent.com/u/113392746?s=200&v=4
+source:
+  project: https://github.com/ariaxhan/site-spec
+  branch: main
+  commit: a77fb78d6d09c9b2c5218c88bb24c9bcaa3d41ca
+run:
+  volumes:
+    - "{{site-spec.workspace_path}}:/data"
+config:
+  description: The project directory site-spec may read and write. It is mounted at /data, the container's working directory. Auditing a live URL needs no directory at all; only local audits and fix writes touch it.
+  parameters:
+    type: object
+    properties:
+      workspace_path:
+        type: string
+        title: Workspace directory
+        description: Host directory containing the built site to audit or repair
+        default: site-spec-data
+    required:
+      - workspace_path
