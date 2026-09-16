@@ -1,0 +1,238 @@
+[
+  {
+    "name": "scout_configure",
+    "description": "Configure Scout Board credentials at runtime. Use action=set to connect, action=status to inspect, action=clear to remove credentials. Pass save=true to persist to ~/.scout-mcp.json.",
+    "arguments": [
+      { "name": "action", "type": "string", "desc": "set | status | clear" },
+      { "name": "baseUrl", "type": "string", "desc": "Scout Board server URL, e.g. https://scout.example.com:22160 (required for action=set)" },
+      { "name": "username", "type": "string", "desc": "Username, e.g. admin@example.com (required for action=set)" },
+      { "name": "password", "type": "string", "desc": "Password (required for action=set)" },
+      { "name": "domain", "type": "string", "desc": "Domain — leave empty if not required" },
+      { "name": "ignoreTls", "type": "boolean", "desc": "Accept self-signed TLS certificates (default: false)" },
+      { "name": "save", "type": "boolean", "desc": "Persist credentials to ~/.scout-mcp.json for future sessions (default: false)" },
+      { "name": "test", "type": "boolean", "desc": "Test the connection before applying (default: true)" },
+      { "name": "deleteSaved", "type": "boolean", "desc": "Also delete ~/.scout-mcp.json when clearing (default: false)" }
+    ]
+  },
+  {
+    "name": "health_check",
+    "description": "Check Scout Board server availability. mode=ping for unauthenticated availability check, mode=healthcheck for authenticated system status.",
+    "arguments": [
+      { "name": "mode", "type": "string", "desc": "ping | healthcheck" },
+      { "name": "license", "type": "boolean", "desc": "Include license info in healthcheck response" },
+      { "name": "subscription", "type": "boolean", "desc": "Include subscription info in healthcheck response" },
+      { "name": "scoutServer", "type": "boolean", "desc": "Include Scout server info in healthcheck response" },
+      { "name": "scoutKeepAlive", "type": "boolean", "desc": "Include keep-alive server info in healthcheck response" },
+      { "name": "scoutDatabase", "type": "boolean", "desc": "Include database info in healthcheck response" }
+    ]
+  },
+  {
+    "name": "ou_get",
+    "description": "Read OU (Organisational Unit) information from Scout Board. Modes: get, root, search, subordinate, structure, device_status.",
+    "arguments": [
+      { "name": "mode", "type": "string", "desc": "get | root | search | subordinate | structure | device_status" },
+      { "name": "path", "type": "string", "desc": "OU path, e.g. /Enterprise/SubOU" },
+      { "name": "id", "type": "integer", "desc": "OU numeric ID" },
+      { "name": "searchTerm", "type": "string", "desc": "Search term (required for mode=search)" },
+      { "name": "searchFields", "type": "string", "desc": "Comma-separated fields to search in" },
+      { "name": "properties", "type": "string", "desc": "Comma-separated list of extra properties to return" },
+      { "name": "onlyFirstLevel", "type": "boolean", "desc": "Return only first level of structure tree (mode=structure)" },
+      { "name": "ouPath", "type": "string", "desc": "OU path for device_status mode" },
+      { "name": "ouId", "type": "string", "desc": "OU ID for device_status mode" },
+      { "name": "includeSubOus", "type": "boolean", "desc": "Include sub-OUs in device_status results" }
+    ]
+  },
+  {
+    "name": "ou_manage",
+    "description": "Create, rename, delete, or move OUs in Scout Board, and export/import OU structures. DESTRUCTIVE: action=delete permanently removes an OU.",
+    "arguments": [
+      { "name": "action", "type": "string", "desc": "add | rename | delete | move | converttobase | structure_export | structure_import" },
+      { "name": "path", "type": "string", "desc": "Target OU path" },
+      { "name": "id", "type": "integer", "desc": "Target OU numeric ID" },
+      { "name": "name", "type": "string", "desc": "New OU name (action=add)" },
+      { "name": "newname", "type": "string", "desc": "New name (action=rename)" },
+      { "name": "destoupath", "type": "string", "desc": "Destination OU path (action=add or move)" },
+      { "name": "destouid", "type": "integer", "desc": "Destination OU ID (action=add or move)" },
+      { "name": "forceDeleteOUFilter", "type": "boolean", "desc": "Delete affected OU filters when deleting OU" },
+      { "name": "ouId", "type": "integer", "desc": "OU ID to export (action=structure_export)" },
+      { "name": "exportOuStructure", "type": "boolean", "desc": "Include OU structure in export" },
+      { "name": "exportDeviceConfig", "type": "boolean", "desc": "Include device configuration in export" },
+      { "name": "exportAdvancedConfig", "type": "boolean", "desc": "Include advanced configuration in export" },
+      { "name": "exportDevices", "type": "boolean", "desc": "Include devices in export" },
+      { "name": "importPayload", "type": "object", "desc": "Export payload to import (action=structure_import)" },
+      { "name": "dryRun", "type": "boolean", "desc": "Preview import without applying changes" }
+    ]
+  },
+  {
+    "name": "device_get",
+    "description": "Read device information from Scout Board. Modes: get (single device), search (devices in OU), status (runtime status), configOrigins (configuration inheritance).",
+    "arguments": [
+      { "name": "mode", "type": "string", "desc": "get | search | status | configOrigins" },
+      { "name": "name", "type": "string", "desc": "Device name" },
+      { "name": "mac", "type": "string", "desc": "Device MAC address" },
+      { "name": "id", "type": "string", "desc": "Device numeric ID" },
+      { "name": "clientid", "type": "string", "desc": "Client identifier UUID" },
+      { "name": "properties", "type": "string", "desc": "Comma-separated extra properties to return" },
+      { "name": "ouPath", "type": "string", "desc": "OU path to search in (required for mode=search)" },
+      { "name": "ouId", "type": "string", "desc": "OU ID to search in (required for mode=search)" },
+      { "name": "searchTerm", "type": "string", "desc": "Search term (required for mode=search)" },
+      { "name": "searchFields", "type": "string", "desc": "Comma-separated device fields to search" },
+      { "name": "includeSubOus", "type": "boolean", "desc": "Include devices from sub-OUs in search" },
+      { "name": "limit", "type": "integer", "desc": "Max results for search (default 100, max 10000)" }
+    ]
+  },
+  {
+    "name": "device_manage",
+    "description": "Add, rename, delete, or move devices in Scout Board. DESTRUCTIVE: action=delete permanently removes a device.",
+    "arguments": [
+      { "name": "action", "type": "string", "desc": "add | rename | delete | move" },
+      { "name": "name", "type": "string", "desc": "Device name (identifier for rename/delete/move)" },
+      { "name": "mac", "type": "string", "desc": "Device MAC address" },
+      { "name": "id", "type": "string", "desc": "Device numeric ID" },
+      { "name": "clientid", "type": "string", "desc": "Client identifier UUID" },
+      { "name": "newDeviceName", "type": "string", "desc": "Name for the new device (action=add)" },
+      { "name": "newDeviceMac", "type": "string", "desc": "MAC address for the new device (action=add)" },
+      { "name": "newname", "type": "string", "desc": "New device name (action=rename)" },
+      { "name": "destoupath", "type": "string", "desc": "Destination OU path (action=add or move)" },
+      { "name": "destouid", "type": "integer", "desc": "Destination OU ID (action=add or move)" }
+    ]
+  },
+  {
+    "name": "device_command",
+    "description": "Send a command to a device, device list, OU, or DDG. DESTRUCTIVE: factoryreset and halt require confirm=true.",
+    "arguments": [
+      { "name": "target", "type": "string", "desc": "device | devicelist | ou | ddg" },
+      { "name": "command", "type": "string", "desc": "restart | halt | start | factoryreset | update | updateuefi | custom | predefined | delivery | message" },
+      { "name": "name", "type": "string", "desc": "Device name (target=device)" },
+      { "name": "mac", "type": "string", "desc": "Device MAC address (target=device)" },
+      { "name": "id", "type": "string", "desc": "Device ID (target=device)" },
+      { "name": "clientid", "type": "string", "desc": "Client identifier UUID (target=device)" },
+      { "name": "confirm", "type": "boolean", "desc": "Must be true for command=factoryreset or halt" },
+      { "name": "body", "type": "object", "desc": "Optional JSON body for scheduling and InformUser options" }
+    ]
+  },
+  {
+    "name": "device_diagnostics",
+    "description": "Collect device diagnostics asynchronously. Workflow: trigger → poll until ready → download_url to get the ZIP link.",
+    "arguments": [
+      { "name": "action", "type": "string", "desc": "trigger | poll | download_url" },
+      { "name": "name", "type": "string", "desc": "Device name" },
+      { "name": "mac", "type": "string", "desc": "Device MAC address" },
+      { "name": "id", "type": "string", "desc": "Device ID" },
+      { "name": "clientid", "type": "string", "desc": "Client identifier UUID (required for action=download_url)" },
+      { "name": "diagnosticsFileId", "type": "string", "desc": "File ID from poll response (required for action=download_url)" }
+    ]
+  },
+  {
+    "name": "app_list",
+    "description": "List applications from Scout Board. scope=base for global applications, scope=ou for OU-scoped applications.",
+    "arguments": [
+      { "name": "scope", "type": "string", "desc": "base | ou" },
+      { "name": "ouPath", "type": "string", "desc": "OU path (required when scope=ou)" },
+      { "name": "ouId", "type": "integer", "desc": "OU ID (alternative to ouPath when scope=ou)" }
+    ]
+  },
+  {
+    "name": "app_manage",
+    "description": "Create, delete, copy, move, or configure inheritance for Scout Board applications. DESTRUCTIVE: action=delete permanently removes an application.",
+    "arguments": [
+      { "name": "action", "type": "string", "desc": "create | delete | copy | move | get_inheritance | set_inheritance" },
+      { "name": "scope", "type": "string", "desc": "base | ou (required for create/delete)" },
+      { "name": "applicationType", "type": "string", "desc": "Application type, e.g. citrix, rdp (required for action=create)" },
+      { "name": "appId", "type": "integer", "desc": "Application ID (required for delete)" },
+      { "name": "ouPath", "type": "string", "desc": "OU path for OU-scoped actions" },
+      { "name": "ouId", "type": "integer", "desc": "OU ID for OU-scoped actions" },
+      { "name": "body", "type": "object", "desc": "Request body for create/copy/move/set_inheritance" }
+    ]
+  },
+  {
+    "name": "config_get",
+    "description": "Read configuration from Scout Board for base, OU, or device scope. Provide target and section (e.g. general, firmware, network/lan).",
+    "arguments": [
+      { "name": "target", "type": "string", "desc": "base | ou | device" },
+      { "name": "section", "type": "string", "desc": "Config section path, e.g. general, firmware, network/lan, desktop/language, powermanagement/eco" },
+      { "name": "ouPath", "type": "string", "desc": "OU path (target=ou)" },
+      { "name": "ouId", "type": "integer", "desc": "OU ID (target=ou)" },
+      { "name": "name", "type": "string", "desc": "Device name (target=device)" },
+      { "name": "mac", "type": "string", "desc": "Device MAC address (target=device)" },
+      { "name": "id", "type": "string", "desc": "Device ID (target=device)" },
+      { "name": "clientid", "type": "string", "desc": "Client identifier UUID (target=device)" },
+      { "name": "properties", "type": "string", "desc": "Comma-separated extra properties" }
+    ]
+  },
+  {
+    "name": "config_update",
+    "description": "Write configuration to Scout Board for base, OU, or device scope. Changes take effect when the device syncs.",
+    "arguments": [
+      { "name": "target", "type": "string", "desc": "base | ou | device" },
+      { "name": "section", "type": "string", "desc": "Config section path, e.g. general, firmware, network/lan" },
+      { "name": "body", "type": "object", "desc": "Configuration payload to write (required)" },
+      { "name": "ouPath", "type": "string", "desc": "OU path (target=ou)" },
+      { "name": "ouId", "type": "integer", "desc": "OU ID (target=ou)" },
+      { "name": "name", "type": "string", "desc": "Device name (target=device)" },
+      { "name": "mac", "type": "string", "desc": "Device MAC address (target=device)" },
+      { "name": "id", "type": "string", "desc": "Device ID (target=device)" },
+      { "name": "clientid", "type": "string", "desc": "Client identifier UUID (target=device)" }
+    ]
+  },
+  {
+    "name": "label_manage",
+    "description": "Manage dynamic configuration labels in Scout Board. Labels are used with Rules to drive dynamic device configuration.",
+    "arguments": [
+      { "name": "action", "type": "string", "desc": "list | get | create | update | delete" },
+      { "name": "labelId", "type": "string", "desc": "Label UUID (required for get/update/delete)" },
+      { "name": "body", "type": "object", "desc": "Label fields for create/update" }
+    ]
+  },
+  {
+    "name": "rule_manage",
+    "description": "Manage dynamic configuration rules in Scout Board. Rules use condition expressions to assign labels to devices.",
+    "arguments": [
+      { "name": "action", "type": "string", "desc": "list | get | create | update | delete | validate | link_label | update_label_priority | unlink_label" },
+      { "name": "ruleId", "type": "string", "desc": "Rule UUID (required for get/update/delete/link_label/update_label_priority/unlink_label)" },
+      { "name": "labelId", "type": "string", "desc": "Label UUID (required for link_label/update_label_priority/unlink_label)" },
+      { "name": "body", "type": "object", "desc": "Request body for create/update/validate/link_label" }
+    ]
+  },
+  {
+    "name": "schedule_manage",
+    "description": "View and manage scheduled commands in Scout Board. Actions: get_ou, get_device, update, delete.",
+    "arguments": [
+      { "name": "action", "type": "string", "desc": "get_ou | get_device | update | delete" },
+      { "name": "ouPath", "type": "string", "desc": "OU path (action=get_ou)" },
+      { "name": "ouId", "type": "integer", "desc": "OU ID (action=get_ou)" },
+      { "name": "includeSubOus", "type": "boolean", "desc": "Include sub-OU schedules (action=get_ou)" },
+      { "name": "name", "type": "string", "desc": "Device name (action=get_device)" },
+      { "name": "mac", "type": "string", "desc": "Device MAC address (action=get_device)" },
+      { "name": "id", "type": "string", "desc": "Device ID (action=get_device)" },
+      { "name": "clientid", "type": "string", "desc": "Client identifier UUID (action=get_device)" },
+      { "name": "scheduleId", "type": "integer", "desc": "Schedule job ID (required for update/delete)" },
+      { "name": "body", "type": "object", "desc": "Schedule update payload (action=update)" }
+    ]
+  },
+  {
+    "name": "maintenance_window_manage",
+    "description": "Manage maintenance windows in Scout Board. Maintenance windows define time periods when device updates and commands are allowed.",
+    "arguments": [
+      { "name": "action", "type": "string", "desc": "list | create | update | delete" },
+      { "name": "maintenanceWindowId", "type": "string", "desc": "Maintenance window ID (required for update/delete)" },
+      { "name": "body", "type": "object", "desc": "Maintenance window fields for create/update" }
+    ]
+  },
+  {
+    "name": "notification_manage",
+    "description": "Set or delete notifications in Scout Board for device configuration changes, firmware updates, deliveries, or device relocations.",
+    "arguments": [
+      { "name": "action", "type": "string", "desc": "set | delete" },
+      { "name": "target", "type": "string", "desc": "device | devicelist | ou | ddg" },
+      { "name": "type", "type": "string", "desc": "configurationupdate | delivery | updateuefi | updatefirmware | devicerelocation" },
+      { "name": "name", "type": "string", "desc": "Device name (target=device)" },
+      { "name": "mac", "type": "string", "desc": "Device MAC address (target=device)" },
+      { "name": "id", "type": "string", "desc": "Device ID (target=device)" },
+      { "name": "clientid", "type": "string", "desc": "Client identifier UUID (target=device)" },
+      { "name": "ouPath", "type": "string", "desc": "OU path (target=ou)" },
+      { "name": "ouId", "type": "integer", "desc": "OU ID (target=ou)" },
+      { "name": "body", "type": "object", "desc": "Request body for devicelist/ddg targets and delivery options" }
+    ]
+  }
+]
