@@ -1,0 +1,51 @@
+name: 46elks-sms
+image: mcp/46elks-sms
+type: server
+meta:
+  category: communication
+  tags:
+    - sms
+    - sweden
+    - 46elks
+    - telecommunications
+    - messaging
+about:
+  title: 46elks SMS
+  description: Send SMS messages through Swedish 46elks telecommunications infrastructure. OWASP MCP Top 10 compliant with rate limiting, audit logging, and input validation.
+  icon: https://www.google.com/s2/favicons?domain=46elks.com&sz=64
+source:
+  project: https://github.com/palhamel/46elks-mcp-server
+  branch: main
+  commit: b13d9cb8245bf6c728f740799b6dd130c5ffde0a
+config:
+  description: |
+    Requires 46elks API credentials. Sign up at https://46elks.com/ to get your API username, password, and a phone number for sending SMS.
+  secrets:
+    - name: 46elks-sms.api_username
+      env: ELKS_API_USERNAME
+      example: uXXXXXXXXXXXXXXXXXXXXXX
+    - name: 46elks-sms.api_password
+      env: ELKS_API_PASSWORD
+      example: XXXXXXXXXXXXXXXXXXXXXXXX
+    - name: 46elks-sms.phone_number
+      env: ELKS_PHONE_NUMBER
+      example: "+46701234567"
+  env:
+    - name: DRY_RUN
+      example: "false"
+      value: "{{46elks-sms.dry_run}}"
+    - name: RATE_LIMIT_SMS_PER_MINUTE
+      example: "10"
+      value: "{{46elks-sms.rate_limit_sms}}"
+    - name: RATE_LIMIT_QUERIES_PER_MINUTE
+      example: "60"
+      value: "{{46elks-sms.rate_limit_queries}}"
+  parameters:
+    type: object
+    properties:
+      dry_run:
+        type: string
+      rate_limit_sms:
+        type: string
+      rate_limit_queries:
+        type: string
