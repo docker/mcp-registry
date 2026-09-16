@@ -1,0 +1,77 @@
+name: recallium
+image: recalliumai/recallium
+type: server
+meta:
+  category: memory
+  tags:
+    - memory
+    - context
+    - knowledge-graph
+    - embeddings
+    - insights
+    - ai-agent
+    - mcp
+    - semantic-search
+    - project-management
+    - task-tracking
+about:
+  title: Recallium
+  description: AI Memory & Intelligence MCP Server - persistent memory, insights, and context for AI agents
+  icon: https://www.recallium.ai/icon.png
+source:
+  project: https://github.com/recallium-ai/recallium
+  branch: main
+run:
+  command: []
+  volumes:
+    - "{{recallium.data-path|volume|into}}"
+  disableNetwork: false
+config:
+  description: Configure Recallium memory server. LLM providers can also be configured via the Setup Wizard at http://localhost:9001
+  secrets:
+    - name: recallium.postgres_password
+      env: POSTGRES_PASSWORD
+      example: recallium_password
+    - name: recallium.openai_api_key
+      env: OPENAI_API_KEY
+      example: sk-proj-****
+    - name: recallium.anthropic_api_key
+      env: ANTHROPIC_API_KEY
+      example: sk-ant-****
+    - name: recallium.google_api_key
+      env: GOOGLE_API_KEY
+      example: AIza****
+    - name: recallium.openrouter_api_key
+      env: OPENROUTER_API_KEY
+      example: sk-or-****
+  env:
+    - name: LLM_PROVIDER
+      example: ollama
+      value: "{{recallium.llm-provider}}"
+    - name: LLM_MODEL
+      example: qwen2.5-coder:7b
+      value: "{{recallium.llm-model}}"
+    - name: OLLAMA_HOST
+      example: http://host.docker.internal:11434
+      value: "{{recallium.ollama-host}}"
+  parameters:
+    type: object
+    properties:
+      data-path:
+        type: string
+        description: Path to store Recallium data
+        default: /data/recallium
+      llm-provider:
+        type: string
+        description: LLM provider (ollama, openai, anthropic, google, openrouter)
+        default: ollama
+      llm-model:
+        type: string
+        description: Model name for auto-tagging
+        default: qwen2.5-coder:7b
+      ollama-host:
+        type: string
+        description: Ollama server URL
+        default: http://host.docker.internal:11434
+    required:
+      - data-path
