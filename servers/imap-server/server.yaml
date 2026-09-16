@@ -1,0 +1,55 @@
+name: imap-server
+image: nikolausm/imap-mcp-server
+type: server
+meta:
+  category: communication
+  tags:
+    - imap
+    - smtp
+    - email
+    - communication
+    - productivity
+    - oauth
+    - encryption
+    - multi-provider
+about:
+  title: IMAP MCP Server
+  description: A powerful Model Context Protocol (MCP) server for IMAP email integration with secure account management, connection pooling, and support for 15+ email providers. Features encrypted credential storage, advanced search capabilities, and comprehensive email operations including sending, replying, and forwarding with SMTP support.
+  icon: https://raw.githubusercontent.com/nikolausm/imap-mcp-server/main/public/images/logo.png
+source:
+  project: https://github.com/nikolausm/imap-mcp-server
+config:
+  description: Configure IMAP/SMTP access with multiple account support and encrypted credentials
+  secrets:
+    - name: imap-server.master_password
+      env: MASTER_PASSWORD
+      example: <your-master-encryption-password>
+  env:
+    - name: NODE_ENV
+      example: production
+      value: production
+    - name: CONFIG_PATH
+      example: /config
+      value: /config
+    - name: ACCOUNTS_FILE
+      example: /config/accounts.json
+      value: /config/accounts.json
+    - name: PORT
+      example: "3001"
+      value: "3001"
+    - name: ENABLE_WEB_UI
+      example: "false"
+      value: "false"
+  parameters:
+    type: object
+    properties:
+      master_password:
+        type: string
+        description: Master password for encrypting stored credentials (AES-256)
+        format: password
+    required:
+      - master_password
+  volumes:
+    - name: config
+      description: Persistent storage for encrypted account configurations
+      path: /config
