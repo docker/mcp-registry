@@ -1,0 +1,264 @@
+[
+  {
+    "name": "identify_constant",
+    "description": "Identify a real number's closed form, airtight: PSLQ + closed-form search, every candidate independently re-evaluated to 50+ digits, honest UNIDENTIFIED otherwise. Use when you have a numeric constant and want to know what it IS. Args: value (decimal string \u2014 give MANY digits, >16), optional basis (constant names like ['pi','e']).",
+    "arguments": [
+      {
+        "name": "value",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "basis",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "identify_sequence",
+    "description": "Match an integer sequence against a LOCAL OEIS copy by EXACT contiguous term-match (no fuzzy scoring; honest UNDETERMINED if the data files are absent). Use when you have >= 4 integer terms and want the named sequence. Args: terms (list of integers), max_results (default 5).",
+    "arguments": [
+      {
+        "name": "terms",
+        "type": "array",
+        "desc": ""
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "data_dir",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "search_existing_math",
+    "description": "Find existing theorems/results for a problem from the mathlas 3.68M-doc index (dense + BM25 + RRF, fused with any live web_added findings). Use FIRST for any 'does known math solve this?' question; follow up with applicability_checklist on promising candidates. Args: query (problem/result description), k (default 10), optional corpus_dir (dataset parquets; omit to serve the prebuilt index or seed corpus).",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "k",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "corpus_dir",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "corpus_limit",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "search_formal_math",
+    "description": "Find mathlib DECLARATIONS (name + type) via the public Loogle (pattern/type queries like '?a * ?b = ?b * ?a') and LeanSearch (natural-language queries) services \u2014 the ONE tool that itself calls the web; honest 'service unavailable' if down. Use when you need the formal Lean name/type of a result, e.g. before writing a verify_formal snippet. Args: query, k (default 10), backend ('auto'|'loogle'|'leansearch').",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "k",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "backend",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "verify_numeric",
+    "description": "Airtight check that a closed-form expression equals a numeric value: independent sympy re-evaluation at higher precision, verified only on >= 20 agreeing digits. Use BEFORE asserting any numeric identity. Args: value (decimal string), closed_form (e.g. 'pi**2/6', 'zeta(3)').",
+    "arguments": [
+      {
+        "name": "value",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "closed_form",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "dps_verify",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "min_digits",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "verify_formal",
+    "description": "Run the REAL Lean 4 kernel on a Lean snippet and report whether it typechecks; honest UNDETERMINED (with a remediation) when no snippet or no toolchain. Use to kernel-check a formal claim you wrote \u2014 find declaration names first with search_formal_math. Args: statement (what is being claimed), lean (the Lean 4 snippet \u2014 REQUIRED for a real check, e.g. 'example : 2 + 2 = 4 := rfl').",
+    "arguments": [
+      {
+        "name": "statement",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "lean",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "applicability_checklist",
+    "description": "Decompose a candidate theorem's statement into atomic preconditions + conclusion for YOU to verify one by one against your problem (catches misapplications like using a closed-interval theorem on an open interval). Use after search, before relying on any candidate. Args: candidate_statement (the result's statement text).",
+    "arguments": [
+      {
+        "name": "candidate_statement",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "mapping_scaffold",
+    "description": "Build the needs<->guarantees scaffold (structured questions + fill-in template) between your problem and a candidate result. Use when applicability is non-obvious and you want structure for the judgment (the judging is yours). Args: problem, candidate_statement.",
+    "arguments": [
+      {
+        "name": "problem",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "candidate_statement",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "conjecture_relation",
+    "description": "Conjecture relations for a real constant \u2014 Ramanujan-Machine style: PSLQ over a rich basis + continued-fraction/recurrence search; every candidate numerically VERIFIED to >= 25 digits but NOT proved (provenance 'conjectured_relation'). Use when identify_constant returns UNIDENTIFIED. Args: value (decimal string, MANY digits), max_terms (default 16), cf_depth (default 200).",
+    "arguments": [
+      {
+        "name": "value",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "max_terms",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "cf_depth",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "min_digits",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "funsearch",
+    "description": "Sandboxed program-search harness (FunSearch): action='evaluate' scores YOUR Python program for problem_id ('cap_set' or 'online_bin_packing') in a no-network/timeout/rlimit sandbox; action='register' stores a scored program in the MAP-Elites DB; action='status' returns the best programs + few-shot context for writing the next variant. Use to iteratively evolve programs \u2014 YOU are the generator, mathlas is the deterministic scorer. Args: action, problem_id, then program_src (evaluate/register), score + behavior (register), timeout_s (evaluate), top_k (status).",
+    "arguments": [
+      {
+        "name": "action",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "problem_id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "program_src",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "score",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "behavior",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "timeout_s",
+        "type": "number",
+        "desc": ""
+      },
+      {
+        "name": "top_k",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "search_directive",
+    "description": "Get a STRUCTURED web-search plan for a problem \u2014 arXiv query strings, sub-fields/categories, named results to look for, and which other mathlas tools to run; mathlas makes NO web call (YOU search, then feed results back via add_finding). Use when the local index missed. Args: problem (description).",
+    "arguments": [
+      {
+        "name": "problem",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "add_finding",
+    "description": "Ingest a web-found result into the live mathlas corpus so search_existing_math returns it immediately (provenance 'web_added'; BM25 always \u2014 no model load; full dense retrieval too if you pass dense_vec embedded in the served index's space). Use after web-searching per search_directive. Args: statement, slogan, source, optional name, optional dense_vec.",
+    "arguments": [
+      {
+        "name": "statement",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "slogan",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "source",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "dense_vec",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  }
+]
