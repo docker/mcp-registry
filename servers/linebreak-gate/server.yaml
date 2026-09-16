@@ -1,0 +1,38 @@
+name: linebreak-gate
+image: mcp/linebreak-gate
+type: server
+meta:
+  category: security
+  tags:
+    - security
+    - ci
+    - cve
+    - supply-chain
+    - code-review
+about:
+  title: LineBreak Gate
+  description: >-
+    Fail-closed CI gate for AI-written code: blocks known CVEs (OSV) and
+    serves human-approved acceptance criteria to coding agents, read-only.
+  icon: https://avatars.githubusercontent.com/u/280721523?s=200&v=4
+source:
+  project: https://github.com/Baktun-Studio/linebreak-gate
+  branch: main
+  commit: 4f042176d0c28659617efc71fb55372013bf2a0c
+run:
+  command:
+    - --path
+    - "{{linebreak-gate.project_dir}}"
+  volumes:
+    - "{{linebreak-gate.project_dir|volume|into}}"
+config:
+  description: The repository whose approved spec (.linebreak/spec/) the server serves
+  parameters:
+    type: object
+    properties:
+      project_dir:
+        type: string
+        title: Project directory
+        description: Absolute path to the repository whose .linebreak/spec/ should be served (read-only, fully offline)
+    required:
+      - project_dir
