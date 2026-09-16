@@ -1,0 +1,136 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Test Workflow for Currently Open Server",
+      "detail": "Validates configuration, generates catalog, and imports to Docker Desktop. Open the MCP Toolkit and see your server in the catalog list.",
+      "dependsOn": [
+        "task validate -- --name currently-open-server",
+        "task catalog -- currently-open-server",
+        "docker mcp catalog import currently-open-server"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "task validate -- --name currently-open-server",
+      "detail": "Validates the MCP server configuration from the currently open server.yaml file.",
+      "type": "shell",
+      "command": "SERVER=$(echo '${relativeFile}' | cut -d'/' -f2) && echo \"🔍 Validating server: $SERVER\" && echo '---' && task validate -- --name $SERVER",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "task build -- currently-open-server",
+      "detail": "Builds the Docker image for the currently open server. Only works for Docker-built servers (mcp/* namespace). For self-provided images, use the pull task instead.",
+      "type": "shell",
+      "command": "SERVER=$(echo '${relativeFile}' | cut -d'/' -f2) && echo \"🔨 Building server: $SERVER\" && echo '---' && task build -- $SERVER",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated"
+      },
+      "group": "build"
+    },
+    {
+      "label": "task catalog -- currently-open-server",
+      "detail": "Generates a local catalog entry for the currently open server. This creates a catalog.yaml file in the catalogs directory that can be imported into Docker Desktop for testing.",
+      "type": "shell",
+      "command": "SERVER=$(echo '${relativeFile}' | cut -d'/' -f2) && echo \"📦 Generating catalog for: $SERVER\" && echo '---' && task catalog -- $SERVER",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "docker mcp catalog import currently-open-server",
+      "detail": "Imports the generated catalog for the currently open server into Docker Desktop's MCP Toolkit. The server will appear in your local Docker Desktop MCP catalog for testing.",
+      "type": "shell",
+      "command": "SERVER=$(echo '${relativeFile}' | cut -d'/' -f2) && echo \"📥 Importing $SERVER to Docker Desktop\" && docker mcp catalog import \"${workspaceFolder}/catalogs/$SERVER/catalog.yaml\"",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "docker pull image-for-currently-open-server",
+      "detail": "Pulls the Docker image specified in the currently open server.yaml file. Useful for self-provided images that need to be downloaded before testing.",
+      "type": "shell",
+      "command": "SERVER=$(echo '${relativeFile}' | cut -d'/' -f2) && IMAGE=$(grep '^image:' ${workspaceFolder}/servers/$SERVER/server.yaml | cut -d' ' -f2) && echo \"🐳 Pulling Docker image: $IMAGE\" && docker pull $IMAGE",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "task wizard",
+      "detail": "Interactive wizard to create a new MCP server configuration. The wizard will analyze your GitHub repository, extract metadata, and create the server.yaml file with proper structure.",
+      "type": "shell",
+      "command": "task wizard",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "task reset",
+      "detail": "Resets the Docker Desktop MCP catalog, removing any locally imported test servers. Use this to clean up after testing.",
+      "type": "shell",
+      "command": "task reset",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared"
+      }
+    }
+  ]
+}
