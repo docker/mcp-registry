@@ -1,0 +1,393 @@
+{
+  "tools": [
+    {
+      "name": "picsart_list_models",
+      "description": "Browse the model catalogue, optionally filtered by mode or provider.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "description": "Filter by generation mode, for example image or video."
+          },
+          "provider": {
+            "type": "string",
+            "description": "Filter by model provider."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "picsart_model_catalog",
+      "description": "Return the full Picsart model catalogue as plain data for agent reasoning. Does not render a widget.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "description": "Filter by generation mode, for example image or video."
+          },
+          "provider": {
+            "type": "string",
+            "description": "Filter by model provider."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "picsart_model_params",
+      "description": "Return the JSON Schema of the parameters a model accepts.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "Model identifier, for example flux-2-pro."
+          }
+        },
+        "required": [
+          "model"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "picsart_preflight",
+      "description": "Validate a model and parameters and return a credit estimate. Does not invoke any model or spend credits.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "Model identifier."
+          },
+          "params": {
+            "type": "object",
+            "description": "The payload to validate and price."
+          }
+        },
+        "required": [
+          "model"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "picsart_credits",
+      "description": "Return the current credit balance for the authenticated account.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "picsart_music_studio",
+      "description": "Return the catalogue of Picsart music models and prompt-builder metadata for the Music Studio.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "picsart_generate",
+      "description": "Run any catalogue model end to end and return the generated media. Spends credits.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "Model identifier, for example flux-2-pro."
+          },
+          "prompt": {
+            "type": "string",
+            "description": "The generation prompt."
+          },
+          "aspectRatio": {
+            "type": "string",
+            "description": "Output aspect ratio, for example 16:9."
+          },
+          "resolution": {
+            "type": "string",
+            "description": "Output resolution, for example 1080p."
+          },
+          "duration": {
+            "type": "number",
+            "description": "Clip length in seconds, for video models."
+          },
+          "count": {
+            "type": "number",
+            "description": "How many outputs to produce.",
+            "minimum": 1,
+            "maximum": 8,
+            "default": 1
+          },
+          "quality": {
+            "type": "string",
+            "description": "Quality preset."
+          },
+          "style": {
+            "type": "string",
+            "description": "Style preset."
+          },
+          "negativePrompt": {
+            "type": "string",
+            "description": "What to avoid in the output."
+          },
+          "imageUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Input image URLs, for image-to-image and image-to-video models."
+          },
+          "videoUrl": {
+            "type": "string",
+            "description": "Input video URL, for video-to-video models."
+          },
+          "generateAudio": {
+            "type": "boolean",
+            "description": "Generate an audio track alongside video output."
+          },
+          "enhancePrompt": {
+            "type": "boolean",
+            "description": "Let the service expand the prompt before generating."
+          },
+          "saveToDrive": {
+            "type": "boolean",
+            "description": "Save the result to Picsart Drive after generation."
+          },
+          "extra": {
+            "type": "object",
+            "description": "Model-specific parameters not covered above."
+          }
+        },
+        "required": [
+          "model",
+          "prompt"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "picsart_remove_bg",
+      "description": "Remove the background from one or more images. Spends credits.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "imageUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Image URLs to process."
+          }
+        },
+        "required": [
+          "imageUrls"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "picsart_change_bg",
+      "description": "Replace the background of an image using a prompt or a replacement image. Spends credits.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "imageUrl": {
+            "type": "string",
+            "description": "Image to process."
+          },
+          "prompt": {
+            "type": "string",
+            "description": "Description of the replacement background."
+          },
+          "backgroundImageUrl": {
+            "type": "string",
+            "description": "Replacement background image URL, used instead of a prompt."
+          }
+        },
+        "required": [
+          "imageUrl"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "picsart_enhance",
+      "description": "Upscale or enhance an image. Spends credits.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "imageUrl": {
+            "type": "string",
+            "description": "Image to process."
+          },
+          "upscaleFactor": {
+            "type": "number",
+            "description": "How much to upscale by."
+          }
+        },
+        "required": [
+          "imageUrl"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "picsart_vectorize",
+      "description": "Convert a raster image to SVG. Spends credits.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "imageUrl": {
+            "type": "string",
+            "description": "Image URL to convert."
+          }
+        },
+        "required": [
+          "imageUrl"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "picsart_drive",
+      "description": "Single entry point for Picsart Drive. Use the action field to list files, list folders, upload, create a folder, move, update, or delete. Write and delete actions spend credits or are irreversible.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "list",
+              "list_folders",
+              "upload",
+              "create_folder",
+              "move",
+              "update",
+              "delete"
+            ],
+            "description": "Operation to perform on Drive."
+          },
+          "fileId": {
+            "type": "string",
+            "description": "Drive file ID, required for move, update, and delete actions."
+          },
+          "folderId": {
+            "type": "string",
+            "description": "Folder ID to list or use as destination."
+          },
+          "parentId": {
+            "type": "string",
+            "description": "Parent folder ID for create_folder and move actions."
+          },
+          "name": {
+            "type": "string",
+            "description": "File or folder name for upload and create_folder actions."
+          },
+          "filePath": {
+            "type": "string",
+            "description": "Local file path to upload."
+          },
+          "url": {
+            "type": "string",
+            "description": "Remote HTTPS URL to fetch and upload to Drive."
+          },
+          "limit": {
+            "type": "number",
+            "description": "Maximum number of items to return for list actions."
+          },
+          "permanent": {
+            "type": "boolean",
+            "description": "When true, delete permanently instead of moving to trash."
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    }
+  ]
+}
