@@ -1,0 +1,50 @@
+name: mcpg
+image: mcp/mcpg
+type: server
+meta:
+  category: database
+  tags:
+    - postgres
+    - postgresql
+    - database
+    - sql
+    - devops
+about:
+  title: PostgreSQL
+  description: >-
+    MCPg — a production-grade PostgreSQL server with 254 tools spanning
+    schema introspection, query execution and EXPLAIN analysis,
+    index/vacuum/config advisors, vector (pgvector) and full-text
+    (pg_search) search, audited DDL/DML, migrations, and multi-database
+    support across PostgreSQL 14-19, TimescaleDB, and WarehousePG. Ships
+    with a read-only default and three graduated access tiers (read-only /
+    restricted / unrestricted).
+  icon: https://avatars.githubusercontent.com/u/5661555?v=4
+source:
+  project: https://github.com/devopam/MCPg
+  commit: 0ed672bf4c938ecba288277b3a40fb5609b4fde5
+run:
+  env:
+    MCPG_TRANSPORT: stdio
+config:
+  description: >-
+    Configure the connection to your PostgreSQL database and (optionally)
+    the access tier MCPg runs under.
+  secrets:
+    - name: mcpg.database_url
+      env: MCPG_DATABASE_URL
+      example: postgresql://user:password@host:5432/dbname
+  env:
+    - name: MCPG_ACCESS_MODE
+      example: read-only
+      value: "{{mcpg.access_mode}}"
+  parameters:
+    type: object
+    properties:
+      access_mode:
+        type: string
+        description: >-
+          read-only (default, safe for untrusted clients) | restricted
+          (adds DML writes) | unrestricted (adds DDL/shell/listen, each
+          gated by its own MCPG_ALLOW_* env var)
+        default: read-only
