@@ -1,0 +1,70 @@
+[
+  {
+    "name": "execute",
+    "description": "Execute a GraphQL operation. Use the `introspect` tool to get information about the GraphQL schema. Always use the schema to create operations - do not try arbitrary operations. If available, first use the `validate` tool to validate operations. DO NOT try to execute introspection queries.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "The GraphQL operation"
+      },
+      {
+        "name": "variables",
+        "type": "string",
+        "desc": "The variable values represented as JSON",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "introspect",
+    "description": "Get information about a given GraphQL type defined in the schema. Instructions: Use this tool to explore the schema by providing specific type names. Start with the root query (Query) or mutation (Mutation) types to discover available fields. If the search tool is also available, use this tool first to get the fields, then use the search tool with relevant field return types and argument input types (ignore default GraphQL scalars) as search terms.",
+    "arguments": [
+      {
+        "name": "type_name",
+        "type": "string",
+        "desc": "The name of the type to get information about."
+      },
+      {
+        "name": "depth",
+        "type": "integer",
+        "desc": "How far to recurse the type hierarchy. Use 0 for no limit. Defaults to 1.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "search",
+    "description": "Search a GraphQL schema for types matching the provided search terms. Returns complete type definitions including all related types needed to construct GraphQL operations. Instructions: If the introspect tool is also available, you can discover type names by using the introspect tool starting from the root Query or Mutation types. Avoid reusing previously searched terms for more efficient exploration.",
+    "arguments": [
+      {
+        "name": "terms",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "The search terms"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "validate",
+    "description": "Validates a GraphQL operation against the schema. Use the `introspect` tool first to get information about the GraphQL schema. Operations should be validated prior to calling the `execute` tool.",
+    "arguments": [
+      {
+        "name": "operation",
+        "type": "string",
+        "desc": "The GraphQL operation"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true
+    }
+  }
+]
