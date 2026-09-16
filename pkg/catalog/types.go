@@ -137,6 +137,7 @@ type Tile struct {
 	Ref       string `json:"ref" yaml:"ref"`
 	ReadmeURL string `json:"readme,omitempty" yaml:"readme,omitempty"`
 	ToolsURL  string `json:"toolsUrl,omitempty" yaml:"toolsUrl,omitempty"`
+	LongLived bool   `json:"longLived,omitempty" yaml:"longLived,omitempty"`
 	// TODO(dga): The UI ignores tiles without a source. An empty one is ok. Put back omitempty when this is fixed
 	// Source         string         `json:"source,omitempty" yaml:"source,omitempty"`
 	Source         string         `json:"source" yaml:"source"`
