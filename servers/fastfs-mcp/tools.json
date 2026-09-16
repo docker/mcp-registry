@@ -1,0 +1,1292 @@
+[
+  {
+    "name": "fastfs_ls",
+    "description": "List files and directories at a given path. Use when you need to see what files exist in a directory, explore project structure, or verify file presence before operations. Returns list of filenames (not full paths).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to directory (default: current directory)",
+          "default": "."
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_pwd",
+    "description": "Print the current working directory. Returns absolute path string. Default is /mnt/workspace.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "fastfs_cd",
+    "description": "Change the current working directory. Use when you need to switch context to work within a specific project or subdirectory. Changes persist across tool calls.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to change to"
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "fastfs_read",
+    "description": "Read the contents of a file. Returns full file contents as UTF-8 string. For large files (>1MB), consider head() or tail() first.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to file to read"
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "fastfs_write",
+    "description": "Write contents to a file. WARNING: Overwrites existing files without confirmation. Creates parent directories automatically.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to file to write"
+        },
+        "content": {
+          "type": "string",
+          "description": "Content to write to file",
+          "default": ""
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "fastfs_grep",
+    "description": "Search for a pattern in a file using grep with line numbers. Returns matching lines with line numbers (format: linenum:content).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "pattern": {
+          "type": "string",
+          "description": "Pattern to search for (supports regex)"
+        },
+        "path": {
+          "type": "string",
+          "description": "Path to file to search"
+        }
+      },
+      "required": ["pattern", "path"]
+    }
+  },
+  {
+    "name": "fastfs_which",
+    "description": "Locate a command in the system path.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "command": {
+          "type": "string",
+          "description": "Command to locate"
+        }
+      },
+      "required": ["command"]
+    }
+  },
+  {
+    "name": "fastfs_sed",
+    "description": "Use sed to transform file content using stream editing.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "script": {
+          "type": "string",
+          "description": "Sed script to execute"
+        },
+        "path": {
+          "type": "string",
+          "description": "Path to file"
+        }
+      },
+      "required": ["script", "path"]
+    }
+  },
+  {
+    "name": "fastfs_gawk",
+    "description": "Use gawk to process file content using AWK scripting.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "script": {
+          "type": "string",
+          "description": "AWK script to execute"
+        },
+        "path": {
+          "type": "string",
+          "description": "Path to file"
+        }
+      },
+      "required": ["script", "path"]
+    }
+  },
+  {
+    "name": "fastfs_stat",
+    "description": "Display file status and metadata including size, permissions, timestamps.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to file or directory"
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "fastfs_tree",
+    "description": "Display directory tree structure with visual hierarchy. Returns ASCII tree visualization showing directories and files.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to directory",
+          "default": "."
+        },
+        "depth": {
+          "type": "integer",
+          "description": "Maximum depth to display",
+          "default": 3
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_find",
+    "description": "Find files by name pattern recursively. Returns list of matching file paths relative to search path.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Starting path for search",
+          "default": "."
+        },
+        "pattern": {
+          "type": "string",
+          "description": "Glob pattern like *.py, test_*, *.{js,ts}",
+          "default": "*"
+        },
+        "file_type": {
+          "type": "string",
+          "description": "Filter by type: f (file), d (directory), l (symlink)"
+        },
+        "max_depth": {
+          "type": "integer",
+          "description": "Limit search depth (None = unlimited)"
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_cp",
+    "description": "Copy files or directories. WARNING: Will overwrite destination if it exists.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "Source path"
+        },
+        "destination": {
+          "type": "string",
+          "description": "Destination path"
+        },
+        "recursive": {
+          "type": "boolean",
+          "description": "Copy directories recursively",
+          "default": false
+        }
+      },
+      "required": ["source", "destination"]
+    }
+  },
+  {
+    "name": "fastfs_mv",
+    "description": "Move or rename files or directories. DESTRUCTIVE: Original file/directory will no longer exist at source path.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "Source path"
+        },
+        "destination": {
+          "type": "string",
+          "description": "Destination path"
+        }
+      },
+      "required": ["source", "destination"]
+    }
+  },
+  {
+    "name": "fastfs_rm",
+    "description": "Remove files or directories. DANGEROUS: Deletion is permanent, cannot be undone.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to remove"
+        },
+        "recursive": {
+          "type": "boolean",
+          "description": "Remove directories recursively",
+          "default": false
+        },
+        "force": {
+          "type": "boolean",
+          "description": "Suppress errors if path doesn't exist",
+          "default": false
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "fastfs_touch",
+    "description": "Create a new empty file or update its timestamp.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to file"
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "fastfs_mkdir",
+    "description": "Create a new directory.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to directory to create"
+        },
+        "parents": {
+          "type": "boolean",
+          "description": "Create parent directories as needed",
+          "default": false
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "fastfs_du",
+    "description": "Show disk usage of a directory.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to directory",
+          "default": "."
+        },
+        "human_readable": {
+          "type": "boolean",
+          "description": "Show sizes in human-readable format (KB, MB, GB)",
+          "default": true
+        },
+        "max_depth": {
+          "type": "integer",
+          "description": "Maximum depth to display",
+          "default": 1
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_df",
+    "description": "Show disk space and usage.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "human_readable": {
+          "type": "boolean",
+          "description": "Show sizes in human-readable format",
+          "default": true
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_chmod",
+    "description": "Change file mode (permissions). Supports both octal (755) and symbolic (u+x) modes.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to file or directory"
+        },
+        "mode": {
+          "type": "string",
+          "description": "Permission mode (octal like 755 or symbolic like u+x)"
+        }
+      },
+      "required": ["path", "mode"]
+    }
+  },
+  {
+    "name": "fastfs_chown",
+    "description": "Change file owner and group.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to file or directory"
+        },
+        "owner": {
+          "type": "string",
+          "description": "Owner name"
+        },
+        "group": {
+          "type": "string",
+          "description": "Group name (optional)"
+        }
+      },
+      "required": ["path", "owner"]
+    }
+  },
+  {
+    "name": "fastfs_cat",
+    "description": "Concatenate and display file contents. Can display multiple files.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "paths": {
+          "type": "array",
+          "description": "List of file paths to concatenate",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["paths"]
+    }
+  },
+  {
+    "name": "fastfs_head",
+    "description": "Display the first part of files.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to file"
+        },
+        "lines": {
+          "type": "integer",
+          "description": "Number of lines to show",
+          "default": 10
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "fastfs_tail",
+    "description": "Display the last part of files.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to file"
+        },
+        "lines": {
+          "type": "integer",
+          "description": "Number of lines to show",
+          "default": 10
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "fastfs_readlink",
+    "description": "Print the resolved path of a symbolic link.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to symbolic link"
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "fastfs_realpath",
+    "description": "Print the resolved absolute path.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to resolve"
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "fastfs_cut",
+    "description": "Select specific columns from each line using a delimiter.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to file"
+        },
+        "delimiter": {
+          "type": "string",
+          "description": "Field delimiter",
+          "default": "\t"
+        },
+        "fields": {
+          "type": "string",
+          "description": "Field specification (e.g., 1, 1-3, 1,3)",
+          "default": "1"
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "fastfs_sort",
+    "description": "Sort lines of text files.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to file"
+        },
+        "reverse": {
+          "type": "boolean",
+          "description": "Sort in reverse order",
+          "default": false
+        },
+        "numeric": {
+          "type": "boolean",
+          "description": "Sort numerically",
+          "default": false
+        },
+        "field": {
+          "type": "integer",
+          "description": "Sort by specific field number"
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "fastfs_uniq",
+    "description": "Report or filter out repeated lines in a file.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to file"
+        },
+        "count": {
+          "type": "boolean",
+          "description": "Prefix lines with occurrence count",
+          "default": false
+        },
+        "repeated": {
+          "type": "boolean",
+          "description": "Only show repeated lines",
+          "default": false
+        },
+        "ignore_case": {
+          "type": "boolean",
+          "description": "Ignore case when comparing",
+          "default": false
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "fastfs_wc",
+    "description": "Print line, word, and byte counts for a file.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to file"
+        },
+        "lines": {
+          "type": "boolean",
+          "description": "Count lines",
+          "default": true
+        },
+        "words": {
+          "type": "boolean",
+          "description": "Count words",
+          "default": true
+        },
+        "bytes": {
+          "type": "boolean",
+          "description": "Count bytes",
+          "default": true
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "fastfs_nl",
+    "description": "Number lines in a file.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to file"
+        },
+        "number_empty": {
+          "type": "boolean",
+          "description": "Number empty lines",
+          "default": true
+        },
+        "number_format": {
+          "type": "string",
+          "description": "Number format string",
+          "default": "%6d  "
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "fastfs_split",
+    "description": "Split a file into smaller parts.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to file to split"
+        },
+        "prefix": {
+          "type": "string",
+          "description": "Prefix for output files",
+          "default": "x"
+        },
+        "lines": {
+          "type": "integer",
+          "description": "Lines per output file",
+          "default": 1000
+        },
+        "bytes_size": {
+          "type": "string",
+          "description": "Bytes per output file (e.g., 10M, 100K)"
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "fastfs_tar",
+    "description": "Create, extract, or list tar archives. Supports gzip, bzip2, and xz compression.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "operation": {
+          "type": "string",
+          "description": "Operation: create, extract, or list",
+          "enum": ["create", "extract", "list"]
+        },
+        "archive_file": {
+          "type": "string",
+          "description": "Archive file path"
+        },
+        "files": {
+          "type": "array",
+          "description": "Files to include (for create operation)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "options": {
+          "type": "string",
+          "description": "Additional tar options",
+          "default": ""
+        }
+      },
+      "required": ["operation", "archive_file"]
+    }
+  },
+  {
+    "name": "fastfs_gzip",
+    "description": "Compress or decompress files using gzip.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to file"
+        },
+        "decompress": {
+          "type": "boolean",
+          "description": "Decompress instead of compress",
+          "default": false
+        },
+        "keep": {
+          "type": "boolean",
+          "description": "Keep original file",
+          "default": false
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  {
+    "name": "fastfs_zip",
+    "description": "Create or extract zip archives.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "operation": {
+          "type": "string",
+          "description": "Operation: create or extract",
+          "enum": ["create", "extract"]
+        },
+        "archive_file": {
+          "type": "string",
+          "description": "Archive file path"
+        },
+        "files": {
+          "type": "array",
+          "description": "Files to include (for create operation)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "options": {
+          "type": "string",
+          "description": "Additional zip/unzip options",
+          "default": ""
+        }
+      },
+      "required": ["operation", "archive_file"]
+    }
+  },
+  {
+    "name": "fastfs_clone",
+    "description": "Clone a Git repository to local filesystem. Supports GitHub authentication via PAT or GitHub App.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "repo_url": {
+          "type": "string",
+          "description": "Git repository URL to clone"
+        },
+        "target_dir": {
+          "type": "string",
+          "description": "Target directory (optional)"
+        },
+        "options": {
+          "type": "string",
+          "description": "Additional git clone options",
+          "default": ""
+        }
+      },
+      "required": ["repo_url"]
+    }
+  },
+  {
+    "name": "fastfs_init",
+    "description": "Initialize a new Git repository.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "directory": {
+          "type": "string",
+          "description": "Directory to initialize",
+          "default": "."
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_add",
+    "description": "Add file(s) to the Git staging area for next commit.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "paths": {
+          "description": "File path(s) to add (string or array of strings)",
+          "oneOf": [
+            {"type": "string"},
+            {"type": "array", "items": {"type": "string"}}
+          ]
+        },
+        "options": {
+          "type": "string",
+          "description": "Additional git add options",
+          "default": ""
+        }
+      },
+      "required": ["paths"]
+    }
+  },
+  {
+    "name": "fastfs_commit",
+    "description": "Commit staged changes to the Git repository. Creates a permanent record in git history.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "description": "Commit message"
+        },
+        "options": {
+          "type": "string",
+          "description": "Additional git commit options",
+          "default": ""
+        }
+      },
+      "required": ["message"]
+    }
+  },
+  {
+    "name": "fastfs_status",
+    "description": "Show the working tree status - staged, unstaged, and untracked files. Run this BEFORE add() and commit().",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "options": {
+          "type": "string",
+          "description": "Additional git status options (e.g., --short)",
+          "default": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_push",
+    "description": "Push commits to a remote repository. DESTRUCTIVE: Publishes commits to remote. Requires authentication for private repos.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "remote": {
+          "type": "string",
+          "description": "Remote name",
+          "default": "origin"
+        },
+        "branch": {
+          "type": "string",
+          "description": "Branch name",
+          "default": ""
+        },
+        "options": {
+          "type": "string",
+          "description": "Additional git push options",
+          "default": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_pull",
+    "description": "Pull changes from a remote repository and merge into current branch.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "remote": {
+          "type": "string",
+          "description": "Remote name",
+          "default": "origin"
+        },
+        "branch": {
+          "type": "string",
+          "description": "Branch name",
+          "default": ""
+        },
+        "options": {
+          "type": "string",
+          "description": "Additional git pull options",
+          "default": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_log",
+    "description": "Show commit history log with hashes, authors, dates, and messages.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "options": {
+          "type": "string",
+          "description": "Git log options (e.g., --oneline -n 20, --author=name)",
+          "default": "--oneline -n 10"
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_checkout",
+    "description": "Switch branches or restore working tree files. CAUTION: May lose uncommitted changes.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "revision": {
+          "type": "string",
+          "description": "Branch name, commit hash, or file path"
+        },
+        "options": {
+          "type": "string",
+          "description": "Additional git checkout options (e.g., -b for new branch)",
+          "default": ""
+        }
+      },
+      "required": ["revision"]
+    }
+  },
+  {
+    "name": "fastfs_branch",
+    "description": "List, create, or delete branches. Returns branch list (current marked with *).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "options": {
+          "type": "string",
+          "description": "Git branch options (e.g., -d to delete)",
+          "default": ""
+        },
+        "branch_name": {
+          "type": "string",
+          "description": "Branch name for create/delete operations"
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_merge",
+    "description": "Merge another branch into the current branch. CAUTION: May cause merge conflicts.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "Branch to merge"
+        },
+        "options": {
+          "type": "string",
+          "description": "Additional git merge options",
+          "default": ""
+        }
+      },
+      "required": ["branch"]
+    }
+  },
+  {
+    "name": "fastfs_show",
+    "description": "Show detailed information about a Git object (commit, tag, etc.). Returns full commit information including message and changes.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "object": {
+          "type": "string",
+          "description": "Git object (commit hash, tag, HEAD, etc.)",
+          "default": "HEAD"
+        },
+        "options": {
+          "type": "string",
+          "description": "Additional git show options",
+          "default": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_diff",
+    "description": "Show changes between commits, staging area, and working tree. Returns unified diff showing additions (+) and deletions (-).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "options": {
+          "type": "string",
+          "description": "Git diff options (e.g., --staged, HEAD~1)",
+          "default": ""
+        },
+        "path": {
+          "type": "string",
+          "description": "Specific file path to diff"
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_remote",
+    "description": "Manage remote repositories (show, add, remove, rename).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "command": {
+          "type": "string",
+          "description": "Remote command (show, add, remove, rename)",
+          "default": "show"
+        },
+        "name": {
+          "type": "string",
+          "description": "Remote name"
+        },
+        "options": {
+          "type": "string",
+          "description": "Additional options",
+          "default": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_rev_parse",
+    "description": "Pick out and massage parameters for low-level Git commands.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "rev": {
+          "type": "string",
+          "description": "Revision to parse"
+        },
+        "options": {
+          "type": "string",
+          "description": "Git rev-parse options",
+          "default": ""
+        }
+      },
+      "required": ["rev"]
+    }
+  },
+  {
+    "name": "fastfs_ls_files",
+    "description": "Show information about files in the index and the working tree.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "options": {
+          "type": "string",
+          "description": "Git ls-files options",
+          "default": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_describe",
+    "description": "Give an object a human-readable name based on available ref.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "options": {
+          "type": "string",
+          "description": "Git describe options",
+          "default": "--tags"
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_rebase",
+    "description": "Reapply commits on top of another base tip.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "Branch to rebase onto"
+        },
+        "options": {
+          "type": "string",
+          "description": "Git rebase options",
+          "default": ""
+        }
+      },
+      "required": ["branch"]
+    }
+  },
+  {
+    "name": "fastfs_stash",
+    "description": "Stash changes in a dirty working directory temporarily. Commands: push (save), pop (restore and remove), apply (restore and keep), list (show stashes).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "command": {
+          "type": "string",
+          "description": "Stash command (push, pop, apply, list)",
+          "default": "push"
+        },
+        "options": {
+          "type": "string",
+          "description": "Additional stash options",
+          "default": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_reset",
+    "description": "Reset current HEAD to a specified state. DANGEROUS: Can lose uncommitted work. Use --hard with extreme caution.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "options": {
+          "type": "string",
+          "description": "Reset options (--soft, --hard, HEAD~1, etc.)",
+          "default": ""
+        },
+        "paths": {
+          "description": "Specific paths to reset",
+          "oneOf": [
+            {"type": "string"},
+            {"type": "array", "items": {"type": "string"}}
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_clean",
+    "description": "Remove untracked files from the working tree. DANGEROUS: Deleted files cannot be recovered. ALWAYS run with -n first to preview.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "options": {
+          "type": "string",
+          "description": "Clean options: -n (dry run), -f (force delete), -fd (delete files and directories)",
+          "default": "-n"
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_tag",
+    "description": "Create, list, delete or verify a tag object.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "tag_name": {
+          "type": "string",
+          "description": "Tag name (omit to list all tags)"
+        },
+        "options": {
+          "type": "string",
+          "description": "Git tag options (e.g., -a for annotated, -d to delete)",
+          "default": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_config",
+    "description": "Get or set repository or global Git configuration options.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Configuration name (e.g., user.name)"
+        },
+        "value": {
+          "type": "string",
+          "description": "Configuration value to set"
+        },
+        "options": {
+          "type": "string",
+          "description": "Git config options (e.g., --global)",
+          "default": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_fetch",
+    "description": "Download objects and refs from another repository.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "remote": {
+          "type": "string",
+          "description": "Remote name",
+          "default": "origin"
+        },
+        "options": {
+          "type": "string",
+          "description": "Git fetch options",
+          "default": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_blame",
+    "description": "Show what revision and author last modified each line of a file.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "file_path": {
+          "type": "string",
+          "description": "Path to file"
+        },
+        "options": {
+          "type": "string",
+          "description": "Git blame options",
+          "default": ""
+        }
+      },
+      "required": ["file_path"]
+    }
+  },
+  {
+    "name": "fastfs_git_grep",
+    "description": "Print lines matching a pattern in tracked files. More efficient than fastfs_grep for git repositories.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "pattern": {
+          "type": "string",
+          "description": "Pattern to search for"
+        },
+        "options": {
+          "type": "string",
+          "description": "Git grep options",
+          "default": ""
+        }
+      },
+      "required": ["pattern"]
+    }
+  },
+  {
+    "name": "fastfs_context",
+    "description": "Get comprehensive context about the current Git repository in a single call. Returns current branch, repo root, clean status, HEAD commit, remotes, recent commits, branches, and tags. This is your GO-TO tool for understanding repository state.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "options": {
+          "type": "string",
+          "description": "Context options",
+          "default": "--all"
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_git_show_head",
+    "description": "Show the current HEAD commit information in detail. Returns full commit details including message, author, date, and diff.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "options": {
+          "type": "string",
+          "description": "Git show options",
+          "default": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_version",
+    "description": "Get the Git version installed in the container.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "fastfs_validate",
+    "description": "Validate the Git repository for common issues and potential problems. Returns validation results with issues, warnings, and info.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "fastfs_repo_info",
+    "description": "Get comprehensive statistics and information about the Git repository including commit count, contributors, file count, size, and more.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "fastfs_summarize_log",
+    "description": "Summarize the git log with statistics per author, date distribution, and change metrics. Returns commits list and aggregated stats.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer",
+          "description": "Number of commits to analyze",
+          "default": 10
+        },
+        "options": {
+          "type": "string",
+          "description": "Additional git log options",
+          "default": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_suggest_commit",
+    "description": "Analyze staged changes and suggest a conventional commit message. Returns changes summary, suggested message, type (feat/fix/docs/etc), and scope.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "options": {
+          "type": "string",
+          "description": "Additional options",
+          "default": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "fastfs_audit_history",
+    "description": "Audit repository history for security issues and problematic patterns. Checks for large files, secrets, merge conflict markers, binary files, and short commit messages.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "options": {
+          "type": "string",
+          "description": "Audit options",
+          "default": ""
+        }
+      }
+    }
+  }
+]
