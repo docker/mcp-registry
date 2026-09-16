@@ -1,0 +1,108 @@
+[
+  {
+    "name": "legalai_classify_system",
+    "description": "Classify an AI system under a legislation's risk framework (e.g., EU AI Act prohibited/high-risk/limited/minimal). Uses signals, keywords, and semantic matching.",
+    "arguments": [
+      { "name": "legislationId", "type": "string", "desc": "Legislation ID (e.g., 'eu-ai-act', 'dora')" },
+      { "name": "description", "type": "string", "desc": "Free-text description of the AI system" },
+      { "name": "role", "type": "string", "desc": "Organization's role: 'provider', 'deployer', or 'unknown'" }
+    ]
+  },
+  {
+    "name": "legalai_get_obligations",
+    "description": "Get compliance obligations filtered by legislation, role, and risk level. Each obligation includes its provenance tier (AUTHORITATIVE/CURATED).",
+    "arguments": [
+      { "name": "legislationId", "type": "string", "desc": "Legislation ID" },
+      { "name": "role", "type": "string", "desc": "Filter by role (e.g., 'provider', 'deployer')" },
+      { "name": "riskLevel", "type": "string", "desc": "Filter by risk level (e.g., 'high-risk', 'limited')" }
+    ]
+  },
+  {
+    "name": "legalai_calculate_penalty",
+    "description": "Calculate potential penalties for a specific violation type. Returns AUTHORITATIVE fine amounts extracted from verbatim regulation text.",
+    "arguments": [
+      { "name": "legislationId", "type": "string", "desc": "Legislation ID" },
+      { "name": "violationType", "type": "string", "desc": "Violation type (e.g., 'prohibited-practices', 'high-risk-non-compliance')" },
+      { "name": "annualTurnoverEur", "type": "number", "desc": "Annual worldwide turnover in EUR" },
+      { "name": "isSme", "type": "boolean", "desc": "Whether the organization is an SME" }
+    ]
+  },
+  {
+    "name": "legalai_get_article",
+    "description": "Retrieve a specific article by number from a legislation. Returns verbatim regulation text (AUTHORITATIVE) when fetched from EUR-Lex CELLAR.",
+    "arguments": [
+      { "name": "legislationId", "type": "string", "desc": "Legislation ID" },
+      { "name": "articleNumber", "type": "string", "desc": "Article number (e.g., '6', '99', 'annex-iv')" }
+    ]
+  },
+  {
+    "name": "legalai_get_deadlines",
+    "description": "Get compliance deadlines for a legislation with days remaining and past/upcoming status.",
+    "arguments": [
+      { "name": "legislationId", "type": "string", "desc": "Legislation ID" },
+      { "name": "onlyUpcoming", "type": "boolean", "desc": "If true, only return future deadlines" }
+    ]
+  },
+  {
+    "name": "legalai_search_knowledge",
+    "description": "Semantic search across articles, obligations, FAQs, or risk categories. Results include provenance tier.",
+    "arguments": [
+      { "name": "legislationId", "type": "string", "desc": "Legislation ID" },
+      { "name": "query", "type": "string", "desc": "Natural language search query" },
+      { "name": "entityType", "type": "string", "desc": "Type: 'article', 'obligation', 'faq', 'risk-category'" },
+      { "name": "limit", "type": "number", "desc": "Max results (default 5)" }
+    ]
+  },
+  {
+    "name": "legalai_answer_question",
+    "description": "Answer a compliance question using the FAQ knowledge base with semantic matching.",
+    "arguments": [
+      { "name": "legislationId", "type": "string", "desc": "Legislation ID" },
+      { "name": "question", "type": "string", "desc": "The question to answer" }
+    ]
+  },
+  {
+    "name": "legalai_run_assessment",
+    "description": "Run a structured compliance assessment (e.g., Article 6(3) exception check, GPAI systemic risk).",
+    "arguments": [
+      { "name": "legislationId", "type": "string", "desc": "Legislation ID" },
+      { "name": "assessmentId", "type": "string", "desc": "Assessment identifier" }
+    ]
+  },
+  {
+    "name": "legalai_list_legislations",
+    "description": "List all available legislations in the database (currently EU AI Act and DORA).",
+    "arguments": []
+  },
+  {
+    "name": "legalai_get_article_history",
+    "description": "Retrieve the full revision history of an article, showing how verbatim text changed across amendments.",
+    "arguments": [
+      { "name": "articleId", "type": "string", "desc": "Article identifier (e.g., 'eu-ai-act-art-99')" }
+    ]
+  },
+  {
+    "name": "legalai_get_derivation_chain",
+    "description": "Trace an obligation back to its source articles. Shows the verbatim law that a curated obligation paraphrases.",
+    "arguments": [
+      { "name": "obligationId", "type": "string", "desc": "Obligation identifier" }
+    ]
+  },
+  {
+    "name": "legalai_get_article_extracts",
+    "description": "View deterministically extracted facts from an article's verbatim text: fine amounts, percentages, dates, cross-references, shall-clauses. All AUTHORITATIVE.",
+    "arguments": [
+      { "name": "articleId", "type": "string", "desc": "Article identifier (e.g., 'eu-ai-act-art-99')" },
+      { "name": "extractType", "type": "string", "desc": "Optional filter: 'fine_amount_eur', 'turnover_percentage', 'date', 'article_cross_ref', 'shall_clause'" }
+    ]
+  },
+  {
+    "name": "legalai_run_swarm_assessment",
+    "description": "Run a parallel hivemind assessment — multiple agents analyse all articles simultaneously, producing a comprehensive ComplianceReport with gap detection. Fully deterministic (no LLM in the agent loop).",
+    "arguments": [
+      { "name": "legislationId", "type": "string", "desc": "Legislation ID (e.g., 'eu-ai-act')" },
+      { "name": "systemDescription", "type": "string", "desc": "Description of the AI system being assessed" },
+      { "name": "concurrency", "type": "number", "desc": "Number of parallel agents (default 4, max 8)" }
+    ]
+  }
+]
