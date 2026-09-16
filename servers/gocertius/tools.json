@@ -1,0 +1,252 @@
+{
+  "tools": [
+    {
+      "name": "evidence_create",
+      "description": "Registers a NEW evidence record inside an evidence group. Requires: evidence_group_create → evidenceGroupId, case_file_create → caseFileId. Generate a UUID v4 for `id` and compute the SHA-256 hex hash BEFORE calling. INTERNAL flow: call with custodyType INTERNAL; the response returns uploadFileUrl (presigned S3 URL). PUT the exact file bytes to uploadFileUrl, then verify with evidence_get/evidence_list, and ONLY THEN call evidence_seal. Do not seal while any INTERNAL evidence file is not uploaded. EXTERNAL flow: use custodyType EXTERNAL only for intentional hash-only evidence; each evidence still needs a fresh UUID. If a previous evidence create/upload failed and outcome is unknown, verify with evidence_list before retrying and do not reuse the same id unless you confirmed it was not persisted. WARNING: the API sometimes returns {code:'EvidenceCreateError'} even when the evidence was successfully persisted."
+    },
+    {
+      "name": "evidence_list",
+      "description": "Lists all evidence records in a specific evidence group. Use to review uploaded documents before sealing the group, or to find a specific evidenceId. Requires: caseFileId and evidenceGroupId. Returns paginated list with IDs, titles, status, and timestamps."
+    },
+    {
+      "name": "evidence_seal",
+      "description": "Seals an evidence group and triggers qualified TSP timestamping. Requires: all INTERNAL evidence records in the group have already been uploaded to their uploadFileUrl and verified with evidence_get/evidence_list. Requires case_file_create → caseFileId and evidence_group_create → evidenceGroupId. Set evidencesCount to the number of evidences in the group. ASYNC: after calling, poll evidence_group_list until the group status changes to CLOSED before linking to a dossier or generating certificates."
+    },
+    {
+      "name": "evidence_get",
+      "description": "Retrieves a specific evidence record. Requires: evidence_create → evidenceId, evidence_group_create → evidenceGroupId, case_file_create → caseFileId. Returns status (COMPLETED|IN_PROCESS|ERROR), hash, and tspTimestamp when certified."
+    },
+    {
+      "name": "evidence_group_create",
+      "description": "Creates an evidence group inside a case file. Requires: case_file_create → caseFileId. Generate a UUID v4 for `id`. Set evidenceType to FILE, PHOTO, VIDEO, or WEB_PLUGIN. Returns evidenceGroupId. One group can contain multiple evidence records."
+    },
+    {
+      "name": "evidence_group_list",
+      "description": "Lists all evidence groups in a case file with their current status (OPEN, CLOSING, CLOSED). Use to find an existing group or check which groups are ready for sealing. Requires: caseFileId."
+    },
+    {
+      "name": "dossier_create",
+      "description": "Creates a dossier to aggregate certified evidence groups into a single tamper-evident PDF. Requires: case_file_create → caseFileId. Evidence groups must be in CLOSED status before linking. Generate a UUID v4 string for `id`. Returns dossierId. After creation, link evidence with dossier_evidence_link, then certify with dossier_certify."
+    },
+    {
+      "name": "dossier_update",
+      "description": "Updates the metadata of an existing dossier (name, template fields, expiry). Requires: dossier_create → dossierId, caseFileId. Only available while dossier is in DRAFT status."
+    },
+    {
+      "name": "dossier_certify",
+      "description": "Certifies a dossier, generating a tamper-evident PDF and locking all linked evidence. Requires: dossier_create → dossierId, dossier_evidence_link (evidence linked), case_file_create → caseFileId. ASYNC: transitions DRAFT → CERTIFYING → CERTIFIED. Poll dossier_list until dossierId status === CERTIFIED before downloading."
+    },
+    {
+      "name": "dossier_list",
+      "description": "Lists all dossiers in a case file with their status and metadata. Use to find an existing dossierId or monitor certification progress. Requires: caseFileId. Returns paginated list with IDs, names, status, and creation dates."
+    },
+    {
+      "name": "dossier_list_by_user",
+      "description": "Lists every dossier belonging to a user, across all of their case files. Requires: userId (from session_login or session_info). Use this when you do not know which case file a dossier is in; use dossier_list when you already have a caseFileId. Supports filter, order and page. Returns { data, meta.totalElements }."
+    },
+    {
+      "name": "dossier_get",
+      "description": "Retrieves the full details of a specific dossier including status, linked evidence, and download URLs. Use to check current state or get certificate download URLs after CERTIFIED. Requires: caseFileId and dossierId."
+    },
+    {
+      "name": "dossier_template_list",
+      "description": "Lists available dossier templates. No prerequisites. Returns template IDs and their translations per language. Use the returned id as dossierTemplateId in dossier_create."
+    },
+    {
+      "name": "dossier_preview",
+      "description": "Returns an HTML preview URL of a dossier before certification. Requires: caseFileId and dossierId."
+    },
+    {
+      "name": "dossier_document_url",
+      "description": "Returns the download URL for the certified dossier PDF. Requires: dossier_certify (CERTIFIED status), caseFileId, dossierId."
+    },
+    {
+      "name": "dossier_package_url",
+      "description": "Returns the download URL for the full dossier package (PDF + evidence files). Requires: dossier_certify (CERTIFIED status), caseFileId, dossierId."
+    },
+    {
+      "name": "dossier_visibility",
+      "description": "Updates the visibility (public/private) of a certified dossier. Requires: dossier_certify (CERTIFIED status), caseFileId, dossierId."
+    },
+    {
+      "name": "dossier_delete",
+      "description": "Deletes a dossier. Available in DRAFT status (to discard before certification) or in CERTIFIED status (to permanently remove the certified dossier). Irreversible. Requires: caseFileId and dossierId."
+    },
+    {
+      "name": "dossier_group_certify",
+      "description": "Creates AND certifies a dossier from a single sealed evidence group in one call (express path). Requires: evidence_seal (CLOSED status), case_file_create → caseFileId, evidence_group_create → evidenceGroupId. Generate a UUID v4 string for `id`. Use when you have exactly one sealed evidence group and don't need multi-group aggregation. Returns dossierId immediately with CERTIFYING status → poll until CERTIFIED."
+    },
+    {
+      "name": "dossier_evidence_link",
+      "description": "Links evidence records from a sealed evidence group to a dossier. Requires: dossier_create → dossierId, evidence_seal (CLOSED status), case_file_create → caseFileId. Evidence groups MUST be in CLOSED status. Pass the ids array of evidence UUIDs to link. Can be called multiple times for evidence from different case files."
+    },
+    {
+      "name": "dossier_evidence_list_to_link",
+      "description": "Lists evidence items that are available to be linked to a dossier (CLOSED groups not yet linked). Requires: caseFileId and dossierId."
+    },
+    {
+      "name": "dossier_evidence_list",
+      "description": "Lists the evidence items linked to ONE evidence group of a dossier. Requires: caseFileId, dossierId AND dossierEvidenceGroupId — all three are mandatory. For every evidence item in the dossier regardless of group, use dossier_evidence_list_by_dossier instead. Supports filter, order and page."
+    },
+    {
+      "name": "dossier_evidence_list_by_dossier",
+      "description": "Lists every evidence item linked to a dossier, across all of its evidence groups. Requires: caseFileId and dossierId. This is the dossier-wide view; dossier_evidence_list is the narrower per-group one and additionally needs a dossierEvidenceGroupId. Supports filter, order and page. Returns { data, meta.totalElements }."
+    },
+    {
+      "name": "dossier_evidence_get",
+      "description": "Retrieves details of a specific evidence item linked to a dossier. Requires: caseFileId, dossierId, evidenceId."
+    },
+    {
+      "name": "dossier_evidence_delete",
+      "description": "Removes an evidence item from a dossier. Only available while dossier is in DRAFT status. Requires: caseFileId, dossierId, evidenceId."
+    },
+    {
+      "name": "notification_document_add",
+      "description": "Attaches a document to a notification. Two steps: this call registers the file and returns { url }, a presigned upload URL, and you then PUT the raw bytes to that URL with an x-amz-checksum-sha256 header. Generate a UUID v4 for `id`, and compute the file's SHA-256 hex hash BEFORE calling — it goes in `hash`. ORDER MATTERS AND GETTING IT WRONG FAILS THE SEND: add every document BEFORE adding recipients, and wait until each document reaches READY_TO_SEND (poll notification_document_list; roughly 8 seconds) before calling notification_request_send. Attaching after recipients, or sending while a document is still PENDING, returns 409/404 NOTIFICATION_NOT_FOUND. The maximum number of attachments is a per-subscription setting rather than a fixed API limit, so do not assume a number. Attachments can be bundled into the delivery certificate — see notification_certificate_package_url."
+    },
+    {
+      "name": "notification_request_create",
+      "description": "Creates a certified notification request. Requires: case_file_create → caseFileId. Generate a UUID v4 for `id`. Set language to en_GB or es_ES. Returns notificationRequestId. Add at least one receiver with notification_receiver_add before sending. IMPORTANT: The `content` field must be valid HTML — plain text without HTML tags will not render on the recipient landing page. Only the following HTML formats are supported: paragraphs (<p>), bold (<strong>), italic (<em>), unordered lists (<ul><li>), ordered lists (<ol><li>). Do not use other HTML tags or CSS. Avoid special typographic characters (em dashes, smart quotes) in `subject`; use standard ASCII equivalents (hyphen, straight quotes) instead."
+    },
+    {
+      "name": "notification_request_send",
+      "description": "Sends the certified notification to all added receivers. Requires: notification_request_create → notificationRequestId, notification_receiver_add (at least one receiver), case_file_create → caseFileId. ASYNC: triggers delivery. Poll notification_request_status until status is SENT or beyond (PARTIALLY_READ, FULLY_READ) before generating certificates."
+    },
+    {
+      "name": "notification_request_status",
+      "description": "Checks the delivery status of a certified notification. Requires: notificationRequestId, caseFileId. Returns status (CREATING|DRAFT|IN_PROCESS|SENT|PARTIALLY_READ|FULLY_READ|PARTIALLY_ANSWERED|FULLY_ANSWERED). Poll until status is SENT or beyond. Do not call notification_certificate_get while status is CREATING, DRAFT, or IN_PROCESS."
+    },
+    {
+      "name": "notification_receiver_add",
+      "description": "Adds a recipient to a notification request. Requires: notification_request_create → notificationRequestId, case_file_create → caseFileId. The `id` can be a UUID v4 or custom string (e.g. your internal user ID). Returns receiverId — save it for notification_certificate_get. Delivery is by email always; set sendWaUrl for a WhatsApp link, sendSmsUrl for an RCS/SMS link (the channel negotiates: RCS where the handset supports it, SMS otherwise), and otpRequired to challenge the recipient with a one-time code. Any of those three needs phonePrefix (with the +) and phoneNumber. Add all receivers before calling notification_request_send — but if the notification has attachments, add those FIRST (see notification_document_add)."
+    },
+    {
+      "name": "notification_certificate_get",
+      "description": "Generates or retrieves a PDF certificate for a specific receiver proving delivery and/or reading of the notification. Requires: notification_request_send, notification_receiver_add → receiverId, notification_request_create → notificationRequestId, case_file_create → caseFileId. Generate a UUID v4 for `id` the first time you request a certificate for that receiver and reuse that same id when polling. Call only after notification_request_status is SENT or beyond. The first call may return {} while the certificate is being generated; poll/re-call notification_certificate_get until the response includes a pdfUrl/documentUrl or a CERTIFIED/final status. If the backend returns Forbidden/Unexpected at SENT, do not keep hammering the certificate endpoint: poll notification_request_status until READ/ANSWERED or verify in the UI, then retry with the same certificate id. For ACCEPTED_OR_NOT notifications, call once after a certifiable delivery/read state for an intermediate certificate and again after PARTIALLY_ANSWERED/FULLY_ANSWERED for the final answer certificate."
+    },
+    {
+      "name": "notification_request_list",
+      "description": "Lists the certified notifications visible to a user. Requires userId (from session_login, session_info or profile_get) — this listing is user-scoped, not case-file-scoped, so it spans every case file unless you filter. Use this to recover a notificationRequestId you no longer have; it is the only way to find one. Returns per notification: id, code, subject, status, type, sentAt, receiverStats and the owning caseFile. Filter by `status` or `statuses` (CREATING, DRAFT, IN_PROCESS, SENT, PARTIALLY_READ, FULLY_READ, PARTIALLY_ANSWERED, FULLY_ANSWERED), by `caseFileIds`, by `search` over the subject, or by `receiversSearch` to find the notification sent to a given recipient. Paginated."
+    },
+    {
+      "name": "notification_request_update",
+      "description": "Edits a notification that has not been sent: subject, content, type and language. Requires notificationRequestId and caseFileId. `content` must be valid HTML — plain text is accepted by the API but does NOT render on the recipient landing page. Supported tags only: <p>, <strong>, <em>, <ul><li>, <ol><li>; no other tags and no CSS. Keep `subject` to plain ASCII (no em dashes, no smart quotes), 100 characters maximum. TESTED: once the notification has been sent the API rejects this with 403 Forbidden, so editing only works before the send. To change which case file it belongs to use notification_request_case_file_move — this tool does not move it."
+    },
+    {
+      "name": "notification_request_delete",
+      "description": "Deletes a notification. Requires notificationRequestId and caseFileId. There is no undo. TESTED: once the notification has been sent the API rejects this with 403 Forbidden — a sent notification is delivery evidence and cannot be removed. If you only want it filed elsewhere, use notification_request_case_file_move instead."
+    },
+    {
+      "name": "notification_request_duplicate",
+      "description": "Creates a new DRAFT notification from an existing one, copying its content, its recipients and its attachments. Works whatever state the original is in, so this is how you resend to the same people or reuse a sent notification as a template. Generate a UUID v4 for `id` and supply a new `subject`; pass `caseFileId` in the body to place the copy in a different case file, or omit it to keep it alongside the original. THE COPY IS BUILT ASYNCHRONOUSLY: it starts in CREATING with zero recipients and zero documents, and fills in afterwards, so reading it immediately shows an empty notification that is not empty. Poll notification_request_status until the status is DRAFT before inspecting or sending it. Because recipients ARE copied, review them with notification_receiver_list before calling notification_request_send — otherwise you will send to the original list again."
+    },
+    {
+      "name": "notification_request_case_file_move",
+      "description": "Moves a notification to a different case file. Note the two caseFileId values: the one in the path is where the notification is NOW, and the one in the body is the destination. Notifications are grouped by case file, and this is the only way to change that grouping without duplicating."
+    },
+    {
+      "name": "notification_receiver_list",
+      "description": "Lists a notification's recipients with their individual delivery state. Returns per recipient: id, firstName, lastName, email, phonePrefix/phoneNumber, status (INVALID, READY_TO_SEND, SENT, READ, ANSWERED, ERROR), statusUpdatedAt, `answer` once they respond, emailBounced, and validationError (TAKEN, IS_DEFINED, IS_INVALID) for a rejected address. Worth calling before notification_request_send to see whether any address came back INVALID, and after sending to see who read or answered. Also the way to recover a receiverId for notification_certificate_get. Paginated; filterable by id."
+    },
+    {
+      "name": "notification_receiver_update",
+      "description": "Corrects a recipient's details: firstName, lastName, email, phonePrefix, phoneNumber. Requires receiverId, notificationRequestId and caseFileId. Use this to fix a mistyped address rather than deleting and re-adding, which would lose the receiverId. phonePrefix must include the + (for example +34). A phone number is required if the recipient is to receive the RCS/SMS link (sendSmsUrl), the WhatsApp link (sendWaUrl), or an OTP challenge (otpRequired)."
+    },
+    {
+      "name": "notification_receiver_delete",
+      "description": "Removes a recipient from a notification. Requires receiverId, notificationRequestId and caseFileId. To remove every address the platform rejected in one call, use notification_receiver_invalid_purge rather than deleting them one by one."
+    },
+    {
+      "name": "notification_receiver_add_bulk",
+      "description": "Adds several recipients in one call instead of one notification_receiver_add per person. Pass `receivers` as an array; each entry needs `id` (you generate it), firstName, lastName and email, and may carry phonePrefix (with the +) and phoneNumber. Note this bulk form does NOT accept the per-recipient otpRequired, sendWaUrl or sendSmsUrl flags that the single-recipient tool does — set the defaults on the request instead (otpByDefault, sendWaUrlByDefault, sendSmsUrlByDefault). The maximum number of recipients is a per-subscription setting, not a fixed API limit: it varies by tenant and platform, so do not assume a number — add them and read the error if the tenant's cap is exceeded. Add every recipient before calling notification_request_send, then check the result with notification_receiver_list, since a rejected address appears with status INVALID."
+    },
+    {
+      "name": "notification_receiver_invalid_purge",
+      "description": "Removes every recipient whose status is INVALID — addresses the platform rejected as malformed or duplicated — from a notification in a single call. Requires notificationRequestId and caseFileId. Recipients in any other status are left untouched. AN INVALID RECIPIENT BLOCKS THE SEND, so run this (or fix the addresses with notification_receiver_update) before notification_request_send, or the notification will not go out. Use notification_receiver_list first to see what will go."
+    },
+    {
+      "name": "notification_document_list",
+      "description": "Lists the documents attached to a notification with their processing status, and it is what you poll after notification_document_add: a newly registered document starts at PENDING and reaches READY_TO_SEND in roughly 8 seconds. Calling notification_request_send while any document is still PENDING fails with 409/404 NOTIFICATION_NOT_FOUND. Poll with a bounded retry — every few seconds, a dozen attempts at most. Requires notificationRequestId and caseFileId. Paginated."
+    },
+    {
+      "name": "notification_document_delete",
+      "description": "Removes an attachment from a notification. Requires documentId (from notification_document_list), notificationRequestId and caseFileId."
+    },
+    {
+      "name": "notification_document_download_url",
+      "description": "Returns { downloadUrl }, a temporary link to an attachment as it was sent. Requires documentId (from notification_document_list), notificationRequestId and caseFileId. Use it to retrieve a file you attached or to verify what a recipient received. The URL is presigned and expires — fetch it when you need it rather than storing it."
+    },
+    {
+      "name": "notification_certificate_list",
+      "description": "Lists the delivery certificates already generated for one recipient, so you can reuse one instead of generating a duplicate. Requires receiverId, notificationRequestId and caseFileId. Returns per certificate: id, status (DRAFT, CERTIFYING, CERTIFIED), language, createdAt, certifiedAt, `partial` — whether it is an intermediate certificate issued before the recipient finished responding — and `embeddedDocuments`. Do not read `embeddedDocuments` as \"the package contains the attachments\": in a tested run it was false on a notification that had an attachment, and notification_certificate_package_url still returned a ZIP carrying that attachment. Once a certificate is CERTIFIED, download it with notification_certificate_document_url (the certificate alone) or notification_certificate_package_url (a ZIP that also carries the attachments)."
+    },
+    {
+      "name": "notification_certificate_document_url",
+      "description": "Returns { documentUrl } for the certificate PDF on its own, WITHOUT the attachments. Requires certificateId, receiverId, notificationRequestId and caseFileId. Wait until the certificate is CERTIFIED: generation is asynchronous and the first call can 404 or come back empty while it is still CERTIFYING, so poll a few times with a bounded retry rather than hammering it. If you want the attachments bundled in, use notification_certificate_package_url instead."
+    },
+    {
+      "name": "notification_certificate_package_url",
+      "description": "Returns { packageUrl } for a ZIP containing the certificate AND the notification's attachments — the \"with annexes\" form. There is no separate preview flag anywhere in the API: the package carries the annexes, the document is the certificate alone. Requires certificateId, receiverId, notificationRequestId and caseFileId. Same preconditions as notification_certificate_document_url — wait for CERTIFIED, and expect the first call to fail while generation is still running."
+    },
+    {
+      "name": "case_file_create",
+      "description": "Creates a new case file — the top-level container for all related operations (evidence, notifications, dossiers, chats). Call this first before any other operation. Generate a UUID v4 for `id`. Returns caseFileId needed for all subsequent calls."
+    },
+    {
+      "name": "case_file_list",
+      "description": "Lists all case files in your GoCertius account. Pass userId (from session_login or session_info) to scope results to your account. Returns paginated list with IDs, names, and status."
+    },
+    {
+      "name": "case_file_get",
+      "description": "Retrieves details of a specific case file. Requires: caseFileId. Use to verify a case file exists before creating evidence groups, dossiers, or notifications."
+    },
+    {
+      "name": "case_file_delete",
+      "description": "Deletes a case file and everything filed inside it — evidence groups, dossiers, notifications and their certificates. Irreversible, with no confirmation step and no recycle bin. Requires: caseFileId. Returns no body (HTTP 204); confirm with case_file_list. Do not call it to 'clean up' unless the user asked for that case file to be destroyed."
+    },
+    {
+      "name": "chat_create",
+      "description": "Creates a certified chat channel (Telegram). IMPORTANT: Chats can only be created in the user's personal case file (created automatically when the GoCertius account was opened). Do not use a manually created case file — use session_info → case_file_list to find the personal case file (oldest createdAt, owned by the user). Generate a UUID v4 for `id`. Set service to Telegram. Returns immediately and the chat may start in status `creating`; call chat_get and wait until it is registered/active before requesting the invitation URL or certificates."
+    },
+    {
+      "name": "chat_get",
+      "description": "Retrieves details of a certified chat. Requires: personal caseFileId and chat_create → chatId. Returns status, participants, and registeredAt timestamp. After chat_create, poll chat_get until status is active/registered and registeredAt is present; createdAt is not enough for certificate creation."
+    },
+    {
+      "name": "chat_invitation_url",
+      "description": "Returns the Telegram invitation URL for a certified chat. Requires: chat_create → chatId and the personal caseFileId. Do not call while chat_get still shows status `creating`; wait until the chat is registered/active, otherwise the API can answer Chat not found. Share the returned invitationUrl with participants so they can join the certified channel."
+    },
+    {
+      "name": "chat_certificate_create",
+      "description": "Creates a certificate of a range of messages from a certified chat. Requires: chat_create → chatId, personal caseFileId, chat_get → registeredAt, and messages already present in the Telegram channel. Generate a UUID v4 for `id`. Do not use createdAt as a substitute for registeredAt; if registeredAt is missing, the chat is not ready to certify. Specify chatMessagesFrom and chatMessagesTo as ISO timestamps (chatMessagesFrom must be AFTER registeredAt). ASYNC: poll chat_certificate_get until status === CERTIFIED."
+    },
+    {
+      "name": "chat_certificate_get",
+      "description": "Retrieves the certificate of a certified chat. Requires: chat_certificate_create → certificate id, chat_create → chatId, case_file_create → caseFileId. Returns documentUrl when status reaches CERTIFIED. Poll until CERTIFIED before using documentUrl."
+    },
+    {
+      "name": "session_login",
+      "description": "Forces the MCP server to re-authenticate with GoCertius. Takes NO parameters and accepts no credentials — the server re-exchanges the user key it was configured with (MCP_AUTH_USER_KEY) for a fresh session token and reports the resulting userId and expiry. The MCP server manages authentication automatically; call this only if you hit 401 errors. When the server holds no credential of its own (none configured, or you supplied your own Bearer token) there is no session of ours to renew and the tool returns an error naming MCP_AUTH_USER_KEY."
+    },
+    {
+      "name": "session_info",
+      "description": "Retrieves information about the current authenticated session: userId, `type` (how this MCP session authenticated — always UserKey, the server's only auth flow), `accountLoginType` (a different fact: how the GoCertius account itself signs in, Password or OpenId, null if the API omits it), email, companyId and defaultCaseFileId. Use to verify who is authenticated or check session validity; identity is resolved via GET /profile. If you only need the userId, prefer profile_get — it is the canonical source (`id`) and returns the rest of the profile too. No required parameters."
+    },
+    {
+      "name": "profile_get",
+      "description": "Returns the authenticated user's own profile. It identifies the caller from the session token alone — no email or any other input needed — so it works on every deployment, including a per-request Bearer one. Its `id` field IS your userId (UUID): the value required by case_file_list and every /users/{userId}/... operation. Prefer this over session_info when you need the userId: it is the canonical source. Also returns companyId (needed to subscribe to the notifications SSE stream) and defaultCaseFileId (the personal case file — the one chats must use). Also returns `permit`, a set of booleans — { evidences, idVerifications, notifications, chats, signatures } — that says which tool families this account may use at all: a false entry means every tool in that family returns 403 regardless of inputs, and no retry or different argument will help. Read it before calling into a family for the first time. Note that a family with no tools in this server will read false and that is expected, not a misconfiguration. No parameters."
+    },
+    {
+      "name": "evidence_upload",
+      "description": "Uploads a local file as evidence in one step: computes its SHA-256, registers the evidence record (custodyType INTERNAL = GoCertius stores the file), and uploads the bytes to S3 — no manual hashing or PUT needed. Internally this follows the required GoCertius sequence: create INTERNAL evidence → receive uploadFileUrl (presigned S3 URL) → PUT file bytes → return uploaded:true. Requires: case_file_create → caseFileId, evidence_group_create → evidenceGroupId. Provide EXACTLY ONE of `filePath` (absolute local path, stdio/local mode only) or `contentBase64` (base64-encoded file content, ~10 MB max). Use evidence_upload when the file is on the local machine; use evidence_create when you already have the SHA-256 hash, need to inspect/use uploadFileUrl manually, or have a public fileUrl. After this tool succeeds, verify with evidence_get/evidence_list and only then call evidence_seal. If this tool fails before returning an evidence id, check evidence_list before retrying; if retrying manually, use evidence_create with a fresh UUID. Local files must be under 1 GiB."
+    },
+    {
+      "name": "notification_send",
+      "description": "Sends a certified notification to one or more recipients in a single call: creates the notification request, adds every recipient, and sends it. Generates every UUID itself — do not pass any id. Requires case_file_create → caseFileId. `content` MUST be HTML: plain text is accepted by the API and reports SENT but does not render on the recipient's landing page. Supported tags only: <p>, <strong>, <em>, <ul><li>, <ol><li> — no other tags, no CSS. Keep `subject` to plain ASCII, 100 characters maximum. Delivery is always by email; per recipient you can additionally set sendWaUrl (WhatsApp), sendSmsUrl (RCS or SMS depending on the handset) and otpRequired (one-time code), each of which needs phonePrefix with the + and phoneNumber. The maximum number of recipients is a per-subscription setting, not a fixed limit, so none is enforced here — the API rejects an oversized batch. This tool does NOT attach files; use notification_send_with_attachments for that, because attachments must be registered before recipients are added. PARTIAL SUCCESS IS REPORTED, NOT THROWN: if the request was created but a recipient or the send failed, the result still carries notificationRequestId together with recipientsAdded, recipientsFailed and sent:false, so you can finish with notification_receiver_add and notification_request_send instead of abandoning a draft. An INVALID recipient blocks the send, so this tool checks for one before sending and reports invalidRecipients rather than attempting a send that cannot succeed. If the initial create fails the tool raises an error instead: common causes are a caseFileId that does not exist, a subject over 100 characters, and an exhausted contracted notification plan, which no retry will fix. If that error is a timeout rather than a rejection, check notification_request_list before retrying — the request may have been created anyway. Poll notification_request_status for delivery progress, then notification_certificate_get per recipient."
+    },
+    {
+      "name": "notification_send_with_attachments",
+      "description": "Sends a certified notification WITH one or more attached documents to one or more recipients, in a single call. Use notification_send instead when there are no attachments. This tool exists separately because attachments impose an ordering rule the API enforces and does not forgive: documents must be registered and fully uploaded BEFORE any recipient is added, and every document must reach READY_TO_SEND before the notification is sent — otherwise the send fails with 409/404 NOTIFICATION_NOT_FOUND. The tool performs that whole sequence for you: create → register and upload each document → wait for READY_TO_SEND → add recipients → send. Each attachment takes a local file path, base64 content, an HTTPS URL, or an n8n binary reference; the hash and the upload are handled internally. Generates every UUID itself — do not pass any id. Requires case_file_create → caseFileId. `content` MUST be HTML: plain text is accepted by the API and reports SENT but does not render on the recipient's landing page. Supported tags only: <p>, <strong>, <em>, <ul><li>, <ol><li>. Keep `subject` to plain ASCII, 100 characters maximum. Delivery is always by email; per recipient you can additionally set sendWaUrl (WhatsApp), sendSmsUrl (RCS or SMS depending on the handset) and otpRequired (one-time code), each of which needs phonePrefix with the + and phoneNumber. The maximum number of attachments and of recipients are per-subscription settings, not fixed limits, so neither is enforced here. IF AN ATTACHMENT FAILS THE RUN STOPS BEFORE RECIPIENTS ARE ADDED, on purpose: once recipients exist the API will not accept further documents, so continuing would produce a notification that can never carry the missing file. The result reports the draft's notificationRequestId so you can retry or delete it. An INVALID recipient blocks the send, so the tool checks for one before sending and reports invalidRecipients instead of attempting a doomed send. If the initial create fails the tool raises an error instead: common causes are a caseFileId that does not exist, a subject over 100 characters, and an exhausted contracted notification plan, which no retry will fix. If that error is a timeout rather than a rejection, check notification_request_list before retrying — the request may have been created anyway. Certificates can bundle the attachments — see notification_certificate_package_url."
+    }
+  ]
+}
