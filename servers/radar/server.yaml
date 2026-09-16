@@ -1,0 +1,35 @@
+name: radar
+image: mcp/radar
+type: server
+meta:
+  category: devops
+  tags:
+    - kubernetes
+    - devops
+    - observability
+about:
+  title: Radar
+  description: Explore and troubleshoot Kubernetes clusters. Exposes topology, resources, events, logs, Helm releases, GitOps state and Prometheus metrics as correlated MCP tools.
+  icon: https://avatars.githubusercontent.com/u/235391474?v=4
+source:
+  project: https://github.com/skyhook-io/radar
+  commit: 10edb98ecbee37754318caa94e41ec851aa61dc1
+config:
+  description: Configure the location of the host Kubernetes config file
+  parameters:
+    type: object
+    properties:
+      config_path:
+        description: the path to the host .kube/config
+        type: string
+    required:
+      - config_path
+  env:
+    - name: KUBECONFIG
+      example: /kubeconfig
+      value: /kubeconfig
+run:
+  volumes:
+    - "{{radar.config_path}}:/kubeconfig:ro"
+  command:
+    - "--mcp-catalog-stdio"
