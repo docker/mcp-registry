@@ -1,0 +1,43 @@
+name: portkey-admin
+image: mcp/portkey-admin
+type: server
+meta:
+  category: devops
+  tags:
+    - portkey
+    - ai
+    - observability
+    - gateway
+    - prisma-airs
+about:
+  title: Portkey Admin
+  description: Administer the Portkey AI gateway control plane through MCP tools for prompts, configs, API keys, analytics, guardrails, deployments, and workspace governance.
+  icon: https://avatars.githubusercontent.com/u/219361182?s=200&v=4
+source:
+  project: https://github.com/CodesWhat/portkey-admin-mcp
+  branch: main
+  commit: dd8ff4aa95b03b4ea8b3393a25c041a8e5e69ec2
+config:
+  description: Configure the connection to the Portkey Admin API
+  secrets:
+    - name: portkey-admin.api_key
+      env: PORTKEY_API_KEY
+      example: <PORTKEY_API_KEY>
+      description: Portkey API key with the scopes needed for the tools you enable.
+      required: true
+  env:
+    - name: PORTKEY_BASE_URL
+      example: https://api.portkey.ai/v1
+      value: "{{portkey-admin.base_url}}"
+    - name: PORTKEY_TOOL_DOMAINS
+      example: users,workspaces,configs,deployments,keys,collections,prompts,analytics,guardrails,limits,audit,labels,partials,tracing,logging,providers,secret-references,integrations,mcp-integrations,mcp-servers
+      value: "{{portkey-admin.tool_domains}}"
+  parameters:
+    type: object
+    properties:
+      base_url:
+        type: string
+        description: Optional Portkey-compatible Admin API base URL. Prisma AIRS and Strata Cloud Manager URLs are not compatible.
+      tool_domains:
+        type: string
+        description: Optional comma-separated allowlist of tool domains, for example prompts,analytics.
