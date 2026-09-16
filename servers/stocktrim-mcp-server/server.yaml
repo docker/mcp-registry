@@ -1,0 +1,55 @@
+name: stocktrim-mcp-server
+image: mcp/stocktrim-mcp-server
+type: server
+meta:
+  category: productivity
+  tags:
+    - inventory
+    - stocktrim
+    - erp
+    - business
+    - supply-chain
+about:
+  title: StockTrim Inventory Management
+  description: >
+    Provides AI assistants with direct access to StockTrim inventory system,
+    enabling natural language queries for product management, customer data,
+    supplier relationships, purchase orders, sales orders, and inventory control operations.
+    Includes workflow tools for urgent reorder analysis and automated purchase order generation.
+  icon: https://www.stocktrim.com/favicon.ico
+source:
+  project: https://github.com/dougborg/stocktrim-openapi-client
+  branch: main
+  commit: 74285990b3617fae10f96afac598978b1c45aeae
+  directory: stocktrim_mcp_server
+config:
+  description: Configure connection to StockTrim API
+  secrets:
+    - name: stocktrim-mcp-server.api_auth_signature
+      env: STOCKTRIM_API_AUTH_SIGNATURE
+      example: your_tenant_name_here
+  env:
+    - name: STOCKTRIM_API_AUTH_ID
+      example: your_tenant_id_here
+      value: '{{stocktrim-mcp-server.api_auth_id}}'
+    - name: STOCKTRIM_API_AUTH_SIGNATURE
+      value: '{{stocktrim-mcp-server.api_auth_signature}}'
+    - name: STOCKTRIM_BASE_URL
+      example: https://api.stocktrim.com
+      value: '{{stocktrim-mcp-server.base_url}}'
+  parameters:
+    type: object
+    properties:
+      api_auth_id:
+        type: string
+        description: StockTrim tenant ID from API settings
+      api_auth_signature:
+        type: string
+        description: StockTrim tenant name from API settings
+      base_url:
+        type: string
+        description: StockTrim API base URL
+        default: https://api.stocktrim.com
+    required:
+      - api_auth_id
+      - api_auth_signature
