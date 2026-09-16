@@ -1,0 +1,141 @@
+{
+  "tools": [
+    {
+      "name": "scan_summary",
+      "description": "Scan a directory to summarize total size, files, and directories. Supports ignore globs and depth limits.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "rootPath": {
+            "type": "string",
+            "description": "The root directory path to scan"
+          },
+          "maxDepth": {
+            "type": "integer",
+            "description": "Maximum depth to descend (default 10)",
+            "minimum": 0,
+            "maximum": 50
+          },
+          "ignoreGlobs": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Glob patterns to ignore"
+          }
+        },
+        "required": ["rootPath"]
+      }
+    },
+    {
+      "name": "by_type",
+      "description": "Top file extensions by total size.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "rootPath": {
+            "type": "string",
+            "description": "The root directory path to analyze"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of file types to return",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": ["rootPath"]
+      }
+    },
+    {
+      "name": "top_dirs",
+      "description": "Heaviest directories under root (by aggregate file size).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "rootPath": {
+            "type": "string",
+            "description": "The root directory path to analyze"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of directories to return",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": ["rootPath"]
+      }
+    },
+    {
+      "name": "top_files",
+      "description": "Largest files with optional filters (size, age, glob include/exclude).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "rootPath": {
+            "type": "string",
+            "description": "The root directory path to analyze"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of files to return",
+            "minimum": 1,
+            "maximum": 200
+          },
+          "minSizeMB": {
+            "type": "number",
+            "description": "Minimum file size in MB",
+            "minimum": 0
+          },
+          "olderThanDays": {
+            "type": "number",
+            "description": "Only include files older than N days"
+          }
+        },
+        "required": ["rootPath"]
+      }
+    },
+    {
+      "name": "stale_candidates",
+      "description": "Large and old files (read-only suggestions).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "rootPath": {
+            "type": "string",
+            "description": "The root directory path to analyze"
+          },
+          "minSizeMB": {
+            "type": "number",
+            "description": "Minimum file size in MB",
+            "minimum": 0
+          },
+          "olderThanDays": {
+            "type": "number",
+            "description": "Only include files older than N days"
+          }
+        },
+        "required": ["rootPath"]
+      }
+    },
+    {
+      "name": "duplicate_candidates",
+      "description": "Groups of files with identical size and content hash (read-only).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "rootPath": {
+            "type": "string",
+            "description": "The root directory path to analyze"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of duplicate groups to return",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "required": ["rootPath"]
+      }
+    }
+  ]
+}
