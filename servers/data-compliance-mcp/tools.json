@@ -1,0 +1,30 @@
+[
+  {
+    "name": "validate_data_safety",
+    "description": "Call BEFORE your agent stores, transmits, logs, or passes any data payload to another system. AI-powered classification for GDPR, HIPAA, PCI-DSS, and CCPA. Returns machine-readable verdict: SAFE_TO_PROCESS, REDACT_BEFORE_PASSING, DO_NOT_STORE, or ESCALATE with detected data categories.",
+    "arguments": [
+      { "name": "payload", "description": "The data payload to classify. Any string, JSON, form data, API response, or text content. Analysed in memory and immediately discarded.", "required": true },
+      { "name": "context", "description": "What your agent is about to do with this data (e.g. write to database, send to API). Improves verdict accuracy.", "required": false },
+      { "name": "data_origin_ip", "description": "IP address of the data subject for jurisdiction detection (GDPR if EU, CCPA if US).", "required": false },
+      { "name": "jurisdiction", "description": "Override jurisdiction if known (EU, US, UK, CA, AU).", "required": false }
+    ]
+  },
+  {
+    "name": "get_safety_report",
+    "description": "BATCH mode: classify up to 50 data payloads with full AI reasoning per payload in one call. AUDIT mode: generate structured compliance documentation for a dataset description. Returns per-payload verdict array with aggregate risk summary and triggered regulatory frameworks.",
+    "arguments": [
+      { "name": "mode", "description": "BATCH for classifying up to 50 payloads; AUDIT for generating compliance report documentation", "required": true },
+      { "name": "payloads", "description": "Array of data payloads to classify. Required for BATCH mode. Maximum 50.", "required": false },
+      { "name": "dataset_description", "description": "Description of the dataset for AUDIT mode.", "required": false },
+      { "name": "context", "description": "What will be done with this data. Improves verdict accuracy.", "required": false }
+    ]
+  },
+  {
+    "name": "validate_data_safety_lite",
+    "description": "Pattern-detection only, no AI call. Returns SAFE_TO_PROCESS or REVIEW_REQUIRED in under 100ms at ~70% lower token cost than validate_data_safety. Use when budget-constrained or for high-volume pre-screening before committing to full AI classification.",
+    "arguments": [
+      { "name": "payload", "description": "The data payload to screen for sensitive patterns.", "required": true },
+      { "name": "context", "description": "Optional: what your agent plans to do with this data.", "required": false }
+    ]
+  }
+]
