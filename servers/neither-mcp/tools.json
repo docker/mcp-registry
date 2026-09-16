@@ -1,0 +1,109 @@
+[
+  {
+    "name": "memory_search",
+    "description": "At a delivery fork or planning write, search workspace decision memory (NL query). Returns Decision/Citation prose — use top hits to answer; fetch at most 1–2 snippets with node_id=hit.id. Do not fall back to DB/repo archaeology for decisions.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Search query"
+      },
+      {
+        "name": "maxResults",
+        "type": "number",
+        "desc": "Max results (default 10, max 50). Prefer ≤8 at forks.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "memory_for_file",
+    "description": "Hero tool at delivery forks when a repo path is in play — cited Decision/Rejected/Constraint/Citation. Prefer this over memory_search when editing or planning a specific file. Honest empty if uncovered.",
+    "arguments": [
+      {
+        "name": "file_path",
+        "type": "string",
+        "desc": "Repo-relative file path"
+      },
+      {
+        "name": "symbols",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Optional symbol or topic hints",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "memory_snippet_fetch",
+    "description": "Fetch verbatim quote by provenance source_document_id. ALWAYS pass node_id = memory_search hit id so content matches that Decision title (same document can have unrelated nodes). At most 1–2 fetches per fork; then answer or abstain.",
+    "arguments": [
+      {
+        "name": "source_id",
+        "type": "string",
+        "desc": "Provenance source_document_id from a search hit"
+      },
+      {
+        "name": "node_id",
+        "type": "string",
+        "desc": "Required for alignment: search hit id (node) — prefers that node's project_context",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "memory_timeline",
+    "description": "Time-ordered decision memory for a topic after a fork. Prefer memory_search prose first; use timeline only when sequence matters. Do not use as a substitute for answering.",
+    "arguments": [
+      {
+        "name": "anchor_id",
+        "type": "string",
+        "desc": "Optional source document or anchor id",
+        "optional": true
+      },
+      {
+        "name": "q",
+        "type": "string",
+        "desc": "Optional natural-language query",
+        "optional": true
+      },
+      {
+        "name": "window",
+        "type": "string",
+        "desc": "Lookback window label (default 30d)",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "number",
+        "desc": "Max events (default 20, max 50)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "memory_push",
+    "description": "Close a decision or seed an ADR snippet with provenance metadata (source id, occurred_at, participants, thread id).",
+    "arguments": [
+      {
+        "name": "content",
+        "type": "string",
+        "desc": "Snippet text"
+      },
+      {
+        "name": "bc_hint",
+        "type": "string",
+        "desc": "Optional business-context hint uuid",
+        "optional": true
+      },
+      {
+        "name": "metadata",
+        "type": "object",
+        "desc": "Optional provenance metadata (source_id, occurred_at, participants, thread_id, content_type)",
+        "optional": true
+      }
+    ]
+  }
+]
