@@ -8,9 +8,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 
+	"github.com/docker/mcp-registry/internal/dockerenv"
 	"github.com/docker/mcp-registry/internal/mcp"
 	"github.com/docker/mcp-registry/pkg/servers"
 )
@@ -102,19 +102,6 @@ func run(ctx context.Context, name string, listTools bool, pullCommunity bool) e
 	return nil
 }
 
-func buildDockerEnv(additionalEnv ...string) []string {
-	env := []string{"PATH=" + os.Getenv("PATH")}
-
-	// On Windows, Docker also needs ProgramW6432
-	// See https://github.com/docker/mcp-registry/issues/79 for more details
-	programW6432 := os.Getenv("ProgramW6432")
-	if runtime.GOOS == "windows" && programW6432 != "" {
-		env = append(env, "ProgramW6432="+programW6432)
-	}
-
-	return append(env, additionalEnv...)
-}
-
 func buildMcpImage(ctx context.Context, server servers.Server) error {
 	commit := server.Source.Commit
 	if commit == "" {
@@ -139,10 +126,10 @@ func buildMcpImage(ctx context.Context, server servers.Server) error {
 
 	if token != "" {
 		cmd = exec.CommandContext(ctx, "docker", append([]string{"buildx", "build", "--secret", "id=GIT_AUTH_TOKEN"}, buildArgs...)...)
-		cmd.Env = buildDockerEnv("GIT_AUTH_TOKEN=" + token)
+		cmd.Env = dockerenv.Env("GIT_AUTH_TOKEN=" + token)
 	} else {
 		cmd = exec.CommandContext(ctx, "docker", append([]string{"buildx", "build"}, buildArgs...)...)
-		cmd.Env = buildDockerEnv()
+		cmd.Env = dockerenv.Env()
 	}
 
 	cmd.Dir = os.TempDir()
