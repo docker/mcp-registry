@@ -87,7 +87,28 @@ run:
 
 ## Source Pinning
 
-Local servers must pin their source repository to a specific Git commit using the `source.commit` field. Once an initial revision is accepted into the registry, an automated nightly GitHub Action will drive PRs to perform updates.
+Local servers must pin their source repository to a specific Git commit using the `source.commit` field.
+
+### Automatic Updates
+
+Once an initial revision is accepted into the registry, an automated nightly GitHub Action will:
+
+- Check for new commits on your configured branch (defaults to `main`)
+- Create pull requests to update the `source.commit` field when newer commits are available
+- These PRs are created automatically; review and merging are performed manually by the Docker team
+
+After a pin update PR is merged, Docker's infrastructure automatically:
+
+- Builds the new Docker image from the updated commit
+- Signs the image with cryptographic signatures
+- Generates provenance and SBOM
+- Publishes to Docker Hub's `mcp/` namespace
+
+**Timeline**: New images are typically available within 24 hours of the pin update PR being merged.
+
+**Note**: Automatic updates only apply to Docker-built images (those with `image: mcp/...`). Servers using custom images must be updated manually.
+
+See [CONTRIBUTING.md](../CONTRIBUTING.md#updating-your-mcp-server) for more details on the update process.
 
 ## User
 
