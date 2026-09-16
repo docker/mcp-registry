@@ -1,0 +1,34 @@
+name: metabrain
+image: mcp/metabrain
+type: server
+meta:
+  category: ai
+  tags:
+    - agent-memory
+    - memory
+    - recall
+    - sqlite
+    - knowledge
+about:
+  title: MetaBrain
+  description: Persistent memory for coding agents, in one local SQLite file. Call start_brief at the top of a task to load what already worked, recall before acting, learn after discovering something durable, and verdict when a unit of work resolves. Lessons are typed as failure, pattern, gotcha or preference; repeated evidence graduates a hypothesis, so the agent stops relitigating decisions it already made. No cloud, no embeddings, no account.
+  icon: https://avatars.githubusercontent.com/u/113392746?s=200&v=4
+source:
+  project: https://github.com/ariaxhan/metabrain
+  branch: main
+  commit: aacbfb1edf2c18aced5e1ec12682ec48dde7b662
+run:
+  volumes:
+    - "{{metabrain.data_path}}:/data"
+config:
+  description: Where the metabrain SQLite file lives. The directory is mounted at /data inside the container, and the database is /data/agent.db, so memory survives restarts.
+  parameters:
+    type: object
+    properties:
+      data_path:
+        type: string
+        title: Memory directory
+        description: Host directory (or named Docker volume) holding agent.db
+        default: metabrain-data
+    required:
+      - data_path
