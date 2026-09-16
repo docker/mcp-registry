@@ -1,0 +1,61 @@
+name: linkedin-mcp-local
+image: mcp/linkedin-mcp-local
+type: server
+meta:
+  category: productivity
+  tags:
+    - automation
+    - linkedin
+    - model-context-protocol
+    - playwright
+    - python
+about:
+  title: LinkedIn Local
+  description: A LinkedIn MCP server to find jobs, search people, research companies, manage your network, publish and engage with posts, and read or send messages.
+  icon: https://raw.githubusercontent.com/prakharagarwal-dev/linkedin-mcp-server/main/assets/icon.png
+source:
+  project: https://github.com/prakharagarwal-dev/linkedin-mcp-server
+  commit: ca89f000423b4bbfd7d2b912bf54403631cf2770
+run:
+  volumes:
+    - "{{linkedin-mcp-local.data_path}}:/data/linkedin-mcp"
+config:
+  description: Configure a persistent browser profile and optional capability restrictions. Create the profile first in an environment that can display Chromium, as described in the upstream README.
+  env:
+    - name: LINKEDIN_MCP_BROWSER_HEADLESS
+      example: "true"
+      value: "{{linkedin-mcp-local.browser_headless}}"
+    - name: LINKEDIN_MCP_ALLOWED_SURFACES
+      example: '["job-search","job-detail","people-search","member-profile"]'
+      value: "{{linkedin-mcp-local.allowed_surfaces}}"
+    - name: LINKEDIN_MCP_ALLOWED_SCOPES
+      example: '["linkedin.jobs.search","linkedin.jobs.read","linkedin.people.search","linkedin.people.read"]'
+      value: "{{linkedin-mcp-local.allowed_scopes}}"
+    - name: LINKEDIN_MCP_ALLOWED_EFFECTS
+      example: '["read"]'
+      value: "{{linkedin-mcp-local.allowed_effects}}"
+  parameters:
+    type: object
+    properties:
+      data_path:
+        type: string
+        title: LinkedIn MCP data directory
+        description: Sensitive host directory containing the persistent Chromium profile and local attachment assets.
+      browser_headless:
+        type: boolean
+        title: Run the authenticated capability browser headlessly
+        default: true
+      allowed_surfaces:
+        type: string
+        title: Authorized LinkedIn surfaces (JSON array)
+        default: '["job-search","job-detail","people-search","member-profile"]'
+      allowed_scopes:
+        type: string
+        title: Authorized LinkedIn capabilities (JSON array)
+        default: '["linkedin.jobs.search","linkedin.jobs.read","linkedin.people.search","linkedin.people.read"]'
+      allowed_effects:
+        type: string
+        title: Authorized effects (JSON array)
+        default: '["read"]'
+    required:
+      - data_path
