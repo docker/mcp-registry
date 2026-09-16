@@ -1,1 +1,425 @@
-[]
+[
+  {
+    "name": "get_quote",
+    "description": "FREE (no key, no wallet). Quote before paying: the exchange rate and exactly how much lands in the bank (or wallet) NET of every provider fee — that net figure is the number to decide on.",
+    "arguments": [
+      {
+        "name": "side",
+        "type": "string",
+        "desc": "SELL = USDC to fiat, BUY = fiat to USDC"
+      },
+      {
+        "name": "cryptoAmount",
+        "type": "number",
+        "desc": "USDC amount (required for SELL)"
+      },
+      {
+        "name": "fiatAmount",
+        "type": "number",
+        "desc": "Fiat amount (for BUY)"
+      },
+      {
+        "name": "fiatCurrency",
+        "type": "string",
+        "desc": "e.g. EUR, default EUR"
+      },
+      {
+        "name": "network",
+        "type": "string",
+        "desc": "USDC network, default base"
+      }
+    ]
+  },
+  {
+    "name": "get_order_status",
+    "description": "FREE (no key, no wallet). Check the status of an on/off-ramp order by partnerOrderId.",
+    "arguments": [
+      {
+        "name": "partnerOrderId",
+        "type": "string",
+        "desc": "Order id returned when the session was created (required)"
+      }
+    ]
+  },
+  {
+    "name": "token_price",
+    "description": "FREE (no key, no wallet). Real-time price snapshot for any EVM token by contract address: USD price, 5m/1h/6h/24h change, liquidity, 24h volume, market cap/FDV and the most-liquid DEX pair (DexScreener).",
+    "arguments": [
+      {
+        "name": "token",
+        "type": "string",
+        "desc": "ERC-20 contract address (0x…) — preferred"
+      },
+      {
+        "name": "chain",
+        "type": "string",
+        "desc": "Chain slug: base (default), ethereum, polygon, arbitrum, optimism, bsc, avalanche"
+      },
+      {
+        "name": "symbol",
+        "type": "string",
+        "desc": "Major asset symbol (e.g. ETH, BTC) — used when no contract address is given"
+      }
+    ]
+  },
+  {
+    "name": "search_services",
+    "description": "FREE (no key, no wallet). Find paid + free MCP services other agents have published on the FiatDock marketplace.",
+    "arguments": [
+      {
+        "name": "q",
+        "type": "string",
+        "desc": "Free-text relevance search over the listing name, summary, description, tags, category AND the tool names the "
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Filter by category slug: data, search, finance, dev, productivity, ai, web, other"
+      },
+      {
+        "name": "verifiedOnly",
+        "type": "boolean",
+        "desc": "Only verified listings (KYC'd seller or first-party)"
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "desc": "Sort order (default newest; first-party listings are always featured first)"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many listings to return, 1-50 (default 20). The cap exists because this result is injected into your conte"
+      }
+    ]
+  },
+  {
+    "name": "get_service",
+    "description": "FREE (no key, no wallet). Full detail for one FiatDock marketplace listing, including how to call it: PAID listings route through the gateway via call_service (the 99/1 split is enforced); FREE/first-party listings ex...",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Listing id (svc_…) from search_services (required)"
+      },
+      {
+        "name": "includeSchemas",
+        "type": "boolean",
+        "desc": "Include `toolSchemas` — the callable SHAPE of each tool on the seller's server ({ tool: { props: {name: type},"
+      }
+    ]
+  },
+  {
+    "name": "create_offramp_session",
+    "description": "PAID $0.01 USDC via x402. Convert the agent's USDC to fiat in the owner's OWN bank account.",
+    "arguments": [
+      {
+        "name": "cryptoAmount",
+        "type": "number",
+        "desc": "USDC amount to sell (required)"
+      },
+      {
+        "name": "fiatCurrency",
+        "type": "string",
+        "desc": "e.g. EUR, default EUR"
+      },
+      {
+        "name": "network",
+        "type": "string",
+        "desc": "USDC network, default base"
+      },
+      {
+        "name": "walletAddress",
+        "type": "string",
+        "desc": "Optional SELL source wallet (0x…, EIP-55 checked) — pre-fills the widget; required with walletCode/walletHash"
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "Owner's account email. If provided, the checkout link is ALSO emailed to this address automatically (you still"
+      },
+      {
+        "name": "customerId",
+        "type": "string",
+        "desc": "Stable agent/customer id"
+      },
+      {
+        "name": "callbackUrl",
+        "type": "string",
+        "desc": "Optional public https URL stored for a future provider with status webhooks — the current provider sends none,"
+      },
+      {
+        "name": "walletCode",
+        "type": "string",
+        "desc": "Optional Mt Pelerin address lock, part 1: 4-digit code (1000-9999). Requires walletHash + walletAddress"
+      },
+      {
+        "name": "walletHash",
+        "type": "string",
+        "desc": "Optional Mt Pelerin address lock, part 2: base64 signature of 'MtPelerin-<code>' by the agent's OWN wallet key"
+      },
+      {
+        "name": "ref",
+        "type": "string",
+        "desc": "Optional referral code (1-64 chars: letters, digits, _ or -)"
+      },
+      {
+        "name": "provider",
+        "type": "string",
+        "desc": "Licensed fiat provider. `mtpelerin` is the only provider on this server and the default — omit this field. It "
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "create_onramp_session",
+    "description": "PAID $0.01 USDC via x402. Buy USDC with the owner's OWN fiat and deliver it to the agent's wallet (address locked).",
+    "arguments": [
+      {
+        "name": "fiatAmount",
+        "type": "number",
+        "desc": "Fiat amount to spend (required)"
+      },
+      {
+        "name": "walletAddress",
+        "type": "string",
+        "desc": "Agent wallet that receives USDC (0x…, EIP-55 checked) (required)"
+      },
+      {
+        "name": "fiatCurrency",
+        "type": "string",
+        "desc": "e.g. EUR, default EUR"
+      },
+      {
+        "name": "network",
+        "type": "string",
+        "desc": "USDC network, default base"
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "Owner's account email. If provided, the checkout link is ALSO emailed to this address automatically (you still"
+      },
+      {
+        "name": "customerId",
+        "type": "string",
+        "desc": "Stable agent/customer id"
+      },
+      {
+        "name": "callbackUrl",
+        "type": "string",
+        "desc": "Optional public https URL stored for a future provider with status webhooks — the current provider sends none,"
+      },
+      {
+        "name": "walletCode",
+        "type": "string",
+        "desc": "Optional Mt Pelerin address lock, part 1: 4-digit code (1000-9999). Requires walletHash"
+      },
+      {
+        "name": "walletHash",
+        "type": "string",
+        "desc": "Optional Mt Pelerin address lock, part 2: base64 signature of 'MtPelerin-<code>' by the agent's OWN wallet key"
+      },
+      {
+        "name": "ref",
+        "type": "string",
+        "desc": "Optional referral code (1-64 chars: letters, digits, _ or -)"
+      },
+      {
+        "name": "provider",
+        "type": "string",
+        "desc": "Licensed fiat provider. `mtpelerin` is the only provider on this server and the default — omit this field. It "
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "token_safety",
+    "description": "PAID $0.01 USDC via x402. On-chain safety verdict for any EVM token BEFORE you trade it: honeypot detection, buy/sell tax, contract-verified, owner privileges (mint / blacklist / pausable / hidden owner / balance-modi...",
+    "arguments": [
+      {
+        "name": "token",
+        "type": "string",
+        "desc": "ERC-20 contract address (0x…) to screen (required)"
+      },
+      {
+        "name": "chain",
+        "type": "string",
+        "desc": "Chain slug: base (default), ethereum, polygon, arbitrum, optimism, bsc, avalanche"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "stablecoin_intel",
+    "description": "PAID $0.002 USDC via x402. Supply, peg health and per-chain breakdown for USDC and other stablecoins: total circulating supply, deviation from the $1.00 peg, peg mechanism, the amount circulating on Base (with its sha...",
+    "arguments": [
+      {
+        "name": "asset",
+        "type": "string",
+        "desc": "Stablecoin symbol (default USDC), e.g. USDC, USDT, DAI, USDe"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "gas_price",
+    "description": "PAID $0.001 USDC via x402. The current Base gas price in wei and gwei.",
+    "arguments": [
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "block_number",
+    "description": "PAID $0.001 USDC via x402. The latest Base block number plus its timestamp — a freshness/liveness probe for agents that need to know the chain head.",
+    "arguments": [
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "eth_balance",
+    "description": "PAID $0.001 USDC via x402. The native ETH balance of any address on Base, in wei and ETH. Without payment this returns the 402 challenge; the fiatdock-mcp npm package pays automatically.",
+    "arguments": [
+      {
+        "name": "address",
+        "type": "string",
+        "desc": "A 40-hex EVM address (0x…) to read the ETH balance of (required)"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "usdc_balance",
+    "description": "PAID $0.001 USDC via x402. The USDC balance of any address on Base (the settlement asset for x402), in atomic units and USDC. Without payment this returns the 402 challenge; the fiatdock-mcp npm package pays automatic...",
+    "arguments": [
+      {
+        "name": "address",
+        "type": "string",
+        "desc": "A 40-hex EVM address (0x…) to read the USDC balance of (required)"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "token_metadata",
+    "description": "PAID $0.002 USDC via x402. Name, symbol, decimals and total supply for any ERC-20 contract on Base — the identity fields an agent needs before pricing or safety-checking a token.",
+    "arguments": [
+      {
+        "name": "token",
+        "type": "string",
+        "desc": "An ERC-20 contract address (0x…, 40 hex) on Base (required)"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "tx_status",
+    "description": "PAID $0.001 USDC via x402. Confirmation status of a Base transaction — success/failed, block, confirmations, gas used, from/to.",
+    "arguments": [
+      {
+        "name": "txHash",
+        "type": "string",
+        "desc": "A 64-hex transaction hash (0x…) on Base (required)"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "address_intel",
+    "description": "PAID $0.005 USDC via x402. Enrich ANY Base address in one call before you trust it: EOA vs contract (and whether it's an ERC-20, with its name/symbol/decimals), account nonce, ETH + USDC balance, and a KEYLESS GoPlus...",
+    "arguments": [
+      {
+        "name": "address",
+        "type": "string",
+        "desc": "A 40-hex EVM address (0x…) on Base to enrich (required)"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "token_report",
+    "description": "PAID $0.05 USDC via x402. The full picture on an ERC-20 in ONE call: live price, liquidity, 24h volume, market cap/FDV and the most-liquid DEX pair (DexScreener) TOGETHER with the complete safety verdict — honeypot /...",
+    "arguments": [
+      {
+        "name": "token",
+        "type": "string",
+        "desc": "ERC-20 contract address (0x…) to report on (required)"
+      },
+      {
+        "name": "chain",
+        "type": "string",
+        "desc": "Chain slug: base (default), ethereum, polygon, arbitrum, optimism, bsc, avalanche"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "call_service",
+    "description": "Price varies per listing (the gateway 402 is authoritative; free listings cost nothing). Invoke a listed FiatDock service. PAID listings go THROUGH the gateway (POST /s/:id) so the non-custodial split is enforced — no...",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Listing id (svc_…) to invoke, from search_services (required)"
+      },
+      {
+        "name": "args",
+        "type": "object",
+        "desc": "JSON payload to send to the service (e.g. an MCP JSON-RPC request body) — shape is defined by that service"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 x402 v2 PaymentPayload signed by YOUR wallet, satisfying every entry in the 402's `accepts`. Omit on th"
+      }
+    ]
+  }
+]
