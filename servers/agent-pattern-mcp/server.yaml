@@ -1,0 +1,64 @@
+name: agent-pattern-mcp
+image: mcp/agent-pattern-mcp
+type: server
+meta:
+  category: ai
+  tags:
+    - agent-patterns
+    - ai-agents
+about:
+  title: Agent Pattern
+  description: Generate, analyze, and evaluate AI agent system designs against a curated catalog of 61 agent patterns (ReAct, supervisor-worker, reflexion, self-RAG, LLMCompiler, and more)
+  icon: https://avatars.githubusercontent.com/u/914496?v=4
+source:
+  project: https://github.com/olk/agent-pattern-mcp
+  commit: 658b06353b41d8cbb182414780b87ab792479d6c
+run:
+  command:
+    - --transport
+    - stdio
+  env:
+    PATTERN_DIRECTORY: /app/pattern
+    EMBEDDER_API_KEY: not-needed
+config:
+  description: Configure the generator LLM plus the TEI embedder and reranker endpoints used for pattern retrieval.
+  secrets:
+    - name: agent-pattern-mcp.generator_api_key
+      env: GENERATOR_API_KEY
+      example: <GENERATOR_API_KEY>
+      description: API key for the design-generation LLM (LiteLLM provider).
+      required: true
+  env:
+    - name: GENERATOR_PROVIDER
+      example: openai
+      value: "{{agent-pattern-mcp.generator_provider}}"
+    - name: GENERATOR_MODEL
+      example: gpt-4o-mini
+      value: "{{agent-pattern-mcp.generator_model}}"
+    - name: GENERATOR_BASE_URL
+      example: https://api.openai.com/v1
+      value: "{{agent-pattern-mcp.generator_base_url}}"
+    - name: EMBEDDER_BASE_URL
+      example: http://host.docker.internal:8080/v1
+      value: "{{agent-pattern-mcp.embedder_base_url}}"
+    - name: RERANKER_BASE_URL
+      example: http://host.docker.internal:8081
+      value: "{{agent-pattern-mcp.reranker_base_url}}"
+  parameters:
+    type: object
+    properties:
+      generator_provider:
+        type: string
+        description: LiteLLM provider prefix for the generator LLM.
+      generator_model:
+        type: string
+        description: Model name, combined as <provider>/<model> by LiteLLM.
+      generator_base_url:
+        type: string
+        description: OpenAI-compatible base URL of the generator endpoint.
+      embedder_base_url:
+        type: string
+        description: Base URL of the TEI embedder that serves the pattern index.
+      reranker_base_url:
+        type: string
+        description: Base URL of the TEI cross-encoder reranker.
