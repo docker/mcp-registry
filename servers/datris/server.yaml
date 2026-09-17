@@ -1,0 +1,47 @@
+name: datris
+image: mcp/datris
+type: server
+meta:
+  category: database
+  tags:
+    - datris
+    - data-platform
+    - etl
+    - data-quality
+    - vector-search
+    - postgresql
+    - mongodb
+about:
+  title: Datris
+  description: The data control plane for AI agents. 74 tools to acquire data with AI-generated taps, validate it with plain-English rules, land it in PostgreSQL, MongoDB, Snowflake, Databricks, Kafka, S3/MinIO or vector stores (Qdrant, Weaviate, Milvus, Chroma, pgvector), and query it back with provenance. Credentials stay in HashiCorp Vault; agents reference secrets by name. Requires a self-hosted Datris platform.
+  icon: https://avatars.githubusercontent.com/u/270008830?s=200&v=4
+source:
+  project: https://github.com/datris/datris-platform-oss
+  branch: main
+  commit: 08226fb3d2eadba91ba0648cba76b4fd448fc934
+  directory: mcp-server
+run:
+  command:
+    - python
+    - server.py
+config:
+  description: Connect to your self-hosted Datris platform (install with `curl -fsSL https://get.datris.ai/install.sh | sh`). Use host.docker.internal to reach a Datris server running on this machine.
+  env:
+    - name: DATRIS_API_URL
+      example: http://host.docker.internal:8080
+      value: "{{datris.api_url}}"
+  secrets:
+    - name: datris.api_key
+      env: DATRIS_API_KEY
+      example: <DATRIS_API_KEY>
+      required: false
+      description: API key for the Datris server. Only needed when the platform runs with USE_API_KEYS=true; the default local install needs no key.
+  parameters:
+    type: object
+    properties:
+      api_url:
+        type: string
+        description: The URL of your Datris server API (use http://host.docker.internal:8080 for a local install)
+        default: http://host.docker.internal:8080
+    required:
+      - api_url
