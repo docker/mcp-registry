@@ -1,0 +1,1397 @@
+[
+  {
+    "name": "list_pipelines",
+    "description": "List all registered pipeline configurations. Each pipeline defines a complete data processing flow: source format and schema, AI-powered data quality and transformations, and destination (database, message queue, or vector store). CALL THIS FIRST on any data-related user request \u2014 before suggesting ",
+    "arguments": []
+  },
+  {
+    "name": "get_pipeline",
+    "description": "Get a specific pipeline configuration by name. Returns the full JSON config including source, dataQuality, transformation, preprocessor, and destination sections.",
+    "arguments": [
+      {
+        "name": "pipeline",
+        "type": "string",
+        "desc": "Pipeline name"
+      }
+    ]
+  },
+  {
+    "name": "create_pipeline",
+    "description": "Create a pipeline. THREE destination categories: STRUCTURED (postgres, mongodb, snowflake, databricks) \u2014 send a TINY sample (via content_text) and the schema is auto-detected; snowflake additionally REQUIRES credentialsSecret (a Platform secret with account/user/privateKey or password \u2014 discover via",
+    "arguments": [
+      {
+        "name": "content",
+        "type": "string",
+        "desc": "Base64-encoded sample data. Prefer content_text instead \u2014 it's the same thing without you having to base64-encode. Only use this form when you already have base64 in hand (e.g. relaying an attachment)"
+      },
+      {
+        "name": "content_text",
+        "type": "string",
+        "desc": "Plain-text sample data (the server base64-encodes it for you) \u2014 the preferred way to pass the sample for structured destinations (postgres, mongodb, snowflake, databricks) and objectstore. Header row "
+      },
+      {
+        "name": "filename",
+        "type": "string",
+        "desc": "Filename (e.g., data.csv, report.json, orders.xml). REQUIRED for structured destinations and objectstore. Optional for vector destinations \u2014 only used as a fileExtension hint (defaults to txt)."
+      },
+      {
+        "name": "pipeline",
+        "type": "string",
+        "desc": "Pipeline name"
+      },
+      {
+        "name": "destination",
+        "type": "string",
+        "desc": "Destination type (default: postgres for CSV, mongodb for JSON/XML). Use 'objectstore' for Parquet files, ORC files, or an Iceberg table (fileFormat=iceberg) in MinIO (default provider) or AWS S3 (set "
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "desc": "Destination table or collection name (default: pipeline name). Ignored for objectstore (the destination is bucket+prefix, not a table)."
+      },
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Destination database name (default: datris). Ignored for objectstore. REQUIRED for snowflake \u2014 there is no default Snowflake database; ask the user which one to load. REQUIRED for databricks \u2014 it name"
+      },
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Destination schema. Applies to destination=snowflake (default: PUBLIC) and destination=databricks (default: default). Simple identifiers resolve case-insensitively; names with hyphens/spaces are quote"
+      },
+      {
+        "name": "warehouse",
+        "type": "string",
+        "desc": "Compute that runs the load. For destination=snowflake: the virtual warehouse NAME (e.g. DATRIS_WH). For destination=databricks: the SQL warehouse ID from the warehouse's Connection details \u2014 the trail"
+      },
+      {
+        "name": "role",
+        "type": "string",
+        "desc": "Optional Snowflake role to assume (e.g. DATRIS_LOADER). Only applies to destination=snowflake; omit to use the service user's default role."
+      },
+      {
+        "name": "delimiter",
+        "type": "string",
+        "desc": "CSV delimiter (default: comma)"
+      },
+      {
+        "name": "header",
+        "type": "boolean",
+        "desc": "Whether CSV has a header row (default: true)"
+      },
+      {
+        "name": "keyFields",
+        "type": "array",
+        "desc": "Optional natural-key columns used to dedupe / upsert rows on every run. Applies to postgres, mongodb, snowflake, and databricks destinations, and to objectstore when fileFormat=iceberg and writeMode=m"
+      },
+      {
+        "name": "truncate",
+        "type": "boolean",
+        "desc": "Optional. When true, the destination table/collection is truncated before each run, so only the latest run's data is kept. Only applies to postgres, mongodb, snowflake, and databricks destinations (on"
+      },
+      {
+        "name": "bucket",
+        "type": "string",
+        "desc": "Object-store bucket name. Only applies to destination=objectstore. For MinIO this is optional (default: {environment}-data). For S3 (provider=s3) this is REQUIRED \u2014 there is no global default S3 bucke"
+      },
+      {
+        "name": "prefix",
+        "type": "string",
+        "desc": "Object-store key prefix under the bucket (e.g. 'sales/daily'). REQUIRED for destination=objectstore."
+      },
+      {
+        "name": "fileFormat",
+        "type": "string",
+        "desc": "Object-store storage format. Only applies to destination=objectstore. 'parquet' and 'orc' write loose columnar files under the prefix; 'iceberg' writes a table at the prefix (snapshots, schema evoluti"
+      },
+      {
+        "name": "partitionBy",
+        "type": "array",
+        "desc": "Optional partition columns for objectstore writes. Spark creates a directory structure based on the distinct values of these columns. Field names must be in the destination schema. Example: ['dt', 're"
+      },
+      {
+        "name": "writeMode",
+        "type": "string",
+        "desc": "Object-store write mode. Only applies to destination=objectstore. Default: append. 'merge' is only valid with fileFormat=iceberg and requires keyFields \u2014 rows whose key matches an existing row replace"
+      },
+      {
+        "name": "deleteBeforeWrite",
+        "type": "boolean",
+        "desc": "When true, delete existing objects under the prefix before writing. Only applies to destination=objectstore. Default: false. Distinct from writeMode=overwrite (which is Spark-level)."
+      },
+      {
+        "name": "provider",
+        "type": "string",
+        "desc": "Object-store provider. Only applies to destination=objectstore. Default 'minio' (the platform's built-in store). Set to 's3' to write to AWS S3 \u2014 that requires bucket AND credentialsSecret."
+      },
+      {
+        "name": "endpoint",
+        "type": "string",
+        "desc": "S3 endpoint URL override. Only applies to destination=objectstore + provider=s3. Must use https://. Leave unset for the AWS regional default. Ignored for provider=minio."
+      },
+      {
+        "name": "credentialsSecret",
+        "type": "string",
+        "desc": "Name of an existing PLATFORM secret holding destination credentials. For objectstore + provider=s3: fields accessKey, secretKey, region (optionally sessionToken); REQUIRED unless Datris runs in AWS wi"
+      },
+      {
+        "name": "codegen_rule",
+        "type": "string",
+        "desc": "Optional data quality validation rule as a plain-English instruction. Only add when the user explicitly requests validation. Datris will generate a Python validation script from this instruction and r"
+      },
+      {
+        "name": "codegen_transform",
+        "type": "string",
+        "desc": "Optional transformation instruction as a plain-English description. Only add when the user explicitly requests transformation. Datris will generate a Python script from this instruction and run it loc"
+      },
+      {
+        "name": "catalog",
+        "type": "string",
+        "desc": "OMIT BY DEFAULT. Catalogs are a user-chosen organizational convention \u2014 do NOT set a catalog unless the user has explicitly asked to group this pipeline under a named catalog. Assigning one for them p"
+      },
+      {
+        "name": "authoritative",
+        "type": "boolean",
+        "desc": "OMIT BY DEFAULT. Pass false only when the user says this pipeline lands a derived copy (a rollup, a replica, an index built from another dataset) rather than the system of record. A pipeline's single "
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "set_catalog",
+    "description": "Set or clear the catalog grouping label on an existing pipeline or tap. ONLY call this when the user has explicitly asked to organize work under a named catalog. Do NOT call it proactively \u2014 catalogs are a user-chosen organizational convention; assigning one for them puts the pipeline/tap into a tax",
+    "arguments": [
+      {
+        "name": "pipeline",
+        "type": "string",
+        "desc": "Pipeline name to update. Mutually exclusive with `tap`."
+      },
+      {
+        "name": "tap",
+        "type": "string",
+        "desc": "Tap name to update. Mutually exclusive with `pipeline`."
+      },
+      {
+        "name": "catalog",
+        "type": "string",
+        "desc": "Catalog label. Omit or pass an empty string to clear the label."
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "delete_pipeline",
+    "description": "Delete a pipeline. This is DESTRUCTIVE: by default it removes BOTH the pipeline configuration AND all data already written to the destination (MongoDB collection rows, Postgres table rows, vector-store entries). It also wipes document-tap ledgers and staged files for any tap that targets this pipeli",
+    "arguments": [
+      {
+        "name": "pipeline",
+        "type": "string",
+        "desc": "Pipeline name to delete"
+      },
+      {
+        "name": "keep_config",
+        "type": "boolean",
+        "desc": "If true, delete only the destination data but keep the pipeline config (useful for a clean reset). Default false (full delete of both config and data)."
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "upload_data",
+    "description": "Upload data to a registered pipeline for processing. Send the ENTIRE file content as a single base64-encoded string in ONE call \u2014 do not pre-split or chunk the content client-side. Vector destinations (pgvector, qdrant, weaviate, milvus, chroma) apply recursive chunking server-side using the pipelin",
+    "arguments": [
+      {
+        "name": "content",
+        "type": "string",
+        "desc": "Base64-encoded file content"
+      },
+      {
+        "name": "filename",
+        "type": "string",
+        "desc": "Filename (e.g., data.csv, report.json, orders.xml)"
+      },
+      {
+        "name": "pipeline",
+        "type": "string",
+        "desc": "Pipeline name to process the data with"
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "get_job_status",
+    "description": "Get job status for an upload_data submission. Pass `pipeline_token` (returned from upload_data) for the recommended path. Pass `pipeline_name` instead for a paginated summary of recent jobs for that pipeline. When queried by `pipeline_token`, the response is `{rollup: {allDone, status, jobs: [...]},",
+    "arguments": [
+      {
+        "name": "pipeline_token",
+        "type": "string",
+        "desc": "Pipeline token returned from upload_data"
+      },
+      {
+        "name": "pipeline_name",
+        "type": "string",
+        "desc": "Pipeline name to get a paginated summary of recent jobs"
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "desc": "Page number for paginated results (default: 1)"
+      }
+    ]
+  },
+  {
+    "name": "kill_job",
+    "description": "Kill a running pipeline job by its pipeline token. The job thread will be interrupted and the job marked as cancelled. If this Datris instance's agent policy requires a person to approve this action, the call does NOT perform it: it returns status `pending_approval` with an `approvalId`. Tell the us",
+    "arguments": [
+      {
+        "name": "pipeline_token",
+        "type": "string",
+        "desc": "Pipeline token of the running job to kill"
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "profile_data",
+    "description": "Send data and use AI to generate a comprehensive data profile: summary statistics per column, data quality issues detected, and suggested validation rules. Use the suggested aiRule when building a pipeline's dataQuality section.",
+    "arguments": [
+      {
+        "name": "content",
+        "type": "string",
+        "desc": "Base64-encoded file content"
+      },
+      {
+        "name": "filename",
+        "type": "string",
+        "desc": "Filename (e.g., sample.csv)"
+      },
+      {
+        "name": "delimiter",
+        "type": "string",
+        "desc": "CSV delimiter (default: comma)"
+      },
+      {
+        "name": "header",
+        "type": "boolean",
+        "desc": "Whether CSV has a header row (default: true)"
+      },
+      {
+        "name": "sample_size",
+        "type": "integer",
+        "desc": "Number of rows to sample for profiling (default: 200)"
+      }
+    ]
+  },
+  {
+    "name": "get_dest_types",
+    "description": "Propose real column types for a pipeline whose destination columns are all stored as text (the default for agent-created pipelines). Stateless: samples up to 1000 rows that already landed in the destination, infers types deterministically, and returns per-column evidence \u2014 a few sample values, plus ",
+    "arguments": [
+      {
+        "name": "pipeline",
+        "type": "string",
+        "desc": "Pipeline name"
+      }
+    ]
+  },
+  {
+    "name": "apply_dest_types",
+    "description": "Apply destination column types to an all-string pipeline. REQUIRES explicit user approval first. Landed data is migrated before the config changes (postgres retypes in place; snowflake/databricks validate then swap the table) \u2014 the migration locks or replaces the table, so do NOT apply while a run i",
+    "arguments": [
+      {
+        "name": "pipeline",
+        "type": "string",
+        "desc": "Pipeline name"
+      },
+      {
+        "name": "fields",
+        "type": "array",
+        "desc": "Every destination column with its intended type. Types: string, boolean, int, bigint, float, double, date, timestamp."
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "get_version",
+    "description": "Get the Datris server version.",
+    "arguments": []
+  },
+  {
+    "name": "check_service_health",
+    "description": "Check which backend services are up, down, or not configured. Returns the health status of PostgreSQL, MongoDB, MinIO, ActiveMQ, Kafka, and any configured vector databases (Qdrant, Weaviate, Milvus, Chroma, pgvector). Call this before attempting search or query operations to know which services are ",
+    "arguments": []
+  },
+  {
+    "name": "run_doctor",
+    "description": "Run the platform's operational self-check and return a report: Vault token expiry, AI slot secrets complete, embedding model actually loaded, disk usage, component version skew, and (opt-in) whether each AI model answers. Each non-ok check carries a remediation command for the operator; nothing is c",
+    "arguments": [
+      {
+        "name": "include_ai_probes",
+        "type": "boolean",
+        "desc": "Also send a minimal request through each configured AI slot to confirm the key and model work (spends a few tokens). Default false."
+      },
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": "`full` (default) or `quick` (only the cheap startup-safe subset)."
+      }
+    ]
+  },
+  {
+    "name": "search_qdrant",
+    "description": "Semantic search across a Qdrant vector database collection. Takes a natural language query, generates an embedding, and returns the most similar document chunks with similarity scores. For RAG: pass the returned text to ai_answer with the user's question.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Natural language search query"
+      },
+      {
+        "name": "collection",
+        "type": "string",
+        "desc": "Qdrant collection name (default: documents)"
+      },
+      {
+        "name": "top_k",
+        "type": "integer",
+        "desc": "Number of results to return (default: 5)"
+      }
+    ]
+  },
+  {
+    "name": "search_weaviate",
+    "description": "Semantic search across a Weaviate vector database class. Takes a natural language query, generates an embedding, and returns the most similar document chunks with similarity scores. For RAG: pass the returned text to ai_answer with the user's question.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Natural language search query"
+      },
+      {
+        "name": "class_name",
+        "type": "string",
+        "desc": "Weaviate class name (default: Documents)"
+      },
+      {
+        "name": "top_k",
+        "type": "integer",
+        "desc": "Number of results to return (default: 5)"
+      }
+    ]
+  },
+  {
+    "name": "search_milvus",
+    "description": "Semantic search across a Milvus vector database collection. Takes a natural language query, generates an embedding, and returns the most similar document chunks with similarity scores. For RAG: pass the returned text to ai_answer with the user's question.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Natural language search query"
+      },
+      {
+        "name": "collection",
+        "type": "string",
+        "desc": "Milvus collection name (default: documents)"
+      },
+      {
+        "name": "top_k",
+        "type": "integer",
+        "desc": "Number of results to return (default: 5)"
+      }
+    ]
+  },
+  {
+    "name": "search_pgvector",
+    "description": "Semantic search across a PostgreSQL pgvector table using cosine distance. Takes a natural language query, generates an embedding, and returns the most similar document chunks with similarity scores. Use list_postgres_tables with vector_only=true to discover available pgvector tables. For RAG: pass t",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Natural language search query"
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "desc": "Table name (default: documents)"
+      },
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "PostgreSQL schema (default: public)"
+      },
+      {
+        "name": "top_k",
+        "type": "integer",
+        "desc": "Number of results to return (default: 5)"
+      }
+    ]
+  },
+  {
+    "name": "search_chroma",
+    "description": "Semantic search across a Chroma vector database collection. Takes a natural language query, generates an embedding, and returns the most similar document chunks with similarity scores. For RAG: pass the returned text to ai_answer with the user's question.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Natural language search query"
+      },
+      {
+        "name": "collection",
+        "type": "string",
+        "desc": "Chroma collection name (default: documents)"
+      },
+      {
+        "name": "top_k",
+        "type": "integer",
+        "desc": "Number of results to return (default: 5)"
+      }
+    ]
+  },
+  {
+    "name": "query_postgres",
+    "description": "Execute a read-only SQL SELECT query against PostgreSQL. Use the metadata discovery tools (list_postgres_databases, list_postgres_schemas, list_postgres_tables, list_postgres_columns) first to explore available data before constructing queries. Only SELECT is allowed; LIMIT is auto-appended if missi",
+    "arguments": [
+      {
+        "name": "sql",
+        "type": "string",
+        "desc": "SQL SELECT query to execute"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum rows to return (default: 100). Pass -1 for unlimited \u2014 no cap, returns every matching row."
+      }
+    ]
+  },
+  {
+    "name": "query_objectstore",
+    "description": "Read rows from a pipeline's objectStore destination (Parquet files, ORC files, or an Iceberg table in MinIO or AWS S3). Pass the pipeline name; the server resolves the bucket, prefix, format, and credentials from the pipeline config \u2014 same code path the writer uses, so MinIO and S3 destinations both",
+    "arguments": [
+      {
+        "name": "pipeline",
+        "type": "string",
+        "desc": "Pipeline name (from list_pipelines)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum rows to return (default: 100, hard cap: 10000)."
+      }
+    ]
+  },
+  {
+    "name": "query_snowflake",
+    "description": "Run a read-only query against the Snowflake account a pipeline loads into. Pass the pipeline name; the server resolves the account, credentials, warehouse, and role from the pipeline's config \u2014 same connection the loader uses, credentials never leave the server. Only works for pipelines whose destin",
+    "arguments": [
+      {
+        "name": "pipeline",
+        "type": "string",
+        "desc": "Pipeline name (from list_pipelines). Must have a Snowflake destination."
+      },
+      {
+        "name": "sql",
+        "type": "string",
+        "desc": "Read-only statement: SELECT/WITH, SHOW, or DESCRIBE. Omit to preview the pipeline's destination table."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum rows to return (default: 100). Pass -1 for unlimited."
+      }
+    ]
+  },
+  {
+    "name": "query_databricks",
+    "description": "Run a read-only query against the Databricks workspace a pipeline loads into. Pass the pipeline name; the server resolves the workspace, credentials, SQL warehouse, and catalog from the pipeline's config \u2014 same connection the loader uses, credentials never leave the server. Only works for pipelines ",
+    "arguments": [
+      {
+        "name": "pipeline",
+        "type": "string",
+        "desc": "Pipeline name (from list_pipelines). Must have a Databricks destination."
+      },
+      {
+        "name": "sql",
+        "type": "string",
+        "desc": "Read-only statement: SELECT/WITH, SHOW, or DESCRIBE. Omit to preview the pipeline's destination table."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum rows to return (default: 100). Pass -1 for unlimited."
+      }
+    ]
+  },
+  {
+    "name": "query_mongodb",
+    "description": "Query a MongoDB collection with optional filter and projection. Use list_mongodb_databases and list_mongodb_collections first to discover available data. Returns matching documents as JSON.",
+    "arguments": [
+      {
+        "name": "collection",
+        "type": "string",
+        "desc": "MongoDB collection name"
+      },
+      {
+        "name": "filter",
+        "type": "object",
+        "desc": "MongoDB query filter (default: {})"
+      },
+      {
+        "name": "projection",
+        "type": "object",
+        "desc": "Fields to include/exclude (default: all fields)"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum documents to return (default: 20). Pass -1 for unlimited \u2014 no cap, returns every matching document."
+      }
+    ]
+  },
+  {
+    "name": "query_natural",
+    "description": "Ask a question in natural language about data in a PostgreSQL table. The AI generates a SQL query from the question and table schema, executes it, and returns the results. Use this instead of writing SQL manually.",
+    "arguments": [
+      {
+        "name": "question",
+        "type": "string",
+        "desc": "Natural language question about the data"
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "desc": "PostgreSQL table name to query"
+      },
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "PostgreSQL schema (default: public)"
+      },
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Database name (default: datris)"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum rows to return (default: 100). Pass -1 for unlimited \u2014 no cap, returns every matching row."
+      }
+    ]
+  },
+  {
+    "name": "list_postgres_databases",
+    "description": "List all PostgreSQL databases available in the Datris platform. Use this as the first step when exploring what data has been ingested into PostgreSQL destinations.",
+    "arguments": []
+  },
+  {
+    "name": "list_postgres_schemas",
+    "description": "List all schemas in a PostgreSQL database. Schemas organize tables within a database (e.g., 'public', 'analytics'). Use after list_postgres_databases to drill into a specific database.",
+    "arguments": [
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Database name (default: datris)"
+      }
+    ]
+  },
+  {
+    "name": "list_postgres_tables",
+    "description": "List all tables in a PostgreSQL schema. Set vector_only=true to show only pgvector embedding tables, or false (default) to show regular data tables. Use after list_postgres_schemas.",
+    "arguments": [
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Database name (default: datris)"
+      },
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Schema name (default: public)"
+      },
+      {
+        "name": "vector_only",
+        "type": "boolean",
+        "desc": "If true, only return tables with an embedding column (pgvector tables). Default: false"
+      }
+    ]
+  },
+  {
+    "name": "list_postgres_columns",
+    "description": "List all columns and their data types for a specific PostgreSQL table. Use this to understand table structure before writing a query_postgres SQL query.",
+    "arguments": [
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Database name (default: datris)"
+      },
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Schema name (default: public)"
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "desc": "Table name"
+      }
+    ]
+  },
+  {
+    "name": "list_mongodb_databases",
+    "description": "List all MongoDB databases available in the Datris platform. Use this as the first step when exploring what data has been ingested into MongoDB destinations.",
+    "arguments": []
+  },
+  {
+    "name": "list_mongodb_collections",
+    "description": "List MongoDB collections. If database is specified, lists collections in that database. If omitted, lists all collections across all databases in 'db.collection' format.",
+    "arguments": [
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Database name (optional; omit to list from all databases)"
+      }
+    ]
+  },
+  {
+    "name": "list_qdrant_collections",
+    "description": "List all collections in the Qdrant vector database. Use this to discover available collections before running search_qdrant.",
+    "arguments": []
+  },
+  {
+    "name": "list_weaviate_classes",
+    "description": "List all classes in the Weaviate vector database. Use this to discover available classes before running search_weaviate.",
+    "arguments": []
+  },
+  {
+    "name": "list_milvus_collections",
+    "description": "List all collections in the Milvus vector database. Use this to discover available collections before running search_milvus.",
+    "arguments": []
+  },
+  {
+    "name": "list_chroma_collections",
+    "description": "List all collections in the Chroma vector database. Use this to discover available collections before running search_chroma.",
+    "arguments": []
+  },
+  {
+    "name": "list_pgvector_collections",
+    "description": "List all pgvector tables (tables with an embedding column) in PostgreSQL. Use this to discover available collections before running search_pgvector.",
+    "arguments": []
+  },
+  {
+    "name": "ai_answer",
+    "description": "Ask the Datris AI to answer a question based on provided context. Ideal for RAG workflows: first retrieve relevant chunks using a search tool (search_qdrant, search_pgvector, etc.), then pass the retrieved text as context along with the user's question to get a synthesized answer.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "The question to answer"
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Context text to base the answer on (e.g., retrieved document chunks)"
+      },
+      {
+        "name": "sources",
+        "type": "array",
+        "desc": "Optional provenance handles for the context (e.g. find_data results or _datris_* fields from search hits). Echoed back unchanged on the response so the answer and its provenance travel together."
+      }
+    ]
+  },
+  {
+    "name": "upload_config",
+    "description": "Upload a configuration file to the Datris platform. Supports 'validation-schema' (JSON Schema files used in pipeline dataQuality schema validation). Send the file content as base64. If this Datris instance's agent policy requires a person to approve this action, the call does NOT perform it: it retu",
+    "arguments": [
+      {
+        "name": "content",
+        "type": "string",
+        "desc": "Base64-encoded file content"
+      },
+      {
+        "name": "filename",
+        "type": "string",
+        "desc": "Filename (e.g., schema.json, transform.js)"
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "Config file type: 'validation-schema' for JSON Schema"
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "update_secret",
+    "description": "Update an AI provider secret in the Datris platform. Use this to configure your AI API keys so Datris can use AI features (data profiling, schema generation, AI transformations, RAG). Only AI-related secrets can be updated: anthropic, openai, azure, grok, ollama, embedding. If this Datris instance's",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Secret name: anthropic, openai, azure, grok, ollama, or embedding"
+      },
+      {
+        "name": "fields",
+        "type": "object",
+        "desc": "Key-value fields to set. Typical fields: endpoint (API URL), model (model name), apiKey (API key)"
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "list_tap_secrets",
+    "description": "List the names of tap secrets that already exist (secrets tagged _type=tap \u2014 both agent-created and human-owned ones surfaced via the UI's Tap Secrets section). ALWAYS call this before create_tap_secret: if a suitable secret already exists, prefer reusing it by passing its name as secret_name to cre",
+    "arguments": []
+  },
+  {
+    "name": "get_tap_secret_fields",
+    "description": "Return the FIELD NAMES (keys only \u2014 never values) of an existing tap secret. Use this after list_tap_secrets to verify a candidate secret has the keys your tap script will need (e.g. API_KEY, USER_AGENT). Secret values are intentionally NOT returned and are never visible to the agent.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Tap secret name (from list_tap_secrets)."
+      }
+    ]
+  },
+  {
+    "name": "list_platform_secrets",
+    "description": "List the names of PLATFORM secrets (all secrets NOT tagged _type=tap \u2014 the Platform tab in the UI's Secrets section). These are human-owned credentials for destinations and infrastructure (e.g. S3 destination credentials, Postgres connection, MongoDB connection, embedding/vector-store endpoints). Th",
+    "arguments": []
+  },
+  {
+    "name": "get_platform_secret_fields",
+    "description": "Return the FIELD NAMES (keys only \u2014 never values) of an existing platform secret. Use this after list_platform_secrets to verify a candidate secret has the keys a destination config requires (e.g. an S3 credentialsSecret must contain accessKey, secretKey, region). Secret values are intentionally NOT",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Platform secret name (from list_platform_secrets)."
+      }
+    ]
+  },
+  {
+    "name": "create_tap_secret",
+    "description": "Create or update a secret for a tap to use. The secret's fields are injected as environment variables into the tap's Python script at runtime. Use this before create_tap when the tap needs credentials (API key, DB password, etc.). FIRST call list_tap_secrets to check whether a suitable secret alread",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Secret name. Must not use reserved AI-slot names (anthropic, openai, azure, grok, ollama, embedding, ai-primary, codegen). Convention: lowercase, hyphenated, e.g. 'stripe-api-key'."
+      },
+      {
+        "name": "fields",
+        "type": "object",
+        "desc": "Key-value fields. Each key becomes an env var name in the tap script; e.g., {\"apiKey\": \"sk_...\"} is read as os.environ['apiKey']."
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "If true, replace an existing secret with the same name. Default false (fails on collision). Only tap-typed secrets can be overwritten by an agent."
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "delete_tap_secret",
+    "description": "Delete a tap secret. Only secrets created by an agent (tagged _type=tap) can be deleted via this tool; secrets owned by a human user must be removed from the Secrets tab. Use this to clean up after a tap is no longer needed. If this Datris instance's agent policy requires a person to approve this ac",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the tap secret to delete."
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "create_tap",
+    "description": "Create a tap \u2014 a fetcher that pulls data from an external source and pushes it into a pipeline. Two kinds: a Python script the platform executes (default \u2014 provide a plain-English `instruction` to have AI generate the script, or supply your own `script` directly), or `kind: \"http\"` \u2014 a user-hosted H",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Unique tap name."
+      },
+      {
+        "name": "instruction",
+        "type": "string",
+        "desc": "Plain-English instruction for AI script generation. Describe the source and the data to fetch, in one or two sentences. If provided, AI generates the Python script."
+      },
+      {
+        "name": "script",
+        "type": "string",
+        "desc": "Raw Python source code with a fetch() function. Use this to provide your own script instead of AI generation."
+      },
+      {
+        "name": "target_pipeline",
+        "type": "string",
+        "desc": "Name of the pipeline to push fetched data into"
+      },
+      {
+        "name": "cron_expression",
+        "type": "string",
+        "desc": "Quartz CRON expression for recurring runs (e.g., '0 0 * * * ?' for hourly, '0 30 5 ? * MON-FRI' for weekdays 5:30am). SET THIS whenever the user describes a recurrence \u2014 nightly, daily, hourly, market"
+      },
+      {
+        "name": "secret_name",
+        "type": "string",
+        "desc": "Vault secret name containing API keys/credentials the script needs for the EXTERNAL source. Never for the platform's own databases \u2014 scripts reach platform data credential-free via the auto-injected D"
+      },
+      {
+        "name": "tap_type",
+        "type": "string",
+        "desc": "Tap type. 'structured' (default) returns rows of records. 'document' returns a list of {uri, filename, content (base64)} dicts; the platform stages each document and uses a ledger to skip files it has"
+      },
+      {
+        "name": "packages",
+        "type": "array",
+        "desc": "Extra pip packages the script imports that aren't pre-installed. Required when `script` imports non-stdlib modules beyond the pre-installed set (requests, beautifulsoup4, pandas, lxml, feedparser, bot"
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "Tap implementation kind. 'python' (default): a script the platform executes. 'http': a user-hosted endpoint speaking the tap HTTP contract \u2014 requires `endpoint_url`; `instruction`, `script`, and `pack"
+      },
+      {
+        "name": "endpoint_url",
+        "type": "string",
+        "desc": "For kind 'http' only: absolute http(s) URL Datris POSTs {tap, params, state, testLimit} to on each run. The endpoint responds with the tap envelope {type, data, state?, logs?}. If the tap's secret has"
+      },
+      {
+        "name": "source",
+        "type": "string",
+        "desc": "Where the data really comes from, as a short provider name or host, for lineage and provenance. Optional: when omitted it is derived from the endpoint host or the host the script references most. Neve"
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "list_taps",
+    "description": "List all taps with their status, target pipeline, schedule, and last run info. CALL THIS FIRST (alongside list_pipelines) on any data-related user request \u2014 the user's existing taps often reveal what's already being pulled and where, which short-circuits the entire 'should I suggest an external API?",
+    "arguments": []
+  },
+  {
+    "name": "run_tap",
+    "description": "Manually trigger a tap. Executes the script; when a target pipeline is configured, hands records to the pipeline async. The response carries `recordCount`, `publisherToken`, `pipelineTokens`, `persisted`, `persistedReason`, and the script's `logs` \u2014 but NOT the records themselves. If you need to pre",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the tap to run"
+      },
+      {
+        "name": "params",
+        "type": "object",
+        "desc": "Optional per-run parameters injected into the script as DATRIS_TAP_PARAM_<key> env vars. Use for values that vary per call (date ranges, id lists, page cursors, batch sizes) \u2014 NOT for credentials (tho"
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "get_pipeline_status",
+    "description": "Read pipeline ingestion status. Use this after `run_tap` to watch a tap-submitted load progress. Pass `publisher_token` to see every job the tap run submitted (the recommended option \u2014 works for both structured and document taps). Pass `pipeline_token` for a single ingestion job. Exactly one of the ",
+    "arguments": [
+      {
+        "name": "publisher_token",
+        "type": "string",
+        "desc": "UUID returned from run_tap response. Returns status rows for ALL jobs this tap run submitted."
+      },
+      {
+        "name": "pipeline_token",
+        "type": "string",
+        "desc": "UUID for a single ingestion job. Returns status rows for that one job."
+      }
+    ]
+  },
+  {
+    "name": "delete_tap",
+    "description": "Delete a tap and its stored script. If this Datris instance's agent policy requires a person to approve this action, the call does NOT perform it: it returns status `pending_approval` with an `approvalId`. Tell the user it is waiting for approval in Datris, then poll `get_approval` with that id (pau",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the tap to delete"
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "get_tap",
+    "description": "Get a tap's static definition: configuration, schedule, target pipeline, and the generated Python script content. This is config-only \u2014 it returns the SAME data on every call and tells you NOTHING about run state. Do NOT call this to check whether a run is finished or to poll for completion \u2014 repeat",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the tap to retrieve"
+      }
+    ]
+  },
+  {
+    "name": "get_tap_logs",
+    "description": "Get the run history for a tap. Returns the last 50 run log entries sorted by most recent first, including status, record count, duration, errors, logs, and `publisherToken` for each run that submitted records to a pipeline. Works for both manual runs (triggered by `run_tap`) and scheduled runs (trig",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the tap to get logs for"
+      }
+    ]
+  },
+  {
+    "name": "get_tap_ledger",
+    "description": "For a document tap: return the ledger of discovered documents (URI, filename, status, hashes, first/last seen timestamps). The ledger is what tells the platform which documents have already been processed so re-runs skip unchanged files. Pass 'clear_uri' to delete one entry (forces that document to ",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the document tap"
+      },
+      {
+        "name": "clear_uri",
+        "type": "string",
+        "desc": "Optional. If set, deletes the ledger entry for this URI so the document is re-processed on the next run."
+      },
+      {
+        "name": "clear_all",
+        "type": "boolean",
+        "desc": "Optional. If true, deletes the entire ledger for this tap, forcing every document to be re-processed on the next run."
+      }
+    ]
+  },
+  {
+    "name": "get_tap_state",
+    "description": "Get a tap's incremental-sync state \u2014 the bookmark/cursor its script saved after the last successful run (injected into the next run as the DATRIS_TAP_STATE env var). Returns `{tap, state, updatedAt, updatedBy}`; `state` is null when the tap has never committed state (non-incremental tap, or no succe",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the tap"
+      }
+    ]
+  },
+  {
+    "name": "set_tap_state",
+    "description": "Overwrite or reset a tap's incremental-sync state. Pass `state` (a JSON object) to set the bookmark the next run receives via DATRIS_TAP_STATE \u2014 e.g. rewind a cursor so a window is re-fetched. Pass `reset: true` to delete the state entirely: the next run sees no DATRIS_TAP_STATE and does a full firs",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the tap"
+      },
+      {
+        "name": "state",
+        "type": "object",
+        "desc": "The state object the next run should receive. Must match the keys the tap's script reads from DATRIS_TAP_STATE."
+      },
+      {
+        "name": "reset",
+        "type": "boolean",
+        "desc": "If true, delete the stored state entirely (next run = full first-run fetch). Ignores `state`."
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "test_tap",
+    "description": "Test-run a tap without pushing data to the pipeline. Executes the tap's script and returns results, record count, and any errors. Use this to validate a script before running it for real. If this Datris instance's agent policy requires a person to approve this action, the call does NOT perform it: i",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the tap to test"
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "update_tap",
+    "description": "Update an existing tap's CONFIG without regenerating the script. Change the enabled state, CRON schedule, target pipeline, or description. USE THIS to set or adjust a tap's schedule (`cron_expression`) whenever the user describes a recurrence (nightly, daily, every morning, market open, etc.). The p",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the tap to update"
+      },
+      {
+        "name": "enabled",
+        "type": "boolean",
+        "desc": "Enable or disable the tap"
+      },
+      {
+        "name": "cron_expression",
+        "type": "string",
+        "desc": "Quartz CRON expression for recurring runs (e.g., '0 0 * * * ?' for hourly, '0 30 5 ? * MON-FRI' for weekdays 5:30am). SET THIS whenever the user describes a recurrence \u2014 nightly, daily, hourly, market"
+      },
+      {
+        "name": "target_pipeline",
+        "type": "string",
+        "desc": "New target pipeline name"
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "New plain-English description"
+      },
+      {
+        "name": "endpoint_url",
+        "type": "string",
+        "desc": "For HTTP taps only: new endpoint URL Datris POSTs the run context to. Rejected on Python taps."
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "list_tap_versions",
+    "description": "List the change HISTORY of a tap's definition, newest first. Each entry has `version`, `createdAt`, `createdBy`, and `changeNote`. The platform snapshots a tap's config + script every time it is created or updated. Read-only. IMPORTANT: an EMPTY result does NOT mean the tap has no version \u2014 it means",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the tap"
+      }
+    ]
+  },
+  {
+    "name": "get_tap_version",
+    "description": "View one historical snapshot of a tap's definition: the full config and the pinned Python script as they were at that version. Read-only; does not change the live tap. Get version numbers from `list_tap_versions`.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the tap"
+      },
+      {
+        "name": "version",
+        "type": "integer",
+        "desc": "Version number to view"
+      }
+    ]
+  },
+  {
+    "name": "diff_tap_versions",
+    "description": "Compare two versions of a tap's definition. Returns a server-computed field-by-field config diff and a line-level diff of the script. Read-only. `version` is the newer/selected snapshot; `against` is the baseline to compare it to.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the tap"
+      },
+      {
+        "name": "version",
+        "type": "integer",
+        "desc": "Selected version"
+      },
+      {
+        "name": "against",
+        "type": "integer",
+        "desc": "Baseline version to compare against"
+      }
+    ]
+  },
+  {
+    "name": "restore_tap_version",
+    "description": "Roll a tap back (or forward) to a prior definition version. This is APPEND-ONLY and SIDE-EFFECTING: it reads snapshot `version` and writes it as a NEW latest version (config + that version's script), preserving the full history \u2014 nothing is overwritten or lost. 'Rolling forward' is the same call wit",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the tap"
+      },
+      {
+        "name": "version",
+        "type": "integer",
+        "desc": "Version to restore (becomes a new latest version)"
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "list_pipeline_versions",
+    "description": "List the change HISTORY of a pipeline's definition, newest first. Each entry has `version`, `createdAt`, `createdBy`, and `changeNote`. The platform snapshots a pipeline's full config every time it is created or updated. Read-only. IMPORTANT: an EMPTY result does NOT mean the pipeline has no version",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the pipeline"
+      }
+    ]
+  },
+  {
+    "name": "get_pipeline_version",
+    "description": "View one historical snapshot of a pipeline's definition: the full config as it was at that version. Read-only; does not change the live pipeline. Get version numbers from `list_pipeline_versions`.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the pipeline"
+      },
+      {
+        "name": "version",
+        "type": "integer",
+        "desc": "Version number to view"
+      }
+    ]
+  },
+  {
+    "name": "diff_pipeline_versions",
+    "description": "Compare two versions of a pipeline's definition. Returns a server-computed field-by-field config diff. Read-only. `version` is the newer/selected snapshot; `against` is the baseline.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the pipeline"
+      },
+      {
+        "name": "version",
+        "type": "integer",
+        "desc": "Selected version"
+      },
+      {
+        "name": "against",
+        "type": "integer",
+        "desc": "Baseline version to compare against"
+      }
+    ]
+  },
+  {
+    "name": "restore_pipeline_version",
+    "description": "Roll a pipeline back (or forward) to a prior definition version. APPEND-ONLY and SIDE-EFFECTING: reads snapshot `version` and writes it as a NEW latest version, preserving full history. 'Rolling forward' is the same call with a higher version number. Only call this when the operator has explicitly a",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the pipeline"
+      },
+      {
+        "name": "version",
+        "type": "integer",
+        "desc": "Version to restore (becomes a new latest version)"
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "wait_seconds",
+    "description": "Sleep for a fixed number of seconds, then return. Use this to pace polling against long-running platform work (most often `get_pipeline_status` after `run_tap`, or `get_job_status` after `upload_data`) so you do not burn tool calls hammering an endpoint that is still in progress. ALWAYS poll once BE",
+    "arguments": [
+      {
+        "name": "seconds",
+        "type": "integer",
+        "desc": "How long to sleep, in seconds. Range: 1\u2013120. Values outside this range are clamped."
+      }
+    ]
+  },
+  {
+    "name": "get_agent_policy",
+    "description": "Read this Datris instance's agent policy: for each action (e.g. tap:delete, pipeline:update:dest-types) whether an agent may do it on its own (auto), must wait for a person to approve it (approve), or is refused (deny). Call this before a delete, schema migration, or other consequential change to kn",
+    "arguments": []
+  },
+  {
+    "name": "list_pending_approvals",
+    "description": "List the actions this agent queued for human approval under the agent policy, newest first. Each entry has id, action, resource, state (pending | approved | rejected | expired | executed | failed), createdAt, expiresAt and \u2014 once decided \u2014 decidedBy and the result. Use `state` to filter (default: al",
+    "arguments": [
+      {
+        "name": "state",
+        "type": "string",
+        "desc": "Filter by state: pending, approved, rejected, expired, executed, failed. Omit for all."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum entries to return (default 100)."
+      }
+    ]
+  },
+  {
+    "name": "get_approval",
+    "description": "Poll one queued approval by the `approvalId` a mutating tool returned with status pending_approval. Returns its current state: pending (still waiting for a person), executed (approved and performed \u2014 `resultStatus` / `resultBody` carry the outcome of the original call), failed (approved but the repl",
+    "arguments": [
+      {
+        "name": "approval_id",
+        "type": "string",
+        "desc": "The approvalId returned with pending_approval."
+      }
+    ]
+  },
+  {
+    "name": "list_incidents",
+    "description": "List the platform's recovery-agent incidents, newest first. An incident is opened by the platform itself when a scheduled tap finally fails, a pipeline job errors, a tap goes stale, or a pipeline's volume swings; the recovery agent diagnoses it and \u2014 within the agent policy's recovery mode \u2014 repairs",
+    "arguments": [
+      {
+        "name": "state",
+        "type": "string",
+        "desc": "Filter: open (any active state) or a specific state name. Omit for all."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum incidents to return (default 50)."
+      }
+    ]
+  },
+  {
+    "name": "get_incident",
+    "description": "Read one recovery-agent incident by id \u2014 its trigger, classification, proposal, step-by-step narrative, approvals it is waiting on, and outcome. When the operator asks about a failure the platform is already working, explain THIS record instead of re-diagnosing from scratch.",
+    "arguments": [
+      {
+        "name": "incident_id",
+        "type": "string",
+        "desc": "The incident id (inc_\u2026)."
+      }
+    ]
+  },
+  {
+    "name": "find_data",
+    "description": "Find datasets by meaning: ranks the pipelines your key can read against a natural-language query over their names, descriptions, tags, catalogs, destination field names, and source hosts. Each hit returns where the data lives, how fresh it is, provenance handles (latest run id, config version, scrip",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Natural-language description of the data you need."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum results to return (default: 5, max: 25)."
+      },
+      {
+        "name": "ai",
+        "type": "boolean",
+        "desc": "Rerank the top candidates with the platform's primary AI model (default: false \u2014 ranking is deterministic)."
+      }
+    ]
+  },
+  {
+    "name": "get_provenance",
+    "description": "Resolve a stamped `_datris_run_id` value back to its origin: the pipeline run, the tap run that fed it, the script commit, the pipeline config version, and the declared source. Use it when rows or search results carry `_datris_*` provenance fields (pipelines with provenance stamping enabled). Return",
+    "arguments": [
+      {
+        "name": "run_id",
+        "type": "string",
+        "desc": "The `_datris_run_id` value from the data (the pipeline run token)."
+      },
+      {
+        "name": "pipeline",
+        "type": "string",
+        "desc": "Pipeline name, if known (speeds resolution)."
+      },
+      {
+        "name": "tap_run",
+        "type": "string",
+        "desc": "The `_datris_tap_run` value from the data, if present."
+      },
+      {
+        "name": "config_version",
+        "type": "integer",
+        "desc": "The `_datris_config_version` value from the data, if present."
+      }
+    ]
+  },
+  {
+    "name": "get_lineage",
+    "description": "Traverse the lineage graph from one node: everything upstream (what feeds it) and/or downstream (what depends on it) of a source, tap, pipeline, dataset, or catalog, with the edges between them, freshness for the pipeline involved, and optionally the most recent recorded runs (what each run read and",
+    "arguments": [
+      {
+        "name": "node_type",
+        "type": "string",
+        "desc": "The kind of node to start from."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "The node's name (the part after `type:` in a lineage id)."
+      },
+      {
+        "name": "direction",
+        "type": "string",
+        "desc": "Which way to traverse (default: both)."
+      },
+      {
+        "name": "depth",
+        "type": "integer",
+        "desc": "Maximum hops from the node (default: unbounded)."
+      },
+      {
+        "name": "runs",
+        "type": "integer",
+        "desc": "Include this many most-recent recorded runs for the node (default: 0, max: 50)."
+      },
+      {
+        "name": "columns",
+        "type": "boolean",
+        "desc": "For pipeline and dataset nodes, include column-level lineage: which destination columns pass through from which source fields (exact), which the platform adds (system), and any cached AI-inferred mapp"
+      }
+    ]
+  }
+]
