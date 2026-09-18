@@ -1,0 +1,80 @@
+# Docker MCP Registry entry for Ghost on the Menu, the cabinet as an MCP server.
+# This file and tools.json are what servers/mcp-arcade-cabinets/ carries in
+# docker/mcp-registry (PR opened 2026-09-11 on the Director's word). source.commit
+# pins the commit whose bundled server.js the registry CI builds. esbuild
+# inlines src/; a later server.ts change is a pin bump even when Dockerfile
+# bytes do not move. Coordinator bumps this pin to the landing SHA after collect.
+name: mcp-arcade-cabinets
+image: mcp/mcp-arcade-cabinets
+type: server
+meta:
+  category: productivity
+  tags:
+    - game
+    - arcade
+    - mcp-arcade
+    - replay
+about:
+  title: Ghost On The Menu
+  description: |
+    An arcade cabinet as an MCP server. Ghost on the Menu is a short retro shooter
+    built from what an MCP server said on the wire: a recorded bout plays out as
+    waves, and the calls the agent should not have made look like everything else
+    until you hit one. The six tools are the levers a model pulls to sit in the boss:
+    fire (one verb a beat), say (a line of its own, through a gate), speak (the gated
+    line), sfx, view, and tapes. This listing is silent. The model proposes; the game
+    decides. No tool returns a fact, a score, or a tape row; nothing on the field names
+    the model. Twenty recordings are baked in, four of them the cabinet recording itself.
+  icon: https://raw.githubusercontent.com/mcp-tool-shop-org/brand/main/logos/mcp-arcade-cabinets/icon.png
+source:
+  project: https://github.com/mcp-tool-shop-org/mcp-arcade-cabinets
+  commit: 7dd375af87d0ba78903047564addf522ff6118c9
+run:
+  # The Catalog cabinet is sealed: the voice worker is a host GPU stack no Catalog
+  # user runs, and without one the cabinet says the voice is silent and plays on.
+  # The voice route (VOICE_URL, VOICE_TOKEN) is documented in the repo for a local build.
+  # Local image with a host worker: VOICE_URL=http://host.docker.internal:7788
+  # Optional operator tapes: mount beside /app/tapes, never over it. Empty = baked twenty.
+  # The overlay is this listing's cabinet only. The image also carries the typing
+  # cabinet (CABINET=vibe), which has no menu to merge into and does not read it.
+  volumes:
+    - '{{mcp-arcade-cabinets.tapes}}:/tapes-user:ro'
+  disableNetwork: true
+# Every variable the image reads, and which cabinet reads it. One set for the
+# cabinet that does not read it gets one path-free line on stderr at start, as
+# does a value that cabinet cannot use; nothing here is silently inert.
+#
+# This table is a COPY. The Dockerfile's is canonical — it ships with the
+# image, so it is the one an operator who pulled the image can reach — and
+# surfaces.test.ts compares the rows between the two markers line for line.
+# Do not edit these rows here; edit the Dockerfile and copy them over. The
+# two were free-hand before that and had drifted three ways, while both of
+# them opened with the promise that nothing here is silently inert.
+# `ghost` below is this listing's own cabinet.
+#
+# VARIABLES BEGIN
+#   CABINET            both     ghost (or unset) is the shooter, vibe is the typist
+#   CABINET_TAPES      both     where the tapes are (baked at /app/tapes)
+#   CABINET_TAPES_USER ghost    operator tapes merged beside the baked menu
+#   CABINET_FIXTURE    ghost    which tape the round plays; the image sets its default on the shooter branch only
+#   CABINET_TIER       both     zero to three; anything else is a note and the default (one on the shooter, zero on the typing cabinet)
+#   CABINET_SEED       both     a whole number; anything else is a note
+#   CABINET_BOT        vibe     the typist at the keyboard, as `typist:<words per minute>`
+#   VOICE_URL          ghost    the host worker's base; unset or empty (the Catalog default) is silent
+#   VOICE_TOKEN        ghost    the worker's bearer, when it binds beyond loopback
+# VARIABLES END
+#
+# Only CABINET_TAPES_USER is offered as a parameter here: the rest are for a
+# local build, and the Catalog cabinet plays the listing it describes.
+config:
+  description: Optional host directory of extra .tape.json files, merged beside the baked twenty. Leave empty for the baked menu.
+  env:
+    - name: CABINET_TAPES_USER
+      example: /tapes-user
+      value: /tapes-user
+  parameters:
+    type: object
+    properties:
+      tapes:
+        type: string
+        description: Host directory of operator tapes, mounted read-only at /tapes-user. Leave empty for the baked twenty.
