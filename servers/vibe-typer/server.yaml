@@ -1,0 +1,48 @@
+# Docker MCP Registry entry for Vibe Typer, the typing cabinet as an MCP server.
+# This file and tools.vibe.json are what servers/vibe-typer/ carries in
+# docker/mcp-registry. The image is the same one the shooter's listing builds
+# (the Dockerfile at the pinned commit carries both servers); CABINET=vibe
+# below selects the typing cabinet's server at start. source.commit pins the
+# commit whose bundled vibe.js the registry CI builds; the coordinator bumps
+# it to the release commit at every release, beside the shooter's.
+name: vibe-typer
+image: mcp/vibe-typer
+type: server
+meta:
+  category: productivity
+  tags:
+    - game
+    - arcade
+    - typing
+    - mcp-arcade
+about:
+  title: Vibe Typer
+  description: |
+    An arcade cabinet as an MCP server. Vibe Typer is a typing game where the player
+    is a coding agent, hard-working and sycophantic, and the user is a vibe coder with
+    ideas. In this server the seat is the user's chair: an endless run plays inside it
+    under a typist at a human pace, and the client is the vibe coder, writing for the
+    level after the one being typed. Four tools: view (the thing being built, the team
+    and language the next level wants, how hard it should feel, the last few asks, in
+    words), product (name the next thing to build), ask (one request for the agent to
+    type, through the same code gate the local seat uses), and react (one line the user
+    says when the next piece ships). The gate accepts or refuses and never fixes; nothing
+    waits on the client; no tool returns a valuation, a count or a tape row, and nothing
+    on the field names the model. This listing needs no network to list or to play.
+  icon: https://raw.githubusercontent.com/mcp-tool-shop-org/brand/main/logos/mcp-arcade-cabinets/vibe-typer-icon.png
+source:
+  project: https://github.com/mcp-tool-shop-org/mcp-arcade-cabinets
+  commit: 7dd375af87d0ba78903047564addf522ff6118c9
+run:
+  # The typing cabinet's server has no voice hook and reads no tape overlay, so
+  # this listing takes no parameter and mounts nothing. CABINET=vibe is fixed:
+  # it is what makes the shared image start the typing cabinet.
+  disableNetwork: true
+# The variables the image reads are listed in catalog/server.yaml (the shooter's
+# listing) and canonically in the Dockerfile. This listing fixes one of them.
+config:
+  description: The typing cabinet of the arcade. Nothing to configure; the tapes that season its wires stack are baked in.
+  env:
+    - name: CABINET
+      example: vibe
+      value: vibe
