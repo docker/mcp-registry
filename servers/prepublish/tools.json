@@ -1,0 +1,140 @@
+[
+  {
+    "name": "audit_script",
+    "description": "Run Prepublish's full audit on a YouTube script the user has already written. Returns hook, structure and pacing scores, a script-level attention-risk map naming the passages most likely to lose viewers, and a copy-paste rewrite for each flagged passage. Choose this when the user has a finished or near-finished draft and wants to know what is weak before they record. Do not use it to generate a script, to review a published video, or to check grammar. A free result is released by email, so ask the user for an address rather than guessing one. This is a text-only check of an unrecorded script. It maps relative attention risk inside the draft. It does not measure or predict published YouTube retention, and it cannot account for delivery, editing, thumbnail, topic or distribution.",
+    "arguments": [
+      {
+        "name": "video_title",
+        "type": "string",
+        "desc": "The title the user plans to publish under. The audit checks whether the script delivers this promise.",
+        "required": true
+      },
+      {
+        "name": "script_text",
+        "type": "string",
+        "desc": "The script text as the user wrote it. Paste it verbatim; do not rewrite, summarise or clean it first.",
+        "required": true
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "Where the free result is sent. Required for every anonymous audit: the backend rejects the request without it. Ask the user; never invent it. When the caller is authenticated with a Prepublish API key the result comes back in the conversation instead, so do not ask for an address in that case.",
+        "required": false
+      },
+      {
+        "name": "video_duration_seconds",
+        "type": "integer",
+        "desc": "Intended runtime in seconds, only if the user stated one. Used for pacing; never assumed.",
+        "required": false
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Video category, only if the user said it.",
+        "required": false
+      },
+      {
+        "name": "audience",
+        "type": "string",
+        "desc": "Target audience, only if the user said it.",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "get_audit",
+    "description": "Fetch the current state of an audit that was started earlier, using the analysis_id that audit_script returned. Use this when a previous audit was still running, or when the user refers back to an audit from earlier in the conversation. It performs no new analysis and costs nothing. This is a text-only check of an unrecorded script. It maps relative attention risk inside the draft. It does not measure or predict published YouTube retention, and it cannot account for delivery, editing, thumbnail, topic or distribution.",
+    "arguments": [
+      {
+        "name": "analysis_id",
+        "type": "string",
+        "desc": "The analysis_id returned by audit_script.",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "audit_hook",
+    "description": "Score just the opening lines of a YouTube script: how much attention each sentence pulls, whether it opens a curiosity gap, how far away the payoff sits, plus the top issues and rewritten alternatives. Choose this when the user shares only a hook or opening paragraph, or wants a fast second opinion before auditing a whole draft. Cheaper and narrower than audit_script. This is a text-only check of an unrecorded script. It maps relative attention risk inside the draft. It does not measure or predict published YouTube retention, and it cannot account for delivery, editing, thumbnail, topic or distribution.",
+    "arguments": [
+      {
+        "name": "hook_text",
+        "type": "string",
+        "desc": "The opening lines exactly as written, ideally the first 15 to 30 seconds of speech.",
+        "required": true
+      },
+      {
+        "name": "niche",
+        "type": "string",
+        "desc": "Channel niche, only if the user said it. Sharpens the comparison.",
+        "required": false
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "Only needed once the free anonymous hook check for the day is used. Ask the user; never invent it. When the caller is authenticated with a Prepublish API key the result comes back in the conversation instead, so do not ask for an address in that case.",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "check_authenticity",
+    "description": "Check a script against YouTube's inauthentic-content expectations: whether it reads as mass-produced, templated or repetitive, which signals fire, and what to change. Returns a score, a risk level, the firing signals with quotes, and remediation steps. Choose this when the user worries about reused content, AI-sounding scripts, or a channel that repeats a formula. This reports text-level signals only; it is not a monetisation decision and does not speak for YouTube.",
+    "arguments": [
+      {
+        "name": "video_title",
+        "type": "string",
+        "desc": "The planned title.",
+        "required": true
+      },
+      {
+        "name": "script_text",
+        "type": "string",
+        "desc": "The script text as the user wrote it. Paste it verbatim; do not rewrite, summarise or clean it first.",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "policy_preflight",
+    "description": "Check a script before recording for the YouTube policy categories it may touch: which category families are implicated, the consequence family for each, a verdict and flag counts. Each category cites YouTube's own published policy page. Choose this when the user is writing about sensitive subject matter and asks whether it is safe to monetise. The quoted passages and their suggested rewrites are part of the paid audit, so the free result may return counts with locked quotes. It reports risk against published policy text; it is not a monetisation guarantee and does not speak for YouTube.",
+    "arguments": [
+      {
+        "name": "script",
+        "type": "string",
+        "desc": "The script text as written, at least 200 characters. Below that there is not enough context for a policy read.",
+        "required": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "The planned title, if the user has one. Titles are checked too.",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "script_runtime",
+    "description": "Convert a word count, or a pasted script, into a spoken runtime range, and convert a target runtime back into a word budget. Rates come from Prepublish's own measurement of 349 videos: 25th percentile 160 words per minute, median 181, 75th percentile 201. Choose this for \"how long will this script run\" or \"how many words for a ten-minute video\". It is arithmetic on speaking rate only: it excludes pauses, B-roll and demonstrations, so a finished edit usually runs longer.",
+    "arguments": [
+      {
+        "name": "script_text",
+        "type": "string",
+        "desc": "A script to count. Provide this or word_count or target_minutes.",
+        "required": false
+      },
+      {
+        "name": "word_count",
+        "type": "integer",
+        "desc": "A word count, if the user already knows it.",
+        "required": false
+      },
+      {
+        "name": "target_minutes",
+        "type": "number",
+        "desc": "A target runtime in minutes, to convert into a word budget.",
+        "required": false
+      }
+    ]
+  }
+]
