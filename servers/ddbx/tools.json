@@ -1,0 +1,152 @@
+[
+  {
+    "name": "search_dealings",
+    "description": "List recent insider share dealings in one market, newest first. By default only filings ddbx rated as signal (significant, noteworthy or minor); set signal_only=false for every screened open-market filing. Filter by ticker and by disclosure date.",
+    "arguments": [
+      {
+        "name": "market",
+        "type": "string",
+        "desc": "UK = LSE directors; US = SEC Form 4 insiders; SE = Sweden; NL = Netherlands; USG = members of the US Congress."
+      },
+      {
+        "name": "ticker",
+        "type": "string",
+        "desc": "Issuer ticker, e.g. \"BARC\" or \"BARC.L\" (UK), \"NVDA\" (US).",
+        "optional": true
+      },
+      {
+        "name": "since",
+        "type": "string",
+        "desc": "Only filings disclosed on or after this date.",
+        "optional": true
+      },
+      {
+        "name": "before",
+        "type": "string",
+        "desc": "Only filings disclosed before this date (use to page back).",
+        "optional": true
+      },
+      {
+        "name": "signal_only",
+        "type": "boolean",
+        "desc": "Only filings rated significant, noteworthy or minor (default true); false returns every screened open-market filing",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of filings to return",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Search insider dealings",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "get_dealing",
+    "description": "One filing by the id returned from search_dealings or get_company (e.g. \"UK:…\", \"US:f4-…\").",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "ddbx filing id, as returned by search_dealings"
+      }
+    ],
+    "annotations": {
+      "title": "Get one insider dealing",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "get_company",
+    "description": "Recent insider dealings at one UK- or US-listed company, with a short description of the business and a link to its ddbx company page.",
+    "arguments": [
+      {
+        "name": "market",
+        "type": "string",
+        "desc": "Market: UK or US"
+      },
+      {
+        "name": "ticker",
+        "type": "string",
+        "desc": "e.g. \"TSCO\" (UK) or \"AAPL\" (US)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of filings to return (1-50, default 20)",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Insider activity at one company",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "get_daily_summary",
+    "description": "ddbx's written recap of a trading day's insider dealings (UK or US), with the filings it cites. Omit date for the latest.",
+    "arguments": [
+      {
+        "name": "market",
+        "type": "string",
+        "desc": "Market: UK or US (default UK)",
+        "optional": true
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "Summary date, YYYY-MM-DD",
+        "optional": true
+      },
+      {
+        "name": "session",
+        "type": "string",
+        "desc": "afternoon is the end-of-day recap; morning covers the opening session.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Daily insider-dealing summary",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "search",
+    "description": "Find recent insider dealings at a company by name or ticker (UK and US). Returns ids to pass to fetch.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Free-text query, e.g. a company name or ticker"
+      }
+    ],
+    "annotations": {
+      "title": "Search ddbx",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "fetch",
+    "description": "The full thin-tier record for one id returned by search.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "ddbx filing id, as returned by search"
+      }
+    ],
+    "annotations": {
+      "title": "Fetch a ddbx filing",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  }
+]
