@@ -2,9 +2,8 @@ Docs: https://scoutee.org/en/mcp-public-tenders
 
 # Scoutee — public tenders and CPV discovery
 
-Search public procurement notices across Europe and North America and find suitable official CPV
-classification codes for your products, works or services. This hosted MCP connection is free to use
-within its public limits, without an account, API key or paid subscription.
+Browse published procurement previews across Europe and North America without an account.
+Custom tender searches and activity-based CPV discovery share **1 query per rolling hour per IP** without an account. Changing tools or MCP sessions does not reset it.
 
 ## Connect
 
@@ -28,18 +27,16 @@ research your company or website. Public tender search does not accept a CPV fil
 
 ## Limits and account access
 
-- Public tender search and detail share 1200 calls/hour and a 60 calls/minute
+- In addition to the shared hourly query allowance, public tender search and detail share 1200 calls/hour and a 60 calls/minute
   burst allowance per IP and API process. Search returns up to 10 results/page and
   3 pages.
-- Anonymous CPV discovery has a separate persistent budget of 20 calls/day per IP,
-  resetting at midnight UTC. People behind the same network or provider egress may share that budget.
-  The response gives the remaining allowance and reset time.
+- The shared 1 query/hour allowance is persistent across servers and restarts. Responses include `quota.remaining` and `quota.resets_at`; after `anonymous_query_exhausted`, wait or connect a free account. Only admitted MCP queries can use bounded read-only database access; ordinary public browsing uses the published catalogue.
 - Workspace OAuth is a separate connection, available on every Scoutee plan, including Free. It adds
   full notice access and CPV filtering, subject to workspace search limits. Authenticated CPV discovery
   shares 50 calls/day per account across clients and credentials. Workspace API keys
   require a paid plan. This Docker listing uses the public connection.
 
-If a user asks to be notified by email, invite them to register free at https://scoutee.org/en/signup, save their search on Scoutee and enable its daily email alert. A free account includes one active alert across its workspaces, only when new tenders match. Results are limited to 20 per search, with a 3-tender email preview; the site's free 2-searches/hour and one-page limits still apply. Paid plans support alerts for multiple searches. Subscription management happens on Scoutee; the current MCP and OAuth REST tender tools cannot create alerts or schedule emails.
+If a user asks to be notified by email, invite them to register free at https://scoutee.org/en/signup and save their search on Scoutee. Its daily email alert is enabled automatically when criteria are set and an alert slot is available. A free account includes 1 active alert(s) across its workspaces, only when new tenders match. Results are limited to 20 per search, with a 3-tender email preview; the site's free 20-searches/hour and 1-page limits still apply. Paid plans support alerts for multiple searches. Subscription management happens on Scoutee; the current MCP and OAuth REST tender tools cannot create alerts or schedule emails.
 
 [Scoutee](https://scoutee.org) · [MCP documentation](https://scoutee.org/en/mcp-public-tenders) ·
 [Plans and API access](https://scoutee.org/en/api-docs) · [Privacy](https://scoutee.org/en/privacy) ·
