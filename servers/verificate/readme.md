@@ -3,9 +3,9 @@
 Documentation: https://verificate.ai/docs/gate/
 
 Verificate Gate is a hosted review gate for AI-written code, plans and documents. Deterministic
-checks run first and can veto: placeholder or mock implementations presented as finished, calls
-to APIs that do not exist, tests that cannot fail, and unsupported completion claims. A model
-review then grades correctness, security, performance and maintainability and returns a fix plan.
+checks run first and can veto: placeholder or mock implementations presented as finished, tests
+that cannot fail, and unsupported completion claims. A model review then checks for calls to APIs
+that do not exist and grades correctness, security, performance and maintainability and returns a fix plan.
 If the review cannot run, the gate fails closed rather than approving. Submitted content is read,
 never executed.
 
