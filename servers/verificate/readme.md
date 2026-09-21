@@ -1,14 +1,18 @@
-# Verificate MCP
+# Verificate Gate
 
-Documentation: https://verificate.ai/mcp
+Documentation: https://verificate.ai/docs/gate/
 
-Verificate MCP is a hosted validation server for AI coding. It runs deterministic
-reality gates (mock/placeholder veto, completion-claim detection, reality
-validation) followed by an enterprise-grade review (ISO/IEC 25010: performance,
-scalability, reliability, tech debt) on AI-generated code and plans — inside
-Claude Code, Cursor, Windsurf or any MCP client.
+Verificate Gate is a hosted review gate for AI-written code, plans and documents. Deterministic
+checks run first and can veto: placeholder or mock implementations presented as finished, calls
+to APIs that do not exist, tests that cannot fail, and unsupported completion claims. A model
+review then grades correctness, security, performance and maintainability and returns a fix plan.
+If the review cannot run, the gate fails closed rather than approving. Submitted content is read,
+never executed.
 
-Tools: `validate_ai_output`, `analyze_code`, `validate_plan`, `generate_code`.
+Tools: `validate_ai_output`, `validate_plan`, `analyze_code`, `generate_code`, `validate_artifact`.
 
-Authentication: Bearer token. Create an account at https://verificate.ai/auth/signup
-(30-day free trial, no card) and use the token from your dashboard.
+Authentication: none required — 100 free validations with no signup. For continued use, create an
+account at https://verificate.ai/auth/signup (30-day trial, no card) and send the token as
+`Authorization: Bearer <token>`.
+
+Source and client configs: https://github.com/VerificateAI/verificate-mcp-quickstart
