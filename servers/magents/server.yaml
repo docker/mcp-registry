@@ -1,0 +1,37 @@
+name: magents
+image: ghcr.io/abnegate/magents:0.12.0
+type: server
+meta:
+  category: devops
+  tags:
+    - agents
+    - sessions
+    - handoff
+    - claude
+    - codex
+    - cursor
+    - grok
+    - mcp
+about:
+  title: Magents
+  description: Shared session bus MCP + CLI so coding agents can list, read, hand off, send, and spawn across Claude, Codex, Cursor, Grok, and friends without pasting context.
+  icon: https://avatars.githubusercontent.com/u/5857008?v=4
+source:
+  project: https://github.com/abnegate/magents
+  commit: 0036d9a79d7ce0c5e939274fa8c4bef37e1af2bb
+run:
+  env:
+    HOME: "{{magents.home}}"
+  volumes:
+    - "{{magents.home}}:{{magents.home}}"
+config:
+  description: Mount the host home directory so magents can read local agent session files.
+  parameters:
+    type: object
+    properties:
+      home:
+        type: string
+        description: Host home directory (contains Claude/Codex/Cursor/Grok session data)
+        default: $HOME
+    required:
+      - home
