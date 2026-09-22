@@ -1,0 +1,42 @@
+name: dynatrace-managed-mcp-server
+image: mcp/dynatrace-managed-mcp-server
+type: server
+meta:
+  category: monitoring
+  tags:
+    - Dynatrace
+    - Observability
+    - Monitoring
+about:
+  title: Dynatrace Managed
+  description: This MCP Server allows interaction with the Dynatrace Managed (self-hosted) observability platform, bringing real-time observability data directly into your development workflow.
+  icon: https://avatars.githubusercontent.com/u/58178984?s=200&v=4
+source:
+  project: https://github.com/dynatrace-oss/dynatrace-managed-mcp
+  branch: main
+  commit: 9b8ed4af3fa7e177a7ae1616a72742a892124ae4
+config:
+  description: Configure the connection to one or more Dynatrace Managed clusters
+  secrets:
+    - name: dynatrace-managed-mcp-server.dt_environment_configs
+      env: DT_ENVIRONMENT_CONFIGS
+      example: '[{"apiEndpointUrl":"https://managed.example.com","environmentId":"abc12345","alias":"prod","apiToken":"dt0c01.SAMPLE.ABCD1234"}]'
+  env:
+    - name: LOG_LEVEL
+      example: info
+      value: "{{dynatrace-managed-mcp-server.log_level}}"
+    - name: HTTP_PROXY
+      example: http://proxy.example.com:8080
+      value: "{{dynatrace-managed-mcp-server.http_proxy}}"
+    - name: HTTPS_PROXY
+      example: http://proxy.example.com:8080
+      value: "{{dynatrace-managed-mcp-server.https_proxy}}"
+  parameters:
+    type: object
+    properties:
+      log_level:
+        type: string
+      http_proxy:
+        type: string
+      https_proxy:
+        type: string
