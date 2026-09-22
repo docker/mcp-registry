@@ -68,7 +68,7 @@
       {
         "name": "compact",
         "type": "boolean",
-        "desc": "Drop diagnostic fields (timings, workdir, platform) from the result; safety disclosures are always kept",
+        "desc": "Drop diagnostic fields (timings, workdir, platform) from the result; safety disclosures are always kept, and stderr is kept whenever the run did not succeed — dropped only on a clean successful run (ok=true, exit_code 0, verdict OK)",
         "optional": true
       },
       {
@@ -166,6 +166,22 @@
         "name": "content",
         "type": "string",
         "desc": "Text content to write to `path`, overwriting any existing file"
+      }
+    ]
+  },
+  {
+    "name": "session_delete_file",
+    "description": "Delete one file (or symlink entry — never the directory or symlink's\ntarget) from a session workspace. This is the recovery path when a\nsession is refused for being over CODECALC_MAX_ARTIFACT_COUNT: neither\nsession_write_file (creates/overwrites, never removes) nor session_run/\nexecute_code (refused by the same cap) can shrink the count, so this is\nthe only in-session way to get back under it short of session_stop\ndiscarding the whole workspace. Refuses runner-internal paths (the same\nones session_artifacts excludes) and directories.",
+    "arguments": [
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": "Id of the session workspace to delete from"
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Relative path inside the workspace to delete; path escapes (e.g. '../') are refused"
       }
     ]
   },
@@ -309,7 +325,7 @@
   },
   {
     "name": "trace_execution",
-    "description": "Debug WHY, line by line, for the ONE input you actually ran it on:\nwhich statements fired, in what order, with what variable values at\neach step, and which if/elif/while/for/try branch was taken versus\nnever taken. Want just the printed output instead? Use execute_code.\n\nReturns `events`: ordered `{step, line, event, func, locals}`, one entry\nper traced line/call/return/exception in YOUR code only (library\ninternals excluded). `locals` on each entry is only the names that\nchanged since the previous step in that same call — not a full dump\nevery line. A `return` entry also carries `return_value`; an\n`exception` entry carries `exception_type`/`exception_message`.\n\nAlso returns `branches` (hit count per if/elif/while/for/try line),\n`lines_executed` / `lines_never_executed` (coverage from a static parse),\nand `truncated`/`truncated_reason` when `max_events` or an internal\nsize ceiling stopped RECORDING early (the underlying stdout/exit code\nare unaffected either way).\n\nTRUST: the trace is produced BY the traced program at its OWN privilege\n— a debugging aid, not an attestation of behaviour, exactly as\ntrustworthy as that program's own stdout. `discarded_events` /\n`events_consistent` are a best-effort tamper/corruption signal (never a\nguarantee) computed independently of the file's own content.\n`unenforced` may additionally note \"only the main thread is traced\"\n(sys.settrace is per-thread) or, fallback backend only, an OLE\n`exit_code` race.\n\nFor a structural Big-O guess with nothing executed, use\nanalyze_complexity.\n",
+    "description": "Debug WHY, line by line, for the ONE input you actually ran it on:\nwhich statements fired, in what order, with what variable values at\neach step, and which if/elif/while/for/try branch was taken versus\nnever taken. Want just the printed output instead? Use execute_code.\n\nReturns `events`: ordered `{step, line, event, func, locals}`, one entry\nper traced line/call/return/exception in YOUR code only (library\ninternals excluded). `locals` on each entry is only the names that\nchanged since the previous step in that same call — not a full dump\nevery line. A `return` entry also carries `return_value`; an\n`exception` entry carries `exception_type`/`exception_message`.\n\nAlso returns `branches` (hit count per if/elif/while/for/try line),\n`lines_executed` / `lines_never_executed` (coverage from a static parse),\nand `truncated`/`truncated_reason` when `max_events` or an internal\nsize ceiling stopped RECORDING early (the underlying stdout/exit code\nare unaffected either way). `truncated_reason` is also\n`\"event_detail_over_cap\"` when one event's OWN detail (e.g. a call with\nmore than 200 changed locals) was too large to admit — that ONE event is\nstill present in `events`, as a bounded stub (`locals: {}`,\n`detail_dropped: true`), so its real `step`/`line`/`func` still count\ntoward `lines_executed`/`branches` exactly like any other event; only\nits own detail, never the rest of the trace, was dropped.\n\nTRUST: the trace is produced BY the traced program at its OWN privilege\n— a debugging aid, not an attestation of behaviour, exactly as\ntrustworthy as that program's own stdout. `discarded_events` /\n`events_consistent` are a best-effort tamper/corruption signal (never a\nguarantee) computed independently of the file's own content —\n`events_consistent` requires `discarded_events == 0` among its\nconditions, since an honest run never produces one.\n`unenforced` may additionally note \"only the main thread is traced\"\n(sys.settrace is per-thread) or, fallback backend only, an OLE\n`exit_code` race.\n\nFor a structural Big-O guess with nothing executed, use\nanalyze_complexity.\n",
     "arguments": [
       {
         "name": "language",
@@ -493,12 +509,12 @@
   },
   {
     "name": "evaluate_expression",
-    "description": "Use evaluate_expression, not calc_exact, for something other than\nplain arithmetic on literal values. Symbolically evaluate to a value or\nclosed form via sympify: 'integrate(x**2, x)', 'sqrt(144) + 2**10'. Not\nsimplification — for simplified/factored/expanded forms, use\nsymbolic(op=\"simplify\"). Returns `value` (if the result is a number) or\nthe evaluated expression, plus `type`.",
+    "description": "Use evaluate_expression, not calc_exact, for something other than\nplain arithmetic on literal values. Symbolically evaluate to a value or\nclosed form via sympify: 'sqrt(144) + 2**10'. Not simplification — for\nsimplified/factored/expanded forms, use symbolic(op=\"simplify\").\n\nAlso reaches calculus forms no other tool exposes: `diff(expr, x)`\n(derivative), `integrate(expr, x)` / `integrate(expr, (x, a, b))`\n(indefinite/definite), and `series(expr, x, x0, n)` (Taylor expansion) —\nsee this parameter's own examples.\n\nReturns `value` (if the result is a number) or the evaluated\nexpression, plus `type`.",
     "arguments": [
       {
         "name": "expression",
         "type": "string",
-        "desc": "Symbolic math expression to evaluate via SymPy, e.g. 'integrate(x**2, x)', 'sqrt(144) + 2**10'"
+        "desc": "Symbolic math expression to evaluate via SymPy, e.g. 'integrate(x**2, x)', 'diff(sin(x)*x, x)', 'series(sin(x), x, 0, 6)', 'sqrt(144) + 2**10'"
       }
     ]
   },
@@ -559,7 +575,7 @@
   },
   {
     "name": "benchmark",
-    "description": "Empirically measure time complexity by running code at increasing input sizes.\n\nContract: the code must read an integer N from stdin (first line) and do work\nsized by N. codecalc runs it at each size in `sizes` and fits the growth\ncurve to estimate Big-O (O(1), O(log n), O(n), O(n log n), O(n^2)...).\nExample python: 'import sys\\nn=int(sys.stdin.readline()); s=0\\nfor i in range(n): s+=i\\nprint(s)'\n",
+    "description": "Empirically measure time complexity by running code at increasing input sizes.\n\nContract: the code must read an integer N from stdin (first line) and do work\nsized by N. codecalc runs it at each size in `sizes` and fits the growth\ncurve to estimate Big-O (O(1), O(log n), O(n), O(n log n), O(n^2)...). 3\nsizes (the accepted minimum) can only return noise-floor O(1) or\n\"inconclusive\" — never a growth class, not even exponential; 4+ sizes are\nneeded to trust the curve fit, 5+ doubling sizes for a robust ratio\nmedian — `estimate_basis` names which estimator decided.\nExample python: 'import sys\\nn=int(sys.stdin.readline()); s=0\\nfor i in range(n): s+=i\\nprint(s)'\n",
     "arguments": [
       {
         "name": "code",
@@ -575,7 +591,7 @@
       {
         "name": "sizes",
         "type": "string",
-        "desc": "Comma-separated input sizes to run at, e.g. '100,1000,10000,100000'",
+        "desc": "Comma-separated input sizes to run at, e.g. '100,1000,10000,100000' (this default: 4 sizes 10x apart, decided via curve-fit). 3 is the accepted minimum but can only return noise-floor O(1) or an inconclusive estimate — never a growth class, not even exponential, which needs 2+ agreeing doubling ratios (so 4+ sizes) and cannot decide on one; 4+ sizes are needed to trust the curve fit; 5+ DOUBLING sizes (n,2n,4n,8n,16n) are needed for a robust ratio median",
         "optional": true
       },
       {
@@ -806,6 +822,22 @@
     ]
   },
   {
+    "name": "percent_change",
+    "description": "Exact percent change from FROM_VALUE to TO_VALUE. Use percentage,\nnot this, for PART / TOTAL rather than a before/after change.\n\n`(to_value - from_value) / abs(from_value) * 100` — the conventional\nfinance definition, relative to the MAGNITUDE of the base so a negative\nfrom_value does not flip the sign (see `note` when it applies). Refuses\nfrom_value=0 (undefined) rather than returning infinity — report the\nabsolute change instead. Returns `percent_exact` (exact rational),\n`percent_decimal` (rounded), `absolute_change`, `direction`\n(\"increase\"/\"decrease\"/\"unchanged\"), and `multiplier` (to_value /\nfrom_value, exact).",
+    "arguments": [
+      {
+        "name": "from_value",
+        "type": "string",
+        "desc": "Starting value: a number or exact rational (e.g. '3/4', '1e3'), not an expression like '2*3'; no '_' digit separators; must not be zero"
+      },
+      {
+        "name": "to_value",
+        "type": "string",
+        "desc": "Ending value: a number or exact rational (e.g. '3/4', '1e3'), not an expression like '2*3'; no '_' digit separators"
+      }
+    ]
+  },
+  {
     "name": "calc_stats",
     "description": "Mean, median, sample stdev, and coefficient of variation (CV) for a\nsample of numbers. Pairs with percentiles for distribution shape\n(p50/p90/p95/p99) on the same sample, and with benchmark or\nverify_optimization, which are common sources of the timing samples this\ntool summarizes. CV > 0.2 flags run-to-run noise that swamps the effect.\nReturns n/mean/median/stdev/cv plus a cv_note.\n",
     "arguments": [
@@ -975,7 +1007,7 @@
   },
   {
     "name": "symbolic",
-    "description": "Symbolic algebra, selected by `op` — replaces the four former\nstandalone tools solve_expression, solve_linear, simplify_expression\nand limit_expression, retired in 0.12.0 (CHANGELOG.md). Every op\nreturns exactly its former tool's own result, plus `op` (additive).\n\nop=\"solve\" (was solve_expression) — the roots of one equation:\n'x**2 - 4 = 0', '2*x + 1 = 7'. For a system of several equations, use\nop=\"solve_linear\". For general constraint satisfiability (inequalities,\nboolean constraints, multiple solvers), use z3_check. Returns\n`solutions` as a list of strings alongside the parsed `equation` and\n`variable`. Used by this op: `expr` (required), `var` (optional).\n\nop=\"solve_linear\" (was solve_linear) — a system of equations sharing\nvariables. Example: system='x + y = 10; x - y = 2', variables='x, y'.\nUsed by this op: `system`, `variables` (both required).\n\nop=\"simplify\" (was simplify_expression) — simplify, factor, and expand\nan expression — algebraic forms, not solving (use op=\"solve\") and not a\nnumeric value (use calc_exact). Returns `simplified`, `factored`, and\n`expanded` as strings alongside the parsed `original`. Used by this op:\n`expr` (required).\n\nop=\"limit\" (was limit_expression) — asymptotic behaviour: limit of\n`expr` as `var` -> `point`. 'symbolic(\"limit\", \"n*log(n)/n**2\", \"n\")'\nreturns 0 — settles complexity arguments faster than arguing. Used by\nthis op: `expr` (required), `var` (optional), `point` (optional).\n",
+    "description": "Symbolic algebra, selected by `op` — replaces the four former\nstandalone tools solve_expression, solve_linear, simplify_expression\nand limit_expression, retired in 0.12.0 (CHANGELOG.md). Every op\nreturns exactly its former tool's own result, plus `op` (additive).\n\nop=\"solve\" (was solve_expression) — the roots of one equation:\n'x**2 - 4 = 0', '2*x + 1 = 7'. For a system of several equations, use\nop=\"solve_linear\". For general constraint satisfiability (inequalities,\nboolean constraints, multiple solvers), use z3_check. Returns\n`solutions` as a list of strings alongside the parsed `equation` and\n`variable`. Used by this op: `expr` (required), `var` (optional).\n\nop=\"solve_linear\" (was solve_linear) — a system of equations sharing\nvariables; despite the name, non-linear systems work too (e.g.\n'x**2 + y**2 = 5; x - y = -1'). Example: system='x + y = 10; x - y = 2',\nvariables='x, y'. Used by this op: `system`, `variables` (both\nrequired).\n\nop=\"simplify\" (was simplify_expression) — simplify, factor, and expand\nan expression — algebraic forms, not solving (use op=\"solve\") and not a\nnumeric value (use calc_exact). Returns `simplified`, `factored`, and\n`expanded` as strings alongside the parsed `original`. Used by this op:\n`expr` (required).\n\nop=\"limit\" (was limit_expression) — asymptotic behaviour: limit of\n`expr` as `var` -> `point`. 'symbolic(\"limit\", \"n*log(n)/n**2\", \"n\")'\nreturns 0 — settles complexity arguments faster than arguing. Used by\nthis op: `expr` (required), `var` (optional), `point` (optional).\n",
     "arguments": [
       {
         "name": "op",
@@ -1003,7 +1035,7 @@
       {
         "name": "system",
         "type": "string",
-        "desc": "';'-separated equations for op='solve_linear', e.g. 'x + y = 10; x - y = 2'; required by that op",
+        "desc": "';'-separated equations for op='solve_linear' (non-linear systems work too, e.g. 'x**2 + y**2 = 5; x - y = -1'), e.g. 'x + y = 10; x - y = 2'; required by that op",
         "optional": true
       },
       {
