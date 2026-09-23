@@ -4,5 +4,7 @@ Documentation: https://handsforagents.com
 
 Machine-readable: https://handsforagents.com/llms.txt · https://handsforagents.com/services.json · https://handsforagents.com/openapi.yaml
 
-Three tools, no authentication: `list_services`, `request_quote`, `get_status`.
-Ordering and payment happen by e-mail with a human; they are deliberately not tools.
+Five tools: `list_services`, `request_quote`, `create_task`, `get_status`, `confirm_delivery`.
+No API key; `list_services` and `request_quote` are open, the rest use the `access_token` from `request_quote`. Payment by card through Stripe Checkout.
+
+MCP endpoint: https://mcp.handsforagents.com/mcp · REST: https://api.handsforagents.com/v1
