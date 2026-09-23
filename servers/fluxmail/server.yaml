@@ -1,0 +1,41 @@
+name: fluxmail
+image: mcp/fluxmail
+type: server
+meta:
+  category: communication
+  tags:
+    - email
+    - gmail
+    - outlook
+    - imap
+    - smtp
+    - communication
+about:
+  title: Fluxmail
+  description: Self-hosted email MCP server for Gmail, Outlook, and IMAP/SMTP. Search, read, draft, send, and organize mail across connected accounts.
+  icon: https://avatars.githubusercontent.com/u/4218237?v=4
+source:
+  project: https://github.com/churichard/fluxmail
+  commit: 970d0a66048c36ac0914d24efa8867a711b5d78e
+run:
+  command:
+    - stdio
+  volumes:
+    - fluxmail-data:/data
+config:
+  description: Connect mailboxes with the Fluxmail CLI. Google OAuth credentials are optional overrides for Gmail.
+  secrets:
+    - name: fluxmail.google_client_secret
+      env: GOOGLE_CLIENT_SECRET
+      example: <GOOGLE_CLIENT_SECRET>
+      required: false
+  env:
+    - name: GOOGLE_CLIENT_ID
+      example: 123456789.apps.googleusercontent.com
+      value: "{{fluxmail.google_client_id}}"
+  parameters:
+    type: object
+    properties:
+      google_client_id:
+        type: string
+        description: Optional Google OAuth client ID override for Gmail accounts
