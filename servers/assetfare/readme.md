@@ -7,7 +7,7 @@ maximum token-path cost plus current provider-backed prepare availability. The
 server returns caller-approved unsigned actions; it never signs or submits.
 
 Public source: https://github.com/assetfare/assetfare-mcp
-Current package/release: `assetfare-mcp@0.4.16`
+Current package/release: `assetfare-mcp@0.4.17` (21 remote tools; the optional stdio package has one additional local-only session-capability helper)
 Docs: https://assetfare.dev/
 Signed manifest: https://api.assetfare.dev/.well-known/assetfare-manifest.json
 Security: https://assetfare.dev/.well-known/security.txt
