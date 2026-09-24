@@ -15,7 +15,7 @@ there is no business maximum; live liquidity, protocol, balance, and capacity
 constraints still apply.
 
 Public source: https://github.com/assetfare/assetfare-mcp
-Current package/release: `assetfare-mcp@0.4.22` (the public v2 endpoint exposes 9 tools; the separate legacy endpoint exposes 13; the optional all-tools stdio profile exposes 22 including its local-only session-capability helper)
+Current package/release: `assetfare-mcp@1.0.0` (the public v2 endpoint exposes 9 tools; the separate legacy endpoint exposes 13; the optional all-tools stdio profile exposes 22 including its local-only session-capability helper)
 Docs: https://assetfare.dev/
 Signed manifest: https://api.assetfare.dev/.well-known/assetfare-manifest.json
 Security: https://assetfare.dev/.well-known/security.txt
