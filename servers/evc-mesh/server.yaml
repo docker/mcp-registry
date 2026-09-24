@@ -1,0 +1,45 @@
+name: evc-mesh
+image: mcp/evc-mesh
+type: server
+meta:
+  category: productivity
+  tags:
+    - productivity
+    - task-management
+    - project-management
+    - agents
+    - memory
+about:
+  title: EVC Mesh
+  description: "EVC Mesh is an open-source task manager built for teams where people and AI agents work side by side. This MCP server connects your agent to a Mesh workspace: it can pick up assigned tasks, check out work, comment, move tasks through your workflow, hand off to teammates, and keep decisions in shared project memory. Two tool profiles: core (25 tools, for everyday task work) and full (63 tools, including recurring tasks, docs and workspace admin). Every tool is marked read-only or write, so clients can ask before changing anything. You need a Mesh workspace and an agent key from it. Mesh is self-hosted (Apache-2.0, docker compose setup in the evc-mesh repository). Set MESH_API_URL to your instance and MESH_AGENT_KEY to the agent's key. Workspaces on the hosted instance are by invitation."
+  icon: https://avatars.githubusercontent.com/u/73277481?v=4
+source:
+  project: https://github.com/entire-vc/evc-mesh-mcp
+  commit: 5fbd140639103180d153b7bd0986979817947384
+config:
+  description: Connect to your Mesh instance with an agent key issued by Mesh
+  secrets:
+    - name: evc-mesh.agent_key
+      env: MESH_AGENT_KEY
+      example: agk_your-workspace_your-key
+  env:
+    - name: MESH_API_URL
+      example: https://mesh.example.com
+      value: "{{evc-mesh.mesh_api_url}}"
+    - name: MESH_MCP_PROFILE
+      example: core
+      value: "{{evc-mesh.profile}}"
+  parameters:
+    type: object
+    properties:
+      mesh_api_url:
+        type: string
+        description: Base URL of your Mesh instance, e.g. https://mesh.example.com
+      profile:
+        type: string
+        description: "Tool profile: core (25 tools) or full (63 tools). Defaults to full."
+        enum:
+          - core
+          - full
+    required:
+      - mesh_api_url
