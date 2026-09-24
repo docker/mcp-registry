@@ -18,6 +18,11 @@ where provider-internal liquidity sourcing or aggregation remains possible.
 `route_aggregator_used: false` is scoped to AssetFare's own route engine, not a
 claim about a provider's internal routing.
 
+The required `continuation_v3` starts as an unranked quote candidate and binds
+the full quote, route summary, exact bounds, expiry, required wallet chains,
+and one explicitly selected action mode. It does not authorize preparation by
+itself. The hosted adapter rejects drift before returning any unsigned action.
+
 Use USD 1 only for reachability/schema smoke. For economic evaluation, USD
 1,000 is the primary representative amount and every candidate should be
 requoted at the actual intended amount. For native-USDC routes, USD 50 is a
@@ -27,7 +32,7 @@ there is no business maximum; live liquidity, protocol, balance, and capacity
 constraints still apply.
 
 Public source: https://github.com/assetfare/assetfare-mcp
-Current package/release: `assetfare-mcp@1.1.1` (the public v2 endpoint exposes 9 tools; the separate legacy endpoint exposes 13; the optional all-tools stdio profile exposes 22 including its local-only session-capability helper)
+Current package/release: `assetfare-mcp@1.2.0` (the public v2 endpoint exposes 9 tools; the separate legacy endpoint exposes 13; the optional all-tools stdio profile exposes 22 including its local-only session-capability helper)
 Docs: https://assetfare.dev/
 Signed manifest: https://api.assetfare.dev/.well-known/assetfare-manifest.json
 Security: https://assetfare.dev/.well-known/security.txt
