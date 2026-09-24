@@ -6,6 +6,18 @@ Circle/provider/network fees are additional. Each quote exposes expected and
 maximum token-path cost plus current provider-backed prepare availability. The
 server returns caller-approved unsigned actions; it never signs or submits.
 
+Every quote includes `direct_route_summary`, an intent-bound, ordered view of
+the exact provider/action path and normalized `chain:asset` endpoints. It binds
+expected and minimum base-unit amounts between steps, identifies the single
+step that collects AssetFare's 1bp fee, and repeats the no-sign/no-submit
+boundary. Agents can therefore show and validate the proposed path directly
+instead of reconstructing it from provider-specific evidence. A
+`direct_protocol_only` classification means every listed step uses a disclosed
+direct protocol. `external_intent` identifies Across for Robinhood ingress,
+where provider-internal liquidity sourcing or aggregation remains possible.
+`route_aggregator_used: false` is scoped to AssetFare's own route engine, not a
+claim about a provider's internal routing.
+
 Use USD 1 only for reachability/schema smoke. For economic evaluation, USD
 1,000 is the primary representative amount and every candidate should be
 requoted at the actual intended amount. For native-USDC routes, USD 50 is a
