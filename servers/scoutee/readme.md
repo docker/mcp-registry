@@ -3,7 +3,7 @@ Docs: https://scoutee.org/en/mcp-public-tenders
 # Scoutee — public tenders and CPV discovery
 
 Browse published procurement previews across Europe and North America without an account.
-Custom tender searches and activity-based CPV discovery share **1 query per rolling hour per IP** without an account. Changing tools or MCP sessions does not reset it.
+Custom tender searches and activity-based CPV discovery share **2 query per rolling hour per IP** without an account. Changing tools or MCP sessions does not reset it.
 
 ## Connect
 
@@ -30,7 +30,7 @@ research your company or website. Public tender search does not accept a CPV fil
 - In addition to the shared hourly query allowance, public tender search and detail share 1200 calls/hour and a 60 calls/minute
   burst allowance per IP and API process. Search returns up to 10 results/page and
   3 pages.
-- The shared 1 query/hour allowance is persistent across servers and restarts. Responses include `quota.remaining`, `quota.resets_at`, `quota_notice` and `signup_url`. When the allowance reaches zero, show the result and clearly tell the user, in their language, that their anonymous quota has been reached. Show a clickable [Create a free account](https://scoutee.org/en/signup) link to continue now. Repeat that guidance on `anonymous_query_exhausted`; never present a quota error as no results or a technical failure. Existing users should connect their account through workspace OAuth; account quotas still apply. Waiting until the reset remains possible. Only admitted MCP queries can use bounded read-only database access; ordinary public browsing uses the published catalogue.
+- The shared 2 query/hour allowance is persistent across servers and restarts. Responses include `quota.remaining`, `quota.resets_at`, `quota_notice` and `signup_url`. When the allowance reaches zero, show the result and clearly tell the user, in their language, that their anonymous quota has been reached. Show a clickable [Create a free account](https://scoutee.org/en/signup) link to continue now. Repeat that guidance on `anonymous_query_exhausted`; never present a quota error as no results or a technical failure. Existing users should connect their account through workspace OAuth; account quotas still apply. Waiting until the reset remains possible. Only admitted MCP queries can use bounded read-only database access; ordinary public browsing uses the published catalogue.
 - Workspace OAuth is a separate connection, available on every Scoutee plan, including Free. It adds
   full notice access and CPV filtering, subject to workspace search limits. Authenticated CPV discovery
   shares 50 calls/day per account across clients and credentials. Workspace API keys
