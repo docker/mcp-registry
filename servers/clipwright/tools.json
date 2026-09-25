@@ -1,0 +1,387 @@
+[
+  {
+    "name": "make_ugc",
+    "description": "Start generation of a lip-synced UGC video. Give a script within the selected speech model's text limit; the actor comes from actor_id (a saved actor from list_actors) or image, otherwise the default actor is used. Format and resolution follow the request and the source, defaulting to 1080x1920. Captions are OPT-IN: ask the user first. Fields the renderer does not honor yet carry a NOT HONORED YET note in their own description — read it instead of guessing. Call quote_ugc before generating and show the cost. This does NOT wait for the video: it starts the run and returns a run_id IMMEDIATELY. You MUST then poll get_run with that run_id until the state is 'succeeded' (video_url) or 'failed'. A 'failed' run whose paid vendor job we still hold can go back to 'queued' and reach 'succeeded' later; whenever that happens it is named in warnings[]. Pass attempt=2,3,… to deliberately start a NEW run for the same input (retry after a failure).",
+    "arguments": [
+      {
+        "name": "script",
+        "type": "string",
+        "desc": "The words the actor says; required unless segments supplies the spoken text. Segments and text-anchored inserts require long-form qualification on the server. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. There is no word-count limit. Duration and price are estimates until measured. Russian stress: write the stressed vowel as a capital inside a lowercase word (\"потОм\", \"зАмок\") and eleven_v3 receives it as the stress mark U+0301 (\"пото́м\"); a mark typed directly is kept. A capital at the start of a word stays a capital, and a word with a second capital or a capital consonant inside (all caps, \"ВУЗы\") is left as it is. A single capital vowel inside a word is always read as stress, so write \"Яндекс Еда\", not \"ЯндексЕда\". Tell users writing in Russian that they can mark stress this way. eleven_flash_v2_5 and eleven_turbo_v2_5 cost less but misread stress marks: capitals reach them unchanged."
+      },
+      {
+        "name": "segments",
+        "type": "array",
+        "desc": "Ordered actor and image segments; requires long-form qualification on the server, captions=false and 1080p. Image media requires explicit broll_policy=anyone."
+      },
+      {
+        "name": "inserts",
+        "type": "array",
+        "desc": "Text-anchored image inserts over full narration, each covering cover_words spoken words from its anchor; requires long-form qualification on the server, captions=false, 1080p and explicit broll_policy=anyone."
+      },
+      {
+        "name": "person",
+        "type": "string",
+        "desc": "NOT HONORED YET: person is not honored yet: this request uses the default actor; choose actor_id from list_actors or provide image to select a different face"
+      },
+      {
+        "name": "actor_id",
+        "type": "string",
+        "desc": "Saved Clipwright actor ID from list_actors. Choose actor_id, image, or person; do not combine them. Without voice or voice_id the voice follows the actor's gender. Do not combine with actor_gender."
+      },
+      {
+        "name": "image",
+        "type": "string",
+        "desc": "Public https url of the actor's photo (PNG, JPEG or WebP, up to 10 MB). A file on disk goes through upload_image (POST /v1/uploads) first — pass the url it returns. A source we cannot use — private or loopback host, http, unreachable, redirecting, over 10 MB, or not one of those image types — is refused (unusable_source) before any charge. We do not detect the face's gender: pass actor_gender or voice, or the default male voice is used with a warning."
+      },
+      {
+        "name": "actor_gender",
+        "type": "string",
+        "desc": "Gender of the face in image: female | male. Only with image: picks the default voice of that gender (female: sarah, male: george). Refused with actor_id (its gender is known) and without image. An explicit voice or voice_id wins and the response warns that actor_gender changed nothing."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "NOT HONORED YET: name is not honored yet: it does not reach the renderer"
+      },
+      {
+        "name": "broll_policy",
+        "type": "string",
+        "desc": "STORED ONLY: Saved policy for B-roll: anyone allows people including the actor; no_actor excludes the actor; no_people excludes all people, including hands. Segmented media generation is closed. This setting is stored only and has no effect on actor-only videos. Run override wins over the account actor default; otherwise no_people."
+      },
+      {
+        "name": "captions",
+        "type": "boolean",
+        "desc": "NOT HONORED YET: captions requested but not rendered in this prototype (stage-B)"
+      },
+      {
+        "name": "caption_style",
+        "type": "string",
+        "desc": "NOT HONORED YET: caption_style is not honored: captions are not rendered in this prototype (stage-B)"
+      },
+      {
+        "name": "look",
+        "type": "string",
+        "desc": "NOT HONORED YET: look is not honored yet: it does not reach the renderer"
+      },
+      {
+        "name": "aspect_ratio",
+        "type": "string",
+        "desc": "Output format: 9:16 | 1:1 | 16:9. Omitted means 9:16, and a source of another shape is snapped to 9:16 with a warning — pass it explicitly whenever you pass image. A mismatch above 15% between the request and the source is refused (aspect_conflict) before any charge."
+      },
+      {
+        "name": "resolution",
+        "type": "string",
+        "desc": "Output resolution: 720p | 1080p | 4k (short side 720 / 1080 / 2160 px). Omitted means 1080p."
+      },
+      {
+        "name": "voice",
+        "type": "string",
+        "desc": "Voice name from list_voices. Curated presets: owner_ru_clone | sarah | george | eric | daria_ru_female (owner_ru_clone is the Russian cloned voice). The API refuses a name list_voices does not return, before any charge. Omitted means the default voice for the actor's gender: the gender of actor_id, actor_gender with image, or george for the default actor and for image without actor_gender. Mutually exclusive with voice_id."
+      },
+      {
+        "name": "voice_id",
+        "type": "string",
+        "desc": "Raw vendor voice id (16–32 letters and digits) for a voice outside the catalog. Checked lazily: an unknown id fails the run, not the request. Mutually exclusive with voice."
+      },
+      {
+        "name": "tts_model",
+        "type": "string",
+        "desc": "Speech model: eleven_v3 | eleven_flash_v2_5 | eleven_turbo_v2_5. Omitted means the model of the chosen preset (list_voices shows it; every preset speaks eleven_v3) or eleven_v3 for a raw voice_id. eleven_v3 is the most expressive and the only one that reads stress marks (a capital vowel inside a Russian word, \"потОм\", becomes one; see script); eleven_flash_v2_5 and eleven_turbo_v2_5 are cheaper alternatives for languages other than Russian. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. There is no word-count limit. Duration and price are estimates until measured."
+      },
+      {
+        "name": "disclosure_overlay",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
+        "name": "background",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "attempt",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_run",
+    "description": "Check the status of a video generation started by make_ugc. Pass the run_id. While the run is still working it returns status IN_PROGRESS with a next_action telling you to poll again; repeat every ~5 seconds until it reaches a terminal state — SUCCEEDED (with video_url) or FAILED.",
+    "arguments": [
+      {
+        "name": "run_id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "quote_ugc",
+    "description": "Estimate the credit cost of a make_ugc call WITHOUT spending credits. Always call this first and show the user the price before make_ugc.",
+    "arguments": [
+      {
+        "name": "script",
+        "type": "string",
+        "desc": "The words the actor says; required unless segments supplies the spoken text. Segments and text-anchored inserts require long-form qualification on the server. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. There is no word-count limit. Duration and price are estimates until measured. Russian stress: write the stressed vowel as a capital inside a lowercase word (\"потОм\", \"зАмок\") and eleven_v3 receives it as the stress mark U+0301 (\"пото́м\"); a mark typed directly is kept. A capital at the start of a word stays a capital, and a word with a second capital or a capital consonant inside (all caps, \"ВУЗы\") is left as it is. A single capital vowel inside a word is always read as stress, so write \"Яндекс Еда\", not \"ЯндексЕда\". Tell users writing in Russian that they can mark stress this way. eleven_flash_v2_5 and eleven_turbo_v2_5 cost less but misread stress marks: capitals reach them unchanged."
+      },
+      {
+        "name": "segments",
+        "type": "array",
+        "desc": "Ordered actor and image segments; requires long-form qualification on the server, captions=false and 1080p. Image media requires explicit broll_policy=anyone."
+      },
+      {
+        "name": "inserts",
+        "type": "array",
+        "desc": "Text-anchored image inserts over full narration, each covering cover_words spoken words from its anchor; requires long-form qualification on the server, captions=false, 1080p and explicit broll_policy=anyone."
+      },
+      {
+        "name": "person",
+        "type": "string",
+        "desc": "NOT HONORED YET: person is not honored yet: this request uses the default actor; choose actor_id from list_actors or provide image to select a different face"
+      },
+      {
+        "name": "actor_id",
+        "type": "string",
+        "desc": "Saved Clipwright actor ID from list_actors. Choose actor_id, image, or person; do not combine them. Without voice or voice_id the voice follows the actor's gender. Do not combine with actor_gender."
+      },
+      {
+        "name": "image",
+        "type": "string",
+        "desc": "Public https url of the actor's photo (PNG, JPEG or WebP, up to 10 MB). A file on disk goes through upload_image (POST /v1/uploads) first — pass the url it returns. A source we cannot use — private or loopback host, http, unreachable, redirecting, over 10 MB, or not one of those image types — is refused (unusable_source) before any charge. We do not detect the face's gender: pass actor_gender or voice, or the default male voice is used with a warning."
+      },
+      {
+        "name": "actor_gender",
+        "type": "string",
+        "desc": "Gender of the face in image: female | male. Only with image: picks the default voice of that gender (female: sarah, male: george). Refused with actor_id (its gender is known) and without image. An explicit voice or voice_id wins and the response warns that actor_gender changed nothing."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "NOT HONORED YET: name is not honored yet: it does not reach the renderer"
+      },
+      {
+        "name": "broll_policy",
+        "type": "string",
+        "desc": "STORED ONLY: Saved policy for B-roll: anyone allows people including the actor; no_actor excludes the actor; no_people excludes all people, including hands. Segmented media generation is closed. This setting is stored only and has no effect on actor-only videos. Run override wins over the account actor default; otherwise no_people."
+      },
+      {
+        "name": "captions",
+        "type": "boolean",
+        "desc": "NOT HONORED YET: captions requested but not rendered in this prototype (stage-B)"
+      },
+      {
+        "name": "caption_style",
+        "type": "string",
+        "desc": "NOT HONORED YET: caption_style is not honored: captions are not rendered in this prototype (stage-B)"
+      },
+      {
+        "name": "look",
+        "type": "string",
+        "desc": "NOT HONORED YET: look is not honored yet: it does not reach the renderer"
+      },
+      {
+        "name": "aspect_ratio",
+        "type": "string",
+        "desc": "Output format: 9:16 | 1:1 | 16:9. Omitted means 9:16, and a source of another shape is snapped to 9:16 with a warning — pass it explicitly whenever you pass image. A mismatch above 15% between the request and the source is refused (aspect_conflict) before any charge."
+      },
+      {
+        "name": "resolution",
+        "type": "string",
+        "desc": "Output resolution: 720p | 1080p | 4k (short side 720 / 1080 / 2160 px). Omitted means 1080p."
+      },
+      {
+        "name": "voice",
+        "type": "string",
+        "desc": "Voice name from list_voices. Curated presets: owner_ru_clone | sarah | george | eric | daria_ru_female (owner_ru_clone is the Russian cloned voice). The API refuses a name list_voices does not return, before any charge. Omitted means the default voice for the actor's gender: the gender of actor_id, actor_gender with image, or george for the default actor and for image without actor_gender. Mutually exclusive with voice_id."
+      },
+      {
+        "name": "voice_id",
+        "type": "string",
+        "desc": "Raw vendor voice id (16–32 letters and digits) for a voice outside the catalog. Checked lazily: an unknown id fails the run, not the request. Mutually exclusive with voice."
+      },
+      {
+        "name": "tts_model",
+        "type": "string",
+        "desc": "Speech model: eleven_v3 | eleven_flash_v2_5 | eleven_turbo_v2_5. Omitted means the model of the chosen preset (list_voices shows it; every preset speaks eleven_v3) or eleven_v3 for a raw voice_id. eleven_v3 is the most expressive and the only one that reads stress marks (a capital vowel inside a Russian word, \"потОм\", becomes one; see script); eleven_flash_v2_5 and eleven_turbo_v2_5 are cheaper alternatives for languages other than Russian. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. There is no word-count limit. Duration and price are estimates until measured."
+      },
+      {
+        "name": "disclosure_overlay",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
+        "name": "background",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "upload_image",
+    "description": "Upload a LOCAL image file (PNG or JPEG, up to 10 MB) and get an https url to pass as `image` to quote_ugc / make_ugc. The url is signed and expires in 24 hours; upload again after that. Use this whenever the user points at a file on disk — `image` itself accepts only public https urls. Then set `aspect_ratio` EXPLICITLY to match the picture (a 16:9 photo with no aspect_ratio renders vertical 9:16 with a warning). Free: spends no credits; 20 uploads per day per account.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Absolute or cwd-relative path to a PNG or JPEG file"
+      }
+    ]
+  },
+  {
+    "name": "list_voices",
+    "description": "List the voices for make_ugc's `voice` field: the presets first, then catalog voices in 31 languages. Filter by `language` (the voice's native language; any voice speaks any supported language), `gender`, `age`, `use_case` and `model`; an unknown filter value is refused with the allowed values. Pick a voice by `name` (e.g. voice=\"george\"); a name always means the same voice. `voice_id` is an escape hatch for a raw vendor voice id that is not listed, such as a cloned voice. Without voice or voice_id the default voice follows the actor's gender: sarah for a woman, george for a man, taken from actor_id or from actor_gender next to image. With image and no actor_gender the voice is george and a warning says so: pass the gender of the person in the photo as actor_gender (ask the user only when you cannot tell), or pick a voice here. Keep any voice the user chose. A voice with `preview_url` has a short-lived audio sample spoken by that voice with that model; play it to the user before a paid render instead of judging a voice by its description. It expires at `preview_expires_at`: call this tool again for a fresh link, never store it. A voice without `preview_url` has no sample yet. Free. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. There is no word-count limit. Duration and price are estimates until measured.",
+    "arguments": [
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "Native language of the voice. A filter, not a limit: any voice speaks any supported language"
+      },
+      {
+        "name": "gender",
+        "type": "string",
+        "desc": "Gender label of the voice"
+      },
+      {
+        "name": "age",
+        "type": "string",
+        "desc": "Age label as list_voices prints it (young, middle_aged, old); an unknown value is refused with the allowed list"
+      },
+      {
+        "name": "use_case",
+        "type": "string",
+        "desc": "Use case label as list_voices prints it (narrative_story, social_media, …); an unknown value is refused with the allowed list"
+      },
+      {
+        "name": "model",
+        "type": "string",
+        "desc": "Only voices whose language this speech model supports"
+      }
+    ]
+  },
+  {
+    "name": "list_actors",
+    "description": "List saved Clipwright actors with stable IDs, gender, age and verified image formats. Choose actor_id for quote_ugc and make_ugc. Preview URLs expire; actor IDs remain reusable. Do not combine actor_id with image, person or actor_gender. Without voice, the actor speaks the default voice of their gender.",
+    "arguments": []
+  },
+  {
+    "name": "get_actor_defaults",
+    "description": "Read this account actor's saved B-roll default. Saved policy for B-roll: anyone allows people including the actor; no_actor excludes the actor; no_people excludes all people, including hands. Segmented media generation is closed. This setting is stored only and has no effect on actor-only videos. Run override wins over the account actor default; otherwise no_people.",
+    "arguments": [
+      {
+        "name": "actor_id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "set_actor_defaults",
+    "description": "Save this account actor's B-roll default without spending credits. Saved policy for B-roll: anyone allows people including the actor; no_actor excludes the actor; no_people excludes all people, including hands. Segmented media generation is closed. This setting is stored only and has no effect on actor-only videos. Run override wins over the account actor default; otherwise no_people.",
+    "arguments": [
+      {
+        "name": "actor_id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "broll_policy",
+        "type": "string",
+        "desc": "Saved policy for B-roll: anyone allows people including the actor; no_actor excludes the actor; no_people excludes all people, including hands. Segmented media generation is closed. This setting is stored only and has no effect on actor-only videos. Run override wins over the account actor default; otherwise no_people."
+      }
+    ]
+  },
+  {
+    "name": "create_actor",
+    "description": "Create a personal actor for this account from words describing a fictional adult: a 9:16 portrait with exactly one face, plus the other requested formats edited from it. Returns a run_id immediately; poll get_run until 'succeeded' (created_actor.actor_id, then pass it as actor_id to make_ugc) or 'failed'. Each published image is charged at the price quote shows; refused descriptions and unusable portraits cost nothing. When generation is switched off the call fails with actor_generation_disabled.",
+    "arguments": [
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Words describing a fictional adult: appearance, clothing, setting. Naming a real person or a likeness to one is refused before any charge (actor_prompt_refused)."
+      },
+      {
+        "name": "gender",
+        "type": "string",
+        "desc": "female | male. Fixes the actor's gender and the default voice of videos with this actor."
+      },
+      {
+        "name": "approximate_age",
+        "type": "integer",
+        "desc": "Approximate age in years, 18 to 90: actors are adults."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name shown in list_actors."
+      },
+      {
+        "name": "aspect_ratios",
+        "type": "array",
+        "desc": "Formats to create: 9:16 | 1:1 | 16:9, always including 9:16. Omitted means all three. Formats that fail the identity check are not charged and are named in warnings."
+      },
+      {
+        "name": "quality",
+        "type": "string",
+        "desc": "Image quality: medium | high. Omitted means medium. The price per image depends on it; quote shows it before any charge."
+      },
+      {
+        "name": "attempt",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "quote_actor",
+    "description": "Estimate the credit cost of create_actor WITHOUT spending credits. Call this first and show the price before create_actor: each requested format is a separate charged image.",
+    "arguments": [
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Words describing a fictional adult: appearance, clothing, setting. Naming a real person or a likeness to one is refused before any charge (actor_prompt_refused)."
+      },
+      {
+        "name": "gender",
+        "type": "string",
+        "desc": "female | male. Fixes the actor's gender and the default voice of videos with this actor."
+      },
+      {
+        "name": "approximate_age",
+        "type": "integer",
+        "desc": "Approximate age in years, 18 to 90: actors are adults."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name shown in list_actors."
+      },
+      {
+        "name": "aspect_ratios",
+        "type": "array",
+        "desc": "Formats to create: 9:16 | 1:1 | 16:9, always including 9:16. Omitted means all three. Formats that fail the identity check are not charged and are named in warnings."
+      },
+      {
+        "name": "quality",
+        "type": "string",
+        "desc": "Image quality: medium | high. Omitted means medium. The price per image depends on it; quote shows it before any charge."
+      }
+    ]
+  },
+  {
+    "name": "delete_actor",
+    "description": "Delete a personal actor of this account by actor_id. Videos already made with it stay as they are, and new runs can no longer use it. An actor used by a run that has not finished is refused until that run ends. Catalog actors belong to Clipwright and are not deletable.",
+    "arguments": [
+      {
+        "name": "actor_id",
+        "type": "string",
+        "desc": "Personal actor id from list_actors."
+      }
+    ]
+  },
+  {
+    "name": "get_account",
+    "description": "Read this account's credits. Free, spends nothing. debt_credits above zero means make_ugc is refused with debt_outstanding whatever the balance, until the account buys credits; with no debt, balance_credits is what a new run can spend. holds_credits are reserved for runs still in progress and settle when they finish. grants lists unexpired credit grants. quote_ugc already warns when make_ugc would be refused; this tool gives the numbers behind it.",
+    "arguments": []
+  }
+]
