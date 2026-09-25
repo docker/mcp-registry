@@ -4,23 +4,38 @@ type: server
 meta:
   category: monitoring
   tags:
+    - agent-evaluation
+    - ai-agent
+    - claude
+    - eval
     - evaluation
+    - llm
+    - model-context-protocol
     - observability
-    - mcp
-    - agent-eval
-    - quality
-    - cost-tracking
-    - pii-detection
+    - security
+    - tracing
 about:
-  title: Iris — The Agent Eval Standard for MCP
-  description: >
-    MCP-native agent evaluation and observability server. Score output quality,
-    catch safety failures, enforce cost budgets — across every agent, every execution.
-    12 built-in eval rules, PII detection, hallucination markers, cost tracking.
-    Glama AAA rated. MIT licensed.
-  icon: https://www.google.com/s2/favicons?domain=iris-eval.com&sz=64
+  title: Iris
+  description: >-
+    Stop shipping agents on vibes. Iris scores every agent output for quality,
+    safety, and cost. It detects PII, credentials and prompt injection, checks
+    grounding and tool use, and compares runs with confidence intervals. The
+    measured accuracy of its rules is published. An LLM judge is optional.
+    Traces and verdicts stay local in SQLite, and the same image serves a
+    dashboard. MIT licensed.
+  icon: https://avatars.githubusercontent.com/u/268113247?v=4
 source:
   project: https://github.com/iris-eval/mcp-server
-  branch: main
+  commit: 51ee1355fb486998c40f820ef4d984d53487b69a
 run:
-  type: stdio
+  volumes:
+    - iris-eval-data:/data
+config:
+  description: Runs over stdio with no required settings. Traces and verdicts persist in the iris-eval-data volume.
+  env:
+    - name: IRIS_TRANSPORT
+      example: "stdio"
+      value: "stdio"
+    - name: IRIS_DASHBOARD
+      example: "false"
+      value: "false"
