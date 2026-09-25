@@ -1,0 +1,37 @@
+name: filesystem-mcp
+image: mcp/filesystem-mcp
+type: server
+meta:
+  category: devops
+  tags:
+    - filesystem
+    - devops
+    - search
+about:
+  title: Filesystem
+  description: Read, write, search, diff, and patch files inside the directories you allow. Sensitive files such as .env and private keys are denied by default, and content search uses RE2 so no pattern can hang the server.
+  icon: https://raw.githubusercontent.com/j0hanz/filesystem-mcp/main/assets/logo.png
+source:
+  project: https://github.com/j0hanz/filesystem-mcp
+  commit: d36bc464329dca755e5b54eb1bdd1720000a0f20
+run:
+  command:
+    - "{{filesystem-mcp.paths|volume-target|into}}"
+  volumes:
+    - "{{filesystem-mcp.paths|volume|into}}"
+  disableNetwork: true
+config:
+  description: Directories the server may read and write
+  parameters:
+    type: object
+    properties:
+      paths:
+        type: array
+        items:
+          type: string
+        title: Allowed Directories
+        description: Host directories to mount. The server can access only these.
+        default:
+          - /Users/local-test
+    required:
+      - paths
