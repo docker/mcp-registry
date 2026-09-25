@@ -11,11 +11,11 @@ meta:
     - threat-detection
 about:
   title: Firewalla
-  description: Real-time network monitoring, security analysis, and firewall management through 28 specialized tools. Access security alerts, network flows, device status, and firewall rules directly from your Firewalla device.
+  description: Real-time network monitoring, security analysis, and firewall management through 28 specialized tools, with more from the opt-in write tools. Access security alerts, network flows, device status, and firewall rules directly from your Firewalla device.
   icon: https://avatars.githubusercontent.com/u/16805913?s=200&v=4
 source:
   project: https://github.com/amittell/firewalla-mcp-server
-  commit: d6f8c6ac25701a7eb69c3dfdda312817979329e9
+  commit: 0fff4c73a9a7729df35d0750054f1aa896702006
 config:
   description: Configure your Firewalla MSP connection credentials
   secrets:
@@ -31,30 +31,33 @@ config:
         example: yourdomain.firewalla.net
       box_id:
         type: string
-        description: Your Firewalla Box Global ID
-        example: 1eb71e38-3a95-4371-8903-ace24c83ab49
+        description: "Optional: scope queries to one box; without it every box on the account is covered"
+        example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+      default_box_id:
+        type: string
+        description: "Optional: default box for single-box operations when no gid is passed, without scoping queries"
+        example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+      enable_write_tools:
+        type: string
+        description: 'Optional: "true" registers the write tools create_rule, delete_rule, rename_device, archive_alarm and mute_alarm (default "false")'
+        example: "false"
+        default: "false"
+    required:
+      - msp_id
   env:
     - name: FIREWALLA_MSP_ID
       example: yourdomain.firewalla.net
       value: "{{firewalla-mcp-server.msp_id}}"
     - name: FIREWALLA_BOX_ID
-      example: 1eb71e38-3a95-4371-8903-ace24c83ab49
+      example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
       value: "{{firewalla-mcp-server.box_id}}"
-    - name: MCP_WAVE0_ENABLED
-      value: "true"
-    - name: MCP_READ_ONLY_MODE
-      value: "false"
-    - name: MCP_CACHE_ENABLED
-      value: "true"
-    - name: MCP_DEBUG_MODE
-      value: "false"
+    - name: FIREWALLA_DEFAULT_BOX_ID
+      example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+      value: "{{firewalla-mcp-server.default_box_id}}"
+    - name: FIREWALLA_ENABLE_WRITE_TOOLS
+      example: "false"
+      value: "{{firewalla-mcp-server.enable_write_tools}}"
     - name: NODE_ENV
       value: "production"
     - name: LOG_LEVEL
       value: "info"
-    - name: MCP_CACHE_TTL
-      value: "300"
-    - name: MCP_RATE_LIMIT_WINDOW
-      value: "60000"
-    - name: MCP_RATE_LIMIT_MAX_REQUESTS
-      value: "100"
