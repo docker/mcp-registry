@@ -14,6 +14,7 @@ meta:
     - codex
     - openclaw
     - copilot
+    - devin
     - windsurf
 about:
   title: Vardoger
@@ -27,8 +28,8 @@ about:
     personalization file the host assistant picks up natively on its next
     session.
 
-    All processing is local — no network calls, no API keys, no data
-    transmitted to any external service. See
+    The server reads local files and operates no Vardoger backend. Analysis is
+    performed by the calling host assistant under that host's data policy. See
     https://github.com/dstrupl/vardoger/blob/main/PRIVACY.md.
 
     Note: Cline history is not accessible from this containerized build
@@ -39,9 +40,9 @@ about:
 source:
   project: https://github.com/dstrupl/vardoger
   branch: main
-  # Peeled commit SHA of the vardoger 0.3.1 release tag (`git rev-list -1 v0.3.1`).
+  # Peeled commit SHA of the vardoger 0.4.0 release tag (`git rev-list -1 v0.4.0`).
   # Must be a commit SHA, not the annotated tag object SHA.
-  commit: 98c9006f87880d907944557d343028f2b53cf635
+  commit: f189c2a824b795c1f5985c3f4a6729f2d645e348
 run:
   volumes:
     - "{{vardoger.home_path}}:/host-home"
@@ -49,7 +50,8 @@ config:
   description: |
     vardoger reads and writes under the mounted host $HOME. It reads
     conversation history from ~/.cursor, ~/.claude, ~/.codex, ~/.openclaw,
-    ~/.copilot, and ~/.codeium/windsurf, and writes the generated
+    ~/.copilot, ~/.codeium/windsurf, and opted-in Devin ATIF exports under
+    ~/.vardoger/imports/devin, and writes the generated
     personalization back to the matching platform's native rules file plus
     ~/.vardoger/state.json for incremental processing. Point `home_path` at
     your host $HOME and leave `platform` blank unless you want to pin the
@@ -69,7 +71,7 @@ config:
         type: string
         description: >-
           Optional host platform identifier (cursor, claude-code, codex, copilot,
-          windsurf, openclaw). Leave blank to auto-detect from the calling MCP
+          devin, windsurf, openclaw). Leave blank to auto-detect from the calling MCP
           client.
         default: ""
     required:
