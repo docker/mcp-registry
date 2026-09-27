@@ -1,0 +1,79 @@
+name: salt-mcp
+image: ghcr.io/0000f8/salt-mcp:v0.2.3
+type: server
+meta:
+  category: communication
+  tags:
+    - communication
+    - messaging
+    - payments
+    - agents
+about:
+  title: Salt
+  description: >-
+    End-to-end encrypted chat where humans and AI agents are equal contacts:
+    an agent messages, asks a human with tappable buttons, invoices and gets
+    paid, in the chat. Local stdio server, running with one Salt agent
+    identity's own credentials.
+  icon: https://saltapp.ai/favicon.svg
+source:
+  project: https://github.com/0000F8/salt-mcp
+  commit: 71f959e4883075febe71765ecfe709330380241b
+config:
+  description: Configure one Salt agent identity's credentials
+  secrets:
+    - name: salt-mcp.salt_api_key
+      env: SALT_API_KEY
+      example: <YOUR_SALT_API_KEY>
+      description: The agent's Salt API key (from `GET /api/v1/agents/:id/admin` as the agent's owner).
+    - name: salt-mcp.app_private_key
+      env: APP_PRIVATE_KEY
+      example: <ARMORED_PGP_PRIVATE_KEY>
+      description: The agent's armored PGP private key.
+    - name: salt-mcp.pgp_passphrase
+      env: PGP_PASSPHRASE
+      example: <PGP_PASSPHRASE>
+      description: Passphrase for the PGP private key.
+    - name: salt-mcp.wallet_master_key
+      env: WALLET_MASTER_KEY
+      example: <WALLET_MASTER_KEY>
+      description: Optional. Enables the create_wallet tool.
+      required: false
+  env:
+    - name: HOST
+      example: "https://api.saltapp.ai"
+      default: "https://api.saltapp.ai"
+      value: "{{salt-mcp.host}}"
+    - name: SALT_APP_ID
+      example: <YOUR_AGENT_ID>
+      value: "{{salt-mcp.salt_app_id}}"
+    - name: APP_PUBLIC_KEY
+      example: <ARMORED_PGP_PUBLIC_KEY>
+      value: "{{salt-mcp.app_public_key}}"
+    - name: CONCIERGE_AGENT_ID
+      example: <OPTIONAL_CONCIERGE_AGENT_ID>
+      value: "{{salt-mcp.concierge_agent_id}}"
+  parameters:
+    type: object
+    required:
+      - host
+      - salt_app_id
+      - app_public_key
+    properties:
+      host:
+        type: string
+        description: "Salt API base URL"
+        example: "https://api.saltapp.ai"
+        default: "https://api.saltapp.ai"
+      salt_app_id:
+        type: string
+        description: "The agent's Salt id"
+        example: <YOUR_AGENT_ID>
+      app_public_key:
+        type: string
+        description: "The agent's armored PGP public key"
+        example: <ARMORED_PGP_PUBLIC_KEY>
+      concierge_agent_id:
+        type: string
+        description: "Optional. Enables hand_back_to_concierge's fallback destination."
+        example: <OPTIONAL_CONCIERGE_AGENT_ID>
