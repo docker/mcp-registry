@@ -1,0 +1,26 @@
+name: contextflo-postgres
+image: mcp/contextflo-postgres
+type: server
+meta:
+  category: database
+  tags:
+    - database
+    - postgres
+    - read-only
+    - secrets
+about:
+  title: Postgres (read-only)
+  description: Read-only Postgres for AI agents, enforced at the wire protocol, the transaction, the Postgres parser, and a catalog-based function policy. Drop-in replacement for the archived server-postgres.
+  icon: https://avatars.githubusercontent.com/u/224928338?v=4
+source:
+  project: https://github.com/contextflo/postgres-mcp
+  commit: 65edd0786f4dcf4edc16e087327f7376892bb0be
+run:
+  command:
+    # The container has no persistent volume, so notes written to the context file would be lost.
+    - --no-context-writes
+config:
+  secrets:
+    - name: contextflo-postgres.database_url
+      env: DATABASE_URL
+      example: postgresql://mcp_readonly:****@host:5432/mydb
