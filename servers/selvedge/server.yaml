@@ -1,0 +1,41 @@
+name: selvedge
+image: mcp/selvedge
+type: server
+longLived: true
+meta:
+  category: devops
+  tags:
+    - selvedge
+    - devops
+    - version-control
+    - change-tracking
+    - code-history
+    - provenance
+    - ai
+    - agent-trace
+    - sqlite
+    - claude-code
+about:
+  title: Selvedge
+  description: >-
+    Local decision memory for AI coding agents. Explicitly record project
+    decisions, rejected approaches, reasons, and when to reconsider them;
+    retrieve that context in later sessions. Uses SQLite and makes no LLM calls.
+  icon: https://raw.githubusercontent.com/masondelan/selvedge-site/6139c3c2982d26a64e7c4fa8d5e9b8662cbf2d46/public/favicon.svg
+source:
+  project: https://github.com/masondelan/selvedge
+  commit: 8e9b1363a5cf37ff216dbc89a61bed3dcf685496
+run:
+  volumes:
+    - "{{selvedge.data_dir}}:/data"
+  disableNetwork: true
+config:
+  description: Choose the existing .selvedge directory for one project to persist its decision history.
+  parameters:
+    type: object
+    properties:
+      data_dir:
+        type: string
+        description: Absolute path to an existing project-specific directory on the host. The server stores selvedge.db here; use the same directory to share history with a native Selvedge installation.
+    required:
+      - data_dir
