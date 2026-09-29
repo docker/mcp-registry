@@ -1,0 +1,43 @@
+name: yacy-search
+image: mcp/yacy-search
+type: server
+meta:
+  category: search
+  tags:
+    - search
+    - web-search
+    - p2p
+    - crawler
+about:
+  title: YaCy Peer-to-Peer Search
+  description: Web search, crawling and ranking evaluation on your own YaCy peer (improved-search fork), with no API key and no central service. Results carry author signature verdicts and declared tags.
+  icon: https://avatars.githubusercontent.com/u/101613202?v=4
+source:
+  project: https://github.com/pad01g/yacy_search_server
+  branch: improved-search
+  commit: 48d98a0bc921f9411e69c5b7f03dce60fa02e284
+  directory: mcp
+config:
+  description: Configure the connection to your YaCy peer
+  secrets:
+    - name: yacy-search.admin_password
+      env: YACY_ADMIN_PASSWORD
+      example: <your YaCy administrator password>
+  env:
+    - name: YACY_URL
+      example: http://host.docker.internal:8090
+      value: "{{yacy-search.url}}"
+    - name: YACY_ADMIN_USER
+      example: admin
+      value: "{{yacy-search.admin_user}}"
+  parameters:
+    type: object
+    properties:
+      url:
+        type: string
+        description: Base URL of your YaCy peer as seen from the MCP server container
+      admin_user:
+        type: string
+        default: admin
+    required:
+      - url
