@@ -1,0 +1,41 @@
+name: proxy-shopping
+image: mcp/proxy-shopping
+type: server
+meta:
+  category: payments
+  tags:
+    - payments
+    - escrow
+    - bitcoin
+    - nostr
+    - p2p
+    - e-commerce
+about:
+  title: Proxy Shopping
+  description: Buy from cash-only or unsupported shops with crypto through a proxy shopper and a 2-of-3 escrow with timelocks, or plan to earn as a proxy shopper, on a peer-to-peer network (Nostr + libp2p). Money-moving tools need confirm true.
+  icon: https://avatars.githubusercontent.com/u/101613202?s=200&v=4
+source:
+  project: https://github.com/pad01g/proxy-shopping-web
+  commit: 3cf08e12c54824cee4d56c2be1df3713f4f2b793
+  dockerfile: packages/mcp/Dockerfile
+run:
+  volumes:
+    - "{{proxy-shopping.data_dir}}:/data"
+config:
+  description: A folder that keeps this server's key and its orders (required so that funds in escrow stay reachable), and the network to use
+  env:
+    - name: PS_NETWORK
+      example: ps-main
+      value: "{{proxy-shopping.network}}"
+  parameters:
+    type: object
+    properties:
+      data_dir:
+        type: string
+        description: Host folder for the key and the orders, e.g. /Users/you/.proxy-shopping-mcp
+      network:
+        type: string
+        description: ps-main (public Nostr relays, BTC signet) or lab (a local docker compose lab)
+        default: ps-main
+    required:
+      - data_dir
