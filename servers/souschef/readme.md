@@ -48,11 +48,18 @@ From a checkout of the Docker MCP Registry branch containing this entry:
 task validate -- --name souschef
 task build -- --tools souschef
 task catalog -- souschef
-docker mcp catalog import ./catalogs/souschef/catalog.yaml
+mkdir -p "$HOME/.docker/mcp/catalogs"
+cp ./catalogs/souschef/catalog.yaml "$HOME/.docker/mcp/catalogs/souschef-local.yaml"
 docker mcp config write '{"souschef":{"workspace":"/absolute/path/to/migration-workspace"}}'
-docker mcp server enable souschef
-docker mcp gateway run --servers souschef
+docker mcp gateway run --servers souschef \
+  --catalog "$HOME/.docker/mcp/catalogs/souschef-local.yaml"
 ```
+
+These shell commands use a POSIX shell (including WSL). On Windows PowerShell,
+copy the generated catalogue to `$HOME/.docker/mcp/catalogs/souschef-local.yaml`
+and pass that absolute path with `--catalog`. The explicit catalogue works with
+Gateway versions using either legacy catalogues or profiles; it does not depend
+on the removed `catalog import` command.
 
 Merge the `souschef.workspace` setting into your existing configuration if
 you already use other servers; `config write` replaces the configuration.
