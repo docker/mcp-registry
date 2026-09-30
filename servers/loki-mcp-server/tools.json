@@ -1,0 +1,151 @@
+[
+  {
+    "name": "listConnections",
+    "description": "List configured Loki stands with each name, description, operator hint and effective tool limits. Call this first, use the shown windows and page limit, and pass the chosen name as 'connection' to every other tool.",
+    "arguments": []
+  },
+  {
+    "name": "discoverLogs",
+    "description": "Discover labels before writing LogQL. Without label or match, list label names; label=\"app\" lists its values. match=\"{app=\\\"api\\\"}\" lists complete stream label sets; add label=\"namespace\" to list namespace values among those sets. Use a narrow match and time window, then countLogs or queryLogs to check log lines.",
+    "arguments": [
+      {
+        "name": "connection",
+        "type": "string",
+        "desc": "Connection name from listConnections"
+      },
+      {
+        "name": "start",
+        "type": "string",
+        "desc": "Window start, default now-1h. Examples: now-15m, now-2d, 2026-09-13T10:00:00+03:00."
+      },
+      {
+        "name": "end",
+        "type": "string",
+        "desc": "Window end, default now. Use the end in a queryLogs footer to read older lines."
+      },
+      {
+        "name": "label",
+        "type": "string",
+        "desc": "Optional label name, e.g. \"app\": list its values"
+      },
+      {
+        "name": "match",
+        "type": "string",
+        "desc": "Optional LogQL stream selector, e.g. {app=\"api\"}; no line filters"
+      }
+    ]
+  },
+  {
+    "name": "exportLogs",
+    "description": "Save matching log lines of a window to a local file, oldest first, when the user asks to save logs. Pass the same LogQL query as queryLogs, e.g. {app=\"backend\"} |= \"ERROR\". Omit format to use the connection's default export format, which is raw unless the operator set a template; format=\"raw\" keeps the lines returned by Loki, including any LogQL line_format stage; a template like \"{time} ...",
+    "arguments": [
+      {
+        "name": "connection",
+        "type": "string",
+        "desc": "Connection name from listConnections"
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "LogQL log query, e.g. {app=\"backend\"} |= \"ERROR\". Take label names and values from discoverLogs."
+      },
+      {
+        "name": "start",
+        "type": "string",
+        "desc": "Window start, default now-1h. Examples: now-15m, now-2d, 2026-09-13T10:00:00+03:00."
+      },
+      {
+        "name": "end",
+        "type": "string",
+        "desc": "Window end. Default \"now\". Same formats as start."
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Omit it for the connection's default export format (raw unless configured). \"raw\" forces the lines returned by Loki; a template with {time}, {level}, {service}, {logger}, {message}, {stack} and line fields like {thread} renders locally."
+      },
+      {
+        "name": "directory",
+        "type": "string",
+        "desc": "Local directory for the new file, e.g. C:\\tmp\\logs or incident-42. Omit it for the default export directory; a relative path is resolved under that directory. Configured exportRoots, if present, restrict destinations."
+      }
+    ]
+  },
+  {
+    "name": "countLogs",
+    "description": "Count log lines matching a LogQL log query without returning those lines. Example: query={app=\"backend\"} |= \"ERROR\", groupBy=\"time\". Omit groupBy for one total, use a label for values, time for buckets, or app,time for both; step=\"1d\" sets the bucket width. For a multi-day label count, query one-day windows separately; only time-only buckets allow seven days by default. A named LogQL regexp ...",
+    "arguments": [
+      {
+        "name": "connection",
+        "type": "string",
+        "desc": "Connection name from listConnections"
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "LogQL log query, e.g. {app=\"backend\"} |= \"ERROR\". Take label names and values from discoverLogs."
+      },
+      {
+        "name": "start",
+        "type": "string",
+        "desc": "Window start, default now-1h. Examples: now-15m, now-2d, 2026-09-13T10:00:00+03:00."
+      },
+      {
+        "name": "end",
+        "type": "string",
+        "desc": "Window end, default now. Use the end in a queryLogs footer to read older lines."
+      },
+      {
+        "name": "groupBy",
+        "type": "string",
+        "desc": "Label name, time, or <label>,time"
+      },
+      {
+        "name": "step",
+        "type": "string",
+        "desc": "Bucket width for time grouping, 1s through 1d; default automatic"
+      }
+    ]
+  },
+  {
+    "name": "queryLogs",
+    "description": "Read a bounded page of log lines matching a LogQL query in a window. The response is chronological, with a compact level, service and message view. Example: {app=\"backend\"} |= \"ERROR\". Use raw=true to preview the line returned by Loki with its stream labels; long lines are shortened. Use order=\"oldest\" to read forward, repeat with the start or end value in the footer, and use exportLogs for ...",
+    "arguments": [
+      {
+        "name": "connection",
+        "type": "string",
+        "desc": "Connection name from listConnections"
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "LogQL log query, e.g. {app=\"backend\"} |= \"ERROR\". Take label names and values from discoverLogs."
+      },
+      {
+        "name": "start",
+        "type": "string",
+        "desc": "Window start, default now-1h. Examples: now-15m, now-2d, 2026-09-13T10:00:00+03:00."
+      },
+      {
+        "name": "end",
+        "type": "string",
+        "desc": "Window end, default now. Use the end in a queryLogs footer to read older lines."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum lines to show, default 50"
+      },
+      {
+        "name": "raw",
+        "type": "boolean",
+        "desc": "Preview the line returned by Loki with stream labels, default false"
+      },
+      {
+        "name": "order",
+        "type": "string",
+        "desc": "newest (default) or oldest; oldest reads forward"
+      }
+    ]
+  }
+]
