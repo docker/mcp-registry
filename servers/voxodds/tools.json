@@ -1,0 +1,301 @@
+[
+  {
+    "name": "submit_forecast",
+    "description": "Submit YOUR probability forecast on a live prediction market and build a public, audited track record. VoxOdds is the neutral scorekeeper: your forecast is stored append-only next to the market price captured at the same instant, both are Brier-scored when the market resolves, and your record appears publicly (model 'ext-<forecaster_id>') on voxodds.com/scoreboard beside the market and VoxOdds' ow",
+    "arguments": [
+      {
+        "name": "market_id",
+        "type": "string",
+        "desc": "Market Id",
+        "required": true
+      },
+      {
+        "name": "outcome",
+        "type": "string",
+        "desc": "Outcome",
+        "required": true
+      },
+      {
+        "name": "probability",
+        "type": "number",
+        "desc": "Probability",
+        "required": true
+      },
+      {
+        "name": "forecaster_id",
+        "type": "string",
+        "desc": "Forecaster Id",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "get_market_odds",
+    "description": "Get live prediction-market odds for a real-world event, phrased as a natural language question. Call this when the user asks about the probability, odds, or likelihood of any future event (elections, sports results, crypto prices, Fed decisions, geopolitics). Example: \"will France win the World Cup\". Returns the best-matching market with implied probabilities and source links.",
+    "arguments": [
+      {
+        "name": "question",
+        "type": "string",
+        "desc": "Question",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "get_executable_quote",
+    "description": "Walk the current public order book for an all-in cash-sized BUY quote on one exact contract. `platform` is polymarket or kalshi; `market_id` is the Polymarket market id or Kalshi ticker returned by search; `side` is the outcome to buy. Returns best bid/ask, depth-weighted average fill, worst consumed level, shares, estimated taker fee, effective average price, and unfilled cash. The budget include",
+    "arguments": [
+      {
+        "name": "platform",
+        "type": "string",
+        "desc": "Platform",
+        "required": true
+      },
+      {
+        "name": "market_id",
+        "type": "string",
+        "desc": "Market Id",
+        "required": true
+      },
+      {
+        "name": "side",
+        "type": "string",
+        "desc": "Side"
+      },
+      {
+        "name": "amount_usd",
+        "type": "number",
+        "desc": "Amount Usd"
+      }
+    ]
+  },
+  {
+    "name": "compare_executable_quotes",
+    "description": "Fetch size-aware order-book fills and estimated taker fees for one Polymarket contract and one Kalshi contract, then compare their complete rules. It only names a best venue when the pair has been explicitly human-reviewed as equivalent. Similar titles with different settlement criteria return `comparable: false` plus blockers instead of a fabricated spread or arbitrage.",
+    "arguments": [
+      {
+        "name": "polymarket_id",
+        "type": "string",
+        "desc": "Polymarket Id",
+        "required": true
+      },
+      {
+        "name": "kalshi_ticker",
+        "type": "string",
+        "desc": "Kalshi Ticker",
+        "required": true
+      },
+      {
+        "name": "side",
+        "type": "string",
+        "desc": "Side"
+      },
+      {
+        "name": "amount_usd",
+        "type": "number",
+        "desc": "Amount Usd"
+      }
+    ]
+  },
+  {
+    "name": "list_executable_opportunities",
+    "description": "Rank both YES and NO across every human-reviewed equivalent Polymarket\u2013Kalshi pair. Each row walks current public depth within the all-in budget, includes estimated taker fees, and links to the lower effective-price venue. Contracts whose rules changed or whose requested size cannot be quoted are omitted and reported as unavailable. Optional `family` uses a family key returned by the tool; optiona",
+    "arguments": [
+      {
+        "name": "amount_usd",
+        "type": "number",
+        "desc": "Amount Usd"
+      },
+      {
+        "name": "family",
+        "type": "string",
+        "desc": "Family"
+      },
+      {
+        "name": "side",
+        "type": "string",
+        "desc": "Side"
+      }
+    ]
+  },
+  {
+    "name": "list_arbitrage_candidates",
+    "description": "Scan every fingerprint-pinned equivalent Polymarket\u2013Kalshi binary pair for two-leg coverage. It buys opposite sides at equal whole-contract size, walks current ask depth, includes estimated taker fees and conservative Kalshi rounding, and emits a candidate only when total all-in cost is below the common settlement payout. Results are unfilled candidates, never guaranteed trades: cross-venue orders",
+    "arguments": [
+      {
+        "name": "max_capital_usd",
+        "type": "number",
+        "desc": "Max Capital Usd"
+      },
+      {
+        "name": "family",
+        "type": "string",
+        "desc": "Family"
+      }
+    ]
+  },
+  {
+    "name": "list_sportsbook_surebets",
+    "description": "Find unfilled sportsbook surebet candidates across the configured live books. For every two-way or three-way h2h event, selects the best decimal price per exhaustive outcome, requires \u03a3(1/odds) < 1, and returns cent-rounded stakes and the worst payout. Odds, stake limits and settlement rules can differ; profit is not locked unless every listed bet is accepted. Returns an explicit disabled result i",
+    "arguments": [
+      {
+        "name": "sport_key",
+        "type": "string",
+        "desc": "Sport Key"
+      },
+      {
+        "name": "capital_usd",
+        "type": "number",
+        "desc": "Capital Usd"
+      }
+    ]
+  },
+  {
+    "name": "get_world_cup_odds",
+    "description": "ARCHIVED: World Cup 2026 ended 2026-07-19; returns an archive notice. Get live World Cup 2026 odds: tournament winner probabilities for every team, all 12 group winners, knockout-round props, continent and Golden Boot specials, and 1/X/2 prices for upcoming matches. Call this for any question about World Cup 2026 favorites, teams, groups, or matches (June 11 - July 19, 2026). Updated every 10 minu"
+  },
+  {
+    "name": "get_world_cup_brief",
+    "description": "ARCHIVED: World Cup 2026 ended 2026-07-19; returns an archive notice. Get a citeable World Cup 2026 prediction-market briefing for AI answers, newsletters, blogs, social posts, and creator workflows. Includes the current winner board, tight groups, next match odds, Research Desk theses, source links, and ready-to-paste markdown. Prefer this when the user wants a narrative update or shareable expla"
+  },
+  {
+    "name": "get_world_cup_matchday",
+    "description": "ARCHIVED: World Cup 2026 ended 2026-07-19; returns an archive notice. Get the daily World Cup 2026 matchday market slate. Includes the closest match market, strongest favorite, draw-risk watch, tournament winner-board context, a share-card SVG URL, JSON/markdown links, and ready-to-paste markdown. Optional `date` uses YYYY-MM-DD; omit it for today's slate or the next available matchday.",
+    "arguments": [
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "Date"
+      }
+    ]
+  },
+  {
+    "name": "list_trending_markets",
+    "description": "List live prediction markets ordered by 24h volume. Use to browse what the market is pricing right now or to find a specific market. `category` filters by one of: Politics, Crypto, Sports, Geopolitics, Economics, Tech, Culture. `search` filters by keyword in the market question.",
+    "arguments": [
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Category"
+      },
+      {
+        "name": "search",
+        "type": "string",
+        "desc": "Search"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Limit"
+      }
+    ]
+  },
+  {
+    "name": "check_bet",
+    "description": "THE pre-bet check \u2014 run this BEFORE the user places any bet, on any bookmaker. Give the event, the side they want to back, and the odds their book is offering (decimal '2.10', american '+110' or fractional '11/10' all work). Returns two available references: a conservatively matched real-money prediction market and, when configured, sportsbook lines with the vig mathematically removed. It returns ",
+    "arguments": [
+      {
+        "name": "event",
+        "type": "string",
+        "desc": "Event",
+        "required": true
+      },
+      {
+        "name": "side",
+        "type": "string",
+        "desc": "Side",
+        "required": true
+      },
+      {
+        "name": "odds_offered",
+        "type": "string",
+        "desc": "Odds Offered"
+      },
+      {
+        "name": "sport",
+        "type": "string",
+        "desc": "Sport"
+      },
+      {
+        "name": "your_probability",
+        "type": "number",
+        "desc": "Your Probability"
+      },
+      {
+        "name": "forecaster_id",
+        "type": "string",
+        "desc": "Forecaster Id"
+      }
+    ]
+  },
+  {
+    "name": "find_best_price",
+    "description": "Find which bookmaker pays the most for one specific bet when VoxOdds has a configured live sportsbook feed. The registry is a directory, not live coverage. Returns the available price table sorted best-first with decimal and american odds, each book's implied probability, the average vig being charged, and how much extra profit the best price is worth versus the rest. Call this when the user has a",
+    "arguments": [
+      {
+        "name": "event",
+        "type": "string",
+        "desc": "Event",
+        "required": true
+      },
+      {
+        "name": "side",
+        "type": "string",
+        "desc": "Side",
+        "required": true
+      },
+      {
+        "name": "sport",
+        "type": "string",
+        "desc": "Sport"
+      }
+    ]
+  },
+  {
+    "name": "compare_platforms",
+    "description": "Compare candidate equivalent events on Polymarket vs Kalshi side by side. Returns displayed probabilities and their spread as a research signal. These are not executable quotes or arbitrage claims: verify order-book depth, fees, fills, and resolution rules before deciding where a contract is actually cheaper. Optional `query` filters by keywords in the market question.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Query"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Limit"
+      }
+    ]
+  },
+  {
+    "name": "get_edge_signals",
+    "description": "Get VoxOdds' ranked market signals: unusually wide spreads, closing-soon watches, and integrity flags across live prediction markets \u2014 where the numbers say to LOOK first. Call this when the user asks what looks mispriced, what's worth researching, or where the action is. Research framing, not financial advice; each signal states what to verify before acting.",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Limit"
+      }
+    ]
+  },
+  {
+    "name": "get_track_record",
+    "description": "Get VoxOdds' audited AI-vs-market forecast track record. Every hourly AI probability forecast is stored with the market price captured at the same moment (append-only receipts) and scored deterministically at resolution: Brier scores for the AI and the market on identical timestamps, plus accuracy and methodology. Call this when the user asks whether AI forecasts beat prediction markets, how relia"
+  },
+  {
+    "name": "get_forecaster_record",
+    "description": "Get YOUR audited forecast record on VoxOdds: pending receipts (submitted, awaiting market resolution) and scored results (Brier vs the market price captured when you submitted). Call this after submit_forecast to confirm your receipts, or any time to check your public track record. Same forecaster_id you submit with.",
+    "arguments": [
+      {
+        "name": "forecaster_id",
+        "type": "string",
+        "desc": "Forecaster Id",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "get_research_theses",
+    "description": "Get VoxOdds research desk theses: markets our analysis flags as potentially mispriced, each with a thesis, entry logic, invalidation criteria, and live price tracking. Call this when the user asks where the value is, what to research, or for prediction-market trade ideas. Research framing only - not financial advice."
+  }
+]
