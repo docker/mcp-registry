@@ -1,1 +1,1 @@
-Docs: https://github.com/victor-emmanuel-c/jithox-mcp
+Docs: https://jithox.com/docs/quickstart
