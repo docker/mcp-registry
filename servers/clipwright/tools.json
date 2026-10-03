@@ -6,7 +6,7 @@
       {
         "name": "script",
         "type": "string",
-        "desc": "The words the actor says; required unless segments supplies the spoken text. Segments and text-anchored inserts require long-form qualification on the server. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. There is no word-count limit. Duration and price are estimates until measured. Russian stress: write the stressed vowel as a capital inside a lowercase word (\"потОм\", \"зАмок\") and eleven_v3 receives it as the stress mark U+0301 (\"пото́м\"); a mark typed directly is kept. A capital at the start of a word stays a capital, and a word with a second capital or a capital consonant inside (all caps, \"ВУЗы\") is left as it is. A single capital vowel inside a word is always read as stress, so write \"Яндекс Еда\", not \"ЯндексЕда\". Tell users writing in Russian that they can mark stress this way. eleven_flash_v2_5 and eleven_turbo_v2_5 cost less but misread stress marks: capitals reach them unchanged."
+        "desc": "The words the actor says; required unless segments supplies the spoken text. Segments and text-anchored inserts require long-form qualification on the server. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters; eleven_v4: 5000 characters; gemini-3.8-flash-tts: 5000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. Break tags are cut from the text sent to eleven_v4 and gemini-3.8-flash-tts and are not counted there. There is no word-count limit. Duration and price are estimates until measured. Russian stress: write the stressed vowel as a capital inside a lowercase word (\"потОм\", \"зАмок\") and eleven_v3, eleven_v4 and gemini-3.8-flash-tts receive it as the stress mark U+0301 (\"пото́м\"); a mark typed directly is kept. A capital at the start of a word stays a capital, and a word with a second capital or a capital consonant inside (all caps, \"ВУЗы\") is left as it is. A single capital vowel inside a word is always read as stress, so write \"Яндекс Еда\", not \"ЯндексЕда\". Tell users writing in Russian that they can mark stress this way. eleven_flash_v2_5 and eleven_turbo_v2_5 cost less but misread stress marks: capitals reach them unchanged."
       },
       {
         "name": "segments",
@@ -36,7 +36,7 @@
       {
         "name": "actor_gender",
         "type": "string",
-        "desc": "Gender of the face in image: female | male. Only with image: picks the default voice of that gender (female: sarah, male: george). Refused with actor_id (its gender is known) and without image. An explicit voice or voice_id wins and the response warns that actor_gender changed nothing."
+        "desc": "Gender of the face in image: female | male. Only with image: picks the default voice of that gender (female: sarah, male: george; on gemini-3.8-flash-tts: kore and charon). Refused with actor_id (its gender is known) and without image. An explicit voice or voice_id wins and the response warns that actor_gender changed nothing."
       },
       {
         "name": "name",
@@ -76,17 +76,17 @@
       {
         "name": "voice",
         "type": "string",
-        "desc": "Voice name from list_voices. Curated presets: owner_ru_clone | sarah | george | eric | daria_ru_female (owner_ru_clone is the Russian cloned voice). The API refuses a name list_voices does not return, before any charge. Omitted means the default voice for the actor's gender: the gender of actor_id, actor_gender with image, or george for the default actor and for image without actor_gender. Mutually exclusive with voice_id."
+        "desc": "Voice name from list_voices. Curated presets: owner_ru_clone | sarah | george | eric | daria_ru_female (owner_ru_clone is the Russian cloned voice). The API refuses a name list_voices does not return, before any charge. Omitted means the default voice for the actor's gender: the gender of actor_id, actor_gender with image, or george for the default actor and for image without actor_gender. gemini-3.8-flash-tts speaks only its own voices (kind model_voice in list_voices, such as kore): naming one selects that model, and a voice is refused with a tts_model that does not speak it, before any charge. Mutually exclusive with voice_id."
       },
       {
         "name": "voice_id",
         "type": "string",
-        "desc": "Raw vendor voice id (16–32 letters and digits) for a voice outside the catalog. Checked lazily: an unknown id fails the run, not the request. Mutually exclusive with voice."
+        "desc": "Raw vendor voice id (16–32 letters and digits) for a voice outside the catalog. Checked lazily: an unknown id fails the run, not the request. Refused with tts_model=gemini-3.8-flash-tts. Mutually exclusive with voice."
       },
       {
         "name": "tts_model",
         "type": "string",
-        "desc": "Speech model: eleven_v3 | eleven_flash_v2_5 | eleven_turbo_v2_5. Omitted means the model of the chosen preset (list_voices shows it; every preset speaks eleven_v3) or eleven_v3 for a raw voice_id. eleven_v3 is the most expressive and the only one that reads stress marks (a capital vowel inside a Russian word, \"потОм\", becomes one; see script); eleven_flash_v2_5 and eleven_turbo_v2_5 are cheaper alternatives for languages other than Russian. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. There is no word-count limit. Duration and price are estimates until measured."
+        "desc": "Speech model: eleven_v3 | eleven_flash_v2_5 | eleven_turbo_v2_5 | eleven_v4 | gemini-3.8-flash-tts. Omitted means the model of the chosen voice (list_voices shows it): eleven_v4 for the Russian presets and for catalog voices named ru_*, gemini-3.8-flash-tts for its own voices, eleven_v3 for every other preset and catalog voice. A raw voice_id speaks eleven_v4 when the script is mostly Cyrillic and eleven_v3 otherwise. An explicit tts_model always wins. eleven_v4, eleven_v3 and gemini-3.8-flash-tts read stress marks (a capital vowel inside a Russian word, \"потОм\", becomes one; see script); eleven_flash_v2_5 and eleven_turbo_v2_5 are cheaper alternatives for languages other than Russian. gemini-3.8-flash-tts speaks only its own voices (list_voices with model=gemini-3.8-flash-tts; without voice, kore for a female actor and charon otherwise) and returns no word timings: a preset or catalog voice, voice_id, captions=true, segments and inserts are refused with it before any charge. Audio tags in square brackets are an eleven_v3 and eleven_v4 convention and are not measured on it. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters; eleven_v4: 5000 characters; gemini-3.8-flash-tts: 5000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. Break tags are cut from the text sent to eleven_v4 and gemini-3.8-flash-tts and are not counted there. There is no word-count limit. Duration and price are estimates until measured."
       },
       {
         "name": "disclosure_overlay",
@@ -107,7 +107,7 @@
   },
   {
     "name": "get_run",
-    "description": "Check the status of a video generation started by make_ugc. Pass the run_id. While the run is still working it returns status IN_PROGRESS with a next_action telling you to poll again; repeat every ~5 seconds until it reaches a terminal state — SUCCEEDED (with video_url) or FAILED.",
+    "description": "Check the status of a video generation started by make_ugc or make_faceless. Pass the run_id. While the run is still working it returns status IN_PROGRESS with a next_action telling you to poll again; repeat every ~5 seconds until it reaches a terminal state — SUCCEEDED (with video_url) or FAILED.",
     "arguments": [
       {
         "name": "run_id",
@@ -123,7 +123,7 @@
       {
         "name": "script",
         "type": "string",
-        "desc": "The words the actor says; required unless segments supplies the spoken text. Segments and text-anchored inserts require long-form qualification on the server. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. There is no word-count limit. Duration and price are estimates until measured. Russian stress: write the stressed vowel as a capital inside a lowercase word (\"потОм\", \"зАмок\") and eleven_v3 receives it as the stress mark U+0301 (\"пото́м\"); a mark typed directly is kept. A capital at the start of a word stays a capital, and a word with a second capital or a capital consonant inside (all caps, \"ВУЗы\") is left as it is. A single capital vowel inside a word is always read as stress, so write \"Яндекс Еда\", not \"ЯндексЕда\". Tell users writing in Russian that they can mark stress this way. eleven_flash_v2_5 and eleven_turbo_v2_5 cost less but misread stress marks: capitals reach them unchanged."
+        "desc": "The words the actor says; required unless segments supplies the spoken text. Segments and text-anchored inserts require long-form qualification on the server. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters; eleven_v4: 5000 characters; gemini-3.8-flash-tts: 5000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. Break tags are cut from the text sent to eleven_v4 and gemini-3.8-flash-tts and are not counted there. There is no word-count limit. Duration and price are estimates until measured. Russian stress: write the stressed vowel as a capital inside a lowercase word (\"потОм\", \"зАмок\") and eleven_v3, eleven_v4 and gemini-3.8-flash-tts receive it as the stress mark U+0301 (\"пото́м\"); a mark typed directly is kept. A capital at the start of a word stays a capital, and a word with a second capital or a capital consonant inside (all caps, \"ВУЗы\") is left as it is. A single capital vowel inside a word is always read as stress, so write \"Яндекс Еда\", not \"ЯндексЕда\". Tell users writing in Russian that they can mark stress this way. eleven_flash_v2_5 and eleven_turbo_v2_5 cost less but misread stress marks: capitals reach them unchanged."
       },
       {
         "name": "segments",
@@ -153,7 +153,7 @@
       {
         "name": "actor_gender",
         "type": "string",
-        "desc": "Gender of the face in image: female | male. Only with image: picks the default voice of that gender (female: sarah, male: george). Refused with actor_id (its gender is known) and without image. An explicit voice or voice_id wins and the response warns that actor_gender changed nothing."
+        "desc": "Gender of the face in image: female | male. Only with image: picks the default voice of that gender (female: sarah, male: george; on gemini-3.8-flash-tts: kore and charon). Refused with actor_id (its gender is known) and without image. An explicit voice or voice_id wins and the response warns that actor_gender changed nothing."
       },
       {
         "name": "name",
@@ -193,17 +193,17 @@
       {
         "name": "voice",
         "type": "string",
-        "desc": "Voice name from list_voices. Curated presets: owner_ru_clone | sarah | george | eric | daria_ru_female (owner_ru_clone is the Russian cloned voice). The API refuses a name list_voices does not return, before any charge. Omitted means the default voice for the actor's gender: the gender of actor_id, actor_gender with image, or george for the default actor and for image without actor_gender. Mutually exclusive with voice_id."
+        "desc": "Voice name from list_voices. Curated presets: owner_ru_clone | sarah | george | eric | daria_ru_female (owner_ru_clone is the Russian cloned voice). The API refuses a name list_voices does not return, before any charge. Omitted means the default voice for the actor's gender: the gender of actor_id, actor_gender with image, or george for the default actor and for image without actor_gender. gemini-3.8-flash-tts speaks only its own voices (kind model_voice in list_voices, such as kore): naming one selects that model, and a voice is refused with a tts_model that does not speak it, before any charge. Mutually exclusive with voice_id."
       },
       {
         "name": "voice_id",
         "type": "string",
-        "desc": "Raw vendor voice id (16–32 letters and digits) for a voice outside the catalog. Checked lazily: an unknown id fails the run, not the request. Mutually exclusive with voice."
+        "desc": "Raw vendor voice id (16–32 letters and digits) for a voice outside the catalog. Checked lazily: an unknown id fails the run, not the request. Refused with tts_model=gemini-3.8-flash-tts. Mutually exclusive with voice."
       },
       {
         "name": "tts_model",
         "type": "string",
-        "desc": "Speech model: eleven_v3 | eleven_flash_v2_5 | eleven_turbo_v2_5. Omitted means the model of the chosen preset (list_voices shows it; every preset speaks eleven_v3) or eleven_v3 for a raw voice_id. eleven_v3 is the most expressive and the only one that reads stress marks (a capital vowel inside a Russian word, \"потОм\", becomes one; see script); eleven_flash_v2_5 and eleven_turbo_v2_5 are cheaper alternatives for languages other than Russian. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. There is no word-count limit. Duration and price are estimates until measured."
+        "desc": "Speech model: eleven_v3 | eleven_flash_v2_5 | eleven_turbo_v2_5 | eleven_v4 | gemini-3.8-flash-tts. Omitted means the model of the chosen voice (list_voices shows it): eleven_v4 for the Russian presets and for catalog voices named ru_*, gemini-3.8-flash-tts for its own voices, eleven_v3 for every other preset and catalog voice. A raw voice_id speaks eleven_v4 when the script is mostly Cyrillic and eleven_v3 otherwise. An explicit tts_model always wins. eleven_v4, eleven_v3 and gemini-3.8-flash-tts read stress marks (a capital vowel inside a Russian word, \"потОм\", becomes one; see script); eleven_flash_v2_5 and eleven_turbo_v2_5 are cheaper alternatives for languages other than Russian. gemini-3.8-flash-tts speaks only its own voices (list_voices with model=gemini-3.8-flash-tts; without voice, kore for a female actor and charon otherwise) and returns no word timings: a preset or catalog voice, voice_id, captions=true, segments and inserts are refused with it before any charge. Audio tags in square brackets are an eleven_v3 and eleven_v4 convention and are not measured on it. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters; eleven_v4: 5000 characters; gemini-3.8-flash-tts: 5000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. Break tags are cut from the text sent to eleven_v4 and gemini-3.8-flash-tts and are not counted there. There is no word-count limit. Duration and price are estimates until measured."
       },
       {
         "name": "disclosure_overlay",
@@ -230,12 +230,12 @@
   },
   {
     "name": "list_voices",
-    "description": "List the voices for make_ugc's `voice` field: the presets first, then catalog voices in 31 languages. Filter by `language` (the voice's native language; any voice speaks any supported language), `gender`, `age`, `use_case` and `model`; an unknown filter value is refused with the allowed values. Pick a voice by `name` (e.g. voice=\"george\"); a name always means the same voice. `voice_id` is an escape hatch for a raw vendor voice id that is not listed, such as a cloned voice. Without voice or voice_id the default voice follows the actor's gender: sarah for a woman, george for a man, taken from actor_id or from actor_gender next to image. With image and no actor_gender the voice is george and a warning says so: pass the gender of the person in the photo as actor_gender (ask the user only when you cannot tell), or pick a voice here. Keep any voice the user chose. A voice with `preview_url` has a short-lived audio sample spoken by that voice with that model; play it to the user before a paid render instead of judging a voice by its description. It expires at `preview_expires_at`: call this tool again for a fresh link, never store it. A voice without `preview_url` has no sample yet. Free. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. There is no word-count limit. Duration and price are estimates until measured.",
+    "description": "List the voices for make_ugc's `voice` field: the presets first, then the 30 voices of gemini-3.8-flash-tts (kind model_voice), then catalog voices in 31 languages. Filter by `language` (the voice's native language; any voice speaks any supported language), `gender`, `age`, `use_case` and `model`; an unknown filter value is refused with the allowed values. Pick a voice by `name` (e.g. voice=\"george\"); a name always means the same voice. A model_voice voice is spoken only by its `model`: naming it selects that model, it has no language of its own and matches the languages measured on the model, and its gender is listed only where it is known. `voice_id` is an escape hatch for a raw vendor voice id that is not listed, such as a cloned voice. Without voice or voice_id the default voice follows the actor's gender: sarah for a woman, george for a man, taken from actor_id or from actor_gender next to image. With image and no actor_gender the voice is george and a warning says so: pass the gender of the person in the photo as actor_gender (ask the user only when you cannot tell), or pick a voice here. Keep any voice the user chose. A voice with `preview_url` has a short-lived audio sample spoken by that voice with that model; play it to the user before a paid render instead of judging a voice by its description. A model_voice sample is in English, or in the language you filter by. It expires at `preview_expires_at`: call this tool again for a fresh link, never store it. A voice without `preview_url` has no sample yet. Free. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters; eleven_v4: 5000 characters; gemini-3.8-flash-tts: 5000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. Break tags are cut from the text sent to eleven_v4 and gemini-3.8-flash-tts and are not counted there. There is no word-count limit. Duration and price are estimates until measured.",
     "arguments": [
       {
         "name": "language",
         "type": "string",
-        "desc": "Native language of the voice. A filter, not a limit: any voice speaks any supported language"
+        "desc": "Native language of the voice. A filter, not a limit: any voice speaks any supported language. A voice with no language of its own (kind model_voice) matches the languages measured on its model"
       },
       {
         "name": "gender",
@@ -255,7 +255,7 @@
       {
         "name": "model",
         "type": "string",
-        "desc": "Only voices whose language this speech model supports"
+        "desc": "Only voices this speech model speaks: presets and catalog voices whose language it supports, or the model's own voices (kind model_voice)"
       }
     ]
   },
@@ -365,6 +365,113 @@
         "name": "quality",
         "type": "string",
         "desc": "Image quality: medium | high. Omitted means medium. The price per image depends on it; quote shows it before any charge."
+      }
+    ]
+  },
+  {
+    "name": "make_faceless",
+    "description": "Start a paid finished faceless video from a script or brief. You select 30–90 seconds; the video ends with its narration, runs at least 25 seconds and at most 5 seconds past the selection, never beyond 90. The video has an opening animated clip and image scenes. Captions are on by default and can be turned off. Call quote_faceless first and show the user the price. This does NOT wait for the video: it starts the run and returns a run_id IMMEDIATELY. Then poll get_run with that run_id until the state is 'succeeded' (video_url) or 'failed'. Pass attempt=2,3,… to deliberately start a NEW run for the same input.",
+    "arguments": [
+      {
+        "name": "input_mode",
+        "type": "string",
+        "desc": "'script' narrates your exact text; 'brief' writes the narration from a short description. Send exactly one of script or brief, matching this mode."
+      },
+      {
+        "name": "script",
+        "type": "string",
+        "desc": "The narration, read as written. Required when input_mode is 'script'; must be absent when it is 'brief'."
+      },
+      {
+        "name": "brief",
+        "type": "string",
+        "desc": "What the video is about; the narration is written from it. Required when input_mode is 'brief'; must be absent when it is 'script'."
+      },
+      {
+        "name": "duration_seconds",
+        "type": "number",
+        "desc": "Selected length, 30 to 90 seconds, on a 1/25 s frame boundary. The video ends with its narration, runs at least 25 seconds and may exceed the selection by up to 5 seconds, never beyond 90 seconds. The charge never exceeds the quote. A script must fit this output range."
+      },
+      {
+        "name": "style_reference",
+        "type": "string",
+        "desc": "Optional public https image whose visual style the scenes follow."
+      },
+      {
+        "name": "character_reference",
+        "type": "string",
+        "desc": "Optional public https image of a person or figure to keep consistent across scenes."
+      },
+      {
+        "name": "character_details",
+        "type": "string",
+        "desc": "Optional fixed visual details for the referenced person or figure, such as hairstyle, clothing and absent accessories; applied to every generated scene."
+      },
+      {
+        "name": "scene_images",
+        "type": "array",
+        "desc": "Optional images of your own, each placed at a word range or quote of the narration."
+      },
+      {
+        "name": "captions",
+        "type": "boolean",
+        "desc": "Burned-in captions; on by default."
+      },
+      {
+        "name": "attempt",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "quote_faceless",
+    "description": "Estimate the credit cost of make_faceless WITHOUT spending credits. Always call this first and show the user the price before make_faceless.",
+    "arguments": [
+      {
+        "name": "input_mode",
+        "type": "string",
+        "desc": "'script' narrates your exact text; 'brief' writes the narration from a short description. Send exactly one of script or brief, matching this mode."
+      },
+      {
+        "name": "script",
+        "type": "string",
+        "desc": "The narration, read as written. Required when input_mode is 'script'; must be absent when it is 'brief'."
+      },
+      {
+        "name": "brief",
+        "type": "string",
+        "desc": "What the video is about; the narration is written from it. Required when input_mode is 'brief'; must be absent when it is 'script'."
+      },
+      {
+        "name": "duration_seconds",
+        "type": "number",
+        "desc": "Selected length, 30 to 90 seconds, on a 1/25 s frame boundary. The video ends with its narration, runs at least 25 seconds and may exceed the selection by up to 5 seconds, never beyond 90 seconds. The charge never exceeds the quote. A script must fit this output range."
+      },
+      {
+        "name": "style_reference",
+        "type": "string",
+        "desc": "Optional public https image whose visual style the scenes follow."
+      },
+      {
+        "name": "character_reference",
+        "type": "string",
+        "desc": "Optional public https image of a person or figure to keep consistent across scenes."
+      },
+      {
+        "name": "character_details",
+        "type": "string",
+        "desc": "Optional fixed visual details for the referenced person or figure, such as hairstyle, clothing and absent accessories; applied to every generated scene."
+      },
+      {
+        "name": "scene_images",
+        "type": "array",
+        "desc": "Optional images of your own, each placed at a word range or quote of the narration."
+      },
+      {
+        "name": "captions",
+        "type": "boolean",
+        "desc": "Burned-in captions; on by default."
       }
     ]
   },
