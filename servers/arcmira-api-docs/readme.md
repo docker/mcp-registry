@@ -9,4 +9,4 @@ Search the documentation for Arcmira's YouTube transcript search API, including 
 
 This hosted documentation connection requires no account or API key. It searches documentation and reads documentation files. Its separate feedback tool submits feedback, so the connection is not entirely read-only.
 
-To search actual transcript data, use the separate [Arcmira research connection](https://arcmira.com/docs/mcp-server). Research access requires an Arcmira account and has usage limits. Premium transcripts require eligible access and may generate billable work within an explicitly authorized budget.
+To search actual transcript data, use the separate [Arcmira research connection](https://arcmira.com/docs/mcp-server). Research access requires an Arcmira account and has usage limits. A Premium read uses credits from your plan, then your on-demand budget.
