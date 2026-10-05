@@ -37,7 +37,7 @@
       {
         "name": "partnerOrderId",
         "type": "string",
-        "desc": "Order id returned when the session was created (required)"
+        "desc": "Order id returned when the session was created"
       }
     ]
   },
@@ -64,7 +64,7 @@
   },
   {
     "name": "search_services",
-    "description": "FREE (no key, no wallet). Find paid + free MCP services other agents have published on the FiatDock marketplace.",
+    "description": "FREE (no key, no wallet). Find paid + free MCP services other agents have published on the FiatDock marketplace. Returns matching listings (id, name, summary, price, category, seller, verified, gatewayUrl), best match...",
     "arguments": [
       {
         "name": "q",
@@ -95,12 +95,12 @@
   },
   {
     "name": "get_service",
-    "description": "FREE (no key, no wallet). Full detail for one FiatDock marketplace listing, including how to call it: PAID listings route through the gateway via call_service (the 99/1 split is enforced); FREE/first-party listings ex...",
+    "description": "FREE (no key, no wallet). Full detail for one FiatDock marketplace listing, including how to call it: PAID listings route through the gateway via call_service (100% to the seller (the gateway commission is currently w...",
     "arguments": [
       {
         "name": "id",
         "type": "string",
-        "desc": "Listing id (svc_…) from search_services (required)"
+        "desc": "Listing id (svc_…) from search_services"
       },
       {
         "name": "includeSchemas",
@@ -110,13 +110,44 @@
     ]
   },
   {
+    "name": "search_x402",
+    "description": "FREE (no key, no wallet). Find any pay-per-call x402 endpoint on the internet — the public x402 index (~15,000 priced endpoints from hundreds of hosts), not only FiatDock's own marketplace.",
+    "arguments": [
+      {
+        "name": "q",
+        "type": "string",
+        "desc": "Free-text search over host, service name, tags, description and URL path. Multi-word queries are SCORED: a row"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Rows to return, 1-50 (default 20). Bounded because the result lands in your context; narrow with q, maxPriceUs"
+      },
+      {
+        "name": "maxPriceUsd",
+        "type": "number",
+        "desc": "Only endpoints whose indexed price is at or below this (USDC, 6 decimals)"
+      },
+      {
+        "name": "network",
+        "type": "string",
+        "desc": "Only this CAIP-2 network, e.g. eip155:8453 (Base)"
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "desc": "demand (default: relevance, then 30-day calls), price (cheapest first), recent (last paid call first)"
+      }
+    ]
+  },
+  {
     "name": "create_offramp_session",
-    "description": "PAID $0.01 USDC via x402. Convert the agent's USDC to fiat in the owner's OWN bank account.",
+    "description": "PAID $0.01 USDC via x402. Convert the agent's USDC to fiat in the owner's OWN bank account. Returns a checkoutUrl to forward to the human owner (valid ~2 hours) and a partnerOrderId to track — pass the owner's `email`...",
     "arguments": [
       {
         "name": "cryptoAmount",
         "type": "number",
-        "desc": "USDC amount to sell (required)"
+        "desc": "USDC amount to sell"
       },
       {
         "name": "fiatCurrency",
@@ -177,17 +208,17 @@
   },
   {
     "name": "create_onramp_session",
-    "description": "PAID $0.01 USDC via x402. Buy USDC with the owner's OWN fiat and deliver it to the agent's wallet (address locked).",
+    "description": "PAID $0.01 USDC via x402. Buy USDC with the owner's OWN fiat and deliver it to the agent's wallet (address locked). Returns checkoutUrl + partnerOrderId.",
     "arguments": [
       {
         "name": "fiatAmount",
         "type": "number",
-        "desc": "Fiat amount to spend (required)"
+        "desc": "Fiat amount to spend"
       },
       {
         "name": "walletAddress",
         "type": "string",
-        "desc": "Agent wallet that receives USDC (0x…, EIP-55 checked) (required)"
+        "desc": "Agent wallet that receives USDC (0x…, EIP-55 checked)"
       },
       {
         "name": "fiatCurrency",
@@ -243,12 +274,12 @@
   },
   {
     "name": "token_safety",
-    "description": "PAID $0.01 USDC via x402. On-chain safety verdict for any EVM token BEFORE you trade it: honeypot detection, buy/sell tax, contract-verified, owner privileges (mint / blacklist / pausable / hidden owner / balance-modi...",
+    "description": "PAID $0.0045 USDC via x402. On-chain safety verdict for any EVM token BEFORE you trade it: honeypot detection, buy/sell tax, contract-verified, owner privileges (mint / blacklist / pausable / hidden owner / balance-mo...",
     "arguments": [
       {
         "name": "token",
         "type": "string",
-        "desc": "ERC-20 contract address (0x…) to screen (required)"
+        "desc": "ERC-20 contract address (0x…) to screen"
       },
       {
         "name": "chain",
@@ -280,7 +311,7 @@
   },
   {
     "name": "gas_price",
-    "description": "PAID $0.001 USDC via x402. The current Base gas price in wei and gwei.",
+    "description": "PAID $0.001 USDC via x402. The current Base gas price in wei and gwei. A gas-aware agent samples it before submitting a tx. Without payment this returns the 402 challenge; the fiatdock-mcp npm package pays automatically.",
     "arguments": [
       {
         "name": "payment",
@@ -307,7 +338,7 @@
       {
         "name": "address",
         "type": "string",
-        "desc": "A 40-hex EVM address (0x…) to read the ETH balance of (required)"
+        "desc": "A 40-hex EVM address (0x…) to read the ETH balance of"
       },
       {
         "name": "payment",
@@ -318,12 +349,12 @@
   },
   {
     "name": "usdc_balance",
-    "description": "PAID $0.001 USDC via x402. The USDC balance of any address on Base (the settlement asset for x402), in atomic units and USDC. Without payment this returns the 402 challenge; the fiatdock-mcp npm package pays automatic...",
+    "description": "PAID $0.001 USDC via x402. The USDC balance of any address on Base (the settlement asset for x402), in atomic units and USDC.",
     "arguments": [
       {
         "name": "address",
         "type": "string",
-        "desc": "A 40-hex EVM address (0x…) to read the USDC balance of (required)"
+        "desc": "A 40-hex EVM address (0x…) to read the USDC balance of"
       },
       {
         "name": "payment",
@@ -339,7 +370,7 @@
       {
         "name": "token",
         "type": "string",
-        "desc": "An ERC-20 contract address (0x…, 40 hex) on Base (required)"
+        "desc": "An ERC-20 contract address (0x…, 40 hex) on Base"
       },
       {
         "name": "payment",
@@ -350,12 +381,12 @@
   },
   {
     "name": "tx_status",
-    "description": "PAID $0.001 USDC via x402. Confirmation status of a Base transaction — success/failed, block, confirmations, gas used, from/to.",
+    "description": "PAID $0.001 USDC via x402. Confirmation status of a Base transaction — success/failed, block, confirmations, gas used, from/to. An unconfirmed/unknown tx returns 404 (and is NOT charged), so an agent can poll safely.",
     "arguments": [
       {
         "name": "txHash",
         "type": "string",
-        "desc": "A 64-hex transaction hash (0x…) on Base (required)"
+        "desc": "A 64-hex transaction hash (0x…) on Base"
       },
       {
         "name": "payment",
@@ -366,12 +397,12 @@
   },
   {
     "name": "address_intel",
-    "description": "PAID $0.005 USDC via x402. Enrich ANY Base address in one call before you trust it: EOA vs contract (and whether it's an ERC-20, with its name/symbol/decimals), account nonce, ETH + USDC balance, and a KEYLESS GoPlus...",
+    "description": "PAID $0.0045 USDC via x402. Enrich ANY Base address in one call before you trust it: EOA vs contract (and whether it's an ERC-20, with its name/symbol/decimals), account nonce, ETH + USDC balance, and a KEYLESS GoPlus...",
     "arguments": [
       {
         "name": "address",
         "type": "string",
-        "desc": "A 40-hex EVM address (0x…) on Base to enrich (required)"
+        "desc": "A 40-hex EVM address (0x…) on Base to enrich"
       },
       {
         "name": "payment",
@@ -382,12 +413,12 @@
   },
   {
     "name": "token_report",
-    "description": "PAID $0.05 USDC via x402. The full picture on an ERC-20 in ONE call: live price, liquidity, 24h volume, market cap/FDV and the most-liquid DEX pair (DexScreener) TOGETHER with the complete safety verdict — honeypot /...",
+    "description": "PAID $0.0045 USDC via x402. The full picture on an ERC-20 in ONE call: live price, liquidity, 24h volume, market cap/FDV and the most-liquid DEX pair (DexScreener) TOGETHER with the complete safety verdict — honeypot...",
     "arguments": [
       {
         "name": "token",
         "type": "string",
-        "desc": "ERC-20 contract address (0x…) to report on (required)"
+        "desc": "ERC-20 contract address (0x…) to report on"
       },
       {
         "name": "chain",
@@ -402,13 +433,487 @@
     ]
   },
   {
+    "name": "web_read",
+    "description": "PAID $0.0018 USDC via x402. Fetch any public web page and get its readable text: title, meta description, canonical URL, the body with scripts/styles/navigation stripped (paragraphs kept), the first 50 links as absolu...",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "Absolute http(s) URL of the page to read (no credentials in the URL)"
+      },
+      {
+        "name": "maxChars",
+        "type": "integer",
+        "desc": "Cap on the returned text (default 40000; the result lands in your context)"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "email_check",
+    "description": "PAID $0.001 USDC via x402. Is this address worth sending to? Syntax, the domain's DNS (MX, then A/AAAA), disposable-provider and role-mailbox lists, a free-provider flag, a typo suggestion (gmial.com -> gmail.com), a...",
+    "arguments": [
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "The email address to check"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "perp_market",
+    "description": "PAID $0.001 USDC via x402. Hyperliquid perpetual futures in one call: mark, oracle and mid price, 24h change, the funding rate per interval and its simple annualised APR, open interest (coins and USD), 24h volume and...",
+    "arguments": [
+      {
+        "name": "coin",
+        "type": "string",
+        "desc": "Perpetual's coin as Hyperliquid names it (BTC, ETH, SOL, HYPE, kPEPE, …). Omit for the most-traded markets"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many markets when no coin is given (by 24h volume), 1-50, default 10"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "prediction_markets",
+    "description": "PAID $0.0045 USDC via x402. Live prediction markets from Polymarket: for each open market, every outcome with its price (the price of one share, 0-1 USDC, read as the market's implied probability), 24h and total volum...",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "What to look for (e.g. bitcoin, fed rates, election). Omit for the markets with the most 24h volume"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many markets, 1-50, default 10"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "defi_yields",
+    "description": "PAID $0.001 USDC via x402. Where a token earns the most, from DefiLlama's yield index: pools filtered by chain (default Base; \"all\" for every chain), token symbol (USDC, ETH, cbBTC…), stablecoin-only and a minimum TVL...",
+    "arguments": [
+      {
+        "name": "chain",
+        "type": "string",
+        "desc": "Chain as DefiLlama names it (Base, Ethereum, Arbitrum, Optimism, Polygon, Solana, …), default Base; \"all\" for "
+      },
+      {
+        "name": "symbol",
+        "type": "string",
+        "desc": "Only pools holding this token symbol (e.g. USDC, ETH, cbBTC)"
+      },
+      {
+        "name": "stablecoinOnly",
+        "type": "boolean",
+        "desc": "Only pools DefiLlama classifies as stablecoin pools (default false)"
+      },
+      {
+        "name": "minTvlUsd",
+        "type": "number",
+        "desc": "Minimum pool TVL in USD (default 1,000,000)"
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "desc": "Order: apy (highest first, default) or tvl"
+      },
+      {
+        "name": "includeOutliers",
+        "type": "boolean",
+        "desc": "Include pools DefiLlama flags as statistical outliers (default false)"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many pools, 1-50, default 10"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "fx_rates",
+    "description": "PAID $0.001 USDC via x402. Live exchange rates and a conversion: how many units of each target currency one unit of `from` buys (a live mid rate), the converted amount, and — where the European Central Bank publishes...",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "Currency to convert FROM (ISO code like USD, EUR, or a crypto like BTC), default USD"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "Currencies to convert TO, up to 20 (default EUR,GBP,JPY,CNY,CHF,CAD,AUD,INR)"
+      },
+      {
+        "name": "amount",
+        "type": "number",
+        "desc": "Amount of the FROM currency to convert (default 1)"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "wallet_portfolio",
+    "description": "PAID $0.0045 USDC via x402. What a Base address owns, in one call: the ETH balance read from the chain, every ERC-20 it holds with balance, market price and USD value, and a USD total.",
+    "arguments": [
+      {
+        "name": "address",
+        "type": "string",
+        "desc": "A 40-hex EVM address (0x…) on Base. Omit the whole body to get the paying wallet"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "token_holders",
+    "description": "PAID $0.0027 USDC via x402. Who holds an ERC-20: the top 10 holders with their share of supply and whether each is a contract (a pool, bridge or vault), locked, or a burn address; the LP holders and how much LP is loc...",
+    "arguments": [
+      {
+        "name": "token",
+        "type": "string",
+        "desc": "ERC-20 contract address (0x…). Omit the whole body to get USDC on Base"
+      },
+      {
+        "name": "chain",
+        "type": "string",
+        "desc": "Chain, default base"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "domain_intel",
+    "description": "PAID $0.0045 USDC via x402. Everything about a domain in one call: the registrar, creation and expiry dates, age, status and nameservers from the registry's own RDAP service; live DNS (A, AAAA, MX, NS); email authenti...",
+    "arguments": [
+      {
+        "name": "domain",
+        "type": "string",
+        "desc": "A domain or a URL (example.com, https://www.example.com/page). Omit the whole body to get the published exampl"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "site_contacts",
+    "description": "PAID $0.0027 USDC via x402. How to reach the organisation behind a website, read from its own HTML (the homepage, plus its contact page when linked): social profiles (X, LinkedIn company pages, GitHub, YouTube, Instag...",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "The site's homepage or any page on it (https://example.com). Omit the whole body to get the published example "
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "crypto_news",
+    "description": "PAID $0.001 USDC via x402. The latest crypto headlines from nine newsrooms — CoinDesk, Cointelegraph, Decrypt, The Block, Blockworks, Bitcoin Magazine, The Defiant, Crypto Briefing, DL News — merged, de-duplicated and...",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Only headlines mentioning ALL of these words (e.g. \"base\", \"stablecoin regulation\"). Omit for everything"
+      },
+      {
+        "name": "sinceHours",
+        "type": "integer",
+        "desc": "How far back, in hours, 1-168 (default 24)"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many headlines, 1-50 (default 20)"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "sec_filings",
+    "description": "PAID $0.0027 USDC via x402. A US-listed company's latest SEC filings from EDGAR, by ticker (AAPL, BRK-B) or CIK: newest first, each with form type, filing and report date, accession number, description, an 8-K's item...",
+    "arguments": [
+      {
+        "name": "ticker",
+        "type": "string",
+        "desc": "Stock ticker (AAPL, MSFT, BRK-B) or a CIK number. Omit the whole body to get the published example (AAPL)"
+      },
+      {
+        "name": "forms",
+        "type": "string",
+        "desc": "Only these form types (e.g. 10-K,10-Q,8-K,4,DEF 14A). Omit for all"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many filings, newest first, 1-100 (default 20)"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "prompt_injection_check",
+    "description": "PAID $0.0045 USDC via x402. Scan text you are about to read — a fetched web page, an email, a tool description, another agent's message — for the shapes that hijack agents: instruction-override phrasing, a redefined s...",
+    "arguments": [
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "The text to scan (up to 8,000 characters). Omit the whole body to scan the published example"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "token_screener",
+    "description": "PAID $0.009 USDC via x402. Which tokens just appeared or are being pushed right now: the union of DexScreener's public lists (newly created token profiles, community takeovers, and tokens whose teams paid for a boost)...",
+    "arguments": [
+      {
+        "name": "chain",
+        "type": "string",
+        "desc": "DexScreener chain id (solana, base, ethereum, bsc, arbitrum, polygon, avalanche …) or \"all\" (default)"
+      },
+      {
+        "name": "list",
+        "type": "string",
+        "desc": "Which lists: new (fresh profiles + community takeovers), boosted (paid promotion) or all (default)"
+      },
+      {
+        "name": "minLiquidityUsd",
+        "type": "number",
+        "desc": "Drop tokens whose best pair has less liquidity than this, in USD (default 10,000)"
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "desc": "Order: 24h volume (default), liquidity, 24h price change, or newest pair"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many tokens, 1-30, default 10"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "paper_search",
+    "description": "PAID $0.018 USDC via x402. Search the scholarly literature: OpenAlex (~250M works across every discipline, including arXiv and PubMed; CC0 metadata), with Crossref answering when OpenAlex does not.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "What to search for (title and abstract; full text too when sorting by relevance) — an empty body searches the "
+      },
+      {
+        "name": "fromYear",
+        "type": "integer",
+        "desc": "Earliest publication year"
+      },
+      {
+        "name": "toYear",
+        "type": "integer",
+        "desc": "Latest publication year"
+      },
+      {
+        "name": "openAccessOnly",
+        "type": "boolean",
+        "desc": "Only papers with a free full-text copy (default false)"
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "desc": "Order: relevance (default with a query), cited (most cited first, default without one) or recent"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many papers, 1-25, default 10"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "satellite_scenes",
+    "description": "PAID $0.0225 USDC via x402. The newest satellite images of any coordinate, from the Copernicus Sentinel-2 Level-2A archive (free, open imagery; ~10 m per pixel; a revisit every ~5 days) via Element 84's Earth Search c...",
+    "arguments": [
+      {
+        "name": "lat",
+        "type": "number",
+        "desc": "Latitude in decimal degrees (-90 to 90)"
+      },
+      {
+        "name": "lon",
+        "type": "number",
+        "desc": "Longitude in decimal degrees (-180 to 180)"
+      },
+      {
+        "name": "maxCloudPct",
+        "type": "number",
+        "desc": "Only scenes with at most this much cloud, 0-100 (default 30)"
+      },
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "How far back to look, in days, 1-365 (default 60)"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many scenes, 1-10, newest first (default 3)"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "seo_audit",
+    "description": "PAID $0.072 USDC via x402. Audit one public web page the way a search crawler first reads it (the HTML as served, JavaScript not run), plus the site's /robots.txt and XML sitemap: indexability (robots meta, X-Robots-T...",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "The page to audit (https://… or a bare domain)"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "x402_top_services",
+    "description": "PAID $0.009 USDC via x402. Who is actually earning on x402: every seller (host) in Coinbase's public x402 discovery index, read hourly, with its 30-day paid calls, paying wallets, calls per payer (near 1.0 = a one-off...",
+    "arguments": [
+      {
+        "name": "sort",
+        "type": "string",
+        "desc": "Rank by estimated 30-day revenue (default), 30-day calls, or paying wallets"
+      },
+      {
+        "name": "q",
+        "type": "string",
+        "desc": "Only sellers with a resource matching these words (e.g. \"search\", \"token safety\")"
+      },
+      {
+        "name": "network",
+        "type": "string",
+        "desc": "Only resources on this network (\"base\", \"solana\" or a CAIP-2 id like eip155:8453)"
+      },
+      {
+        "name": "minPayers",
+        "type": "integer",
+        "desc": "Only sellers with at least this many paying wallets on one resource (default 3 — fewer is usually a single tes"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many sellers, 1-50, default 20"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "ens_resolve",
+    "description": "PAID $0.0027 USDC via x402. ENS both ways: a name (vitalik.eth, or a Basename like jesse.base.eth) to its address, or an address to its primary name — which the Universal Resolver verifies resolves back — plus the pro...",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "An ENS name to resolve (vitalik.eth, jesse.base.eth …) — ASCII letters, digits and hyphens"
+      },
+      {
+        "name": "address",
+        "type": "string",
+        "desc": "Or an address, to find its primary ENS name (0x + 40 hex)"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
     "name": "call_service",
-    "description": "Price varies per listing (the gateway 402 is authoritative; free listings cost nothing). Invoke a listed FiatDock service. PAID listings go THROUGH the gateway (POST /s/:id) so the non-custodial split is enforced — no...",
+    "description": "Price varies per listing (the gateway 402 is authoritative; free listings cost nothing). Invoke a listed FiatDock service.",
     "arguments": [
       {
         "name": "id",
         "type": "string",
-        "desc": "Listing id (svc_…) to invoke, from search_services (required)"
+        "desc": "Listing id (svc_…) to invoke, from search_services"
       },
       {
         "name": "args",
@@ -419,6 +924,32 @@
         "name": "payment",
         "type": "string",
         "desc": "Base64 x402 v2 PaymentPayload signed by YOUR wallet, satisfying every entry in the 402's `accepts`. Omit on th"
+      }
+    ]
+  },
+  {
+    "name": "call_x402",
+    "description": "Price set by the endpoint you call (its own 402 is authoritative; FiatDock adds no fee). Call a pay-per-call x402 endpoint from the public index (find it with search_x402) — any host, not only FiatDock listings.",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "The endpoint URL from search_x402 (https). Fill any path parameter (e.g. :email) yourself"
+      },
+      {
+        "name": "method",
+        "type": "string",
+        "desc": "HTTP method (default POST — most x402 endpoints take a JSON body)"
+      },
+      {
+        "name": "body",
+        "type": "object",
+        "desc": "JSON body to send (default {}). Its shape is the endpoint's — read its description, or the 402's own hint"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of ONE x402 v2 PaymentPayload you signed for ONE entry of the endpoint's accepts (from the first call's"
       }
     ]
   }
