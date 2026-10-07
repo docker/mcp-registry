@@ -18,7 +18,7 @@ real answer with no credentials and no wallet:
 - `get_order_status` — status of an on/off-ramp order
 
 The other thirty-three are paid per call in USDC over x402 on Base. FiatDock's own data tools
-cost $0.001–$0.072 and minting a cash-out checkout costs $0.01. `call_service` buys a
+cost $0.001–$0.009 and minting a cash-out checkout costs $0.01. `call_service` buys a
 marketplace listing at the seller's price, and settlement happens only after the seller's
 server answers: a call that returns no answer costs nothing, while an answer the buyer merely
 dislikes is still a delivered call. `call_x402` relays a call to an endpoint the public x402
