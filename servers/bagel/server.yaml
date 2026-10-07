@@ -1,41 +1,47 @@
 name: bagel
-image: ghcr.io/extelligence-ai/bagel/ros2-kilted
+image: ghcr.io/extelligence-ai/bagel/ros2-kilted:2.4.1
 type: server
 meta:
-  category: ai
+  category: data-science
   tags:
     - robotics
-    - drones
-    - iot
-    - ros
+    - ros2
+    - mcap
     - data-analysis
 about:
   title: Bagel
-  description: Ask questions about robotics, drone, and IoT data in plain English. Bagel reads ROS 2 bags, MCAP, ROS text logs, PX4/ArduPilot/Betaflight flight logs, and live MQTT streams, computes every answer as DuckDB SQL over the actual messages (the query is shown for audit), and has an intelligent edge data-reduction pipeline that keeps only the windows around real events. Exports to Rerun, Lichtblick, PlotJuggler, and LeRobot datasets.
-  icon: https://avatars.githubusercontent.com/u/224125194?v=4
+  description: Analyze robot logs with SQL, investigate events, visualize data, and preview data-reduction pipelines locally. Includes ROS 2 Kilted support and bundled sample data; no account or API key is required.
+  icon: https://avatars.githubusercontent.com/Extelligence-ai?s=200&v=4
 source:
   project: https://github.com/Extelligence-ai/bagel
-  commit: 7301cfd42b917edd49ca769cd045ab15deb57c75
+  commit: e61d55288496453440a323695c1316efb47abcf7
+  dockerfile: docker/Dockerfile.ros2
 run:
   command:
-    - uv
-    - run
-    - python
+    - .venv/bin/python
     - server.py
-  volumes:
-    - "{{bagel.data_dir}}:/home/ubuntu/data"
-config:
-  description: Point Bagel at the directory containing your bags and logs
   env:
-    - name: MCP_TRANSPORT
-      example: stdio
-      value: stdio
+    MCP_TRANSPORT: stdio
+    PYTHONDONTWRITEBYTECODE: "1"
+    CONTAINER_MODE: "true"
+    CACHE_DIRECTORY: /tmp/bagel-cache
+    ARTIFACT_DIRECTORY: /home/ubuntu/.bagel/artifacts
+    PIPELINES_DIRECTORY: /home/ubuntu/.bagel/pipelines
+    USER_CAPABILITIES_DIRECTORY: /home/ubuntu/.bagel/capabilities
+  volumes:
+    - "{{bagel.data_directory}}:/data/input:ro"
+    - "{{bagel.workspace_directory}}:/home/ubuntu/.bagel"
+config:
+  description: Choose an existing log directory for read-only access and a writable directory for Bagel artifacts, saved pipelines, and capabilities.
   parameters:
     type: object
     properties:
-      data_dir:
+      data_directory:
         type: string
-        description: "Host directory with your robot data (bags, flight logs); mounted read-write at /home/ubuntu/data inside the container - reference files as /home/ubuntu/data/<file> in prompts"
-        example: "/Users/me/robot-data"
+        description: Absolute host path containing robot logs. Available read-only at /data/input in Bagel.
+      workspace_directory:
+        type: string
+        description: Absolute host path to a writable Bagel workspace. Outputs persist here between sessions.
     required:
-      - data_dir
+      - data_directory
+      - workspace_directory
