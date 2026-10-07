@@ -1,0 +1,394 @@
+[
+  {
+    "name": "add_partitions",
+    "description": "Increase the partition count of 1 to 100 topics in one call through items, and report each topic's current count, affected consumer groups, sampled key usage and warnings. Changing one topic is an items array of length one.",
+    "arguments": [
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "The topics to change, 1 to 100 of them. Changing one topic is an array of length one. Duplicate topic names are refused before anything changes."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Optional. When false or omitted, nothing is changed and the response describes what would happen for every item. Must be true to actually add partitions. One confirm covers the whole batch."
+      }
+    ]
+  },
+  {
+    "name": "alter_topic_config",
+    "description": "Change topic-level configuration of 1 to 100 topics in one call through items. Each item sets keys (set) and removes overrides so the cluster default applies again (delete). Every key not named keeps its value: changes are incremental, never a full replace. Changing one topic is an items array of length one.",
+    "arguments": [
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "The topics to change, 1 to 100 of them. Changing one topic is an array of length one. Duplicate topic names are refused before anything changes."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Optional. When false or omitted, nothing is changed: the broker validates every item and the response shows each key's current and requested value. Must be true to apply. One confirm covers the whole batch."
+      }
+    ]
+  },
+  {
+    "name": "cluster_health",
+    "description": "Check the health of the cluster this endpoint serves in one call: cluster id, controller, every broker (id, host, port, rack, and how many partitions it leads), a summary count, and every partition that is not fully healthy.",
+    "arguments": [
+      {
+        "name": "search",
+        "type": "string",
+        "desc": "Optional case-insensitive substring that a topic name must contain to be checked. Omit to check every topic. Brokers and the controller are always reported."
+      },
+      {
+        "name": "include_internal",
+        "type": "boolean",
+        "desc": "Optional. When true, also check Kafka's internal topics such as __consumer_offsets. Defaults to false. An unhealthy internal topic breaks every consumer group, so include them when groups fail across the board."
+      }
+    ]
+  },
+  {
+    "name": "commit_offset",
+    "description": "Move 1 to 100 consumer group positions in one call through items. Each item names a group and topic and exactly one target: offset (one partition, the next offset the group reads), timestamp (RFC3339; each partition moves to its first message at or after that time, which is how messages are replayed since a moment), or position (earliest or latest). With timestamp or position, omit partition to move every partition of the topic. Moving one offset is an items array of length one.",
+    "arguments": [
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "The moves to make, 1 to 100 of them. Moving one offset is an array of length one. Two items that would move the same group, topic and partition, including a whole-topic item and a partition item, are refused before anything changes."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Optional. When false or omitted, nothing is changed and the response describes what would happen for every item. Must be true to actually move the offsets. One confirm covers the whole batch."
+      }
+    ]
+  },
+  {
+    "name": "compare_clusters",
+    "description": "Compare the topics of 1 to 100 other clusters against the one this endpoint serves, through items. Reports which topics only this cluster has, which only the other has, which exist on both but disagree, and how many brokers and topics each side has. Comparing one cluster is an items array of length one.",
+    "arguments": [
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "The clusters to compare against, 1 to 100 of them. Comparing one cluster is an array of length one. Results follow this order and an unreachable cluster is reported against its own item."
+      }
+    ]
+  },
+  {
+    "name": "consumer_lag",
+    "description": "Measure consumer lag for 1 to 100 topics in one call through items: production and consumption rates, and whether each topic's backlog is caught up, draining, growing, stalled or has no active consumers. Returns an ETA only when lag is shrinking.",
+    "arguments": [
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "The measurements to take, 1 to 100 of them. Measuring one topic is an array of length one. Sampling windows run concurrently, so several measurements do not add their wait times together."
+      }
+    ]
+  },
+  {
+    "name": "copy_message",
+    "description": "Copy 1 to 20 existing messages in one call through items, each identified by topic, partition and offset, to an existing topic on this or another configured cluster. Preserves key, value and headers and adds traceable provenance headers. Copying one message is an items array of length one.",
+    "arguments": [
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "The copies to make, 1 to 20 of them. Copying one message is an array of length one. Two items naming the same source and destination are refused before anything is written."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Optional. When false or omitted, nothing is written and the response shows the messages that would be copied. Must be true to actually write them. One confirm covers the whole batch."
+      }
+    ]
+  },
+  {
+    "name": "create_topic",
+    "description": "Create 1 to 100 Kafka topics in one call through items, each with optional partition count, replication factor and topic-level configs. Omitted values use broker defaults. Existing topics are refused rather than modified. Creating one topic is an items array of length one.",
+    "arguments": [
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "The topics to create, 1 to 100 of them. Creating one topic is an array of length one. Duplicate topic names are refused before anything is created."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Optional. When false or omitted, nothing is created: every item is validated by the broker and the response describes what would happen. Must be true to actually create. One confirm covers the whole batch."
+      }
+    ]
+  },
+  {
+    "name": "delete_consumer_group",
+    "description": "Delete 1 to 100 consumer groups in one call through items, removing each group's committed offsets. Use it to clean up groups whose consumers were decommissioned: their commits keep reporting lag that nobody will ever drain. Deleting one group is an items array of length one.",
+    "arguments": [
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "The groups to delete, 1 to 100 of them. Deleting one group is an array of length one. Naming the same group twice is refused before anything is deleted."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Optional. When false or omitted, nothing is deleted and the response shows each group's committed offsets and lag. Must be true to delete. One confirm covers the whole batch."
+      }
+    ]
+  },
+  {
+    "name": "delete_records",
+    "description": "Delete the oldest messages of 1 to 100 partitions in one call through items, without deleting the topic. Each item removes every message of one partition with an offset lower than before_offset; the message at before_offset becomes the first readable one. Use it to purge test data, or a run of bad messages at the head of a partition, while keeping the topic, its configuration and its consumer groups. Truncating one partition is an items array of length one.",
+    "arguments": [
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "The partitions to truncate, 1 to 100 of them. Truncating one partition is an array of length one. Two items naming the same topic and partition are refused before anything is deleted."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Optional. When false or omitted, nothing is deleted and the response shows how many messages each item would remove and which consumer groups have not read them yet. Must be true to delete. One confirm covers the whole batch."
+      }
+    ]
+  },
+  {
+    "name": "delete_topic",
+    "description": "Delete 1 to 100 Kafka topics in one call through items. Deleting one topic is an items array of length one.",
+    "arguments": [
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "The topics to delete, 1 to 100 of them. Deleting one topic is an array of length one. Naming the same topic twice is refused before anything is deleted."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Optional. When false or omitted, nothing is deleted and the response describes what each deletion would destroy. Must be true to actually delete. One confirm covers the whole batch."
+      }
+    ]
+  },
+  {
+    "name": "describe_consumer_group",
+    "description": "Describe 1 to 100 consumer groups in one call through items: state, assignor, coordinator broker, every running member (member_id, client_id, host and the partitions assigned to it), and for every partition the group owns or has committed on, the committed offset, end offset, lag, and the member, client id and host consuming it. Partitions and members are sorted.",
+    "arguments": [
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "The groups to describe, 1 to 100 of them. Describing one group is an array of length one. Results follow this order and a group that does not exist is reported against its own item."
+      }
+    ]
+  },
+  {
+    "name": "describe_topic",
+    "description": "Describe 1 to 20 topics in one call through items: partitions, offset ranges, approximate message count, oldest/newest timestamps and complete effective configuration. Config entries identify whether values are inherited or topic-specific.",
+    "arguments": [
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "The topics to describe, 1 to 20 of them. Describing one topic is an array of length one. Results follow this order and a missing topic is reported against its own item."
+      }
+    ]
+  },
+  {
+    "name": "get_message",
+    "description": "Read 1 to 20 Kafka messages at exact addresses in one call through items, and optionally nearby messages for context. Returns key, value, headers, timestamp and original value size.",
+    "arguments": [
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "The message addresses to read, 1 to 20 of them. Reading one message is an array of length one. Results follow this order and an address that cannot be read is reported against its own item."
+      }
+    ]
+  },
+  {
+    "name": "get_schema",
+    "description": "Read 1 to 100 schemas from this cluster's Schema Registry in one call through items, each by subject (latest version unless version is given) or by the schema id a message carries. Returns the schema text, its type (avro, protobuf or json_schema), id, version, every version of the subject, the schemas it references, and for an id the subject versions that use it.",
+    "arguments": [
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "The schemas to look up, 1 to 100 of them. Looking up one schema is an array of length one. Results follow this order and a subject or id that does not exist is reported against its own item."
+      }
+    ]
+  },
+  {
+    "name": "list_acls",
+    "description": "List the access control entries (ACLs) on the cluster this endpoint serves. Each entry has principal, host, resource_type, resource_name, pattern_type (literal, prefixed), operation (read, write, describe, ...) and permission (allow or deny). Results are sorted.",
+    "arguments": [
+      {
+        "name": "principal",
+        "type": "string",
+        "desc": "Optional principal to list ACLs for, including its type, such as User:payments. Matched exactly and case-sensitively. Omit for every principal."
+      },
+      {
+        "name": "resource_type",
+        "type": "string",
+        "desc": "Optional resource type: topic, group, cluster, transactional_id or delegation_token. Case-insensitive. Omit for every type. Required when resource_name is given."
+      },
+      {
+        "name": "resource_name",
+        "type": "string",
+        "desc": "Optional resource name, such as a topic or group. Returns every ACL the broker applies to that name: the exact name, prefixed ACLs whose prefix it starts with, and the * wildcard. Case-sensitive. Needs resource_type."
+      }
+    ]
+  },
+  {
+    "name": "list_clusters",
+    "description": "List the Kafka clusters this server serves, with whether each is reachable and whether it accepts writes. Connectivity is checked at call time. Use returned names as copy_message destination_cluster values. Broker and credential details are not exposed. ",
+    "arguments": []
+  },
+  {
+    "name": "list_consumer_groups",
+    "description": "List the consumer groups on the cluster, with their state, member count and the topics they consume. Filter by exact topic or group state. Empty groups may still hold committed offsets and lag; they have no active consumers to drain it. Topic filtering may inspect every group because Kafka has no topic-to-group index. ",
+    "arguments": [
+      {
+        "name": "topic",
+        "type": "string",
+        "desc": "Optional topic name. When given, only groups that consume or have committed offsets for this topic are returned. Matched exactly and case-sensitively."
+      },
+      {
+        "name": "states",
+        "type": "array",
+        "desc": "Optional group states to return, such as Stable, Empty, PreparingRebalance or Dead. Defaults to every state."
+      }
+    ]
+  },
+  {
+    "name": "list_topics",
+    "description": "List the topics on the endpoint's cluster, sorted by name, each with its partition count, replication factor and the configs it sets for itself.",
+    "arguments": [
+      {
+        "name": "script",
+        "type": "string",
+        "desc": "Optional JavaScript that decides whether a topic is listed. Return true to keep it. In scope: topic (the name), partitions (number), replication_factor (number), internal (true for Kafka's own topics such as __consumer_offsets) and configs (an object of the values this topic sets for itself, such as configs['retention.ms']; inherited cluster defaults are not included). Examples: return topic.indexOf('orders') >= 0; return partitions > 6; return configs['cleanup.policy'] === 'compact'; return replication_factor === 1 && !internal. Omit to list every topic."
+      },
+      {
+        "name": "timeout_seconds",
+        "type": "integer",
+        "desc": "Optional wall-clock limit in seconds for evaluating the script. Defaults to 30. A topic whose evaluation is cut short is counted in script_errors rather than listed."
+      }
+    ]
+  },
+  {
+    "name": "open_transactions",
+    "description": "Find open transactions holding back read_committed consumers on 1 to 100 topics in one call through items. A consumer with isolation.level=read_committed cannot read past the first message of a transaction that has not been committed or aborted, so a transactional producer that hangs or dies mid-transaction stalls every such consumer on that partition. In consumer_lag this looks exactly like a poison message: members present, nothing consumed.",
+    "arguments": [
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "The topics to check, 1 to 100 of them. Checking one topic is an array of length one. Results follow this order and a missing topic is reported against its own item."
+      }
+    ]
+  },
+  {
+    "name": "produce_message",
+    "description": "Write 1 to 20 new messages in one call through items, to existing topics on this or another configured cluster. The caller supplies the key, value and headers, so unlike copy_message this can write content no producer ever sent. Writing one message is an items array of length one.",
+    "arguments": [
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "The messages to write, 1 to 20 of them. Writing one message is an array of length one. Two identical items mean two messages, which is allowed: appending the same payload twice is a real request."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Optional. When false or omitted, nothing is written and the response shows the messages that would be produced. Must be true to actually write them. One confirm covers the whole batch."
+      }
+    ]
+  },
+  {
+    "name": "sample_messages",
+    "description": "Sample the newest messages of 1 to 20 topics in one call through items, and summarize value formats, field paths, key usage, the schemas values were written with, and sampled offset ranges. Use this to design a search_messages predicate, and to find the schema to produce against.",
+    "arguments": [
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "The topics to sample, 1 to 20 of them. Sampling one topic is an array of length one. Results follow this order and a topic that cannot be sampled is reported against its own item."
+      }
+    ]
+  },
+  {
+    "name": "search_messages",
+    "description": "Search message key, value, headers or metadata with a JavaScript predicate. The script returns true for a match and receives value (parsed JSON, a decoded Avro/Protobuf/JSON Schema record, or text), key, headers, partition, offset and timestamp. Omit it to match all messages. Schema-encoded values are searched by field exactly like JSON.",
+    "arguments": [
+      {
+        "name": "topic",
+        "type": "string",
+        "desc": "Topic to search. Matched exactly and case-sensitively."
+      },
+      {
+        "name": "script",
+        "type": "string",
+        "desc": "Optional JavaScript that decides whether a message matches. Return true to keep it. In scope: value (the parsed document for JSON, and the decoded record for Avro, Protobuf, JSON Schema or a configured format; the raw text otherwise), key (string, decoded document when the key has a schema, or null), headers (object of header name to string), partition, offset and timestamp (a Date). Examples: return key === 'order-123'; return value.eventType === 'NEW' && value.payload.amount >= 500; return value.payload.cancelledAt === null. Omit to match every message."
+      },
+      {
+        "name": "parallelism",
+        "type": "integer",
+        "desc": "Optional number of concurrent readers, from 1 to 16. Defaults to 1. It splits a single-partition topic's offsets between readers, which makes a full scan of one large partition faster. A multi-partition topic is already read across its partitions together, so this does not apply there. Worth using for count_only, output_file or a full scan of one partition."
+      },
+      {
+        "name": "partitions",
+        "type": "array",
+        "desc": "Optional partitions to restrict the search to. Defaults to every partition. Do not guess a partition from a message key: producers may set the partition explicitly, so the key does not determine it."
+      },
+      {
+        "name": "from_offset",
+        "type": "integer",
+        "desc": "Optional inclusive offset to start scanning from, applied to every searched partition."
+      },
+      {
+        "name": "to_offset",
+        "type": "integer",
+        "desc": "Optional exclusive offset to stop scanning at, applied to every searched partition."
+      },
+      {
+        "name": "from_timestamp",
+        "type": "string",
+        "desc": "Optional inclusive start time (RFC3339). Resolved to the first offset at or after this time."
+      },
+      {
+        "name": "to_timestamp",
+        "type": "string",
+        "desc": "Optional exclusive end time (RFC3339). Resolved to the first offset at or after this time."
+      },
+      {
+        "name": "direction",
+        "type": "string",
+        "desc": "Optional scan direction: newest_first (default) or oldest_first. Decides which matches are kept when max_matches cuts the search short. Every partition is read together, so newest_first means newest in the topic, ordered by timestamp, rather than newest in one partition."
+      },
+      {
+        "name": "max_matches",
+        "type": "integer",
+        "desc": "Optional maximum number of matches to return. Defaults to 10."
+      },
+      {
+        "name": "max_messages_scanned",
+        "type": "integer",
+        "desc": "Optional maximum number of messages to read before giving up. Defaults to 10000."
+      },
+      {
+        "name": "max_value_bytes",
+        "type": "integer",
+        "desc": "Optional maximum value bytes to return per match. Defaults to 512. Longer values are cut and flagged with truncated=true."
+      },
+      {
+        "name": "timeout_seconds",
+        "type": "integer",
+        "desc": "Optional wall-clock limit for the scan in seconds. Defaults to 30."
+      },
+      {
+        "name": "count_only",
+        "type": "boolean",
+        "desc": "Optional. When true, scan the whole range and return only how many messages matched, with a per-partition breakdown and no message bodies. Use this first when a query may match a great many messages, then ask the user how they want them before fetching any."
+      },
+      {
+        "name": "output_file",
+        "type": "string",
+        "desc": "Optional file name to write every match to, as one JSON message per line. Use this instead of returning thousands of messages. A name only, not a path: the server chooses the directory. The response reports the path, the number written and a short preview."
+      }
+    ]
+  },
+  {
+    "name": "server_config",
+    "description": "Report this endpoint's name, path, purpose, cluster, brokers, authentication, TLS, read-only policy, Schema Registry, configured topic formats and exposed tools. Use it to confirm the target and permissions before acting; several endpoints may target one cluster with different policies. Passwords are never returned. ",
+    "arguments": []
+  }
+]
