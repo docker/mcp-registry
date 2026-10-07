@@ -1,6 +1,7 @@
 Docs: https://mcp.trymimetic.com/docs
+Home: https://trymimetic.com
 
-Mimetic is a growth and conversion tool for web and ecommerce sites. Over MCP an
+[Mimetic](https://trymimetic.com) is a growth and conversion tool for web and ecommerce sites. Over MCP an
 assistant can read a site's audit findings and session recordings, query its
 Google Analytics 4, Search Console, Google Ads and raw GA4 BigQuery export,
 connect an existing analytics or experimentation platform with the owner's own
