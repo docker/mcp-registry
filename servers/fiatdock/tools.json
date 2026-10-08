@@ -82,6 +82,16 @@
         "desc": "Only verified listings (KYC'd seller or first-party)"
       },
       {
+        "name": "maxPriceUsd",
+        "type": "number",
+        "desc": "Only listings whose per-call price is at or below this many USD (a first-party listing is priced by its x402 p"
+      },
+      {
+        "name": "callableOnly",
+        "type": "boolean",
+        "desc": "Only listings FiatDock's last check found able to answer (callable === true); unchecked ones are left out. ADR"
+      },
+      {
         "name": "sort",
         "type": "string",
         "desc": "Sort order (default newest; first-party listings are always featured first)"
@@ -898,6 +908,219 @@
         "name": "address",
         "type": "string",
         "desc": "Or an address, to find its primary ENS name (0x + 40 hex)"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "timezone_convert",
+    "description": "PAID $0.001 USDC via x402. Shows one instant in up to 20 IANA time zones (localTime with offset, utcOffset, abbreviation, isDst, dayOfWeek, date).",
+    "arguments": [
+      {
+        "name": "time",
+        "type": "string",
+        "desc": "The moment to convert, ISO 8601: with Z or an offset (\"2026-10-08T15:00:00Z\", \"2026-10-08T15:00+02:00\") it is "
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "IANA time zone a local `time` is read in (and shown in as fromLocalTime), e.g. America/New_York; default UTC"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "IANA time zones to show the instant in, up to 20 (default America/Los_Angeles,America/New_York,Europe/London,E"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "public_holidays",
+    "description": "PAID $0.001 USDC via x402. Every holiday Nager.Date lists for a country and year (nationwide and regional, with its types), and for one date (default today, UTC): isHoliday (a nationwide Public holiday only), the othe...",
+    "arguments": [
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Country, ISO 3166-1 alpha-2 (US, DE, GB, BR, JP …). The covered list is https://date.nager.at/api/v3/Available"
+      },
+      {
+        "name": "year",
+        "type": "integer",
+        "desc": "Year, 1976-2076 (default: the year of `date`, else the current UTC year)"
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "A date (YYYY-MM-DD) to check: is it a holiday, and which is the next one after it. Default: today (UTC) when t"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "weather_forecast",
+    "description": "PAID $0.0018 USDC via x402. Forecast for any coordinate from MET Norway's Locationforecast 2.0 (global): the current hour (temperature, humidity, wind, cloud, next-hour rain, symbol), rows up to `hours` ahead (1 h ste...",
+    "arguments": [
+      {
+        "name": "lat",
+        "type": "number",
+        "desc": "Latitude in decimal degrees, -90 to 90 (required with lon; an empty body answers the published example point)"
+      },
+      {
+        "name": "lon",
+        "type": "number",
+        "desc": "Longitude in decimal degrees, -180 to 180 (required with lat)"
+      },
+      {
+        "name": "hours",
+        "type": "integer",
+        "desc": "How many hours ahead the `hourly` rows reach, 1-72 (default 24). Steps are 1 h for about the first 2.5 days an"
+      },
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "How many daily summary rows (UTC calendar days, today first), 1-9 (default 3)"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "wiki_summary",
+    "description": "PAID $0.0018 USDC via x402. Resolve a title or a few words to a Wikipedia article (en, ar, de, fr, es, it, ja, zh, ru, pt, nl, pl, tr, fa, he, ko, id, uk, sv, vi, hi) and return its summary: lead section as plain text...",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "An article title or a few words naming the subject (required; an empty body answers the published example)"
+      },
+      {
+        "name": "lang",
+        "type": "string",
+        "desc": "Wikipedia language edition (default en): en, ar, de, fr, es, it, ja, zh, ru, pt, nl, pl, tr, fa, he, ko, id, u"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "hn_search",
+    "description": "PAID $0.0027 USDC via x402. Search Hacker News or read its front page, via the HN Search API by Algolia: stories, comments, Ask HN or Show HN, by relevance (text match, then points) or newest first, optionally only th...",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Words to search for, as written (no typo matching; \"quotes\" for a phrase, -word to exclude). Omit for the curr"
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "desc": "relevance (text match, then points) or date (newest first); default relevance"
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "story, comment, ask_hn, show_hn or front_page; default story with a query, front_page without one"
+      },
+      {
+        "name": "sinceHours",
+        "type": "integer",
+        "desc": "Only items from the last N hours, 1-8760 (optional; default no limit)"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many items, 1-50 (default 20)"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "feed_read",
+    "description": "PAID $0.0022 USDC via x402. Read any public RSS 2.0, RSS 1.0 (RDF) or Atom feed and get its title, link and description plus up to 100 items in feed order: title, link, published and updated (null when unreadable), a...",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "The feed's address: an RSS or Atom URL (https://… or a bare host/path). An empty body reads the example feed h"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many items, 1-100 (default 20), in the order the feed lists them"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "package_intel",
+    "description": "PAID $0.0027 USDC via x402. Before adding a dependency: give an npm or PyPI package (and optionally an exact version; default latest).",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "The package name: an npm package (lodash, @types/node) or a PyPI project (requests, Django)"
+      },
+      {
+        "name": "ecosystem",
+        "type": "string",
+        "desc": "Which registry the name is on: npm (default) or pypi"
+      },
+      {
+        "name": "version",
+        "type": "string",
+        "desc": "An exact published version to analyse (4.17.20, 2.31.0). Omit for the latest release; ranges like ^4 are refus"
+      },
+      {
+        "name": "payment",
+        "type": "string",
+        "desc": "Base64 of a single x402 v2 PaymentPayload (EIP-3009 transferWithAuthorization on Base USDC). OMIT it on the fi"
+      }
+    ]
+  },
+  {
+    "name": "company_financials",
+    "description": "PAID $0.0045 USDC via x402. A US-listed company's financials as it filed them with the SEC (XBRL company facts), by ticker (AAPL, BRK-B) or CIK: for its last 1-12 fiscal years (10-K) or three-month quarters — revenue,...",
+    "arguments": [
+      {
+        "name": "ticker",
+        "type": "string",
+        "desc": "Stock ticker (AAPL, MSFT, BRK-B) or the company's SEC CIK number"
+      },
+      {
+        "name": "period",
+        "type": "string",
+        "desc": "annual (fiscal years, from 10-K filings; default) or quarterly (three-month periods)"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many periods, newest first, 1-12 (default 4)"
       },
       {
         "name": "payment",

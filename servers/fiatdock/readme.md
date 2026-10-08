@@ -7,7 +7,7 @@ page reading, email and domain checks, DeFi yields, FX rates, prediction markets
 research papers, satellite scenes and more) and a cash-out of an agent's USDC to its owner's
 bank account.
 
-No account, no API key and no OAuth. Connect and call — six of the thirty-nine tools return a
+No account, no API key and no OAuth. Connect and call — six of the forty-seven tools return a
 real answer with no credentials and no wallet:
 
 - `search_services` — search the marketplace catalog of pay-per-call services
@@ -17,7 +17,7 @@ real answer with no credentials and no wallet:
 - `get_quote` — live rate and the exact net amount for a USDC cash-out, in any of 18 currencies
 - `get_order_status` — status of an on/off-ramp order
 
-The other thirty-three are paid per call in USDC over x402 on Base. FiatDock's own data tools
+The other forty-one are paid per call in USDC over x402 on Base. FiatDock's own data tools
 cost $0.001–$0.009 and minting a cash-out checkout costs $0.01. `call_service` buys a
 marketplace listing at the seller's price, and settlement happens only after the seller's
 server answers: a call that returns no answer costs nothing, while an answer the buyer merely
