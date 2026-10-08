@@ -1,1 +1,1 @@
-Docs: https://www.quayutec.com/docs/tools
+Docs: https://app.quayutec.com/docs/tools
