@@ -220,7 +220,7 @@
   },
   {
     "name": "list_voices",
-    "description": "List the voices for make_ugc's `voice` field: the presets first, then the 30 voices of gemini-3.8-flash-tts (kind model_voice), then catalog voices in 31 languages. Filter by `language` (the voice's native language; any voice speaks any supported language), `gender`, `age`, `use_case` and `model`; an unknown filter value is refused with the allowed values. Pick a voice by `name` (e.g. voice=\"george\"); a name always means the same voice. A model_voice voice is spoken only by its `model`: naming it selects that model, it has no language of its own and matches the languages measured on the model, and its gender is listed only where it is known. `voice_id` is an escape hatch for a raw vendor voice id that is not listed, such as a cloned voice. Without voice or voice_id the default voice follows the actor's gender: sarah for a woman, george for a man, taken from actor_id or from actor_gender next to image. With image and no actor_gender the voice is george and a warning says so: pass the gender of the person in the photo as actor_gender (ask the user only when you cannot tell), or pick a voice here. Keep any voice the user chose. A voice with `preview_url` has a short-lived audio sample spoken by that voice with that model; play it to the user before a paid render instead of judging a voice by its description. A model_voice sample is in English, or in the language you filter by. It expires at `preview_expires_at`: call this tool again for a fresh link, never store it. A voice without `preview_url` has no sample yet. Free. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters; eleven_v4: 5000 characters; gemini-3.8-flash-tts: 5000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. Break tags are cut from the text sent to eleven_v4 and gemini-3.8-flash-tts and are not counted there. There is no word-count limit. Duration and price are estimates until measured.",
+    "description": "List the voices for the `voice` field of make_ugc, or of make_faceless with skill=make_faceless. Without `skill` the list holds the make_ugc voices only. Each voice names the one skill that speaks it in `skill`, and the other skill refuses it before any charge. skill=make_faceless lists the 17 narration voices of make_faceless (kind faceless_voice, each with a language and a gender; without voice it speaks narrator_en_wise_lady; it takes no voice_id). The rest of this text is about the make_ugc voices: the presets first, then the 30 voices of gemini-3.8-flash-tts (kind model_voice), then catalog voices in 31 languages. Filter by `language` (the voice's native language; any voice speaks any supported language), `gender`, `age`, `use_case` and `model`; an unknown filter value is refused with the allowed values. Pick a voice by `name` (e.g. voice=\"george\"); a name always means the same voice. A model_voice voice is spoken only by its `model`: naming it selects that model, it has no language of its own and matches the languages measured on the model, and its gender is listed only where it is known. `voice_id` is an escape hatch for a raw vendor voice id that is not listed, such as a cloned voice. Without voice or voice_id the default voice follows the actor's gender: sarah for a woman, george for a man, taken from actor_id or from actor_gender next to image. With image and no actor_gender the voice is george and a warning says so: pass the gender of the person in the photo as actor_gender (ask the user only when you cannot tell), or pick a voice here. Keep any voice the user chose. A voice with `preview_url` has a short-lived audio sample spoken by that voice with that model; play it to the user before a paid render instead of judging a voice by its description. A model_voice sample is in English, or in the language you filter by. It expires at `preview_expires_at`: call this tool again for a fresh link, never store it. A voice without `preview_url` has no sample yet. Free. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters; eleven_v4: 5000 characters; gemini-3.8-flash-tts: 5000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. Break tags are cut from the text sent to eleven_v4 and gemini-3.8-flash-tts and are not counted there. There is no word-count limit. Duration and price are estimates until measured.",
     "arguments": [
       {
         "name": "language",
@@ -245,7 +245,12 @@
       {
         "name": "model",
         "type": "string",
-        "desc": "Only voices this speech model speaks: presets and catalog voices whose language it supports, or the model's own voices (kind model_voice)"
+        "desc": "Only voices this speech model speaks: presets and catalog voices whose language it supports, or the model's own voices (kind model_voice). These are the models of make_ugc: no make_faceless voice matches"
+      },
+      {
+        "name": "skill",
+        "type": "string",
+        "desc": "The skill whose voices to list: make_faceless lists the narration voices of make_faceless (kind faceless_voice), make_ugc every other voice. Omitted means make_ugc. A voice is refused by the other skill before any charge"
       }
     ]
   },
@@ -360,7 +365,7 @@
   },
   {
     "name": "make_faceless",
-    "description": "Start a paid finished faceless video from a script or brief. You select 30–90 seconds; the video ends with its narration, runs at least 25 seconds and at most 5 seconds past the selection, never beyond 90. The video has an opening animated clip and image scenes. Captions are on by default and can be turned off. Call quote_faceless first and show the user the price. This does NOT wait for the video: it starts the run and returns a run_id IMMEDIATELY. Then poll get_run with that run_id until the state is 'succeeded' (video_url) or 'failed'. Pass attempt=2,3,… to deliberately start a NEW run for the same input.",
+    "description": "Start a paid finished faceless video from a script or brief. You select 30–90 seconds; the video ends with its narration, runs at least 25 seconds and at most a quarter past the selection, never beyond 90. The video has an opening animated clip and image scenes. Captions are on by default and can be turned off. Call quote_faceless first and show the user the price. This does NOT wait for the video: it starts the run and returns a run_id IMMEDIATELY. Then poll get_run with that run_id until the state is 'succeeded' (video_url) or 'failed'. Pass attempt=2,3,… to deliberately start a NEW run for the same input.",
     "arguments": [
       {
         "name": "input_mode",
@@ -380,7 +385,7 @@
       {
         "name": "duration_seconds",
         "type": "number",
-        "desc": "Selected length, 30 to 90 seconds, on a 1/25 s frame boundary. The video ends with its narration, runs at least 25 seconds and may exceed the selection by up to 5 seconds, never beyond 90 seconds. The charge never exceeds the quote. A script must fit this output range."
+        "desc": "Selected length, 30 to 90 seconds, on a 1/25 s frame boundary. The video ends with its narration, runs at least 25 seconds and may exceed the selection by up to a quarter, never beyond 90 seconds; a video more than 5 seconds longer says so in warnings[]. The charge never exceeds the quote. A script is accepted when its estimated length is 21 seconds to the selection plus 5, at most 90."
       },
       {
         "name": "style_reference",
@@ -406,6 +411,11 @@
         "name": "captions",
         "type": "boolean",
         "desc": "Burned-in captions; on by default."
+      },
+      {
+        "name": "voice",
+        "type": "string",
+        "desc": "Narration voice: a name from list_voices with skill=make_faceless (kind faceless_voice). Omitted means narrator_en_wise_lady. Choose a voice in the language of the narration: a voice reads any language, with the accent of its own. The API refuses an unknown name and a make_ugc voice before any charge. A raw voice_id is not accepted here."
       },
       {
         "name": "attempt",
@@ -436,7 +446,7 @@
       {
         "name": "duration_seconds",
         "type": "number",
-        "desc": "Selected length, 30 to 90 seconds, on a 1/25 s frame boundary. The video ends with its narration, runs at least 25 seconds and may exceed the selection by up to 5 seconds, never beyond 90 seconds. The charge never exceeds the quote. A script must fit this output range."
+        "desc": "Selected length, 30 to 90 seconds, on a 1/25 s frame boundary. The video ends with its narration, runs at least 25 seconds and may exceed the selection by up to a quarter, never beyond 90 seconds; a video more than 5 seconds longer says so in warnings[]. The charge never exceeds the quote. A script is accepted when its estimated length is 21 seconds to the selection plus 5, at most 90."
       },
       {
         "name": "style_reference",
@@ -462,6 +472,11 @@
         "name": "captions",
         "type": "boolean",
         "desc": "Burned-in captions; on by default."
+      },
+      {
+        "name": "voice",
+        "type": "string",
+        "desc": "Narration voice: a name from list_voices with skill=make_faceless (kind faceless_voice). Omitted means narrator_en_wise_lady. Choose a voice in the language of the narration: a voice reads any language, with the accent of its own. The API refuses an unknown name and a make_ugc voice before any charge. A raw voice_id is not accepted here."
       }
     ]
   },
