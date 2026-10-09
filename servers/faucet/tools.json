@@ -1,0 +1,208 @@
+[
+  {
+    "name": "faucet_delete",
+    "description": "Delete records from a database table that match a filter expression. A filter is required to prevent accidental full-table deletes. Returns the number of deleted records. Requires DELETE permission on the table.",
+    "arguments": [
+      {
+        "name": "filter",
+        "type": "string",
+        "desc": "Filter expression to select records to delete (e.g. \"status = 'expired'\")"
+      },
+      {
+        "name": "service",
+        "type": "string",
+        "desc": "Name of the database service"
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "desc": "Name of the table to delete from"
+      }
+    ]
+  },
+  {
+    "name": "faucet_describe_table",
+    "description": "Get the detailed schema for a specific table, including all columns with their types, nullability, defaults, primary keys, foreign keys, and indexes. Use this to understand table structure before writing queries. Requires GET permission on the table's schema (_schema/{table}).",
+    "arguments": [
+      {
+        "name": "service",
+        "type": "string",
+        "desc": "Name of the database service"
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "desc": "Name of the table to describe"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "faucet_insert",
+    "description": "Insert one or more records into a database table. Each record is a JSON object mapping column names to values. Returns the inserted records (with auto-generated fields like IDs) if the database supports RETURNING. Requires POST permission on the table.",
+    "arguments": [
+      {
+        "name": "records",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Array of record objects to insert (e.g. [{\"name\": \"Alice\", \"age\": 30}])"
+      },
+      {
+        "name": "service",
+        "type": "string",
+        "desc": "Name of the database service"
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "desc": "Name of the table to insert into"
+      }
+    ]
+  },
+  {
+    "name": "faucet_list_services",
+    "description": "List all database services configured in Faucet. Returns each service's name, driver type, active status, and access mode. Use this first to discover available databases before querying. Only services your role has access to are listed.",
+    "annotations": {
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "faucet_list_tables",
+    "description": "List all tables in a database service, including approximate row counts and column summaries. Use this to explore what data is available before querying specific tables. Requires GET permission on _table.",
+    "arguments": [
+      {
+        "name": "service",
+        "type": "string",
+        "desc": "Name of the database service to list tables for"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "faucet_query",
+    "description": "Query records from a database table with optional filtering, field selection, ordering, and pagination. Returns results as JSON. Requires GET permission on the table.\n\nFilter syntax (DreamFactory-compatible):\n  - Simple: name = 'John'\n  - Comparison: age > 21, price <= 100\n  - Logical: status = 'active' AND role = 'admin'\n  - IN: status IN ('active', 'pending')\n  - LIKE: name LIKE 'J%'\n  - NULL: email IS NOT NULL\n  - BETWEEN: age BETWEEN 18 AND 65\n  - CONTAINS: name CONTAINS 'smith'\n\nOrder syntax: 'column ASC, other_column DESC'",
+    "arguments": [
+      {
+        "name": "service",
+        "type": "string",
+        "desc": "Name of the database service"
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "desc": "Name of the table to query"
+      },
+      {
+        "name": "fields",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "List of columns to return, each either a plain column or an aggregate such as \"SUM(amount)\", \"COUNT(*)\", or \"AVG(price) AS avg_price\". Omit for all columns.",
+        "optional": true
+      },
+      {
+        "name": "filter",
+        "type": "string",
+        "desc": "Filter expression (e.g. \"status = 'active' AND age > 21\")",
+        "optional": true
+      },
+      {
+        "name": "group",
+        "type": "string",
+        "desc": "Comma-separated columns to GROUP BY (e.g. \"region,status\"). Aggregate in 'fields' to compute per group; order by an aggregate's alias.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Maximum number of records to return (default 25, max 1000)",
+        "optional": true
+      },
+      {
+        "name": "offset",
+        "type": "number",
+        "desc": "Number of records to skip for pagination",
+        "optional": true
+      },
+      {
+        "name": "order",
+        "type": "string",
+        "desc": "Order clause (e.g. \"created_at DESC, name ASC\")",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "faucet_raw_sql",
+    "description": "Execute a raw SQL query against a database service. Only available for services with raw_sql_allowed enabled. Use faucet_list_services to check which services allow raw SQL. Because arbitrary SQL can touch any object, it requires a role rule granting all verbs (GET, POST, PUT, PATCH, DELETE) on the _sql component of the service.\n\nThe statement is executed as-is and may modify data; it is refused on services flagged read_only. Parameters should be passed as an array and referenced with positional placeholders ($1, $2 for PostgreSQL; ?, ? for MySQL).",
+    "arguments": [
+      {
+        "name": "service",
+        "type": "string",
+        "desc": "Name of the database service"
+      },
+      {
+        "name": "sql",
+        "type": "string",
+        "desc": "SQL query to execute"
+      },
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Maximum number of rows to return (default 100, max 10000)",
+        "optional": true
+      },
+      {
+        "name": "params",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Positional parameters for the SQL query",
+        "optional": true
+      },
+      {
+        "name": "timeout",
+        "type": "number",
+        "desc": "Query timeout in seconds (default 30)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "faucet_update",
+    "description": "Update records in a database table that match a filter expression. The record object contains the column values to set. A filter is required to prevent accidental full-table updates. Requires PATCH permission on the table.",
+    "arguments": [
+      {
+        "name": "filter",
+        "type": "string",
+        "desc": "Filter expression to select records to update (e.g. \"id = 42\")"
+      },
+      {
+        "name": "record",
+        "type": "object",
+        "desc": "Object with column names and new values (e.g. {\"status\": \"archived\"})"
+      },
+      {
+        "name": "service",
+        "type": "string",
+        "desc": "Name of the database service"
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "desc": "Name of the table to update"
+      }
+    ]
+  }
+]
