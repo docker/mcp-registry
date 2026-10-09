@@ -1,1 +1,1 @@
-Docs: https://github.com/immurray/gridzen-developer-kit#readme
+Docs: https://gridzen.ai/developers/harnesses.html
