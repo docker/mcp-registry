@@ -1,0 +1,448 @@
+[
+  {
+    "arguments": [],
+    "description": "List available environments with their IDs, state, and tier. Call this first to get the environment ID needed by all other tools.\n\nEnvironment details:\n- Full Ubuntu 24.04 with Python 3.12, Node 22, Go 1.26, Rust, Java 21, Ruby, PHP, build-essential, and common dev tools.\n- Filesystem uses overlayfs: the base image is read-only, all writes go to a separate data drive. 'df /' may show the base image size (~3.5GB) but your writable space is on the overlay (check 'df /mnt/upper' for actual free space).\n- Pre-installed tools: git, gh, ripgrep, fd-find, jq, curl, cmake, make, sqlite3, postgresql-client, mysql-client.",
+    "name": "list_environments"
+  },
+  {
+    "arguments": [
+      {
+        "desc": "The command to execute",
+        "name": "command",
+        "type": "string"
+      },
+      {
+        "desc": "Environment ID or name (from list_environments)",
+        "name": "environment",
+        "type": "string"
+      },
+      {
+        "desc": "Return only first N lines",
+        "name": "head_lines",
+        "optional": true,
+        "type": "integer"
+      },
+      {
+        "desc": "Set to true for REPLs and TUI apps. Mutually exclusive with run_in_background.",
+        "name": "interactive",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "desc": "Return task_id immediately. Mutually exclusive with interactive.",
+        "name": "run_in_background",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "desc": "Return only last N lines",
+        "name": "tail_lines",
+        "optional": true,
+        "type": "integer"
+      },
+      {
+        "desc": "Timeout in milliseconds (default: 30000)",
+        "name": "timeout_ms",
+        "optional": true,
+        "type": "integer"
+      }
+    ],
+    "description": "Execute a command in a remote environment.\n\nReturns one of three statuses:\n- \"completed\": Command finished. Check stdout, stderr, and exit_code.\n- \"awaiting_input\": The interactive process is still running. This status alone\n  does not mean it is currently blocked waiting for input.\n- \"timeout\": Command exceeded timeout_ms.\n\nFor interactive=true, the response also includes input_wait. This is a\nper-response event observation, not a persistent waiting-state query. True\nmeans the guest PTY reader observed an input-wait packet while collecting this\nresponse: the child's terminal read path lacked sufficient input and was\nentering its wait path. The event may arrive before the scheduler marks the\nchild asleep. The packet is consumed when read, so a later false does not\ncancel an earlier true and does not prove that the child stopped waiting.\nFalse means no event was observed in this response; signal support depends on\nthe guest stack. This is process-level feedback, not application or service\nreadiness.\n\nINTERACTIVE MODE (set interactive=true):\nUse for REPLs (python3, node, jshell, psql, sqlite3, irb, ghci, etc.) and\nTUI apps (vim, nano, htop, less, top, etc.) that expect ongoing interaction.\n\nWhen interactive=true:\n- The process stays alive across calls — it is NOT killed on timeout.\n- After the initial shell_exec returns \"awaiting_input\", you MUST use\n  shell_send_raw for ALL subsequent interaction with the program.\n- Do NOT call shell_exec again while an interactive session is active.\n- Do NOT use shell_provide_input for interactive apps (it's for passwords only).\n\nInteractive workflow:\n1. shell_exec(command=\"python3\", interactive=true) → \"awaiting_input\", input_wait: true\n2. shell_send_raw(input=\"print('hello')\\n\") → shows output and whether a new input-wait event was observed\n3. shell_send_raw(input=\"exit()\\n\") → normally \"completed\"\n4. If step 3 briefly returns \"awaiting_input\" because the PTY snapshot raced\n   process exit, call shell_send_raw(input=\"\") to refresh the same session;\n   it will report \"completed\" once the child-exit event is observed.\n\nTo close an interactive session:\n- Send the app's quit command via shell_send_raw (e.g. \"exit()\\n\", \"/exit\\n\", \":q!\\n\")\n- Or call shell_interrupt to force kill it",
+    "name": "shell_exec"
+  },
+  {
+    "arguments": [
+      {
+        "desc": "Environment ID or name (from list_environments)",
+        "name": "environment",
+        "type": "string"
+      },
+      {
+        "desc": "Text input (newline appended automatically)",
+        "name": "input",
+        "type": "string"
+      }
+    ],
+    "description": "Send text input to a process waiting for a simple prompt (password, confirmation, yes/no).\nAppends a newline automatically.\n\nDO NOT use this for interactive apps (REPLs, TUI apps) — use shell_send_raw instead.\nThis tool is only for simple prompts like sudo password, SSH confirmations, or [Y/n] prompts.\nThe response includes the per-response input_wait event observation described for shell_exec. A false value does not cancel an earlier true event.",
+    "name": "shell_provide_input"
+  },
+  {
+    "arguments": [
+      {
+        "desc": "Environment ID or name (from list_environments)",
+        "name": "environment",
+        "type": "string"
+      },
+      {
+        "desc": "Raw bytes sent directly to PTY (include \\n for newline)",
+        "name": "input",
+        "type": "string"
+      }
+    ],
+    "description": "Send raw bytes to an interactive program (REPL, TUI app). No newline appended — include \\n explicitly if needed.\n\nThis is THE tool for interacting with any program launched with interactive=true.\nAfter shell_exec with interactive=true returns \"awaiting_input\", use this tool for ALL\nsubsequent interaction. Each response includes input_wait: true or false. True\nmeans this response observed a guest PTY input-wait event. The event reports\nthat the child's terminal read path lacked sufficient input and was entering\nits wait path; it may arrive before the scheduler marks the child asleep. The\npacket is consumed when read, so false on a later response means no new event\nwas observed in that response. It does not cancel an earlier event or prove\nthat the child stopped waiting. Signal support depends on the guest stack.\nThe status \"awaiting_input\" only says that the process is still running.\n\nCommon patterns:\n- REPL input: shell_send_raw(input=\"print('hello')\\n\")\n- Vim save/quit: shell_send_raw(input=\":wq\\n\")\n- Exit REPL: shell_send_raw(input=\"exit()\\n\")\n- Ctrl+D (EOF): shell_send_raw(input=\"\\x04\")\n- Escape key: shell_send_raw(input=\"\\x1b\")\n- Arrow keys: shell_send_raw(input=\"\\x1b[A\") (up), \\x1b[B (down)\n\nEscape sequences: \\n (newline), \\t (tab), \\x1b (escape), \\x04 (Ctrl+D), \\x03 (Ctrl+C)",
+    "name": "shell_send_raw"
+  },
+  {
+    "arguments": [
+      {
+        "desc": "Terminal width in columns (1-1000)",
+        "name": "columns",
+        "type": "integer"
+      },
+      {
+        "desc": "Environment ID or name (from list_environments)",
+        "name": "environment",
+        "type": "string"
+      },
+      {
+        "desc": "Terminal height in rows (1-1000)",
+        "name": "rows",
+        "type": "integer"
+      }
+    ],
+    "description": "Resize the active interactive PTY. Use this when the client viewport changes while driving a TUI or REPL.",
+    "name": "shell_resize"
+  },
+  {
+    "arguments": [
+      {
+        "desc": "Environment ID or name (from list_environments)",
+        "name": "environment",
+        "type": "string"
+      }
+    ],
+    "description": "Send SIGINT (Ctrl+C) to interrupt the running command or close an interactive session.",
+    "name": "shell_interrupt"
+  },
+  {
+    "arguments": [
+      {
+        "desc": "Environment ID or name (from list_environments)",
+        "name": "environment",
+        "type": "string"
+      },
+      {
+        "desc": "The task ID",
+        "name": "task_id",
+        "type": "string"
+      }
+    ],
+    "description": "Get the output of a background task started with run_in_background.",
+    "name": "shell_task_output"
+  },
+  {
+    "arguments": [
+      {
+        "desc": "Environment ID or name (from list_environments)",
+        "name": "environment",
+        "type": "string"
+      },
+      {
+        "desc": "The task ID",
+        "name": "task_id",
+        "type": "string"
+      }
+    ],
+    "description": "Stop a running background task.",
+    "name": "shell_task_stop"
+  },
+  {
+    "arguments": [
+      {
+        "desc": "Environment ID or name (from list_environments)",
+        "name": "environment",
+        "type": "string"
+      },
+      {
+        "desc": "Local path to save the file. Must be inside the MCP server's working directory (or AGEND_LOCAL_ROOT if set); paths outside it are rejected.",
+        "name": "local_path",
+        "type": "string"
+      },
+      {
+        "desc": "Absolute path on the remote environment",
+        "name": "remote_path",
+        "type": "string"
+      }
+    ],
+    "description": "Download a file from the remote environment to the local machine. Returns metadata (size, checksum) only — no file content in the response. Use shell_exec('cat file') to read text content.",
+    "name": "file_download"
+  },
+  {
+    "arguments": [
+      {
+        "desc": "Create parent directories",
+        "name": "create_dirs",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "desc": "Environment ID or name (from list_environments)",
+        "name": "environment",
+        "type": "string"
+      },
+      {
+        "desc": "Local file path to upload. Must be inside the MCP server's working directory (or AGEND_LOCAL_ROOT if set); paths outside it are rejected.",
+        "name": "local_path",
+        "type": "string"
+      },
+      {
+        "desc": "File permissions (e.g. '0644')",
+        "name": "mode",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "desc": "Absolute path on the remote environment",
+        "name": "remote_path",
+        "type": "string"
+      }
+    ],
+    "description": "Upload a file from the local machine to the remote environment. Transfers are atomic (temp file + rename). Uses small chunks for security — uploads over 1MB may be slow. For large files, prefer shell_exec with curl/wget to download directly inside the environment.",
+    "name": "file_upload"
+  },
+  {
+    "arguments": [
+      {
+        "desc": "File content (text)",
+        "name": "content",
+        "type": "string"
+      },
+      {
+        "desc": "Create parent directories",
+        "name": "create_dirs",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "desc": "Environment ID or name (from list_environments)",
+        "name": "environment",
+        "type": "string"
+      },
+      {
+        "desc": "File permissions (e.g. '0644')",
+        "name": "mode",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "desc": "Absolute path on the remote environment",
+        "name": "path",
+        "type": "string"
+      }
+    ],
+    "description": "Write text content directly to a file in the remote environment. For small files (configs, scripts, code). Uses atomic writes (temp + rename). For large/binary files, use file_upload instead.",
+    "name": "file_write"
+  },
+  {
+    "arguments": [
+      {
+        "desc": "Destination path",
+        "name": "destination",
+        "type": "string"
+      },
+      {
+        "desc": "Environment ID or name (from list_environments)",
+        "name": "environment",
+        "type": "string"
+      },
+      {
+        "desc": "Source path",
+        "name": "source",
+        "type": "string"
+      }
+    ],
+    "description": "Move or rename a file in a remote environment.",
+    "name": "file_move"
+  },
+  {
+    "arguments": [
+      {
+        "desc": "Environment ID or name (from list_environments)",
+        "name": "environment",
+        "type": "string"
+      }
+    ],
+    "description": "Get resource usage stats for an environment: disk space, memory, CPU, running processes. Quick health check without running shell commands.",
+    "name": "env_stats"
+  },
+  {
+    "arguments": [
+      {
+        "desc": "Optional: Cloudflare account ID that owns the named tunnel. Defaults to the environment's account.",
+        "name": "cf_account_id",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "desc": "Optional: Cloudflare API token with DNS edit + Tunnel rights on the domain's zone. Only needed for domains outside the default agend.sh zone.",
+        "name": "cf_token",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "desc": "Optional: Cloudflare zone ID for the domain's DNS. Required when 'domain' is outside the default agend.sh zone.",
+        "name": "cf_zone_id",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "desc": "Custom domain to expose on (e.g., 'app.example.com'). If omitted, returns a temporary tunnel URL.",
+        "name": "domain",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "desc": "Environment ID or name (from list_environments)",
+        "name": "environment",
+        "type": "string"
+      },
+      {
+        "desc": "Port number to expose (1-65535)",
+        "name": "port",
+        "type": "integer"
+      }
+    ],
+    "description": "Expose a port to the internet via Cloudflare Tunnel. Returns a public URL that routes to the specified port in the environment. For custom domains outside agend.sh (e.g., 'app.example.com'), also pass cf_token, cf_account_id, and cf_zone_id for the zone that owns the domain.",
+    "name": "port_expose"
+  },
+  {
+    "arguments": [
+      {
+        "desc": "Optional: unbind only this custom domain from the port (e.g., 'app.example.com'). If omitted, all domains and the quick tunnel on the port are removed.",
+        "name": "domain",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "desc": "Environment ID or name (from list_environments)",
+        "name": "environment",
+        "type": "string"
+      },
+      {
+        "desc": "Port number to unexpose",
+        "name": "port",
+        "type": "integer"
+      }
+    ],
+    "description": "Stop exposing a port. Without 'domain', removes every domain and/or quick tunnel bound to the port. With 'domain', unbinds only that domain and leaves sibling domains on the port intact.",
+    "name": "port_unexpose"
+  },
+  {
+    "arguments": [
+      {
+        "desc": "Environment ID or name (from list_environments)",
+        "name": "environment",
+        "type": "string"
+      }
+    ],
+    "description": "List all currently exposed ports and their public URLs.",
+    "name": "port_list"
+  },
+  {
+    "arguments": [
+      {
+        "desc": "Short description of the environment's purpose",
+        "name": "description",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "desc": "Unique name: 2-32 lowercase letters, numbers, and hyphens",
+        "name": "name",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "desc": "Machine profile id to create the environment with. Omit for your plan's default; profiles_list shows what your account can use.",
+        "name": "profile",
+        "optional": true,
+        "type": "string"
+      }
+    ],
+    "description": "Create a new environment, optionally giving it a memorable name and short description. Returns the environment ID and endpoint. The environment boots a fresh microVM from the warm pool.",
+    "name": "env_create"
+  },
+  {
+    "arguments": [
+      {
+        "desc": "Remove the current description",
+        "name": "clear_description",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "desc": "Remove the current name",
+        "name": "clear_name",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "desc": "Short description of the environment's purpose",
+        "name": "description",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "desc": "Environment ID or name (from list_environments)",
+        "name": "environment",
+        "type": "string"
+      },
+      {
+        "desc": "Unique name: 2-32 lowercase letters, numbers, and hyphens",
+        "name": "name",
+        "optional": true,
+        "type": "string"
+      }
+    ],
+    "description": "Edit an environment's user-visible name or short description.",
+    "name": "env_update"
+  },
+  {
+    "arguments": [],
+    "description": "List the machine profiles this account can create environments with, including size (vCPU/RAM/disk), quota, and current usage.",
+    "name": "profiles_list"
+  },
+  {
+    "arguments": [
+      {
+        "desc": "Environment ID or name (from list_environments)",
+        "name": "environment",
+        "type": "string"
+      }
+    ],
+    "description": "Get detailed status of an environment including state, tier, endpoint, and timestamps.",
+    "name": "env_status"
+  },
+  {
+    "arguments": [
+      {
+        "desc": "Environment ID or name (from list_environments)",
+        "name": "environment",
+        "type": "string"
+      }
+    ],
+    "description": "Wake a sleeping environment. Restores the VM from snapshot with a new endpoint.",
+    "name": "env_wake"
+  },
+  {
+    "arguments": [
+      {
+        "desc": "Environment ID or name (from list_environments)",
+        "name": "environment",
+        "type": "string"
+      },
+      {
+        "desc": "Concise diagnostic evidence showing why ordinary recovery is insufficient; do not include secrets",
+        "name": "reason",
+        "type": "string"
+      }
+    ],
+    "description": "Last-resort recovery for an environment that remains unresponsive or stuck in a lifecycle transition after ordinary status, reconnect, and wake recovery. Preserves files on the persistent data disk, but permanently discards all guest memory, running processes, sessions, and snapshots before cold-booting a fresh VM incarnation. Use only when diagnostic evidence indicates the environment is genuinely stuck. The reason is required for the audit trail and must not contain secrets.",
+    "name": "env_cold_reset"
+  },
+  {
+    "arguments": [],
+    "description": "Reload CLI credentials from disk. Call this after signing up, logging in, or creating environments in another terminal. Resets all connections.",
+    "name": "reload_config"
+  }
+]
