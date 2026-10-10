@@ -10,8 +10,30 @@ meta:
     - ai
 about:
   title: Pixeltable Developer
-  description: Declarative multimodal AI data engine for tables, computed columns, embedding search, agents, and FastAPI services.
-  icon: https://www.google.com/s2/favicons?domain=pixeltable.com&sz=64
+  description: Build and operate Pixeltable multimodal apps from one app.py, with declarative tables, computed columns, embedding indexes, schema and service reconciliation, and row inspection.
+  icon: https://avatars.githubusercontent.com/u/160283145?s=200&v=4
 source:
   project: https://github.com/pixeltable/mcp-server-pixeltable-developer
-  commit: 0df6f0540d25361a6b94e709dbeedbd90f1a3325
+  commit: 3941007d74a38d16d17bc1b30d3abc35d1277c9c
+run:
+  volumes:
+    - "{{pixeltable.project_root}}:/work/app"
+    - pixeltable-catalog:/work/catalog
+config:
+  description: Mount the directory holding your Pixeltable app.py. The catalog persists in the pixeltable-catalog Docker volume.
+  env:
+    - name: PIXELTABLE_MCP_PROJECT_ROOT
+      example: /work/app
+      value: /work/app
+    - name: PIXELTABLE_HOME
+      example: /work/catalog
+      value: /work/catalog
+  parameters:
+    type: object
+    properties:
+      project_root:
+        type: string
+        description: Directory holding your Pixeltable app.py.
+        default: /Users/local-test/pixeltable-app
+    required:
+      - project_root

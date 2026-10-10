@@ -1,0 +1,350 @@
+[
+  {
+    "name": "pixeltable_list_catalog",
+    "description": "List tables, views, and directories in the local Pixeltable catalog.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Local catalog directory, or empty for the root."
+      },
+      {
+        "name": "include_counts",
+        "type": "boolean",
+        "desc": "Run count queries and include row counts. This can be slower on large tables."
+      }
+    ]
+  },
+  {
+    "name": "pixeltable_describe",
+    "description": "Return schema, computed-column, index, and version metadata for a local table or view.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Local table or view path."
+      }
+    ]
+  },
+  {
+    "name": "pixeltable_rows",
+    "description": "Preview up to 100 rows without evaluating unstored computed columns unless explicitly requested.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Local table or view path."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum rows to return."
+      },
+      {
+        "name": "columns",
+        "type": "array",
+        "desc": "Optional column subset. Explicit unstored columns may be evaluated."
+      }
+    ]
+  },
+  {
+    "name": "pixeltable_get_row",
+    "description": "Look up one local table row using primary-key values in declared key order. The table must declare a primary key; pixeltable_describe reports whether it does.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Local table path with a primary key."
+      },
+      {
+        "name": "primary_key",
+        "type": "array",
+        "desc": "Primary-key values in the order shown by describe."
+      },
+      {
+        "name": "columns",
+        "type": "array",
+        "desc": "Optional column subset."
+      }
+    ]
+  },
+  {
+    "name": "pixeltable_errors",
+    "description": "List failed computed-column values for a local table that has a primary key. The table must declare one; pixeltable_describe reports whether it does.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Local table path with a primary key."
+      },
+      {
+        "name": "column",
+        "type": "string",
+        "desc": "Optional computed column to filter by."
+      }
+    ]
+  },
+  {
+    "name": "pixeltable_insert_rows",
+    "description": "Insert 1 to 1,000 JSON rows into a local table and run its stored computed columns.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Local base-table path."
+      },
+      {
+        "name": "rows",
+        "type": "array",
+        "desc": "Rows keyed by declared column name."
+      },
+      {
+        "name": "on_error",
+        "type": "string",
+        "desc": "Abort the batch on a computation error, or retain rows and record errors."
+      }
+    ]
+  },
+  {
+    "name": "pixeltable_recompute",
+    "description": "Preview or run computed-column recovery. Defaults to failed rows only and a dry run.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Local table or view path."
+      },
+      {
+        "name": "columns",
+        "type": "array",
+        "desc": "Computed columns to recompute."
+      },
+      {
+        "name": "errors_only",
+        "type": "boolean",
+        "desc": "Only recompute rows whose selected column failed."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Return the plan without changing stored values."
+      },
+      {
+        "name": "cascade",
+        "type": "boolean",
+        "desc": "Also recompute dependent computed columns."
+      }
+    ]
+  },
+  {
+    "name": "pixeltable_scaffold_app",
+    "description": "Initialize the project and write one Pixeltable 0.7 application or brief schema example.",
+    "arguments": [
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "Generate an HTTP service application or a brief schema-only application."
+      },
+      {
+        "name": "output_path",
+        "type": "string",
+        "desc": "New project-relative Python file. Defaults to app.py or schema.py."
+      }
+    ]
+  },
+  {
+    "name": "pixeltable_schema_check",
+    "description": "Validate a TableModel schema file without reading or changing a catalog.",
+    "arguments": [
+      {
+        "name": "schema_file",
+        "type": "string",
+        "desc": "Project-contained Python schema file."
+      }
+    ]
+  },
+  {
+    "name": "pixeltable_schema_diff",
+    "description": "Read the migration plan between a TableModel schema file and a local or hosted target.",
+    "arguments": [
+      {
+        "name": "schema_file",
+        "type": "string",
+        "desc": "Project-contained Python schema file."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "Local catalog directory or pxt://org:database/path URI."
+      }
+    ]
+  },
+  {
+    "name": "pixeltable_schema_update",
+    "description": "Reconcile a TableModel schema against a target. Destructive plans require explicit permission.",
+    "arguments": [
+      {
+        "name": "schema_file",
+        "type": "string",
+        "desc": "Project-contained Python schema file."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "Local catalog directory or pxt://org:database/path URI."
+      },
+      {
+        "name": "allow_destructive",
+        "type": "boolean",
+        "desc": "Permit column or index drops. Unsupported expression/type changes remain refused."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Return the plan without changing the target."
+      }
+    ]
+  },
+  {
+    "name": "pixeltable_schema_prune",
+    "description": "Preview or remove target tables that are absent from the TableModel schema.",
+    "arguments": [
+      {
+        "name": "schema_file",
+        "type": "string",
+        "desc": "Project-contained Python schema file."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "Local catalog directory or pxt://org:database/path URI."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "List removals without dropping tables."
+      }
+    ]
+  },
+  {
+    "name": "pixeltable_service_check",
+    "description": "Validate a FastAPIRouter application without changing a catalog or starting a service.",
+    "arguments": [
+      {
+        "name": "app_file",
+        "type": "string",
+        "desc": "Project-contained Python service application."
+      }
+    ]
+  },
+  {
+    "name": "pixeltable_service_diff",
+    "description": "Compare declared FastAPI services with a local or hosted target without changing either.",
+    "arguments": [
+      {
+        "name": "app_file",
+        "type": "string",
+        "desc": "Project-contained Python service application."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "Local catalog directory or pxt://org:database/path URI."
+      },
+      {
+        "name": "service",
+        "type": "string",
+        "desc": "Optional declared service name."
+      },
+      {
+        "name": "enable_otel",
+        "type": "boolean",
+        "desc": "Include OpenTelemetry state in the comparison."
+      }
+    ]
+  },
+  {
+    "name": "pixeltable_service_update",
+    "description": "Start or reconcile declared services against a local or hosted target.",
+    "arguments": [
+      {
+        "name": "app_file",
+        "type": "string",
+        "desc": "Project-contained Python service application."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "Local catalog directory or pxt://org:database/path URI."
+      },
+      {
+        "name": "service",
+        "type": "string",
+        "desc": "Optional declared service name."
+      },
+      {
+        "name": "allow_destructive",
+        "type": "boolean",
+        "desc": "Permit route removals or changes that stop serving existing routes."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Return the plan without starting or restarting services."
+      },
+      {
+        "name": "enable_otel",
+        "type": "boolean",
+        "desc": "Start services with OpenTelemetry instrumentation."
+      },
+      {
+        "name": "port",
+        "type": "integer",
+        "desc": "Port for one named service."
+      }
+    ]
+  },
+  {
+    "name": "pixeltable_service_list",
+    "description": "List services known locally or for one explicit local/hosted target.",
+    "arguments": [
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "Optional local catalog directory or pxt://org:database/path URI."
+      }
+    ]
+  },
+  {
+    "name": "pixeltable_service_stop",
+    "description": "Stop one or more named services without removing their configuration.",
+    "arguments": [
+      {
+        "name": "names",
+        "type": "array",
+        "desc": "Service names or TARGET/NAME references."
+      }
+    ]
+  },
+  {
+    "name": "pixeltable_service_prune",
+    "description": "Preview or remove running services absent from the application file.",
+    "arguments": [
+      {
+        "name": "app_file",
+        "type": "string",
+        "desc": "Project-contained Python service application."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "Local catalog directory or pxt://org:database/path URI."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "List removals without stopping services."
+      }
+    ]
+  }
+]
