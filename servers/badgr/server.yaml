@@ -1,0 +1,48 @@
+name: badgr
+image: mcp/badgr
+type: server
+meta:
+  category: devops
+  tags:
+    - gpu
+    - ai
+    - compute
+    - inference
+about:
+  title: Badgr
+  description: Run GPU workloads and serve models from an agent, with a hard price cap and a required runtime limit on every deployment.
+  icon: https://aibadgr.com/favicon.png
+source:
+  project: https://github.com/aibadgr/badgr-mcp
+  commit: d282078bb91958e1a940e6d482a65e9b3c903a98
+config:
+  description: Badgr account settings and spending limits.
+  secrets:
+    - name: badgr.api_key
+      env: BADGR_API_KEY
+      example: <BADGR_API_KEY>
+  env:
+    - name: BADGR_MAX_PRICE
+      example: "5.0"
+      value: "{{badgr.max_price}}"
+    - name: BADGR_MAX_JOB_COST
+      example: "5.0"
+      value: "{{badgr.max_job_cost}}"
+    - name: BADGR_MAX_RUNTIME
+      example: "60"
+      value: "{{badgr.max_runtime}}"
+  parameters:
+    type: object
+    properties:
+      max_price:
+        type: string
+        default: "5.0"
+        description: Hard USD per hour cap applied to every job
+      max_job_cost:
+        type: string
+        default: "5.0"
+        description: Hard USD cap on one launched agent task
+      max_runtime:
+        type: string
+        default: "60"
+        description: Maximum minutes a served model may run

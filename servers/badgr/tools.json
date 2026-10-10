@@ -1,0 +1,148 @@
+[
+  {
+    "name": "run_workload",
+    "description": "Run a one-off command on a GPU with a hard price cap.",
+    "arguments": [
+      {
+        "name": "command",
+        "type": "array",
+        "desc": "Container command as an argv array"
+      },
+      {
+        "name": "image",
+        "type": "string",
+        "desc": "Docker image"
+      },
+      {
+        "name": "gpu",
+        "type": "string",
+        "desc": "RTX_4090, A100, L40S or H100"
+      },
+      {
+        "name": "max_price_per_hour",
+        "type": "number",
+        "desc": "Spend cap in USD per hour"
+      }
+    ]
+  },
+  {
+    "name": "deploy_model",
+    "description": "Serve a model on an OpenAI-compatible endpoint that stops itself after max_runtime_minutes.",
+    "arguments": [
+      {
+        "name": "model",
+        "type": "string",
+        "desc": "Hugging Face model ID"
+      },
+      {
+        "name": "max_runtime_minutes",
+        "type": "number",
+        "desc": "Auto-stop after this many minutes"
+      },
+      {
+        "name": "gpu",
+        "type": "string",
+        "desc": "GPU type"
+      }
+    ]
+  },
+  {
+    "name": "check_result",
+    "description": "Read a deployment's status and its most recent log lines.",
+    "arguments": [
+      {
+        "name": "deployment_id",
+        "type": "string",
+        "desc": "ID from run_workload or deploy_model"
+      },
+      {
+        "name": "log_lines",
+        "type": "number",
+        "desc": "Recent log lines to return"
+      }
+    ]
+  },
+  {
+    "name": "badgr_run",
+    "description": "Same as run_workload."
+  },
+  {
+    "name": "badgr_serve",
+    "description": "Same as deploy_model."
+  },
+  {
+    "name": "ai_chat",
+    "description": "Call the Badgr AI API (OpenAI-compatible chat) and return the reply with usage.",
+    "arguments": [
+      {
+        "name": "model",
+        "type": "string",
+        "desc": "Model ID"
+      },
+      {
+        "name": "messages",
+        "type": "array",
+        "desc": "Chat messages with role and content"
+      },
+      {
+        "name": "max_tokens",
+        "type": "number",
+        "desc": "Response token cap (max 4096)"
+      }
+    ]
+  },
+  {
+    "name": "launch_agent_task",
+    "description": "Launch an autonomous agent on a GitHub repo, verified by a check command, with required cost and runtime caps.",
+    "arguments": [
+      {
+        "name": "repository",
+        "type": "string",
+        "desc": "GitHub repository URL"
+      },
+      {
+        "name": "instruction",
+        "type": "string",
+        "desc": "What the agent should do"
+      },
+      {
+        "name": "check",
+        "type": "string",
+        "desc": "Shell command that must succeed"
+      },
+      {
+        "name": "max_cost",
+        "type": "number",
+        "desc": "Hard cost cap in USD"
+      },
+      {
+        "name": "max_runtime_minutes",
+        "type": "number",
+        "desc": "Hard runtime cap"
+      }
+    ]
+  },
+  {
+    "name": "check_launch_task",
+    "description": "Status, cost, receipt and recent logs for a launched agent task.",
+    "arguments": [
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "ID from launch_agent_task"
+      }
+    ]
+  },
+  {
+    "name": "badgr_status",
+    "description": "List active deployments."
+  },
+  {
+    "name": "badgr_logs",
+    "description": "Fetch logs for a deployment."
+  },
+  {
+    "name": "badgr_down",
+    "description": "Stop a deployment and end billing."
+  }
+]
