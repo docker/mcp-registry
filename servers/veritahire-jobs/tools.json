@@ -1,0 +1,263 @@
+[
+  {
+    "name": "search_live_jobs",
+    "description": "Search US jobs that are live right now on employers' own careers sites (re-read on a schedule, retired within about 36 hours of leaving). Give what (title or keywords) and where (City, ST or ZIP), or remote_only.",
+    "arguments": [
+      {
+        "name": "what",
+        "type": "string",
+        "desc": "Job title or keywords, e.g.",
+        "optional": true
+      },
+      {
+        "name": "where",
+        "type": "string",
+        "desc": "\"City, ST\" or a 5-digit ZIP",
+        "optional": true
+      },
+      {
+        "name": "radius_miles",
+        "type": "integer",
+        "desc": "radius_miles",
+        "optional": true
+      },
+      {
+        "name": "min_pay",
+        "type": "number",
+        "desc": "Minimum pay: annual, or hourly if under 300.",
+        "optional": true
+      },
+      {
+        "name": "employment_type",
+        "type": "string",
+        "desc": "employment_type",
+        "optional": true
+      },
+      {
+        "name": "remote_only",
+        "type": "boolean",
+        "desc": "remote_only",
+        "optional": true
+      },
+      {
+        "name": "posted_within_days",
+        "type": "integer",
+        "desc": "posted_within_days",
+        "optional": true
+      },
+      {
+        "name": "title_exclude",
+        "type": "string",
+        "desc": "Comma-separated words; jobs whose title contains any of them are left out, e.g.",
+        "optional": true
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "desc": "Default: best match",
+        "optional": true
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "desc": "25 jobs a page; pass next_page from the previous result",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "get_job",
+    "description": "The whole posting text from the employer, its requirement facts (education, licences, years required and preferred, skills), pay, any sign-on bonus it offers (the amount, quoted from the posting), benefits, whether it is still open, and the apply link.",
+    "arguments": [
+      {
+        "name": "job_id",
+        "type": "integer",
+        "desc": "VeritaHire job id, as returned in search results",
+        "optional": true
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "url",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "save_search",
+    "description": "Sends one email to the person's own address. Their click starts a daily email of new jobs matching this search (still live on employers' own careers sites) and creates their free VeritaHire account if needed.",
+    "arguments": [
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "The person's own email address"
+      },
+      {
+        "name": "what",
+        "type": "string",
+        "desc": "what",
+        "optional": true
+      },
+      {
+        "name": "where",
+        "type": "string",
+        "desc": "\"City, ST\" or ZIP",
+        "optional": true
+      },
+      {
+        "name": "radius_miles",
+        "type": "integer",
+        "desc": "radius_miles",
+        "optional": true
+      },
+      {
+        "name": "employment_type",
+        "type": "string",
+        "desc": "employment_type",
+        "optional": true
+      },
+      {
+        "name": "remote_only",
+        "type": "boolean",
+        "desc": "remote_only",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "report_problem",
+    "description": "Records a problem with VeritaHire data: a job listed as open that the employer's site shows closed (job_closed), wrong place, wrong pay, wrong employer name, a search that returned irrelevant results or missed jobs it should have found, or duplicates. job_id identifies one job; search holds the search arguments for a results problem.",
+    "arguments": [
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "kind"
+      },
+      {
+        "name": "job_id",
+        "type": "integer",
+        "desc": "job_id",
+        "optional": true
+      },
+      {
+        "name": "detail",
+        "type": "string",
+        "desc": "What was wrong, in a sentence or two",
+        "optional": true
+      },
+      {
+        "name": "search",
+        "type": "object",
+        "desc": "The search arguments that produced the problem",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "benchmark_role",
+    "description": "Competitive Hiring Report, free summary, for the employer of one US healthcare, finance, IT, engineering, science, HR, legal or marketing job posting (nurses, therapists, pharmacists, accountants, bankers, software engineers, data roles, engineers, scientists, attorneys, recruiters, marketers) that is not filling: the posted pay range in that market (salary benchmarking) and how many employers are hiring it. The full report, first one free (request_full_report), names each competitor with the pay it posts and how fast it closes the role (posting up to posting down), and shows where this posting sits and how hard the role is to fill there.",
+    "arguments": [
+      {
+        "name": "job_url",
+        "type": "string",
+        "desc": "The posting's URL on the employer's careers site, or a veritahire.com/j/ URL",
+        "optional": true
+      },
+      {
+        "name": "job_id",
+        "type": "integer",
+        "desc": "VeritaHire job id",
+        "optional": true
+      },
+      {
+        "name": "employer",
+        "type": "string",
+        "desc": "employer",
+        "optional": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "title",
+        "optional": true
+      },
+      {
+        "name": "city",
+        "type": "string",
+        "desc": "city",
+        "optional": true
+      },
+      {
+        "name": "state",
+        "type": "string",
+        "desc": "Two-letter US state",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "request_full_report",
+    "description": "Emails the full Competitive Hiring Report for a posting to the person who will use it (their work email). Their click creates a free VeritaHire account and opens the report.",
+    "arguments": [
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "The email address the report goes to"
+      },
+      {
+        "name": "job_url",
+        "type": "string",
+        "desc": "job_url",
+        "optional": true
+      },
+      {
+        "name": "job_id",
+        "type": "integer",
+        "desc": "job_id",
+        "optional": true
+      },
+      {
+        "name": "employer",
+        "type": "string",
+        "desc": "employer",
+        "optional": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "title",
+        "optional": true
+      },
+      {
+        "name": "city",
+        "type": "string",
+        "desc": "city",
+        "optional": true
+      },
+      {
+        "name": "state",
+        "type": "string",
+        "desc": "state",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "is_job_still_open",
+    "description": "Checks whether a job posting is still on the employer's own careers site (VeritaHire re-reads employer sites and marks a posting closed within about 36 hours of it leaving). Returns open, closed or unknown, with the last time it was confirmed.",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "The posting URL (careers site or veritahire.com/j/)",
+        "optional": true
+      },
+      {
+        "name": "job_id",
+        "type": "integer",
+        "desc": "job_id",
+        "optional": true
+      }
+    ]
+  }
+]
