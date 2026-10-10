@@ -10,6 +10,6 @@ Search indexed transcripts and return timestamped evidence. Follow speaker appea
 - [OpenAPI schema](https://api.arcmira.com/v1/openapi.json)
 - [Public MCP source](https://github.com/arcmira/mcp)
 
-Sign in with an Arcmira account through OAuth. Usage limits and account entitlements apply. A Premium read uses credits from your plan, then any top-up credits, then your on-demand budget. The write tool can create or change monitors, and the feedback tool submits feedback. This connection is not entirely read-only.
+Sign in with an Arcmira account through OAuth. Usage limits and account entitlements apply. A Premium read uses credits from your plan, then your on-demand budget. The write tool can create or change monitors, and the feedback tool submits feedback. This connection is not entirely read-only.
 
 For documentation search without an account, use the separate Arcmira API Docs connection at `https://arcmira.com/docs/mcp`.
