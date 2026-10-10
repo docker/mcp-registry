@@ -1,117 +1,117 @@
 [
   {
+    "name": "accept_workspace_changeset",
+    "description": "Accept a changeset in phase review_ready: the worker's changes become the Workspace's current files, saved as a new revision. expected_current_revision must be the changeset's comparison_current_revision, and the Workspace's current revision must still be that revision; otherwise the call is refused with 409 current_revision_conflict, and submit_workspace_changeset submits the worker again against the new current revision. A changeset that is still being compared or has conflicts is refused with 409 workspace_changeset_unresolved; a Workspace with an active run or file operation is refused with 409 workspace_changeset_busy. The save completes after the call returns: poll get_workspace_changeset until state is accepted and result_revision is set. Repeating the call with the same arguments returns the same result.",
+    "arguments": []
+  },
+  {
     "name": "answer_pending_input",
-    "description": "Answer a run that is paused on a human-input request (from list_pending_inputs). For an approval, set approved=true/false. For an input request, set value to the requested text. A successful answer starts a continuation run: the returned run_id is that new continuation run, not the parked run, and is the id to poll with get_run_result.",
+    "description": "Answer a question that a run is paused on, or deny an approval request. value answers a question; approved=false denies an approval request. approved=true is refused with 403 and the request's approve_url: only the account owner approves, in the Plori web app. Standing approvals (always_allow, scope) are refused from this connector. A question marked secret:true is refused here; the owner answers it in the Plori web app. After the paused run's files are saved, an answer continues the task in a new run, which keeps the paused run's approval rules: its outward actions still pause for the owner. The call waits up to 25 s for that run to start, and run_id in the result is that continuation run. When the result has continuation_pending: true instead, the answer is recorded and the run starts later without another call; get_run_result on the paused run then reports it as continuation_run_id.",
     "arguments": []
   },
   {
     "name": "cancel_run",
-    "description": "Stop an in-flight agent run. Cancellation is asynchronous: a successful call returns status \"cancelling\"; poll get_run_result until the run becomes \"cancelled\". A run that already finished cannot be cancelled.",
+    "description": "Request cancellation of a run that has not ended. Returns status \"cancelling\" at once; the run then ends with status \"cancelled\", which get_run_result reports. A run that has already ended is refused with 409 run already finished.",
     "arguments": []
   },
   {
-    "name": "create_agent",
-    "description": "Get or create an agent by name: a persistent cloud environment running plori's agent, with its own disk, tools, and memory. Create one when the work should accumulate somewhere the user can return to: a project with files that build up, a repo to keep checked out, tools to install once and reuse, or a long job to hand off. You do not need one for a question you can answer yourself or for a one-off script with no state worth keeping. If the account already has an agent with this name, that agent is returned (marked \"existing\": true) instead of a duplicate — safe to call repeatedly, and the right way to reconnect to an agent you used before. Creation is subject to the account's agent-count limit. The Plori Router chooses the model for each task.",
+    "name": "create_workspace",
+    "description": "Create a Workspace owned by the authenticated account: durable files with saved revisions, a main conversation and run history. Unless default_manager_agent_id is given, the call also creates the Workspace's default agent, which runs the messages sent to the Workspace; that agent counts against the account's agent limit, and the Workspace counts against its Workspace limit. default_manager_agent_id selects an existing agent instead. Every Workspace has a default agent; an agent that receives no messages does no work and costs nothing. The call returns after the Workspace's first revision exists. No run starts. idempotency_key identifies the request for 24 hours: the same key with the same arguments returns the same Workspace, and the same key with different arguments is refused with 422 idempotency_key_reused. Names are not unique: a new key with a used name creates a second Workspace. Task messages, the files the agent reads, and the agent's work are sent through OpenRouter to these model providers: DeepSeek (the agent's main model), Anthropic (advisor reviews) and OpenAI (result reviews); TypeSafe receives short typed-judgment requests about the agent's steps. Runs started through this connector do not generate images. The provider list follows Plori's model catalog and can change.",
     "arguments": []
   },
   {
-    "name": "create_workflow",
-    "description": "Create an empty workflow. Returns the new workflow, including its id and — for a webhook trigger — its hook URL. trigger_kind defaults to \"manual\" (run it on demand with run_workflow); \"cron\" needs a cron_expr; \"webhook\" mints a public hook URL. A new workflow has no steps and cannot run until its owning agent builds them.",
+    "name": "create_workspace_worker",
+    "description": "Start a worker: an agent that runs one task in a Workspace on its own copy of the Workspace files, so several workers can run at the same time without changing each other's files or the Workspace's current files. The call makes a copy of the Workspace's current revision for the worker, creates a task group with the worker's token limit unless task_group_id names an existing one, and queues the worker. It returns at once with worker_request_id, agent_id, working_copy_id and task_group_id; the worker starts when capacity allows. get_workspace_worker reports its run_id once it starts and save_state ready with saved_revision_id when its run has ended and its files are saved. The worker's changes reach the Workspace only when submit_workspace_changeset submits them and accept_workspace_changeset accepts them. A worker started through this connector pauses before each action outside its own environment (connected-account and MCP writes, outbound HTTP writes, git push, publishing, deploys, email) until the account owner approves that one action at approve_url in the Plori web app; the calling model cannot approve. Unless executor_agent_id is given, the call creates a new agent for the worker, which counts against the account's agent limit. Runs are charged to the account's prepaid US-dollar balance. idempotency_key identifies the request for 24 hours: the same key with the same arguments returns the same worker; if the Workspace's current revision changed between two calls with the same key, the second call can be refused with 422 idempotency_key_reused, and a new key starts a new worker.",
     "arguments": []
   },
   {
-    "name": "delete_agent",
-    "description": "Permanently delete an agent and revoke its disk. This cannot be undone.",
-    "arguments": []
-  },
-  {
-    "name": "edit_workflow",
-    "description": "Apply a batch of constrained edits as one new draft version under base_version compare-and-swap. Supported ops are set_params, add_step, remove_step, and add_router. Read the exact current definition with get_workflow_version first; a stale base_version is rejected instead of overwriting concurrent work. Editing does not activate the draft.",
-    "arguments": []
-  },
-  {
-    "name": "get_agent",
-    "description": "Get one agent's details (name, type, model, status) by its id, and its mailbox: same-account mail from other agents, open letters first (accepted, delivering, blocked), then applied or undeliverable ones, newest within each group, capped at 20.",
+    "name": "delete_workspace",
+    "description": "Permanently delete a Workspace: its files, revisions, copies and conversations. This cannot be undone. Returns the Workspace with state deleting; the deletion completes in the background, and a Workspace that is already deleted returns status 204.",
     "arguments": []
   },
   {
     "name": "get_credits",
-    "description": "Get the authenticated account's US-dollar balance and plan. Running agents spends this prepaid balance, so check it before invoking. For where the money went, use get_usage instead. balance_usd is the dollar-formatted balance.",
-    "arguments": []
-  },
-  {
-    "name": "get_disk",
-    "description": "Get the authenticated account's disk state (included, purchased, used bytes, and monthly cost).",
+    "description": "Get the authenticated account's prepaid US-dollar balance (balance_usd formatted in dollars, balance in micro-US-dollars), plan, limits, and the plans and credit packs on offer. Runs are charged to this balance; a run that the balance cannot cover is refused with 402 when it starts. This tool only reads: the account owner buys credit or changes plan in the Plori web app (prices: https://plori.ai/pricing).",
     "arguments": []
   },
   {
     "name": "get_run_result",
-    "description": "Get a run's status, timestamps, attributed credits and tokens (null when unavailable), and tool_progress when telemetry exists. tool_progress lists active calls, the last completion time, and the completed-call count. When wait=true, holds your turn until the run finishes, pauses for input, or the hold ends, then returns: about 25s for a client the server does not recognize, 50s for the Codex CLI, up to 30 minutes for Claude Code 2.1.212 or later, or the wait_seconds you pass instead (up to 1800s; a call that sent no progress token is capped at 50s regardless of client or wait_seconds). If the run has completed, this result includes the assistant's reply and a \"url\" to its session. Continue polling a non-terminal run after invoke_agent returns, using the result's poll_after_seconds as the suggested delay. Credit and token counters advance after each completed model call. A failed run includes its cause and retry verdict. Status \"awaiting_input\" includes pending request details for answer_pending_input.",
+    "description": "Get a run's current state by agent_id and run_id. Every result has the run's status, timing, and attributed credits (micro-US-dollars) and tokens. A run that is still going also has last_worklog (the agent's latest note), last_tool_step, last_activity_at, tool_progress when it is recorded, and poll_after_seconds. A completed run has text (the agent's reply), a url to its conversation in the Plori web app, and files: the files the reply linked, as absolute URLs readable with the same bearer token as this call. Those links read the run's copy while file_source.state is pending and the saved revision once it is ready; save_failure is present when the save failed, and then the files are not durable. When file_source.source is agent_current_files, the links read the agent's current files, which later runs can change. A failed or cancelled run has cause, retryable and an error object that states what happened and whether the run was charged. A run with status \"awaiting_input\" lists its approval requests and questions, each approval request with an approve_url. After a request is answered, input_status is answered and continuation_run_id names the run that continues the task; input_status cancelled or expired means this run will not continue. An interrupted run that the platform resumed has resume_run_id.",
     "arguments": []
   },
   {
-    "name": "get_usage",
-    "description": "Get the authenticated account's usage rollup (US-dollar spend by meter and by agent, recent runs). Use this to answer where the money went; for the current balance use get_credits.",
+    "name": "get_workspace_changeset",
+    "description": "Get one changeset: its state and phase, the changed paths (at most 500) and conflicting paths once compared is true, comparison_current_revision for accept_workspace_changeset, and result_revision after an accepted changeset is saved. read_workspace_file reads the worker's version of a file from incoming_revision. No run starts and nothing changes.",
     "arguments": []
   },
   {
-    "name": "get_workflow",
-    "description": "Get one workflow's metadata and step projection. The projection is the version pinned for execution (active_version), falling back to current_version for a draft that has not been activated.",
+    "name": "get_workspace_costs",
+    "description": "Get the amount charged to the account's balance for the runs of a Workspace, or of one task group in it, in a time window: the total, how complete it is (coverage), and the charges that make it up per run. A token limit is not a cost. No run starts and nothing changes.",
     "arguments": []
   },
   {
-    "name": "get_workflow_execution",
-    "description": "Get one workflow execution's status, timing, credits, and full per-step input/output payloads from the persisted execution. Use to poll a run started with run_workflow or inspect what each step returned; list_workflow_executions deliberately omits step payloads.",
-    "arguments": []
-  },
-  {
-    "name": "get_workflow_version",
-    "description": "Get one exact workflow version, including its full builder definition with step parameter values and its value-light projection. Use current_version from get_workflow unless you intentionally need an older version.",
-    "arguments": []
-  },
-  {
-    "name": "invoke_agent",
-    "description": "Send a message to an agent and get its reply. Use this for work that should outlive a single request: files written now and read next week, software installed once and reused, a repo kept checked out, or a long job handed off and read later. Holds your turn until the run finishes, pauses for input, or the hold ends, then returns: about 25s for a client the server does not recognize, 50s for the Codex CLI, up to 30 minutes for Claude Code 2.1.212 or later, or the wait_seconds you pass instead (up to 1800s; a call that sent no progress token is capped at 50s regardless of client or wait_seconds). If it is still running when the hold ends, the result carries a run_id with status \"running\" and poll_after_seconds; call get_run_result with wait=true until a terminal status or input request, since a completed tool call does not wake an idle client later. Agent turns can take minutes (research, multi-step or tool-heavy work). Running an agent spends credits, and an account's plan caps how many runs it may have in flight at once across all its agents (over the cap returns 429; wait for a run to finish and retry). Turns on one agent are not queued for you. Pass idempotency_key when you might retry this call: a retry carrying the same key returns the original run instead of starting and billing a second one. If the run pauses on a human-input request it returns status \"awaiting_input\" with the pending request details inline (respond with answer_pending_input). Every result also carries a \"url\" that opens this run's exact session in the web app, so a human can go read it.",
-    "arguments": []
-  },
-  {
-    "name": "list_agents",
-    "description": "List the agents owned by the authenticated account, with their model and live session status.",
-    "arguments": []
-  },
-  {
-    "name": "list_connections",
-    "description": "List the authenticated account's third-party OAuth connections, including each provider's status, authorization and expiry times, and configured scopes. status is the re-authentication predicate: authorized needs no action; reconnect_needed or unauthorized does. Tokens refresh lazily when used, so an authorized row may have a past expires_at; authorized with expires_at=null means the grant never expires. Token and client-secret material is never returned.",
+    "name": "get_workspace_worker",
+    "description": "Get one worker's status: whether it has started (run_id), how its run ended (run_status), whether its files are saved (save_state ready with saved_revision_id) and whether its changes were submitted (changeset_id, change_status). A completed run alone does not mean the files are saved; wait for save_state ready before submit_workspace_changeset. get_run_result with run_id and agent_id reads the worker's reply and its approval requests. No run starts and nothing changes.",
     "arguments": []
   },
   {
     "name": "list_pending_inputs",
-    "description": "List the agent's runs that are paused awaiting a human approval or input (the HITL queue). A row with a \"consent_tool\" is a write-consent approval: answering it with always_allow=true also stops the agent asking for that tool.",
+    "description": "List an agent's runs that are paused on an approval request or a question, with each request's run_id, tool_call_id and kind, and for an approval request its approve_url. Only the account owner approves, at that URL in the Plori web app. A request is not listed when a later run in the same conversation has completed.",
     "arguments": []
   },
   {
     "name": "list_runs",
-    "description": "List an agent's run history (most recent first), with each run's status.",
+    "description": "List the runs of an agent, most recently started first, with each run's status, timing, attributed cost and session_id (its conversation). Returns 20 runs unless limit is given (at most 100). When more runs exist, the result has next_cursor; passing it as cursor returns the next page, and its absence means the list is complete. tool_progress is null for an ended run and for a run without recorded tool progress. input_expired:true marks a run paused on a question that a later completed run in the same conversation has superseded.",
     "arguments": []
   },
   {
-    "name": "list_workflow_executions",
-    "description": "List a workflow's recent executions (most recent first), including status, fault, trigger source, timing, credits, and timestamps.",
+    "name": "list_workspace_changesets",
+    "description": "List the changesets of a Workspace, one page at a time, with each one's state, phase and number of changed paths. get_workspace_changeset returns the changed paths. No run starts and nothing changes.",
     "arguments": []
   },
   {
-    "name": "list_workflows",
-    "description": "List the workflows owned by the authenticated account, with each one's status, trigger, current version, and the agent that holds it (agent_id). Each workflow belongs to one agent — the one that built it — and that agent is the only one that can edit or run it from a chat. Pass agent_id to list just that agent's workflows, or agent_id=\"none\" for the unassigned ones (created here or in the web app with no agent).",
+    "name": "list_workspace_workers",
+    "description": "List the workers started in a Workspace, oldest first, one page at a time, with each worker's status, run_id, save_state and saved_revision_id. task_group_id limits the list to one task group. No run starts and nothing changes.",
     "arguments": []
   },
   {
-    "name": "run_workflow",
-    "description": "Run a workflow now — a real execution with real side effects, billed like any run (1 credit + model usage). Waits briefly and returns the execution: terminal if it finished, else status \"running\" to poll with get_workflow_execution. The workflow must already have steps.",
+    "name": "list_workspaces",
+    "description": "List the Workspaces the authenticated account owns, with each one's id, name, state, default agent (default_manager_agent_id), main conversation id (main_session_id), current revision and root copy id. state is active, adopting (its files are moving to new storage; runs are refused until it is active again), deleting or deleted. All Workspaces are returned in one response, without paging. No run starts and nothing changes. With workspace_id, the workspaces list contains only that Workspace, including storage_readiness (state, since, pending_reason, retryable) when its storage is still starting. The root copy exists only once storage_readiness.state is ready.",
+    "arguments": []
+  },
+  {
+    "name": "read_workspace_file",
+    "description": "Read a file or list a directory in a saved revision of a Workspace: the Workspace's current_revision, a worker's saved_revision_id, or a changeset's base_revision, incoming_revision or result_revision. A file returns its UTF-8 text, up to 262144 bytes; a larger file is refused, and a binary file is refused with 415. A directory returns its entries one page at a time. No run starts and nothing changes.",
+    "arguments": []
+  },
+  {
+    "name": "reject_workspace_changeset",
+    "description": "Reject a changeset: the Workspace's files stay as they are, and the worker's copy and saved revision are kept. A rejected or accepted changeset cannot change again. Repeating the call returns the same result.",
     "arguments": []
   },
   {
     "name": "schedule_run",
-    "description": "Schedule a ONE-SHOT deferred run of an agent: it will be invoked once, later, with the given prompt, billed like any run, and appears in list_runs when it fires. Provide either delay_seconds (relative) or fire_at (an RFC3339 timestamp). For a recurring schedule, use create_workflow with a cron trigger instead.",
+    "description": "Request one run of an agent at a later time, set by delay_seconds or fire_at (RFC 3339). Nothing is scheduled until the account owner confirms the request at confirm_url in the Plori web app: until then its status is awaiting_confirmation and it never fires, and the calling model cannot confirm it. A request whose fire time passes before the owner confirms it is not armed. Returns the request with its prompt, fire_at, status and confirm_url. The run it starts is charged like any run, and its actions outside the agent's own environment pause for the owner's approval one action at a time, as for any run started through this connector.",
+    "arguments": []
+  },
+  {
+    "name": "send_workspace_message",
+    "description": "Send a message to a Workspace's main conversation, or to another of its conversations named by session_id; the Workspace's default agent runs it. The run works on the Workspace's current files and saves them as a new revision when it ends. Returns the run with agent_id and workspace_id. A completed run has text (the agent's reply), the files the reply linked, a url to the conversation in the Plori web app, and its credits and tokens; file_source.state ready and no save_failure mean its files are saved. A run that is still going has status \"running\", run_id and poll_after_seconds, and continues after this call returns. A paused run has status \"awaiting_input\" and lists its approval requests and questions, each approval request with an approve_url. A run started through this connector pauses before each of these actions outside the agent's own environment and waits until the account owner approves that one action in the Plori web app: writes through connected accounts or MCP servers, outbound HTTP writes, git push, package or image publishing, deploys, uploads and remote copies, commands on another host over ssh, writes through service CLIs such as gh, aws, gcloud or az, email, public tunnels, workflow activation or workflow runs, and irreversible browser actions. Each approval covers one action; approvals the owner granted for their own runs do not apply, and the calling model cannot approve. Reads and work inside the agent's environment do not pause. While a run in the same conversation is still executing, a new message is refused with 409 conversation_busy and retry_after_seconds; while that run is paused on a request, a new message cancels the request instead of answering it. Runs are charged to the account's prepaid US-dollar balance; a run the balance cannot cover is refused with 402. idempotency_key identifies the request for 24 hours: the same key with the same arguments returns the original result instead of acting again, and the same key with different arguments is refused.",
+    "arguments": []
+  },
+  {
+    "name": "steer_workspace_worker",
+    "description": "Send a message into a worker's running turn, for example to correct its direction, without stopping it. run_id is the worker's run_id from get_workspace_worker; a run started by send_workspace_message is also accepted. The agent reads the message before its next step and continues the same run; disposition steering means the running turn holds the message. A run that is not running (not started yet, paused on an approval or question, or ended) is refused with 409 run_not_running: answer a paused run with answer_pending_input. If the running turn cannot take the message, for example because it is ending, the message is withdrawn and the call is refused with 409 steer_not_delivered. A message sent through this connector makes the run's later outward actions pause for the account owner's approval, as for a run started through this connector. idempotency_key identifies the message: the same key with the same message returns the first result instead of sending it twice.",
+    "arguments": []
+  },
+  {
+    "name": "stop_workspace_task_group",
+    "description": "Stop every worker of a task group: workers that have not started never start, and running worker runs are cancelled. Their copies, saved revisions and agents are kept, and a worker whose files are saved can still be submitted. The group starts no new workers afterwards. To stop one running worker only, use cancel_run with its run_id and agent_id. Returns the group state (stopping until every run has ended, then stopped) and the runs whose cancellation was requested.",
+    "arguments": []
+  },
+  {
+    "name": "submit_workspace_changeset",
+    "description": "Submit a worker's saved files for review as a changeset: Plori compares them with the Workspace's current files. The worker must have save_state ready (get_workspace_worker); otherwise the call is refused with 409 workspace_worker_not_saved. The Workspace's files do not change. The comparison runs after the call returns: poll get_workspace_changeset until compared is true, then accept_workspace_changeset accepts a changeset in phase review_ready and reject_workspace_changeset rejects one. Submitting the same worker again while the Workspace's current revision is unchanged returns the same changeset; after the current revision changes, for example because another changeset was accepted, it creates a new changeset compared with the new current revision.",
     "arguments": []
   }
 ]
