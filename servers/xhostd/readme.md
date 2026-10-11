@@ -1,1 +1,1 @@
-https://docs.xhostd.com
+Docs: https://docs.xhostd.com
