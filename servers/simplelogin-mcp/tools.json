@@ -1,0 +1,496 @@
+[
+  {
+    "name": "alias_list",
+    "description": "List aliases with optional state and text filters.",
+    "arguments": [
+      {
+        "name": "filter",
+        "type": "string",
+        "desc": "Return only aliases in this state. Mutually exclusive.",
+        "optional": true
+      },
+      {
+        "name": "page_id",
+        "type": "integer",
+        "desc": "Zero-based page number; 20 aliases per page. Defaults to 0.",
+        "optional": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Free-text search over alias email, note, and name.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "alias_get",
+    "description": "Get full details for one alias by id.",
+    "arguments": [
+      {
+        "name": "alias_id",
+        "type": "integer",
+        "desc": "Numeric id of the alias to fetch."
+      }
+    ]
+  },
+  {
+    "name": "alias_activity_list",
+    "description": "List forward, reply, block, and bounce activity for one alias.",
+    "arguments": [
+      {
+        "name": "alias_id",
+        "type": "integer",
+        "desc": "Numeric id of the alias whose activity to list."
+      },
+      {
+        "name": "page_id",
+        "type": "integer",
+        "desc": "Zero-based page number; 20 entries per page. Defaults to 0.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "alias_create_random",
+    "description": "Create a random alias using uuid, word, or account-default style.",
+    "arguments": [
+      {
+        "name": "hostname",
+        "type": "string",
+        "desc": "Website hostname this alias is created for (context only).",
+        "optional": true
+      },
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": "Address style: \"uuid\" or \"word\". Defaults to the account setting.",
+        "optional": true
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "Optional note stored on the alias.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "alias_create_custom",
+    "description": "Create a custom alias from a prefix, signed suffix, and mailboxes.",
+    "arguments": [
+      {
+        "name": "alias_prefix",
+        "type": "string",
+        "desc": "The local part chosen by the user (text before the suffix)."
+      },
+      {
+        "name": "mailbox_ids",
+        "type": "array",
+        "items": {
+          "type": "integer"
+        },
+        "desc": "Ids of mailboxes that will own and receive mail for this alias."
+      },
+      {
+        "name": "signed_suffix",
+        "type": "string",
+        "desc": "A signed_suffix value returned verbatim by alias_options_get."
+      },
+      {
+        "name": "hostname",
+        "type": "string",
+        "desc": "Website hostname this alias is created for (context only).",
+        "optional": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Optional display name for the alias.",
+        "optional": true
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "Optional note stored on the alias.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "alias_update",
+    "description": "Update alias note, name, mailboxes, PGP, or pinned state.",
+    "arguments": [
+      {
+        "name": "alias_id",
+        "type": "integer",
+        "desc": "Numeric id of the alias to update."
+      },
+      {
+        "name": "disable_pgp",
+        "type": "boolean",
+        "desc": "Disable PGP on this alias even if a mailbox supports it.",
+        "optional": true
+      },
+      {
+        "name": "mailbox_id",
+        "type": "integer",
+        "desc": "Set a single owning mailbox by id, replacing current alias mailbox routing.",
+        "optional": true
+      },
+      {
+        "name": "mailbox_ids",
+        "type": "array",
+        "items": {
+          "type": "integer"
+        },
+        "desc": "Replace the full set of owning mailboxes by id.",
+        "optional": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Replace the alias display name.",
+        "optional": true
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "Replace the alias note.",
+        "optional": true
+      },
+      {
+        "name": "pinned",
+        "type": "boolean",
+        "desc": "Pin or unpin the alias.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "alias_delete",
+    "description": "Permanently delete an alias after confirm=true.",
+    "arguments": [
+      {
+        "name": "alias_id",
+        "type": "integer",
+        "desc": "Numeric id of the alias to delete."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Must be set to true to confirm this permanent, irreversible deletion."
+      }
+    ]
+  },
+  {
+    "name": "alias_set_enabled",
+    "description": "Set an alias enabled or disabled without deleting it.",
+    "arguments": [
+      {
+        "name": "alias_id",
+        "type": "integer",
+        "desc": "Numeric id of the alias to update."
+      },
+      {
+        "name": "enabled",
+        "type": "boolean",
+        "desc": "Desired state: true to enable the alias, false to disable it."
+      }
+    ]
+  },
+  {
+    "name": "alias_options_get",
+    "description": "Get custom-alias creation options and signed suffixes.",
+    "arguments": [
+      {
+        "name": "hostname",
+        "type": "string",
+        "desc": "Website hostname to tailor the prefix suggestion.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "alias_domains_list",
+    "description": "List domains usable for alias creation."
+  },
+  {
+    "name": "contact_list",
+    "description": "List contacts and reverse aliases for one alias.",
+    "arguments": [
+      {
+        "name": "alias_id",
+        "type": "integer",
+        "desc": "Numeric id of the alias whose contacts to list."
+      },
+      {
+        "name": "page_id",
+        "type": "integer",
+        "desc": "Zero-based page number; 20 contacts per page. Defaults to 0.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "contact_create",
+    "description": "Create or reuse a reverse alias for a recipient.",
+    "arguments": [
+      {
+        "name": "alias_id",
+        "type": "integer",
+        "desc": "Numeric id of the alias to create the contact on."
+      },
+      {
+        "name": "contact",
+        "type": "string",
+        "desc": "Recipient address, optionally with a display name: \"Name <addr@example.com>\"."
+      }
+    ]
+  },
+  {
+    "name": "contact_set_blocked",
+    "description": "Set whether forwarding from a contact is blocked.",
+    "arguments": [
+      {
+        "name": "alias_id",
+        "type": "integer",
+        "desc": "Numeric id of the alias the contact belongs to."
+      },
+      {
+        "name": "blocked",
+        "type": "boolean",
+        "desc": "Desired state: true to block forwarding from the contact, false to allow it."
+      },
+      {
+        "name": "contact_id",
+        "type": "integer",
+        "desc": "Numeric id of the contact to block or unblock."
+      }
+    ]
+  },
+  {
+    "name": "contact_delete",
+    "description": "Permanently delete a contact after confirm=true.",
+    "arguments": [
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Must be set to true to confirm this permanent, irreversible deletion."
+      },
+      {
+        "name": "contact_id",
+        "type": "integer",
+        "desc": "Numeric id of the contact to delete."
+      }
+    ]
+  },
+  {
+    "name": "mailbox_list",
+    "description": "List account mailboxes and verification/default state."
+  },
+  {
+    "name": "mailbox_create",
+    "description": "Add a mailbox and send its verification email.",
+    "arguments": [
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "Address of the new mailbox; it receives the verification email."
+      }
+    ]
+  },
+  {
+    "name": "mailbox_update",
+    "description": "Set a default mailbox, start an email change, or cancel one.",
+    "arguments": [
+      {
+        "name": "mailbox_id",
+        "type": "integer",
+        "desc": "Numeric id of the mailbox to update."
+      },
+      {
+        "name": "cancel_email_change",
+        "type": "boolean",
+        "desc": "Cancel a pending email change on this mailbox.",
+        "optional": true
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "New address for the mailbox; the change is pending until verified.",
+        "optional": true
+      },
+      {
+        "name": "set_default",
+        "type": "boolean",
+        "desc": "Make this mailbox the account default. The mailbox must be verified.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "mailbox_delete",
+    "description": "Permanently delete a mailbox after explicit alias handling.",
+    "arguments": [
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Must be set to true to confirm this permanent, irreversible deletion."
+      },
+      {
+        "name": "mailbox_id",
+        "type": "integer",
+        "desc": "Numeric id of the mailbox to delete."
+      },
+      {
+        "name": "delete_aliases",
+        "type": "boolean",
+        "desc": "Explicitly acknowledge that the owned aliases are deleted with the mailbox.",
+        "optional": true
+      },
+      {
+        "name": "transfer_aliases_to",
+        "type": "integer",
+        "desc": "Id of a different verified mailbox that takes over the owned aliases.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "custom_domain_list",
+    "description": "List custom domains and their settings."
+  },
+  {
+    "name": "custom_domain_update",
+    "description": "Update supported custom-domain routing and display settings.",
+    "arguments": [
+      {
+        "name": "custom_domain_id",
+        "type": "integer",
+        "desc": "Numeric id of the custom domain to update."
+      },
+      {
+        "name": "catch_all",
+        "type": "boolean",
+        "desc": "Auto-create an alias when mail arrives for an unknown address on the domain; false disables that catch-all routing.",
+        "optional": true
+      },
+      {
+        "name": "mailbox_ids",
+        "type": "array",
+        "items": {
+          "type": "integer"
+        },
+        "desc": "Replace the full set of mailboxes that receive the domain's mail, by id.",
+        "optional": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Display name used as the From name for the domain's aliases; null clears it.",
+        "optional": true
+      },
+      {
+        "name": "random_prefix_generation",
+        "type": "boolean",
+        "desc": "Use a random prefix instead of the address when auto-creating aliases.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "custom_domain_trash_list",
+    "description": "List deleted aliases remembered for one custom domain.",
+    "arguments": [
+      {
+        "name": "custom_domain_id",
+        "type": "integer",
+        "desc": "Numeric id of the custom domain whose trash to list."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum deleted aliases to return; defaults to 100.",
+        "optional": true
+      },
+      {
+        "name": "page_id",
+        "type": "integer",
+        "desc": "Zero-based page number; defaults to 0.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "account_get_info",
+    "description": "Get user info and validate the configured API key."
+  },
+  {
+    "name": "account_get_stats",
+    "description": "Get lifetime account counters."
+  },
+  {
+    "name": "notification_list",
+    "description": "List account notifications unread first.",
+    "arguments": [
+      {
+        "name": "page_id",
+        "type": "integer",
+        "desc": "Zero-based page number; 20 notifications per page. Defaults to 0.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "notification_mark_read",
+    "description": "Mark one notification as read.",
+    "arguments": [
+      {
+        "name": "notification_id",
+        "type": "integer",
+        "desc": "Numeric id of the notification to mark as read."
+      }
+    ]
+  },
+  {
+    "name": "settings_get",
+    "description": "Get account-wide alias settings."
+  },
+  {
+    "name": "settings_update",
+    "description": "Update supported account-wide alias settings.",
+    "arguments": [
+      {
+        "name": "alias_generator",
+        "type": "string",
+        "desc": "Address style for random aliases: \"word\" (word-based) or \"uuid\".",
+        "optional": true
+      },
+      {
+        "name": "notification",
+        "type": "boolean",
+        "desc": "Whether SimpleLogin sends the user email notifications.",
+        "optional": true
+      },
+      {
+        "name": "random_alias_default_domain",
+        "type": "string",
+        "desc": "Domain used for random aliases; one of the domains from alias_domains_list.",
+        "optional": true
+      },
+      {
+        "name": "random_alias_suffix",
+        "type": "string",
+        "desc": "Suffix style for random and on-the-fly aliases: \"word\" (dictionary word) or \"random_string\".",
+        "optional": true
+      },
+      {
+        "name": "sender_format",
+        "type": "string",
+        "desc": "How the original sender appears in forwarded mail. For john@wick.com (\"John Wick\"): AT = \"John Wick - john at wick.com\", A = \"John Wick - john(a)wick.com\", NAME_ONLY = \"John Wick\", AT_ONLY = \"john at wick.com\", NO_NAME = no sender shown.",
+        "optional": true
+      }
+    ]
+  }
+]
