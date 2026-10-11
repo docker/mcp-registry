@@ -4,6 +4,12 @@ set -e
 pr_number="$1"
 repository="$2"
 
+# Required check prefixes that must exist and pass before auto-merge.
+# The security review check is posted by a private repo after a dispatch delay
+# (typically 60-90s). Without this gate, the script could see "all checks green"
+# before the security review check is even created.
+REQUIRED_CHECK_PREFIXES=("security-review/")
+
 # Get all check runs for the PR's head SHA
 head_sha=$(gh pr view "$pr_number" --json headRefOid --jq '.headRefOid')
 
@@ -20,6 +26,18 @@ if [ "$total_checks" -eq 0 ]; then
   echo "skip=true" >> "$GITHUB_OUTPUT"
   exit 0
 fi
+
+# Verify all required checks exist
+for prefix in "${REQUIRED_CHECK_PREFIXES[@]}"; do
+  match=$(echo "$check_runs" | jq -r --arg p "$prefix" '[.[] | select(.name | startswith($p))] | length')
+  if [ "$match" -eq 0 ]; then
+    echo "Required check with prefix '$prefix' has not been created yet."
+    echo "Will retry when it appears."
+    echo "skip=true" >> "$GITHUB_OUTPUT"
+    exit 0
+  fi
+  echo "Required check prefix '$prefix' found ($match match(es))"
+done
 
 # Check if any checks failed
 failed_checks=$(echo "$check_runs" | jq -r '.[] | select(.conclusion != "success" and .conclusion != "skipped" and .conclusion != null) | .name')
