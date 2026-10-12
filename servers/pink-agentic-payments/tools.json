@@ -1,0 +1,63 @@
+[
+  {
+    "name": "pink.get_budget",
+    "description": "What this agent may still spend: monthly budget left, spent today, single-payment cap, vault balances, company daily ceiling.",
+    "arguments": []
+  },
+  {
+    "name": "pink.list_payees",
+    "description": "Suppliers, platforms and contractors this company has approved. Paying anyone else stops and asks a person.",
+    "arguments": []
+  },
+  {
+    "name": "pink.list_rules",
+    "description": "The policy rules that apply to this agent, in evaluation order. First match decides: allow, ask, or block.",
+    "arguments": []
+  },
+  {
+    "name": "pink.check_policy",
+    "description": "Dry run. Returns would_allow / would_ask / would_block with the rule and the full decision trace. Nothing is spent or held.",
+    "arguments": [
+      { "name": "payee_id", "type": "string", "desc": "Id from pink.list_payees. Omit for a payee not on the list." },
+      { "name": "payee_name", "type": "string", "desc": "Name of the payee. Required if payee_id is omitted." },
+      { "name": "amount", "type": "number", "desc": "Amount in the payment currency" },
+      { "name": "currency", "type": "string", "desc": "USD, EUR, GBP, HKD, SGD, or JPY" },
+      { "name": "purpose", "type": "string", "desc": "What this payment is for, in one line (shown to approvers)" },
+      { "name": "reason", "type": "string", "desc": "Why you are making it now (shown to approvers)" },
+      { "name": "evidence", "type": "array", "desc": "References you can attach: PO number, invoice id, ticket id, statement id, photos" },
+      { "name": "evidence_flags", "type": "array", "desc": "Structured evidence/signal flags" },
+      { "name": "local_hour", "type": "number", "desc": "Dry run only: simulate this hour of day (0-23)" }
+    ]
+  },
+  {
+    "name": "pink.request_payment",
+    "description": "The real call. Returns allowed with a single-use credential, pending_human with a hold_id while a person is asked, or blocked with the reason.",
+    "arguments": [
+      { "name": "payee_id", "type": "string", "desc": "Id from pink.list_payees. Omit for a payee not on the list." },
+      { "name": "payee_name", "type": "string", "desc": "Name of the payee. Required if payee_id is omitted." },
+      { "name": "amount", "type": "number", "desc": "Amount in the payment currency" },
+      { "name": "currency", "type": "string", "desc": "USD, EUR, GBP, HKD, SGD, or JPY" },
+      { "name": "purpose", "type": "string", "desc": "What this payment is for, in one line" },
+      { "name": "reason", "type": "string", "desc": "Why you are making it now" },
+      { "name": "evidence", "type": "array", "desc": "References you can attach" },
+      { "name": "evidence_flags", "type": "array", "desc": "Structured evidence/signal flags" },
+      { "name": "local_hour", "type": "number", "desc": "Dry run only" },
+      { "name": "idempotency_key", "type": "string", "desc": "Unique string per payment attempt so retries are safe" }
+    ]
+  },
+  {
+    "name": "pink.get_credential",
+    "description": "Check a pending payment. When a person approves, this returns the credential. Also works for any payment_id.",
+    "arguments": [
+      { "name": "hold_id", "type": "string", "desc": "The hold_id / payment_id returned by pink.request_payment" }
+    ]
+  },
+  {
+    "name": "pink.report_receipt",
+    "description": "After paying, file the receipt or invoice so the payment is reconciled.",
+    "arguments": [
+      { "name": "payment_id", "type": "string", "desc": "" },
+      { "name": "receipt", "type": "object", "desc": "merchant, total, currency, reference, url, note" }
+    ]
+  }
+]
