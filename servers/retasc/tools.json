@@ -1,0 +1,1037 @@
+[
+  {
+    "name": "whoami",
+    "description": "Return the calling identity (agent/human), its org, and the project this API key is scoped to."
+  },
+  {
+    "name": "accept_invite",
+    "description": "Join YOUR HUMAN to an org that invited them (RTSC-686). Takes the org's slug or name, as they'd say it. Only sees invites ADDRESSED to your principal \u2014 a link somebody pasted you is opened in a browser instead, because the code is a bearer token and this tool never holds one. Authorized by the id match, so the human's consent is you asking them first: never call this unprompted. It grants THEM a membership and grants YOU nothing \u2014 your key stays scoped to its own org and project afterwards. `whoami` lists what's waiting.",
+    "arguments": [
+      {
+        "name": "org",
+        "type": "string",
+        "desc": "The org's slug or name, from whoami's pendingInvites."
+      }
+    ]
+  },
+  {
+    "name": "list_members",
+    "description": "List members (humans + agents) in the org \u2014 the 'users' issues and comments are attributed to. Optionally filter by name. Each carries `status`: `active`, `suspended` (a person) or `retired` (an agent). Retired and suspended members stay listed because past work is attributed to them, so check `status` before treating a name as someone who can act.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Filter by member name (partial).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "invite_member",
+    "description": "Invite a PERSON into your org, on behalf of YOUR human (RTSC-724) \u2014 mints an invite code and, if you pass an email, sends it. Removes the browser round trip: adding a teammate no longer means opening the Dash. Authorized through your human principal, who must be an active owner or admin; an ordinary member's agent, or a key with no principal, is refused. Joining is a consent act and the invite is a bearer token, so NEVER call this unprompted \u2014 your human names the person and you relay it. The invite is always to YOUR org \u2014 that comes from your key, not from you. What you choose is which PROJECTS inside it the invitee may reach: leave `projectIds` out and they get just THIS folder's project (the safe default, and usually the right one); pass `projectIds` (from list_projects) for one or several; pass `allProjects: true` for the whole org, now and as it grows. CALL IT WITH NO ARGUMENTS FIRST: it returns the QUESTIONS to put to your human, as data with exact options \u2014 which projects, how to deliver it, and whether it is for someone they already work with. Ask those, then call again with their answers plus `decided: true`. Do not skip the questions and do not author your own: \"everyone on everything\" and \"this one project\" are very different grants. Passing both `projectIds` and `allProjects` is rejected rather than guessed. Returns the raw code ONCE \u2014 it's stored only as a hash, and anyone holding it can redeem it, so hand it to your human rather than pasting it anywhere it persists. If you gave an email, they already have it and you do not need to repeat it. If you addressed it to somebody your human already works with, the invite is mailed to the address Retasc already holds for them (RTSC-772) \u2014 never go hunting for one, and never ask your human for an address you were not offered. The invitee joins as a member; owner invites are not self-serve. It grants YOU nothing \u2014 your key stays scoped to its own org and project afterwards. Reversible: an owner can revoke it from the Dash, and it expires on its own.",
+    "arguments": [
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "Send the invite to this address. Omit to mint an unaddressed link you hand over yourself.",
+        "optional": true
+      },
+      {
+        "name": "projectIds",
+        "type": "array",
+        "desc": "Project ids (from list_projects) the invitee may reach \u2014 one or several. OMIT = just this folder's project.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "allProjects",
+        "type": "boolean",
+        "desc": "Grant every project in the org, now and as it grows. Cannot be combined with projectIds.",
+        "optional": true
+      },
+      {
+        "name": "expiresInDays",
+        "type": "number",
+        "desc": "How long the code stays live. Default 7, max 30.",
+        "optional": true
+      },
+      {
+        "name": "inviteeUserId",
+        "type": "string",
+        "desc": "Address it to a person, so THEIR agent tells them and they can accept without opening anything \u2014 and, unless your human asked for the link instead, so the invite is mailed to the address Retasc already holds for them. Only a value offered by this tool's own question \u2014 never one you looked up or guessed.",
+        "optional": true
+      },
+      {
+        "name": "decided",
+        "type": "boolean",
+        "desc": "You have put the questions to your human and carry their answers. Without this the tool returns the questions instead of minting.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "list_invites",
+    "description": "Invites minted for your org \u2014 pending, accepted, revoked and expired \u2014 so you can see what is outstanding and get the id `revoke_invite` needs (RTSC-729). Owner or admin, through your human principal. NEVER returns the invite code: codes are bearer tokens stored only as hashes, and `displayPrefix` is the handle for telling two apart. `mintedByAgent` says whether an agent minted it rather than a person on the Dash."
+  },
+  {
+    "name": "revoke_invite",
+    "description": "Kill an invite before anyone uses it (RTSC-729) \u2014 the undo for invite_member, so a mis-sent invite does not need a human at the Dash. Owner or admin, through your human principal. `inviteId` comes from list_invites. An ALREADY-ACCEPTED invite is refused: revoking does nothing once someone is in, and suspend_member removes the person instead. An invite from another org is NOT_FOUND. Safe to call twice.",
+    "arguments": [
+      {
+        "name": "inviteId",
+        "type": "string",
+        "desc": "Invite id from list_invites."
+      }
+    ]
+  },
+  {
+    "name": "suspend_member",
+    "description": "Offboard a PERSON from the org (owner or admin): hides the org from them and drops them from every read/act gate, while KEEPING their row so their past work stays attributed. Cascade-RETIRES the agents they run (terminal \u2014 those agent keys are revoked, strays deleted), so no one keeps acting on their behalf. Reversible for the person via reactivate_member (they re-auth via GitHub). For an AGENT, use retire_member instead \u2014 suspending an agent is rejected. Authorized through YOUR human principal, who must be an active owner or admin. An ADMIN may offboard ordinary members only \u2014 an owner or a peer admin is refused. `memberId` from list_members/whoami. Refuses suspending yourself or the last active owner; a member from another org is NOT_FOUND.",
+    "arguments": [
+      {
+        "name": "memberId",
+        "type": "string",
+        "desc": "PERSON member id to suspend (from list_members)."
+      }
+    ]
+  },
+  {
+    "name": "reactivate_member",
+    "description": "Reactivate a suspended PERSON (owner or admin) \u2014 restores org visibility + their prior role. Rejects an AGENT (retire is terminal \u2014 there's nothing to reactivate). Authorized through your human principal; an admin may reactivate ordinary members only, never a suspended owner or admin. `memberId` from list_members/whoami.",
+    "arguments": [
+      {
+        "name": "memberId",
+        "type": "string",
+        "desc": "PERSON member id to reactivate (from list_members)."
+      }
+    ]
+  },
+  {
+    "name": "retire_member",
+    "description": "Retire an AGENT \u2014 the terminal offboard (owner or admin): revokes its API keys, releases its live claim, removes it from the roster. An agent is its key, and a revoked key can't be un-revoked, so this is one-way (no reactivate). Keeps the row hidden for attribution if the agent ever did work; hard-deletes it if it never authenticated (a pure stray mint). For a PERSON use suspend_member instead \u2014 retiring a human is rejected. Authorized through your human principal; an agent carries its principal's authority, so an admin is refused an owner's or a peer admin's agent. `memberId` from list_members/whoami; a member from another org is NOT_FOUND.",
+    "arguments": [
+      {
+        "name": "memberId",
+        "type": "string",
+        "desc": "AGENT member id to retire (from list_members)."
+      }
+    ]
+  },
+  {
+    "name": "next_issue",
+    "description": "Pull the next issue to work on, project-scoped \u2014 atomically claims the highest-priority unblocked issue and returns it with a claim_token. Dispatch is NOT todo-only (RTSC-257): a `review` \u2014 finished work awaiting acceptance \u2014 is claimable work in its reviewer's lane and is handed out here too, ahead of a todo at equal rank, and it is never handed back to whoever submitted it. A todo claims into 'doing'; a review pick STAYS 'review' (the lease is on the review, so a release or a reclaim returns it to review, never to todo). Only WORK is dispatched: non-work issues (work:false \u2014 tracking containers like epics) are never handed out. LANE-SCOPED by default: a bare pull only hands you work assigned to your own human principal, or left unassigned (the shared free pool) \u2014 never another human's work. Pass allLanes:true to reach into the whole ready pool (e.g. an owner is away and their work should still move). If nothing is eligible, returns {issue:null, ready, otherLanes, blocked, claimed} so a stall is never silent \u2014 otherLanes>0 means \"nothing for you, but ready work is stranded in another human's lane\" (opt in with allLanes, or go unblock the owner), distinct from \"nothing anywhere\". In that case the response also carries `tellHuman`, a ready-to-relay sentence: PASS IT TO YOUR HUMAN and let them answer. Never report an empty queue while withholding it, and never claim across lanes on your own just because you saw it \u2014 the decision is theirs. When more than one issue is ready, the response also carries an advisory `wave`: a capped, peek-only list of the OTHER issues available now (not reserved) \u2014 claim them as a batch via next_batch ONLY if you'll run them concurrently. Keep the claim_token: you need it to release/heartbeat. The response includes `branch` (the authoritative `rtsc-NN/<slug>` to land this work under \u2014 the one identifier every runtime shares) and `activeClaims` (how many OTHER leases are live right now \u2014 a real fleet-concurrency signal). REQUIRED after claiming, BEFORE your first edit: never work in the shared checkout. Create an isolated git worktree for `branch` and work ONLY there \u2014 e.g. `git worktree add ../<repo>-rtsc-NN -b <branch> origin/main` (if it already exists, reuse it; substitute your repo's default base if it isn't `origin/main`). Another agent can start in this same checkout at any moment, and isolation cannot be retrofitted once you have edits in flight \u2014 a worktree costs a folder and a few seconds; a collision corrupts branches and mislabels work. Only skip if you positively know this environment is single-use and isolated (e.g. an ephemeral per-task container) \u2014 and even then a worktree is harmless. A fresh worktree contains only tracked files \u2014 no installed dependencies or build artifacts. Before your first build or test in it, run the repo's usual setup (whatever its docs or CI run on a fresh checkout). A wall of errors in files you didn't touch usually means deps are missing, not that the code is broken. Your claim is a LEASE, not a permanent assignment: it expires 30 minutes after you take it (the response carries the exact `claimExpiresAt`). Behind the `retasc` mcp-proxy, ONLY `heartbeat` and `checkpoint` renew it \u2014 nothing else does, not comments, not status updates, not reading the issue. With NO proxy, if your client echoes the `Mcp-Session-Id` we hand you at `initialize`, your own calls renew instead (RTSC-858): every call renews every claim THIS session took, a read as much as a write. Each renewal is a FULL reset to 30 minutes from that moment, so one call is enough however little was left. Before any stretch where you will not call Retasc for a while (a long test run, a build, waiting on CI), renew FIRST \u2014 prefer `checkpoint`, which renews AND records the handoff. If the lease lapses, a sweep returns the issue to `todo` within minutes and another agent can claim it while you are still working on it. WHO RENEWS depends on your client, and only you can tell which case you are in. If you run the `retasc` mcp-proxy watchdog, it renews the claims IT SAW THIS SESSION MAKE, roughly every 10 minutes by default, for as long as that process is alive \u2014 long silent work is then genuinely safe and you need no per-claim heartbeats. Nothing renews a claim the proxy did not see (made in another terminal, over direct HTTP MCP, or by a previous proxy before a restart), and nothing renews once the proxy stops: those run on the bare 30-minute TTL and are yours to renew. With no watchdog and no session id echoed, every renewal is yours. With no watchdog but a session id, your own calls carry it, right up until your client RECONNECTS, which starts a new session and stops renewal for claims taken under the old one; `claim_issue` with your `claimToken` moves them onto the new session and renewal resumes. `check_claim` settles all of it: `renewedByYourCalls` says whether this session's calls are renewing that claim right now, and `lastRenewedAt` moving across a long stretch proves something is renewing you. If this call is refused for billing (BILLING_INACTIVE or MONTHLY_CAP_REACHED), the response carries `tellHuman`, a ready-to-relay sentence: PASS IT TO YOUR HUMAN. You cannot fix it yourself \u2014 only an owner can \u2014 so do NOT absorb the refusal and continue with read-only work as if the session were healthy; every value-bearing write will keep failing until they act.",
+    "arguments": [
+      {
+        "name": "allLanes",
+        "type": "boolean",
+        "desc": "Reach into the whole ready pool, including issues assigned to other humans (default false = only your own lane + unassigned).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "next_batch",
+    "description": "Wave dispatch for a fleet: return the top N eligible issues (todo + unclaimed + unblocked WORK \u2014 work:false containers are never included), effective-priority ordered, ready to run in PARALLEL (they're mutually independent by construction). Default mode peeks (no claim) so an orchestrator can plan, then claim the ones it fans out; pass claim:true to atomically claim all N now (each comes with a claim_token). LANE-SCOPED by default (your principal's lane + unassigned); pass allLanes:true to include other humans' work. Returns {issues, ready, otherLanes, blocked, claimed} \u2014 otherLanes counts ready work stranded in other lanes. When the wave comes back EMPTY and otherLanes>0, the response also carries `tellHuman`, a ready-to-relay sentence: PASS IT TO YOUR HUMAN and let them answer, rather than reporting an idle queue. Each returned issue carries its own `branch` (the authoritative `rtsc-NN/<slug>` every runtime agrees on); with claim:true each also carries its own claim_token. REQUIRED once you claim (claim:true), BEFORE the first edit on any of them: give EACH claimed issue its own git worktree, created from THAT issue's `branch` \u2014 e.g. `git worktree add ../<repo>-rtsc-NN -b <branch> origin/main` per issue (reuse one that already exists; substitute your repo's default base if it isn't `origin/main`). Never run two of these issues in the same checkout: a wave is exactly the case this protects, since agents sharing one HEAD/index land their edits on each other's branches. A peek (the default) claims nothing, so it needs no worktree until you claim. Another agent can start in this same checkout at any moment, and isolation cannot be retrofitted once you have edits in flight \u2014 a worktree costs a folder and a few seconds; a collision corrupts branches and mislabels work. Only skip if you positively know this environment is single-use and isolated (e.g. an ephemeral per-task container) \u2014 and even then a worktree is harmless. A fresh worktree contains only tracked files \u2014 no installed dependencies or build artifacts. Before your first build or test in it, run the repo's usual setup (whatever its docs or CI run on a fresh checkout). A wall of errors in files you didn't touch usually means deps are missing, not that the code is broken. Your claim is a LEASE, not a permanent assignment: it expires 30 minutes after you take it (the response carries the exact `claimExpiresAt`). Behind the `retasc` mcp-proxy, ONLY `heartbeat` and `checkpoint` renew it \u2014 nothing else does, not comments, not status updates, not reading the issue. With NO proxy, if your client echoes the `Mcp-Session-Id` we hand you at `initialize`, your own calls renew instead (RTSC-858): every call renews every claim THIS session took, a read as much as a write. Each renewal is a FULL reset to 30 minutes from that moment, so one call is enough however little was left. Before any stretch where you will not call Retasc for a while (a long test run, a build, waiting on CI), renew FIRST \u2014 prefer `checkpoint`, which renews AND records the handoff. If the lease lapses, a sweep returns the issue to `todo` within minutes and another agent can claim it while you are still working on it. WHO RENEWS depends on your client, and only you can tell which case you are in. If you run the `retasc` mcp-proxy watchdog, it renews the claims IT SAW THIS SESSION MAKE, roughly every 10 minutes by default, for as long as that process is alive \u2014 long silent work is then genuinely safe and you need no per-claim heartbeats. Nothing renews a claim the proxy did not see (made in another terminal, over direct HTTP MCP, or by a previous proxy before a restart), and nothing renews once the proxy stops: those run on the bare 30-minute TTL and are yours to renew. With no watchdog and no session id echoed, every renewal is yours. With no watchdog but a session id, your own calls carry it, right up until your client RECONNECTS, which starts a new session and stops renewal for claims taken under the old one; `claim_issue` with your `claimToken` moves them onto the new session and renewal resumes. `check_claim` settles all of it: `renewedByYourCalls` says whether this session's calls are renewing that claim right now, and `lastRenewedAt` moving across a long stretch proves something is renewing you. If this call is refused for billing (BILLING_INACTIVE or MONTHLY_CAP_REACHED), the response carries `tellHuman`, a ready-to-relay sentence: PASS IT TO YOUR HUMAN. You cannot fix it yourself \u2014 only an owner can \u2014 so do NOT absorb the refusal and continue with read-only work as if the session were healthy; every value-bearing write will keep failing until they act.",
+    "arguments": [
+      {
+        "name": "n",
+        "type": "number",
+        "desc": "How many to return (default 5, max 25).",
+        "optional": true
+      },
+      {
+        "name": "claim",
+        "type": "boolean",
+        "desc": "Atomically claim all returned issues now (default false = peek).",
+        "optional": true
+      },
+      {
+        "name": "allLanes",
+        "type": "boolean",
+        "desc": "Include issues assigned to other humans (default false = only your own lane + unassigned).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "claim_issue",
+    "description": "Claim one specific issue by id (instead of letting next_issue pick). Fails if it's already held (active lease), blocked, non-work (work:false \u2014 tracking containers aren't claimable), or in a status that isn't todo, doing or review. A `review` IS claimable, and claiming one is how a reviewer takes the work (RTSC-257): the issue stays in `review`, and accepting it later with `save_issue status:\"done\"` is REFUSED unless you hold that lease (CLAIM_REQUIRED). You cannot claim the review of work you submitted yourself (AUTHOR_CANNOT_REVIEW). Returns a claim_token. ALSO THE RESUME DOOR: if you were restarted or /resume'd, your client may have started a NEW session, in which case the server sees a different session holding your issue and `done` fails with CLAIM_MISMATCH. You don't have to wait out the lease or give the work back \u2014 call this with the `claimToken` you were given before the restart and the lease moves onto your new session (a fresh token, `rebound: true`, status and progress untouched; if THIS session already held it, nothing moves, the same token comes back with `renewedOnly: true`, and it costs a heartbeat). The response includes `branch` (the authoritative `rtsc-NN/<slug>` to land this work under \u2014 the one identifier every runtime shares) and `activeClaims` (how many OTHER leases are live right now \u2014 a real fleet-concurrency signal). REQUIRED after claiming, BEFORE your first edit: never work in the shared checkout. Create an isolated git worktree for `branch` and work ONLY there \u2014 e.g. `git worktree add ../<repo>-rtsc-NN -b <branch> origin/main` (if it already exists, reuse it; substitute your repo's default base if it isn't `origin/main`). Another agent can start in this same checkout at any moment, and isolation cannot be retrofitted once you have edits in flight \u2014 a worktree costs a folder and a few seconds; a collision corrupts branches and mislabels work. Only skip if you positively know this environment is single-use and isolated (e.g. an ephemeral per-task container) \u2014 and even then a worktree is harmless. A fresh worktree contains only tracked files \u2014 no installed dependencies or build artifacts. Before your first build or test in it, run the repo's usual setup (whatever its docs or CI run on a fresh checkout). A wall of errors in files you didn't touch usually means deps are missing, not that the code is broken. Your claim is a LEASE, not a permanent assignment: it expires 30 minutes after you take it (the response carries the exact `claimExpiresAt`). Behind the `retasc` mcp-proxy, ONLY `heartbeat` and `checkpoint` renew it \u2014 nothing else does, not comments, not status updates, not reading the issue. With NO proxy, if your client echoes the `Mcp-Session-Id` we hand you at `initialize`, your own calls renew instead (RTSC-858): every call renews every claim THIS session took, a read as much as a write. Each renewal is a FULL reset to 30 minutes from that moment, so one call is enough however little was left. Before any stretch where you will not call Retasc for a while (a long test run, a build, waiting on CI), renew FIRST \u2014 prefer `checkpoint`, which renews AND records the handoff. If the lease lapses, a sweep returns the issue to `todo` within minutes and another agent can claim it while you are still working on it. WHO RENEWS depends on your client, and only you can tell which case you are in. If you run the `retasc` mcp-proxy watchdog, it renews the claims IT SAW THIS SESSION MAKE, roughly every 10 minutes by default, for as long as that process is alive \u2014 long silent work is then genuinely safe and you need no per-claim heartbeats. Nothing renews a claim the proxy did not see (made in another terminal, over direct HTTP MCP, or by a previous proxy before a restart), and nothing renews once the proxy stops: those run on the bare 30-minute TTL and are yours to renew. With no watchdog and no session id echoed, every renewal is yours. With no watchdog but a session id, your own calls carry it, right up until your client RECONNECTS, which starts a new session and stops renewal for claims taken under the old one; `claim_issue` with your `claimToken` moves them onto the new session and renewal resumes. `check_claim` settles all of it: `renewedByYourCalls` says whether this session's calls are renewing that claim right now, and `lastRenewedAt` moving across a long stretch proves something is renewing you. If this call is refused for billing (BILLING_INACTIVE or MONTHLY_CAP_REACHED), the response carries `tellHuman`, a ready-to-relay sentence: PASS IT TO YOUR HUMAN. You cannot fix it yourself \u2014 only an owner can \u2014 so do NOT absorb the refusal and continue with read-only work as if the session were healthy; every value-bearing write will keep failing until they act.",
+    "arguments": [
+      {
+        "name": "identifier",
+        "type": "string",
+        "desc": "e.g. XEN-12"
+      },
+      {
+        "name": "claimToken",
+        "type": "string",
+        "desc": "ONLY to resume your own claim after a restart: the claim_token from before, which moves that live lease onto this session. Omit when claiming new work. It proves you are the same agent continuing \u2014 a session that never held the issue doesn't have it, and it can never move a claim to a different agent.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "release_issue",
+    "description": "Give a claimed issue back to the queue (reverts to todo). Pass the claim_token when you have it. Lost it (crash, dropped field, a context summary)? Omit it \u2014 the SAME session that claimed the issue is still recognized and this still goes through, unless the claim was taken over a shared workspace key with no per-session key, which always needs the real claim_token. Your comments + checkpoint stay so the next agent resumes. Pass `note` to record a final handoff checkpoint (done so far / next steps / gotchas).",
+    "arguments": [
+      {
+        "name": "identifier",
+        "type": "string",
+        "desc": "Issue identifier, e.g. ABC-123"
+      },
+      {
+        "name": "claimToken",
+        "type": "string",
+        "desc": "Proves you hold the lease. Omit only if you've lost it (RTSC-758).",
+        "optional": true
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "Optional final handoff checkpoint for the next agent.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "checkpoint",
+    "description": "Record a handoff checkpoint on your claimed issue \u2014 what's done, what's next, gotchas, branch/artifacts. It SURVIVES release + reclaim, so if your lease lapses or you crash, the next agent (even a different runtime) resumes from here instead of restarting. Also renews your lease, exactly as `heartbeat` does (a full 30-minute reset from the moment it lands) \u2014 so this is the PREFERRED call at any long-silence boundary: same renewal, plus the note. Pass the claim_token when you have it; a same-session caller that lost it is still recognized (RTSC-758) unless the claim was taken over a bare shared workspace key, which always needs it.",
+    "arguments": [
+      {
+        "name": "identifier",
+        "type": "string",
+        "desc": "Issue identifier, e.g. ABC-123"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "Markdown: done so far / next steps / gotchas / branch."
+      },
+      {
+        "name": "claimToken",
+        "type": "string",
+        "desc": "Proves you hold the lease. Omit only if you've lost it (RTSC-758).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "heartbeat",
+    "description": "Extend your lease on a claimed issue during long-silent work. Pass the claim_token when you have it \u2014 the fast, unambiguous path. Lost it? Omit it: the same session that claimed the issue is still recognized (RTSC-758), unless the claim was taken over a bare shared workspace key with no per-session key, where identity can't tell callers apart and the real claim_token is still required. Returns the new expiry \u2014 a FULL reset, not a top-up: the lease becomes 30 minutes from the moment this call lands, whatever was left on it. PREFER `checkpoint` at long-silence boundaries: it renews identically AND leaves the handoff note that makes a reclaim recoverable. Use a bare heartbeat only when you have nothing worth recording yet. It cannot revive a lapsed lease: once expired you get CLAIM_LOST, even in the window before the sweep runs \u2014 lost-token recognition can't fix a lease that's actually gone.",
+    "arguments": [
+      {
+        "name": "identifier",
+        "type": "string",
+        "desc": "Issue identifier, e.g. ABC-123"
+      },
+      {
+        "name": "claimToken",
+        "type": "string",
+        "desc": "Proves you hold the lease. Omit only if you've lost it (RTSC-758).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "queue_status",
+    "description": "Diagnose the queue: counts by status, how many are ready to pull, deadline SLA pressure (`breaching`/`breached` counts over non-terminal issues), exactly what's dependency-blocked (and by what), and what's currently claimed (by whom, lease expiry, and `lastRenewedAt` \u2014 a claim whose lastRenewedAt never moves is one nobody is renewing, running on the bare TTL)."
+  },
+  {
+    "name": "report_worktrees",
+    "description": "MACHINE TOOL \u2014 your mcp-proxy calls this on its own; an agent never needs to. It reports git worktrees on `rtsc-NN/<slug>` branches that exist on this machine and that no live claim covers, so Retasc can SEE work somebody started without claiming it (RTSC-962). The server never reads git; the local proxy does, and reports. Each reported issue gets a PROVISIONAL HOLD: it becomes visible on `get_issue` / `list_issues` as `hold`, and automatic dispatch (`next_issue` / `next_batch`) withholds it, exactly as it skips another human's lane. A hold is NOT a lease \u2014 it has no token, `heartbeat`/`checkpoint`/`done` do not accept it, `check_claim` reports it as not held, and it lapses 60 minutes after the last report. Nothing refuses an explicit `claim_issue`: a named claim from ANY session converts the hold into a real claim, which is how the agent that forgot to claim gets its work back. Ignores anything already claimed, terminal, `work:false`, or outside this key's project.",
+    "arguments": [
+      {
+        "name": "worktrees",
+        "type": "array",
+        "desc": "The `rtsc-NN/<slug>` worktrees seen on this machine with no live claim on them.",
+        "items": {
+          "type": "object"
+        }
+      }
+    ]
+  },
+  {
+    "name": "check_claim",
+    "description": "Does THIS session hold an issue? The session-aware companion to the commit gate: before committing or opening a PR on a `rtsc-NN/` branch, verify your session actually holds RTSC-NN so you can't mislabel work another session holds. Returns {youHold, status, expiresAt, lastRenewedAt, heldBy}: status is held | unclaimed | expired | other_session | unknown_session; `heldBy` names the real holder (principal/runtime/session) when it's not you. `lastRenewedAt` is when the lease was last renewed (by you or by a watchdog proxy on your behalf) and `expiresAt` is always exactly 30 minutes after it \u2014 call this twice across a long stretch and a lastRenewedAt that moved is proof something is renewing you; one frozen at claim time means nothing is, and the issue will be reclaimed mid-work. `renewedByYourCalls` answers the same question directly for a no-proxy session: true means your own calls to Retasc are renewing THIS claim, so you need no separate `heartbeat` while you keep working. It goes false after a reconnect (a new session id means the claim still names your old session), so re-claim with your `claimToken` to move it across. It is `null` where your calls cannot renew anything (behind the `retasc` proxy, or with no session id): read `lastRenewedAt` there. Whether to re-claim is `reclaimWouldMove`: `true` means `claim_issue` with your `claimToken` would move this lease onto you, `false` means it would change nothing. Re-claim only on `true`. This call is the one tool that never renews anything, so it can't fake either answer. A status of `other_session` is NOT always someone else: if you were restarted or /resume'd, your client may have started a NEW session and the holder named in `heldBy` is your own former one. You still have that lease's claim_token \u2014 pass it to `claim_issue` to move the lease onto this session, then carry on. Read-only.",
+    "arguments": [
+      {
+        "name": "identifier",
+        "type": "string",
+        "desc": "e.g. RTSC-49"
+      }
+    ]
+  },
+  {
+    "name": "usage_summary",
+    "description": "Usage METER for the org \u2014 activity volume, not a bill. Returns reads, writes, the read:write ratio, the rate card, and TWO distinct money figures: `lifetimeMeteredEstimateUsd` (ALL-TIME activity across every payment link, repriced at today's rate card \u2014 includes never-billable usage and diverges from what was historically booked; a diagnostic, NOT an amount owed) and `pendingUsd` (what the org actually owes right now \u2014 the current subscription's uncharged accrual, the same figure the Dash's PENDING shows). For the full picture \u2014 subscription, charges and on-chain payments across every link \u2014 use `billing_summary`. Reading the meter is not charged. `capped: true` means a read bound was hit and every volume and money figure is a LOWER BOUND rather than a total \u2014 normally false, true only while a large org's rollup backfill is still catching up."
+  },
+  {
+    "name": "billing_summary",
+    "description": "The org's whole billing picture in one call (owner authority required for the billing block): subscription status + spending caps, money now (pending / outstanding / charged / collected / credit), the charge ledger, and CONFIRMED ON-CHAIN PAYMENTS \u2014 both fanned across EVERY subscription/payment link the org has ever used, so changing payment link never hides prior history. Payments come from Xenarch's authoritative records (live read; degrades to `payments: null` + `paymentsError` if Xenarch is unreachable). Also returns the usage meter (lifetime estimate + what's actually pending). A key without owner authority \u2014 an agent whose principal isn't an owner, or a non-owner member \u2014 gets the usage meter only, with a `note`. Reading billing is not charged."
+  },
+  {
+    "name": "analytics_overview",
+    "description": "EVERY NUMBER THE DASH'S ANALYTICS PAGE SHOWS, as data, computed by the same code the page runs (so the two never disagree): shipped and its previous-window delta, autonomy (no review needed), the Pipeline (filed-in-window cohort, stage medians), a per-bucket series (shipped, time by phase, Retasc fee by outcome, labour, and who is behind each bucket), the Fleet table (per agent and runtime: finished, median work time, send-backs, reclaims, model, 7-day shape), the queue right now (ready, in flight, blocked, late, the issues blocking the most), review (lanes, waits, accept rate, untriaged intake), time and labour cost by phase and by change type, Retasc spend, the written findings, and the person roster. Use it when a human asks how their fleet or project is doing; build the chart yourself from what it returns. WINDOW: `days` (1, 7, 30 or 90 as on the page; default 30) or `from`+`to` (ISO 8601 or epoch ms, up to 366 days, within the last year), cut into calendar buckets in `tz` (default the org's zone). With no `maxBars` the window keeps its own unit (hours for 1 day, days for 7 and 30, weeks for 90), so \"last 30 days\" is the same window the Dash shows on a laptop; `maxBars` caps the bucket count, and a cap below that coarsens to wider buckets and snaps the window outward to whole ones. SCOPE: this key's own project by default. `project` (prefix or id) for another one, or `allProjects: true` for the whole org, ONLY when the key's principal is an owner or admin \u2014 a member's key asking for more is refused with FORBIDDEN. `person` (a member id from the `people` section) narrows to one human and their agents (owner/admin; a member's view is already their own). Money and the roster are owner/admin, as on the Dash. Every response carries `asOf`, `timezone`, the `window`, `units` and a one-line definition per metric. `sections` limits what is returned (summary, pipeline, series, fleet, queue, review, time, money, findings, people); `bucketFrom`+`bucketTo` add the per-issue card for one bucket when reading one person. Past the inline size cap it returns `page.cursor`: call again with the same arguments plus `cursor` for the rest. Billed as one read per call.",
+    "arguments": [
+      {
+        "name": "days",
+        "type": "number",
+        "desc": "Window length in days: 1, 7, 30 or 90 (any whole number 1-90). Default 30. Ignored when from/to are given.",
+        "optional": true
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "Custom window start, ISO 8601 or epoch ms. Pass with `to`.",
+        "optional": true
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "Custom window end, ISO 8601 or epoch ms. Pass with `from`.",
+        "optional": true
+      },
+      {
+        "name": "tz",
+        "type": "string",
+        "desc": "IANA timezone the buckets are cut in. Default: the org's timezone (UTC if unset).",
+        "optional": true
+      },
+      {
+        "name": "maxBars",
+        "type": "number",
+        "desc": "Most buckets the series may have (1-400). Default: no cap, so the window keeps its own unit, as on the Dash on a laptop. A smaller cap coarsens the buckets and widens the window to whole ones; it never makes a bucket finer than the window's unit.",
+        "optional": true
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Another project's prefix or id (owner/admin only). Default: this key's project.",
+        "optional": true
+      },
+      {
+        "name": "allProjects",
+        "type": "boolean",
+        "desc": "The whole org (owner/admin only).",
+        "optional": true
+      },
+      {
+        "name": "person",
+        "type": "string",
+        "desc": "Member id: one human plus their agents (owner/admin; or your own).",
+        "optional": true
+      },
+      {
+        "name": "sections",
+        "type": "array",
+        "desc": "Return only these sections. Default: all.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "bucketFrom",
+        "type": "string",
+        "desc": "With bucketTo and a person: the per-issue card for that bucket (a series row's from/to).",
+        "optional": true
+      },
+      {
+        "name": "bucketTo",
+        "type": "string",
+        "desc": "See bucketFrom.",
+        "optional": true
+      },
+      {
+        "name": "cursor",
+        "type": "string",
+        "desc": "From a previous page's `page.cursor`, with the same other arguments.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "analytics_issues",
+    "description": "THE PER-ISSUE FACTS BEHIND THE ANALYTICS NUMBERS, paged, for an agent building its own dashboard or checking a figure: identifier, title, project, status, changeType, createdAt, startedAt, claimedAt, reviewEnteredAt, completedAt, canceledAt, closedAt, assignedAt, completedBy, reviewSubmittedBy, assignee, assignedBy, claimedBy (each with name and, for an agent, its human principal), reclaimCount, runtime, model, and `costUsd` \u2014 the Retasc fee charged to calls naming that issue inside the window, from the same analytics rollups as the board (owner/admin only; null otherwise). `by` picks which timestamp places an issue in the window: completed (default), created or closed. Window and scope arguments are the same as `analytics_overview` (this key's project by default; another project or the whole org only for an owner/admin principal; a member's listing is their own slice, as on the Dash). Newest first. `limit` issues are scanned per page (default 100, max 200); a page can hold fewer, because issues outside your scope are skipped and the inline size cap can end it early. Follow `page.cursor` (same other arguments) until `page.done`. Billed as one read per call.",
+    "arguments": [
+      {
+        "name": "by",
+        "type": "string",
+        "desc": "Which timestamp places an issue in the window. Default completed.",
+        "optional": true
+      },
+      {
+        "name": "days",
+        "type": "number",
+        "desc": "Window length in days (1-90). Default 30.",
+        "optional": true
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "Custom window start, ISO 8601 or epoch ms. Pass with `to`.",
+        "optional": true
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "Custom window end, ISO 8601 or epoch ms. Pass with `from`.",
+        "optional": true
+      },
+      {
+        "name": "tz",
+        "type": "string",
+        "desc": "IANA timezone the window is snapped in. Default: the org's.",
+        "optional": true
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Another project's prefix or id (owner/admin only). Default: this key's project.",
+        "optional": true
+      },
+      {
+        "name": "allProjects",
+        "type": "boolean",
+        "desc": "The whole org (owner/admin only).",
+        "optional": true
+      },
+      {
+        "name": "person",
+        "type": "string",
+        "desc": "Member id: one human plus their agents (owner/admin; or your own).",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Issues scanned per page, 1-200. Default 100.",
+        "optional": true
+      },
+      {
+        "name": "cursor",
+        "type": "string",
+        "desc": "From a previous page's `page.cursor`, with the same other arguments.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "save_issue",
+    "description": "Create an issue (omit `identifier`) or update one (pass `identifier`, e.g. XEN-12). Only `title` is required to create. Setting status to `canceled` requires `cancelReason`, and MOVING AN ISSUE INTO `review` requires `handoff` unless it already carries a checkpoint \u2014 a finished-work claim has to say where the work is. `labels` replaces the issue's labels. CREATE requires FOUR declarations: (1) a dependency declaration \u2014 `blockedBy` (ids this depends on) OR `noDependency` (a one-line reason there are none); and (2) `work` \u2014 true if this is a unit an agent executes, false if it's a tracking container; and (3) `changeType` \u2014 which of the Conventional Commits types this change is, which is what the Cost page splits spend by; and (4) `reviewedSimilar` \u2014 the open look-alikes you have read, demanded only when there ARE any. A create missing any of them is rejected. The fourth CANNOT be filled in blind: it is a list of issue ids only the server produces. So if nothing looks like this work you never send it, and if something does the create is refused with `DUPLICATE_CHECK_REQUIRED` naming the candidates and you re-call with them \u2014 or you searched first with `list_issues`, name them yourself, and pass in ONE call. Read them before you name them: the gate proves you were shown them, not that you judged them right, and the cheapest issue to file is the one you don't file twice. If this call is refused for billing (BILLING_INACTIVE or MONTHLY_CAP_REACHED), the response carries `tellHuman`, a ready-to-relay sentence: PASS IT TO YOUR HUMAN. You cannot fix it yourself \u2014 only an owner can \u2014 so do NOT absorb the refusal and continue with read-only work as if the session were healthy; every value-bearing write will keep failing until they act.",
+    "arguments": [
+      {
+        "name": "identifier",
+        "type": "string",
+        "desc": "Existing issue ID to update; omit to create.",
+        "optional": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Required when creating.",
+        "optional": true
+      },
+      {
+        "name": "body",
+        "type": "string",
+        "desc": "Markdown spec: context, acceptance criteria, repro.",
+        "optional": true
+      },
+      {
+        "name": "priority",
+        "type": "number",
+        "desc": "0=None,1=Urgent,2=High,3=Medium,4=Low.",
+        "optional": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "`review` (RTSC-257) = work finished, pending human acceptance: it still BLOCKS dependents (unlike done) and releases your lease so a reviewer can claim it. `assignee` is REQUIRED on every write that LEAVES the issue in `review` (RTSC-347 + RTSC-400) \u2014 name the reviewer's human lane, an ACTIVE member who is a DIFFERENT principal than whoever submitted it (author \u2260 reviewer). It is a property of the STATE, not of the transition: it applies when you move an issue to review, when you CREATE one with `status:\"review\"`, and to any later write that changes a live review's assignee \u2014 including a write that names no `status` at all. So `assignee:\"\"` can't clear a live review's reviewer, and it can't be re-pointed at the submitter, at a suspended/retired member, or at a member nobody has ever signed in as (an unclaimed placeholder left behind by an import or a restore \u2014 RTSC-408): a review parked on a lane nobody can claim strands, non-terminal, blocking its dependents. To unassign, send it back first (`status:\"todo\"`). The reviewer's agent then promotes it (`status:done`, unblocks dependents) or sends it back (`status:todo` + a comment). Whether to use review is your team's convention; that it must be assigned is not. Entering `review` also requires `handoff` (RTSC-741) unless the issue already carries a checkpoint \u2014 see that field.",
+        "optional": true
+      },
+      {
+        "name": "dueAt",
+        "type": "number",
+        "desc": "Precise deadline as epoch milliseconds. SET IT WHENEVER THE PERSON ASKING NAMED A TIME \u2014 \"by Friday\", \"before the demo\", \"end of the month\" \u2014 converted to the instant they meant in their own timezone; a date said out loud and not recorded is a date the queue cannot act on. If the work is plainly time-bound and nobody said when, ASK, once, while you are filing it: a deadline added days later is a deadline that never dispatched. Omit only when there is genuinely no commitment \u2014 most work has none, and a guessed date is worse than none. It is not a label: dispatch derives an effective-priority FLOOR from it (RTSC-187) \u2014 past 75% of the window an issue sorts at least High, past 90% at least Urgent, past due above Urgent \u2014 and that floor inherits up the `blocks` chain, so a dated issue pulls its blockers up with it. Every read echoes the derived `slaState`, and the Dash cannot set a date anywhere: yours is the only hand that puts one on. Distinct from the day-granular import-only `dueDate` and from the claim lease TTL.",
+        "optional": true
+      },
+      {
+        "name": "work",
+        "type": "boolean",
+        "desc": "REQUIRED on create \u2014 you decide once. true = a unit an agent FINISHES by changing something: editing code/config/files, infrastructure (deploys, provisioning, env, DB/schema, CI/CD, DNS, services), writing/updating docs, running commands/migrations/scripts, fixing a bug, building a feature, refactoring, or a spike that ends in a concrete deliverable. false = it only ORGANIZES or TRACKS other issues and is never executed: epic, milestone, plan, roadmap, grouping \u2014 'done' only when its child work issues are. Test: to finish this, does an agent change files or systems? \u2192 true; just a container done when its children are? \u2192 false. work:false issues are readable but NEVER claimed by next_issue/next_batch/claim_issue.",
+        "optional": true
+      },
+      {
+        "name": "cancelReason",
+        "type": "string",
+        "desc": "Required when status=canceled.",
+        "optional": true
+      },
+      {
+        "name": "handoff",
+        "type": "string",
+        "desc": "The author's handoff, REQUIRED on the write that MOVES an issue into `review` (RTSC-741) and on a CREATE with status:\"review\" \u2014 unless the issue already carries a checkpoint, which IS the handoff and satisfies it. Say what you built and where it lives: branch, PR, commit. It is stored as the issue's checkpoint, so the next agent to claim it resumes from it instead of being handed your spec with no sign the work exists and building it a second time (which is what happened on 2026-08-25, twice in 25 minutes). Not validated for content \u2014 nothing here reads your branch or your CI; the requirement is only that the claim carries its evidence, exactly as `canceled` carries a cancelReason. Valid ONLY on that entry: passing it on any other write (including a re-save of an issue ALREADY in review) is rejected, not ignored, because a live review's checkpoint is protected by the claim. To revise the note on a review already submitted, use the `checkpoint` tool (it needs the claim_token), or send the issue back with status:\"todo\" and re-submit with a corrected handoff.",
+        "optional": true
+      },
+      {
+        "name": "labels",
+        "type": "array",
+        "desc": "Replaces all labels on the issue.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "assignee",
+        "type": "string",
+        "desc": "Responsible human (routing lane, distinct from claiming): a human member name, 'me', or '' to unassign. Optional for most statuses \u2014 unassigned issues stay in the global pull pool \u2014 but REQUIRED whenever the write leaves the issue in `review` (RTSC-347 + RTSC-400), including a CREATE with `status:\"review\"` (which records YOU as the submitter, so the assignee must be a different active principal). While an issue sits in `review`, '' does NOT unassign: clearing it, or naming the submitter's own principal, a suspended/retired member, or a placeholder nobody has signed in as (left by an import or a restore), is rejected even on a write that never mentions `status`. Send it back with `status:\"todo\"` first if you want it unassigned.",
+        "optional": true
+      },
+      {
+        "name": "blockedBy",
+        "type": "array",
+        "desc": "On create: issue ids this new one DEPENDS ON (e.g. ['RTSC-12']). Creates blocked_by links so the dependency graph drives dispatch.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "noDependency",
+        "type": "string",
+        "desc": "On create: a one-line reason this issue depends on nothing open. Use INSTEAD of blockedBy when independent \u2014 a positive 'I considered it' assertion.",
+        "optional": true
+      },
+      {
+        "name": "reviewedSimilar",
+        "type": "array",
+        "desc": "On create: the ids of the open look-alike issues you have READ (e.g. ['RTSC-959']). Send it only when there are any \u2014 a create with no look-alikes needs no acknowledgement and an empty list is never wrong. Retasc refuses a create while any open issue looks like the same or adjacent work \u2014 `DUPLICATE_CHECK_REQUIRED`, which names them \u2014 because duplicate work is the most expensive failure a fleet has, and it is the one thing the other three declarations never caught. Unlike `noDependency` this cannot be pre-filled blind: only the server produces these ids. Two ways through, both fine: file, read the refusal, re-call with the ids it named; or search with `list_issues` FIRST and name them yourself, which passes in one call. Unknown ids are ignored, the second call recomputes rather than trusting your list (so a look-alike filed in between is surfaced again), and this is valid ONLY on a create \u2014 passing it on an update is rejected. What to do with what you read: if one of them IS this work, do not create \u2014 comment on it or claim it; if one is adjacent, create and link it with `add_relation` after. A declared `blockedBy` also counts as having read that issue, but declare one only where the dependency is real \u2014 a blocks edge invented to clear this gate leaves the new issue undispatchable until the other one closes.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "changeType",
+        "type": "string",
+        "desc": "REQUIRED on create \u2014 what KIND of change this is, in Conventional Commits' vocabulary: feat (new capability a user can reach) \u00b7 fix (a defect repaired) \u00b7 docs (documentation only) \u00b7 style (formatting, no behaviour change) \u00b7 refactor (restructuring, no behaviour change) \u00b7 perf (measurably faster or cheaper) \u00b7 test (tests only) \u00b7 build (build system, deps, packaging) \u00b7 ci (pipelines and automation) \u00b7 chore (maintenance that ships no behaviour) \u00b7 revert (undoes an earlier change). ONE per issue, never a list \u2014 the Cost page splits spend by it and a multi-valued dimension cannot sum to a total. Pick what the change IS, not what area it touches: that is what `labels` are for, and they are unaffected. Correctable later with the same call if the work turns out to be something else.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "get_issue",
+    "description": "Get one issue in full: body, status, priority, labels, relations, computed blocking (is it blocked, and by what), and its derived deadline surface (dueAt, effectiveDeadline, timeRemainingMs, slaState).",
+    "arguments": [
+      {
+        "name": "identifier",
+        "type": "string",
+        "desc": "e.g. XEN-12"
+      }
+    ]
+  },
+  {
+    "name": "list_issues",
+    "description": "List issues in the project, compact (each includes its author + createdAt + derived deadline `slaState`). Defaults to active work (hides done/canceled). Filter by status (one or many), priority, label, author, or SLA state. Ordered priority-first (None last), recent tiebreak. Each issue carries `slaState` (ok | warning | breaching | breached) derived from its deadline \u2014 poll `slaState:\"breaching\"` to find near-breach work for /loop remediation.",
+    "arguments": [
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "A status or array of statuses to include.",
+        "optional": true
+      },
+      {
+        "name": "priority",
+        "type": "number",
+        "desc": "0..4",
+        "optional": true
+      },
+      {
+        "name": "label",
+        "type": "string",
+        "desc": "Label",
+        "optional": true
+      },
+      {
+        "name": "author",
+        "type": "string",
+        "desc": "Filter by creator: a member name (partial, case-insensitive) or 'me'.",
+        "optional": true
+      },
+      {
+        "name": "assignee",
+        "type": "string",
+        "desc": "Filter by responsible human: a name, 'me', or 'none' (unassigned).",
+        "optional": true
+      },
+      {
+        "name": "slaState",
+        "type": "string",
+        "desc": "Filter by derived deadline SLA state: ok (no deadline or <75% elapsed), warning (\u226575%), breaching (\u226590%, not yet past), breached (past deadline). Poll 'breaching' for near-breach work.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Default 50, max 200.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "save_comment",
+    "description": "Add a comment to an issue. Comments + activity are the agent's shared memory \u2014 record what you did and why. If this call is refused for billing (BILLING_INACTIVE or MONTHLY_CAP_REACHED), the response carries `tellHuman`, a ready-to-relay sentence: PASS IT TO YOUR HUMAN. You cannot fix it yourself \u2014 only an owner can \u2014 so do NOT absorb the refusal and continue with read-only work as if the session were healthy; every value-bearing write will keep failing until they act.",
+    "arguments": [
+      {
+        "name": "issue",
+        "type": "string",
+        "desc": "Issue ID, e.g. XEN-12"
+      },
+      {
+        "name": "body",
+        "type": "string",
+        "desc": "Body"
+      }
+    ]
+  },
+  {
+    "name": "list_comments",
+    "description": "List an issue's comments in chronological (thread) order.",
+    "arguments": [
+      {
+        "name": "issue",
+        "type": "string",
+        "desc": "Issue"
+      }
+    ]
+  },
+  {
+    "name": "retract_comment",
+    "description": "Retract a comment (strike it through) instead of deleting \u2014 the text stays as memory. Requires a note explaining why it's no longer valid (shown un-struck). If this call is refused for billing (BILLING_INACTIVE or MONTHLY_CAP_REACHED), the response carries `tellHuman`, a ready-to-relay sentence: PASS IT TO YOUR HUMAN. You cannot fix it yourself \u2014 only an owner can \u2014 so do NOT absorb the refusal and continue with read-only work as if the session were healthy; every value-bearing write will keep failing until they act.",
+    "arguments": [
+      {
+        "name": "comment",
+        "type": "string",
+        "desc": "Comment id (from list_comments)."
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "Why it's retracted; shown un-struck."
+      }
+    ]
+  },
+  {
+    "name": "save_attachment",
+    "description": "Attach a link (URL) to an issue. If this call is refused for billing (BILLING_INACTIVE or MONTHLY_CAP_REACHED), the response carries `tellHuman`, a ready-to-relay sentence: PASS IT TO YOUR HUMAN. You cannot fix it yourself \u2014 only an owner can \u2014 so do NOT absorb the refusal and continue with read-only work as if the session were healthy; every value-bearing write will keep failing until they act.",
+    "arguments": [
+      {
+        "name": "issue",
+        "type": "string",
+        "desc": "Issue ID, e.g. XEN-12"
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "Url"
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Title",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "prepare_attachment_upload",
+    "description": "Get the raw upload endpoint for an issue's file attachments. PREFER save_attachment_file \u2014 it attaches a file in one call and needs no credential from you. Use this one only if you are a human or a script that already holds an agent API key: it returns { uploadUrl }, and you then POST the raw bytes with that key as a Bearer header (add `&filename=` for the download name and optional `&title=`). Example: `curl -X POST \"<uploadUrl>&filename=shot.png\" -H \"Authorization: Bearer <yourApiKey>\" --data-binary @shot.png` \u2192 {\"id\":\"...\",\"url\":\"...\"}. The key must be an agent API key (the kind `retasc` writes to its keystore bindings), NOT a CLI session token from a user login. If you are a model: you do not have that key by design, so do not read config files hunting for one \u2014 call save_attachment_file. For a plain link rather than a file, use save_attachment.",
+    "arguments": [
+      {
+        "name": "issue",
+        "type": "string",
+        "desc": "Issue ID, e.g. RTSC-12"
+      }
+    ]
+  },
+  {
+    "name": "save_attachment_file",
+    "description": "Attach a FILE to an issue in ONE call, by passing its bytes as base64. No API key needed from you \u2014 this is a normal tool call, so never go reading credential files to attach something. Size limit 262144 bytes decoded (~256KB), because base64 in a tool argument is generated token by token and a large file costs more context than the attachment is worth. For anything bigger, run your MCP through `retasc mcp-proxy` and call this tool with `path` instead \u2014 the proxy reads the file off disk and uploads it, at any size, with the credential it already holds. For a plain link rather than a file, use save_attachment. If this call is refused for billing (BILLING_INACTIVE or MONTHLY_CAP_REACHED), the response carries `tellHuman`, a ready-to-relay sentence: PASS IT TO YOUR HUMAN. You cannot fix it yourself \u2014 only an owner can \u2014 so do NOT absorb the refusal and continue with read-only work as if the session were healthy; every value-bearing write will keep failing until they act.",
+    "arguments": [
+      {
+        "name": "issue",
+        "type": "string",
+        "desc": "Issue ID, e.g. RTSC-12"
+      },
+      {
+        "name": "filename",
+        "type": "string",
+        "desc": "Download name, e.g. shot.png. Its extension sets the content type."
+      },
+      {
+        "name": "contentBase64",
+        "type": "string",
+        "desc": "The file's bytes, base64 encoded. A `data:` URI prefix is accepted."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Optional label; also the download name when set.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "list_attachments",
+    "description": "List an issue's attachments (obsolete ones are flagged, not hidden). Each carries `hasFile` (an uploaded file, vs a plain link), its `bytes` and `contentType` \u2014 so you can tell which ones you can read, and what pulling one will cost you, before you call get_attachment_file.",
+    "arguments": [
+      {
+        "name": "issue",
+        "type": "string",
+        "desc": "Issue"
+      }
+    ]
+  },
+  {
+    "name": "get_attachment",
+    "description": "Read one attachment's METADATA by id: title, issue, obsolete flag, and \u2014 when it is an uploaded file (`hasFile`) \u2014 its `filename`, `contentType` and `bytes`. To read the file's CONTENT, call get_attachment_file.",
+    "arguments": [
+      {
+        "name": "attachment",
+        "type": "string",
+        "desc": "Attachment id."
+      }
+    ]
+  },
+  {
+    "name": "get_attachment_file",
+    "description": "Read the CONTENT of a file attached to an issue, in ONE call. No API key needed from you \u2014 this is a normal tool call, so never go looking for a credential or try to curl the download URL yourself. An image comes back as an image you can see; text (logs, CSV, PEM, patches, config) comes back as text you can read; anything else as base64 you can write to a file yourself. Size limit 131072 bytes (128KB), or 2MB for an image, because on this connection the bytes have to travel through your context. For anything bigger, run your MCP through `retasc mcp-proxy` and call this tool again \u2014 the proxy downloads the file to disk and hands you the path, at any size. Check `bytes` on list_attachments or get_attachment first if you want to know before you ask. A link attachment (save_attachment) has no bytes to return; fetch its URL yourself.",
+    "arguments": [
+      {
+        "name": "attachment",
+        "type": "string",
+        "desc": "Attachment id."
+      }
+    ]
+  },
+  {
+    "name": "obsolete_attachment",
+    "description": "Mark an attachment obsolete (the delete-equivalent) \u2014 keeps it as a record. Requires a reason. If this call is refused for billing (BILLING_INACTIVE or MONTHLY_CAP_REACHED), the response carries `tellHuman`, a ready-to-relay sentence: PASS IT TO YOUR HUMAN. You cannot fix it yourself \u2014 only an owner can \u2014 so do NOT absorb the refusal and continue with read-only work as if the session were healthy; every value-bearing write will keep failing until they act.",
+    "arguments": [
+      {
+        "name": "attachment",
+        "type": "string",
+        "desc": "Attachment id."
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Reason"
+      }
+    ]
+  },
+  {
+    "name": "add_relation",
+    "description": "Link two issues. type: blocks | blocked_by | related | duplicate. `blocks`/`blocked_by` form the dependency graph that drives blocking; dependency cycles are rejected. If this call is refused for billing (BILLING_INACTIVE or MONTHLY_CAP_REACHED), the response carries `tellHuman`, a ready-to-relay sentence: PASS IT TO YOUR HUMAN. You cannot fix it yourself \u2014 only an owner can \u2014 so do NOT absorb the refusal and continue with read-only work as if the session were healthy; every value-bearing write will keep failing until they act.",
+    "arguments": [
+      {
+        "name": "sourceId",
+        "type": "string",
+        "desc": "Sourceid"
+      },
+      {
+        "name": "targetId",
+        "type": "string",
+        "desc": "Targetid"
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "Type"
+      }
+    ]
+  },
+  {
+    "name": "remove_relation",
+    "description": "Remove a link between two issues (same args as add_relation). If this call is refused for billing (BILLING_INACTIVE or MONTHLY_CAP_REACHED), the response carries `tellHuman`, a ready-to-relay sentence: PASS IT TO YOUR HUMAN. You cannot fix it yourself \u2014 only an owner can \u2014 so do NOT absorb the refusal and continue with read-only work as if the session were healthy; every value-bearing write will keep failing until they act.",
+    "arguments": [
+      {
+        "name": "sourceId",
+        "type": "string",
+        "desc": "Sourceid"
+      },
+      {
+        "name": "targetId",
+        "type": "string",
+        "desc": "Targetid"
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "Type"
+      }
+    ]
+  },
+  {
+    "name": "save_label",
+    "description": "Create or update a label (idempotent by name). If this call is refused for billing (BILLING_INACTIVE or MONTHLY_CAP_REACHED), the response carries `tellHuman`, a ready-to-relay sentence: PASS IT TO YOUR HUMAN. You cannot fix it yourself \u2014 only an owner can \u2014 so do NOT absorb the refusal and continue with read-only work as if the session were healthy; every value-bearing write will keep failing until they act.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name"
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "desc": "Color",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "list_labels",
+    "description": "List all labels in the org with issue counts."
+  },
+  {
+    "name": "list_projects",
+    "description": "List projects in the org (prefix, name, issue counter)."
+  },
+  {
+    "name": "get_project",
+    "description": "Get a project and a breakdown of its issues by status. Defaults to the API key's project.",
+    "arguments": [
+      {
+        "name": "prefix",
+        "type": "string",
+        "desc": "Defaults to this key's project.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "mint_session_key",
+    "description": "Mint a per-session API key bound to YOUR identity (same org/project/agent), distinctly labeled. The watchdog proxy calls this once at startup and uses the returned key, so concurrent sessions of one agent become distinguishable in queue_status/whoami. Same access as your key \u2014 no privilege change. The raw key is returned ONCE. If this call is refused for billing (BILLING_INACTIVE or MONTHLY_CAP_REACHED), the response carries `tellHuman`, a ready-to-relay sentence: PASS IT TO YOUR HUMAN. You cannot fix it yourself \u2014 only an owner can \u2014 so do NOT absorb the refusal and continue with read-only work as if the session were healthy; every value-bearing write will keep failing until they act.",
+    "arguments": [
+      {
+        "name": "label",
+        "type": "string",
+        "desc": "Session label (e.g. host#pid). Optional \u2014 auto-derived if omitted.",
+        "optional": true
+      },
+      {
+        "name": "cliVersion",
+        "type": "string",
+        "desc": "The @retasc/cli version making this call. The proxy sends its own; nothing else should. Optional \u2014 absent just means the server has to infer whether this build is current.",
+        "optional": true
+      },
+      {
+        "name": "autoUpdate",
+        "type": "string",
+        "desc": "Whether the machine running this proxy keeps the CLI current by itself: `on`, `off`, or `failed`. The proxy sends it; nothing else should. Optional.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "mint_harness_key",
+    "description": "Mint the API key for ONE TOOL in this workspace \u2014 the middle tier between the folder's workspace key and a session key. The watchdog proxy calls this once it knows which harness is on the other end (the `initialize` handshake names it), caches the result, and mints its session key from THAT rather than from the workspace key. This is what makes one tool independently retirable: every tool started in a folder shares one `.mcp.json`, so without it, retiring Grok also stops Claude Code and Codex. Workspace keys only. Same access as your key \u2014 no privilege change. The raw key is returned ONCE, and a harness retired in this workspace is refused.",
+    "arguments": [
+      {
+        "name": "harness",
+        "type": "string",
+        "desc": "The resolved runtime id of the tool on the other end, e.g. `claude-code`, `codex`, `grok`. Lowercase letters, digits and dashes. A name we cannot place is REFUSED rather than cleaned \u2014 it would mint a second credential for a tool that already has one."
+      }
+    ]
+  },
+  {
+    "name": "name_workspace",
+    "description": "Tell Retasc which FOLDER your workspace key is bound to, so the Dash can say where an agent runs. The CLI calls this itself (at bind, from the watchdog proxy at session start, and from `retasc setup` for every folder a machine has bound); an agent has no folder of its own to report. Workspace keys only. Send the folder's own name, never a path \u2014 Retasc never stores paths.",
+    "arguments": [
+      {
+        "name": "workspace",
+        "type": "string",
+        "desc": "The folder's own name, e.g. `retasc`. Not a path."
+      }
+    ]
+  },
+  {
+    "name": "record_session",
+    "description": "Record this harness session's transcript id on YOUR session key, so the Dash can show the conversation behind the work and hand a human `claude --resume <id>`. The watchdog proxy calls this itself once it learns the id (Claude Code's SessionStart hook, Grok's GROK_SESSION_ID); an agent only needs it when running without the proxy. Session keys only. Stores the NAME of the transcript, never its contents. Also records which MODEL ran the session, and whether it is a subagent, when the harness reports them.",
+    "arguments": [
+      {
+        "name": "transcriptId",
+        "type": "string",
+        "desc": "The harness's session id, e.g. the uuid Claude Code names the transcript file with."
+      },
+      {
+        "name": "harness",
+        "type": "string",
+        "desc": "Which harness's id this is (claude-code | grok | codex | gemini | \u2026), for the resume verb. Optional.",
+        "optional": true
+      },
+      {
+        "name": "model",
+        "type": "string",
+        "desc": "The model running this session, as the harness names it (claude-opus-5, gpt-6, grok-4). Send it again when it changes mid-session; the Dash then shows what the session started on. Optional, and often absent: most harnesses never report one.",
+        "optional": true
+      },
+      {
+        "name": "agentType",
+        "type": "string",
+        "desc": "When this session is a subagent rather than a person's own conversation, the agent type that spawned it (`general-purpose`, or any name from `.claude/agents/`). Optional.",
+        "optional": true
+      },
+      {
+        "name": "agentId",
+        "type": "string",
+        "desc": "The subagent's own id, when there is one. Optional.",
+        "optional": true
+      },
+      {
+        "name": "transcriptKeepDays",
+        "type": "number",
+        "desc": "How many days THIS machine keeps the transcript file, from the harness's own settings (Claude Code's `cleanupPeriodDays`, default 30). The Dash says when the conversation will be gone. Send it only for a harness whose retention you actually read. Optional.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "setup_status",
+    "description": "Where this workspace is in onboarding, and what to do next. Call it when a human asks you to set Retasc up or to finish setting it up, when you have just connected, and any time you are unsure whether setup is complete \u2014 it is cheap and it is the ONLY authoritative answer. Returns one `state` and an `instruction` written for you: follow the instruction, including anything it tells you to say to your human. It is computed fresh from server state every call, so it is correct after a restart, in a different runtime, or a week later \u2014 there is nothing you need to remember between sessions. Never guess at onboarding steps from documentation you read earlier; this is the current procedure."
+  },
+  {
+    "name": "list_import_sources",
+    "description": "What can be imported into Retasc (Linear, Jira, Asana, ClickUp, Shortcut), and exactly what each source needs from your human. Each descriptor carries `authFields`: ask for those fields BY THEIR LABEL, and use the `hint` to tell your human where to find the value. Fields marked `secret` are credentials \u2014 say plainly that the value will pass through this conversation, and never print one back. Read-only. Start here before any other import tool."
+  },
+  {
+    "name": "list_import_targets",
+    "description": "The teams / projects / workspaces the given credentials can see at the source, so your human can choose which one to bring across. Pass `source` and the `auth` values you collected from them. Owner or admin only. The credentials are used for this call and never stored.",
+    "arguments": [
+      {
+        "name": "source",
+        "type": "string",
+        "desc": "linear | jira | asana | clickup | shortcut"
+      },
+      {
+        "name": "auth",
+        "type": "object",
+        "desc": "The authFields from list_import_sources, as {key: value}."
+      }
+    ]
+  },
+  {
+    "name": "list_import_statuses",
+    "description": "The chosen target's columns, so each one can be mapped to a Retasc status. RELAY THIS LIST TO YOUR HUMAN AND ASK THEM COLUMN BY COLUMN. Do NOT infer the mapping from column names, however obvious it looks: a `Rejected` column that quietly imported as `canceled` took live work out of dispatch with no error anywhere, which is why the name-based guesser was deleted and this question exists. Returns [] for sources that do not support mapping. Owner or admin only.",
+    "arguments": [
+      {
+        "name": "source",
+        "type": "string",
+        "desc": "linear | jira | asana | clickup | shortcut"
+      },
+      {
+        "name": "auth",
+        "type": "object",
+        "desc": "The authFields from list_import_sources, as {key: value}."
+      },
+      {
+        "name": "targetRef",
+        "type": "string",
+        "desc": "The chosen target's id, from list_import_targets."
+      }
+    ]
+  },
+  {
+    "name": "list_review_candidates",
+    "description": "Who can be named as the reviewer for a column you are mapping to `review`. Only people who can actually sign in and claim appear \u2014 imported placeholders are excluded, because a review parked on one strands it and blocks everything it gates. An empty list means nobody is eligible yet: say so and map that column to something else. Owner or admin only."
+  },
+  {
+    "name": "import_history",
+    "description": "Which sources this org has imported before. Check it before running an import and WARN your human if their source appears: a re-import reconciles onto the same issues, so edits made in Retasc since the last run are overwritten. Owner or admin only."
+  },
+  {
+    "name": "latest_import",
+    "description": "Progress and outcome of the most recent import in this org: status, issues done/total, the summary, and the failure reason if it failed. One import runs per org at a time, so poll this rather than starting another. Owner or admin only."
+  },
+  {
+    "name": "run_import",
+    "description": "Bring a backlog across from Linear, Jira, Asana, ClickUp or Shortcut. This CANNOT BE UNDONE and it writes real issues, so confirm with your human first, in plain words, including the re-import warning if import_history showed this source before. `destination` is REQUIRED and is your human's answer, not yours: `this_project` puts the issues in the project THIS folder is bound to, and `new_project` creates a separate project for them \u2014 which you will NOT be able to see from here, so say that before they choose it. If the bound project is empty, offer `this_project` first; if it already has work, offer both and let them decide. `statusMap` maps EVERY source column id to one of todo | doing | review | done | canceled, and must be the answer your human actually gave you \u2014 the server refuses a missing or empty map, and a wrong mapping silently moves live work out of dispatch. `reviewerByStatus` is required for each column you mapped to `review`. Owner or admin only. If this call is refused for billing (BILLING_INACTIVE or MONTHLY_CAP_REACHED), the response carries `tellHuman`, a ready-to-relay sentence: PASS IT TO YOUR HUMAN. You cannot fix it yourself \u2014 only an owner can \u2014 so do NOT absorb the refusal and continue with read-only work as if the session were healthy; every value-bearing write will keep failing until they act.",
+    "arguments": [
+      {
+        "name": "source",
+        "type": "string",
+        "desc": "linear | jira | asana | clickup | shortcut"
+      },
+      {
+        "name": "auth",
+        "type": "object",
+        "desc": "The authFields from list_import_sources, as {key: value}."
+      },
+      {
+        "name": "target",
+        "type": "object",
+        "desc": "The chosen target: {id, key, name} from list_import_targets."
+      },
+      {
+        "name": "statusMap",
+        "type": "object",
+        "desc": "{sourceStatusId: 'todo'|'doing'|'review'|'done'|'canceled'} \u2014 every column, answered by your human.",
+        "optional": true
+      },
+      {
+        "name": "reviewerByStatus",
+        "type": "object",
+        "desc": "{sourceStatusId: memberId} for each column mapped to review.",
+        "optional": true
+      },
+      {
+        "name": "destination",
+        "type": "string",
+        "desc": "this_project | new_project \u2014 YOUR HUMAN's answer. See the description; the server refuses without it."
+      }
+    ]
+  },
+  {
+    "name": "list_claimable_ghosts",
+    "description": "The imported placeholder identities in this org that your human could be \u2014 people carried in by a migration who have never signed in, so their history is attributed to nobody. RELAY THE NAMES TO YOUR HUMAN VERBATIM AND ASK WHICH ONE IS THEM. Do NOT guess from a name, an email or anything else: a wrong claim permanently re-attributes somebody else's work, and only an owner can unpick it. An empty list means there is nothing to answer. Read-only."
+  },
+  {
+    "name": "claim_ghost",
+    "description": "Record that one imported placeholder IS your human, absorbing its history into their account. Call this ONLY with the id they explicitly chose from list_claimable_ghosts \u2014 never on your own inference, and never for anyone but them (the server binds the claim to the human this key acts for, so it could not do otherwise). One placeholder per source tool. Refused while an import is still running, because the rest of that run would recreate the row. If this call is refused for billing (BILLING_INACTIVE or MONTHLY_CAP_REACHED), the response carries `tellHuman`, a ready-to-relay sentence: PASS IT TO YOUR HUMAN. You cannot fix it yourself \u2014 only an owner can \u2014 so do NOT absorb the refusal and continue with read-only work as if the session were healthy; every value-bearing write will keep failing until they act.",
+    "arguments": [
+      {
+        "name": "memberId",
+        "type": "string",
+        "desc": "The id from list_claimable_ghosts that your human picked."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "That row's name, exactly as list_claimable_ghosts returned it. Checked server-side against the id."
+      }
+    ]
+  },
+  {
+    "name": "dismiss_ghost_prompt",
+    "description": "Record that none of the currently offered placeholders are your human. Covers only the source tools on offer right now, so a later migration still asks them. Call it only when they have said so \u2014 it is an answer on their behalf either way. If this call is refused for billing (BILLING_INACTIVE or MONTHLY_CAP_REACHED), the response carries `tellHuman`, a ready-to-relay sentence: PASS IT TO YOUR HUMAN. You cannot fix it yourself \u2014 only an owner can \u2014 so do NOT absorb the refusal and continue with read-only work as if the session were healthy; every value-bearing write will keep failing until they act."
+  },
+  {
+    "name": "list_connectors",
+    "description": "List the org's intake connectors (e.g. GitHub Issues \u2192 Retasc issues, RTSC-189). Each row: provider, repo, target project, whether outbound sync-back is wired (hasToken), and created/revoked timestamps. METADATA ONLY \u2014 the inbound webhook secret and outbound GitHub token are NEVER returned. Read-only. Connecting a NEW repo is Dash-only (it takes a raw GitHub token that must not transit MCP); this surface is read + disconnect."
+  },
+  {
+    "name": "revoke_connector",
+    "description": "Disconnect an intake connector by id (from list_connectors). Marks it revoked so its inbound webhook stops syncing \u2014 that endpoint then answers 401. Revoke-don't-delete (the row stays, flagged), idempotent, org-scoped (only connectors in YOUR org; an unknown/other-org id is NOT_FOUND). To reconnect, use the Dash (a fresh webhook URL + secret).",
+    "arguments": [
+      {
+        "name": "connectorId",
+        "type": "string",
+        "desc": "Connector id from list_connectors."
+      }
+    ]
+  }
+]
