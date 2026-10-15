@@ -1,15 +1,9 @@
-# BlockVectra MCP Server
+# BlockVectra
 
-Remote MCP server for BlockVectra: multi-chain EVM JSON-RPC, an indexed Data API, documentation, Compute Unit pricing and live status. An API key is optional.
+Hosted MCP endpoint: https://docs.blockvectra.com/mcp (Streamable HTTP).
 
-## Features
+This Docker catalog entry provides keyless documentation, chain discovery, and JSON-RPC methods permitted by each chain’s public policy.
 
-- Documentation, supported chains, live prices and network status tools work without a key.
-- `rpc_call` runs read-only JSON-RPC methods; `send_raw_transaction` broadcasts signed transactions.
-- `data_api_get`, `get_account` and `get_deposit_address` use an API key sent in the optional `x-api-key` header.
+For authenticated RPC, Data API access, or signed-transaction broadcasting, consult the [BlockVectra MCP setup guide](https://docs.blockvectra.com/en/guides/mcp-server/) and use a client that explicitly supports configuring a private `x-api-key` header. Those capabilities are not configured by this Docker catalog entry.
 
-## More Information
-
-- Website: https://blockvectra.com/en/agents/
-- Source: https://github.com/blockvectra/mcp
-- Endpoint: https://docs.blockvectra.com/mcp (Streamable HTTP)
+A separate local stdio option is the published [`@blockvectra/mcp@0.1.0`](https://www.npmjs.com/package/@blockvectra/mcp) package, run with `npx --yes @blockvectra/mcp@0.1.0`. It requires Node.js 22+ and network access. See the setup guide for its configuration and capabilities.
