@@ -1,1 +1,1 @@
-Docs: https://botgathering.com/docs/mcp
+Docs: https://github.com/mil0s2/botgathering-recipes
