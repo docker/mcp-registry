@@ -123,6 +123,53 @@
     ]
   },
   {
+    "name": "quote_revision",
+    "description": "Price a revision of a run WITHOUT spending credits: what it would change (summary) and what it costs (billing.total_credits). Pass run_id and exactly one of changes or document, the same as revise_run. Always call this first and show the user the price before revise_run. A revision that delivers is charged its quoted total; one that fails is charged nothing, even when its paid work was already done. While paid edits are closed it answers editing_disabled and charges nothing.",
+    "arguments": [
+      {
+        "name": "run_id",
+        "type": "string",
+        "desc": "The run to revise: a succeeded make_faceless run, an original or a revision."
+      },
+      {
+        "name": "changes",
+        "type": "array",
+        "desc": "Shots to generate anew over the run as it is: each a shot_id and the operation to generate for it."
+      },
+      {
+        "name": "document",
+        "type": "object",
+        "desc": "The whole edited document, as the run's draft holds it; retimes, deletions and uploads go this way."
+      }
+    ]
+  },
+  {
+    "name": "revise_run",
+    "description": "Start a revision of a run made by make_faceless (paid): a NEW run that renders the video again with the shots you change, by changes (a shot and what to generate for it) or by document (the whole edited document); pass exactly one. Call quote_revision first and show the user the price. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to start a second revision with the same request on purpose, pass attempt 2. A revision that delivers is charged its quoted total; one that fails is charged nothing, even when its paid work was already done. An original has a limit on revisions running at once and on revisions failed or unfinished, and paid edits of it close some days after it finished; a refusal names which. While paid edits are closed it answers editing_disabled and charges nothing. The result is a new run: poll it with get_run; once it succeeded it is editable under its own run_id.",
+    "arguments": [
+      {
+        "name": "run_id",
+        "type": "string",
+        "desc": "The run to revise: a succeeded make_faceless run, an original or a revision."
+      },
+      {
+        "name": "changes",
+        "type": "array",
+        "desc": "Shots to generate anew over the run as it is: each a shot_id and the operation to generate for it."
+      },
+      {
+        "name": "document",
+        "type": "object",
+        "desc": "The whole edited document, as the run's draft holds it; retimes, deletions and uploads go this way."
+      },
+      {
+        "name": "attempt",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
     "name": "quote_ugc",
     "description": "Estimate the credit cost of a make_ugc call WITHOUT spending credits. Always call this first and show the user the price before make_ugc.",
     "arguments": [
