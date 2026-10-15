@@ -14,6 +14,7 @@ Criora is a hosted, free MCP server (streamable HTTP, no authentication) that an
 - **rank_countries** – the countries most or least at risk, overall or on one dimension, optionally within a region, subregion or income group, each with its score, risk class and rank.
 - **search** – find countries, places and Criora reference pages by name; returns ids for `fetch` (the shape ChatGPT deep research expects).
 - **fetch** – a readable document for a `search` id (a country, a place or a reference page), with a link to its Criora page.
+- **show_risk_map** – an interactive map of a place in the chat, for clients that display MCP Apps: this week's forecast risk, or the rain, temperature or wind forecast hour by hour, under the hazard events nearby. Clients without apps get the same answer as text.
 
 ## Resources
 
@@ -28,6 +29,7 @@ Criora is a hosted, free MCP server (streamable HTTP, no authentication) that an
 - "Are there any wildfires or earthquakes near Tokyo right now?"
 - "Compare climate risk for Spain and Portugal."
 - "Which countries in Southern Asia are most exposed to climate risk?"
+- "Show me the wind forecast on a map around Bergen."
 
 ## More Information
 
