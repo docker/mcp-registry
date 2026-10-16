@@ -1,1 +1,1 @@
-Docs: https://github.com/RoboFinSystems/robosystems/wiki/AI-Operators-and-MCP
+Docs: https://robosystems.ai/docs/technical/ai-operators-and-mcp
