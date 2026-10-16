@@ -1,4 +1,4 @@
-﻿# <img src="icon.svg" width="32" height="32" align="center" /> Python Code Sandbox
+# Python Code Sandbox
 
 A secure and isolated Python execution environment implemented as an MCP server using Docker.
 
