@@ -8,7 +8,7 @@ server="$3"
 if [ "$comment_type" = "success" ]; then
   gh pr comment "$pr_number" --body "✅ **Auto-merging pin upgrade PR**
 
-Server \`$server\` is in the allowlist and all required checks have passed.
+All required checks have passed for server \`$server\`.
 
 This PR will be automatically merged."
 
