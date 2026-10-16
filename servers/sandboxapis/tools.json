@@ -1,0 +1,156 @@
+[
+  {
+    "name": "orient",
+    "description": "START HERE. Returns everything needed to use SandboxAPIs with no docs: the universe/theme, every API surface and its base URL (git hosts and issue trackers), live-vs-snapshot modes and how to pin, the org and its teams/repos, notable entry points (each with a ready-to-run REST path), where the coverage manifest lives, and this server's access block — whether a key is set and how many requests are left this hour. Writes: this server is READ-ONLY, including for a scratch-enabled key — the scratch layer (a per-key, 24-hour overlay: GitHub issues and issue comments, Jira comments and transitions, and Slack messages into existing channels) is a REST feature, so use the GitHub, Jira or Slack base URL above with your key for it, and expect the tools here to answer from the shared data set alone.",
+    "arguments": []
+  },
+  {
+    "name": "check_budget",
+    "description": "Costs nothing — call it before any loop of more than a handful of requests. Returns this server's real hourly window (limit, remaining, when it resets) read from the provider's own budget endpoint, which is exempt from the budget it reports, plus whether a key is set and where to raise the limit. The window is ONE bucket per caller shared across every provider host, so the numbers apply to all of them.",
+    "arguments": [
+      {
+        "name": "provider",
+        "type": "string",
+        "desc": "The host you are about to call. Optional — the budget is one shared window, so the numbers are the same for every provider."
+      }
+    ]
+  },
+  {
+    "name": "list_repositories",
+    "description": "List repositories for the universe's org. Results are identical to the provider's REST API and carry provider-form ids (node_id / numeric id).",
+    "arguments": [
+      {
+        "name": "provider",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_repository",
+    "description": "Fetch one repository by name (default: the flagship repo). Provider-shaped, with provider-form ids.",
+    "arguments": [
+      {
+        "name": "provider",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "repo",
+        "type": "string",
+        "desc": "Repo name, e.g. 'parthenon'. Defaults to the flagship repo."
+      }
+    ]
+  },
+  {
+    "name": "list_pull_requests",
+    "description": "List a repo's pull requests (GitHub) or merge requests (GitLab). Optional state filter.",
+    "arguments": [
+      {
+        "name": "provider",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "repo",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "state",
+        "type": "string",
+        "desc": "Provider state filter."
+      }
+    ]
+  },
+  {
+    "name": "get_pull_request",
+    "description": "Fetch one PR (GitHub) / MR (GitLab) plus its reviews (GitHub) / approvals (GitLab). Returns both in one result; each carries provider-form ids for cross-referencing.",
+    "arguments": [
+      {
+        "name": "provider",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "number",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "repo",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "list_issues",
+    "description": "List a repo's issues. Optional state filter (open/closed/all).",
+    "arguments": [
+      {
+        "name": "provider",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "repo",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "state",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_user",
+    "description": "Fetch a user by login/username. Provider-shaped, with provider-form ids.",
+    "arguments": [
+      {
+        "name": "provider",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "login",
+        "type": "string",
+        "desc": "The user's login (GitHub) / username (GitLab)."
+      }
+    ]
+  },
+  {
+    "name": "search_commits_by_author",
+    "description": "Find commits authored by a given login in a repo. Returns SHAs (identical across GitHub and GitLab, invariant #5) with a REST path to fetch each — so you can cross-reference against either provider.",
+    "arguments": [
+      {
+        "name": "author",
+        "type": "string",
+        "desc": "Author login, e.g. 'athena'."
+      },
+      {
+        "name": "repo",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "provider",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_snapshot",
+    "description": "Return the pinned, reproducible hostname for a provider — point your client's base URL at it for drift-free CI. A snapshot regenerates byte-identically on every request.",
+    "arguments": [
+      {
+        "name": "provider",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  }
+]
