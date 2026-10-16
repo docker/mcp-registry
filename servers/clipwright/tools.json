@@ -1,5 +1,121 @@
 [
   {
+    "name": "list_workflows",
+    "description": "List six workflow methods and their current availability. Free and read-only. Four B1 methods use native executors; website-proof-demo and kinetic-launch remain execution_blocked. Availability is not account-specific permission to buy.",
+    "arguments": []
+  },
+  {
+    "name": "get_workflow",
+    "description": "Read one workflow method by method_id: required inputs, script rules, evidence, limitations and current availability. Free and read-only. Use the returned method and capability digests in a plan.",
+    "arguments": [
+      {
+        "name": "method_id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "prepare_workflow_plan",
+    "description": "Create or save a workflow plan without paying or starting a run. Supply the complete document. Omit both plan_id and base_version to create; supply both to save a revision. The document is strict and bounded to 256000 JSON bytes. Preserve exact accepted narration. After a lost save answer, read and compare the saved document; do not automatically approve or purchase.",
+    "arguments": [
+      {
+        "name": "document",
+        "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "plan_id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "base_version",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_workflow_plan",
+    "description": "Read the current account-owned plan, revision, content digest, readiness issues and warnings. Free and read-only. The document is intent; it is not a delivered video or creative acceptance.",
+    "arguments": [
+      {
+        "name": "plan_id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "approve_workflow_plan",
+    "description": "Explicitly approve the chosen plan revision and content_digest. Free; it stores approval but starts no run. Read all issues and warnings first. Approval is separate from a quote and a paid launch.",
+    "arguments": [
+      {
+        "name": "plan_id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "revision",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "content_digest",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "quote_workflow_plan",
+    "description": "Quote the approved current plan without spending credits. Free and read-only. Show the native price and every warning before requesting a paid launch. The returned quote_id expires and binds the exact revision and semantic input.",
+    "arguments": [
+      {
+        "name": "plan_id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "run_workflow_plan",
+    "description": "Start one explicitly approved paid workflow run using the exact revision, content_digest, semantic_input_digest and quote_id from its quote, plus an explicit idempotency_key. Returns immediately with its captured receipt and native run_id; poll get_run. Never auto-approve, auto-quote or invent a new key. If delivery is uncertain, recover with the original request and key; a new key can pay twice. Technical evidence is separate from human creative acceptance.",
+    "arguments": [
+      {
+        "name": "plan_id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "revision",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "content_digest",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "semantic_input_digest",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "quote_id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "idempotency_key",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
     "name": "make_ugc",
     "description": "Start generation of a lip-synced UGC video. Give a script within the selected speech model's text limit; the actor comes from actor_id (a saved actor from list_actors) or image, otherwise the default actor is used. Format and resolution follow the request and the source, defaulting to 1080x1920. Captions are OPT-IN: ask the user first. Fields the renderer does not honor yet carry a NOT HONORED YET note in their own description — read it instead of guessing. Call quote_ugc before generating and show the cost. This does NOT wait for the video: it starts the run and returns a run_id IMMEDIATELY. You MUST then poll get_run with that run_id until the state is 'succeeded' (video_url) or 'failed'. A 'failed' run whose paid vendor job we still hold can go back to 'queued' and reach 'succeeded' later; whenever that happens it is named in warnings[]. Pass attempt=2,3,… to deliberately start a NEW run for the same input (retry after a failure).",
     "arguments": [
@@ -166,6 +282,58 @@
         "name": "attempt",
         "type": "integer",
         "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "quote_candidate",
+    "description": "Price one shot candidate of a run WITHOUT spending credits: one picture or clip made for one shot, to keep or discard in a revision. Pass run_id, shot_id and operation, the same as create_candidate; the answer names the unit, its credits and usable_until, the last moment the candidate can enter a revision. Always call this first and show the user the price before create_candidate. A delivered candidate is charged its one unit whether it is kept or discarded; one that fails is charged nothing, even when its paid work was already done. While shot candidates are closed it answers editing_disabled and charges nothing.",
+    "arguments": [
+      {
+        "name": "run_id",
+        "type": "string",
+        "desc": "The faceless run whose shot the candidate is for: a succeeded original or revision."
+      },
+      {
+        "name": "shot_id",
+        "type": "string",
+        "desc": "The shot to make a candidate for, as get_run_shots names it."
+      },
+      {
+        "name": "operation",
+        "type": "object",
+        "desc": "What to generate: one of the operations get_run_shots lists for the shot."
+      },
+      {
+        "name": "take",
+        "type": "integer",
+        "desc": "Take number, 1 by default: the same request and take return the same run; take 2 makes another candidate."
+      }
+    ]
+  },
+  {
+    "name": "create_candidate",
+    "description": "Make a shot candidate of a run made by make_faceless (paid): a NEW run of skill edit_shot that generates one picture or clip for one shot, to keep or discard in a later revision. Call quote_candidate first and show the user the price. A delivered candidate is charged its one unit whether it is kept or discarded; one that fails is charged nothing, even when its paid work was already done. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another candidate with the same request on purpose, pass take 2. An original has a limit on candidates running at once and on candidates failed or unfinished, apart from its revisions; a refusal names which. While shot candidates are closed it answers editing_disabled and charges nothing. The result is a new run: poll it with get_run; once it succeeded, its candidate.preview_url shows what was made.",
+    "arguments": [
+      {
+        "name": "run_id",
+        "type": "string",
+        "desc": "The faceless run whose shot the candidate is for: a succeeded original or revision."
+      },
+      {
+        "name": "shot_id",
+        "type": "string",
+        "desc": "The shot to make a candidate for, as get_run_shots names it."
+      },
+      {
+        "name": "operation",
+        "type": "object",
+        "desc": "What to generate: one of the operations get_run_shots lists for the shot."
+      },
+      {
+        "name": "take",
+        "type": "integer",
+        "desc": "Take number, 1 by default: the same request and take return the same run; take 2 makes another candidate."
       }
     ]
   },
