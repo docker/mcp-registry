@@ -1,1 +1,1 @@
-Docs: https://nobi.ai/shop/mcp
+Docs: https://github.com/Locusive/shop-nobi-claude-plugin
