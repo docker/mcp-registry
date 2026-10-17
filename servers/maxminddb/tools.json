@@ -1,0 +1,390 @@
+[
+  {
+    "name": "compare_databases",
+    "description": "Compare lookup answers in two loaded databases within a CIDR. Returns paginated added, removed, and changed address ranges. Equal answers with different network boundaries are unchanged.",
+    "arguments": [
+      {
+        "name": "network",
+        "type": "string",
+        "desc": "IPv4 /8 or smaller, or IPv6 /32 or smaller"
+      },
+      {
+        "name": "new_database",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "old_database",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "resume_token",
+        "type": "string",
+        "desc": "",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "inspect_database",
+    "description": "Read full MMDB metadata and observe field paths, types, and examples from a bounded sample. The observed fields are not a complete schema.",
+    "arguments": [
+      {
+        "name": "database",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "sample_size",
+        "type": "integer",
+        "desc": "",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "install_database",
+    "description": "Download and load a database from an HTTP or HTTPS URL. Accepts MMDB, gzip, tar, tar.gz, or ZIP with exactly one MMDB. Downloads and expanded data are limited to 1 GiB. Uses the configured download folder, or the first folder in directory mode. Does not use MaxMind credentials or save the URL for updates.",
+    "arguments": [
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Destination filename ending in .mmdb, without a directory path."
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "Database download URL. Requests can reach any HTTP(S) host accessible to this server."
+      },
+      {
+        "name": "overwrite",
+        "type": "boolean",
+        "desc": "Replace an existing database with this name. Defaults to false.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "install_edition",
+    "description": "Download a MaxMind MMDB edition using configured credentials, load it immediately, and remember it for future updates. The edition need not be in the server configuration. Replaces an existing file for that edition.",
+    "arguments": [
+      {
+        "name": "edition",
+        "type": "string",
+        "desc": "MaxMind edition ID, for example GeoLite2-Country or GeoIP2-Anonymous-IP. Requires account access to that edition."
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "list_databases",
+    "description": "List available databases, download status, and setup instructions",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "lookup_ip",
+    "description": "Look up an IP address in one database or all loaded databases",
+    "arguments": [
+      {
+        "name": "ip",
+        "type": "string",
+        "desc": "IP address to lookup"
+      },
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Specific database to query (optional)",
+        "optional": true
+      },
+      {
+        "name": "fields",
+        "type": "array",
+        "desc": "Optional field paths. Returns an object keyed by each selected path. Use dots for map keys, numeric array indexes, or $ for the whole record. Omit or use [] for full records. Repeat on each page.",
+        "optional": true,
+        "items": {
+          "type": "string"
+        }
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "lookup_ips",
+    "description": "Look up 1 to 100 IP addresses in input order, in one database or all loaded databases. Each result includes its IP and lookup data or an error.",
+    "arguments": [
+      {
+        "name": "ips",
+        "type": "array",
+        "desc": "",
+        "items": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Specific database from list_databases (optional)",
+        "optional": true
+      },
+      {
+        "name": "fields",
+        "type": "array",
+        "desc": "Optional field paths. Returns an object keyed by each selected path. Use dots for map keys, numeric array indexes, or $ for the whole record. Omit or use [] for full records. Repeat on each page.",
+        "optional": true,
+        "items": {
+          "type": "string"
+        }
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "lookup_network",
+    "description": "Query a CIDR range with optional filters. filters must be an array of objects with keys: field, operator, value. Example: {\"field\":\"traits.user_type\",\"operator\":\"equals\",\"value\":\"residential\"}. Supported operators: equals, not_equals, in, not_in, contains, regex, greater_than, greater_than_or_equal, less_than, less_than_or_equal, exists.",
+    "arguments": [
+      {
+        "name": "network",
+        "type": "string",
+        "desc": "CIDR network to scan (e.g., '192.168.1.0/24')"
+      },
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Database name from list_databases; required when more than one is loaded",
+        "optional": true
+      },
+      {
+        "name": "fields",
+        "type": "array",
+        "desc": "Optional field paths. Returns an object keyed by each selected path. Use dots for map keys, numeric array indexes, or $ for the whole record. Omit or use [] for full records. Repeat on each page.",
+        "optional": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "filter_mode",
+        "type": "string",
+        "desc": "How to combine filters: 'and' or 'or' (default: 'and')",
+        "optional": true
+      },
+      {
+        "name": "filters",
+        "type": "array",
+        "desc": "Filters for a new query; omit to keep filters when continuing a query",
+        "optional": true,
+        "items": {
+          "type": "object"
+        }
+      },
+      {
+        "name": "iterator_id",
+        "type": "string",
+        "desc": "Resume existing iterator (fast path)",
+        "optional": true
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "desc": "Page size from 1 to 1000",
+        "optional": true
+      },
+      {
+        "name": "resume_token",
+        "type": "string",
+        "desc": "Fallback token if iterator expired",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "lookup_range",
+    "description": "Query stored network records overlapping an inclusive start/end IP range, with filters, field selection, and pagination. Returns each overlapping network once, not each IP address. Repeat the endpoints on every page.",
+    "arguments": [
+      {
+        "name": "end_ip",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "start_ip",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Database name from list_databases; required when more than one is loaded",
+        "optional": true
+      },
+      {
+        "name": "fields",
+        "type": "array",
+        "desc": "Optional field paths. Returns an object keyed by each selected path. Use dots for map keys, numeric array indexes, or $ for the whole record. Omit or use [] for full records. Repeat on each page.",
+        "optional": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "filter_mode",
+        "type": "string",
+        "desc": "How to combine filters: 'and' or 'or' (default: 'and')",
+        "optional": true
+      },
+      {
+        "name": "filters",
+        "type": "array",
+        "desc": "Filters for a new query; omit to keep filters when continuing a query",
+        "optional": true,
+        "items": {
+          "type": "object"
+        }
+      },
+      {
+        "name": "iterator_id",
+        "type": "string",
+        "desc": "Resume existing iterator (fast path)",
+        "optional": true
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "desc": "Page size from 1 to 1000",
+        "optional": true
+      },
+      {
+        "name": "resume_token",
+        "type": "string",
+        "desc": "Fallback token if iterator expired",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "summarize_network",
+    "description": "Group matching records by a scalar field and count records and covered addresses within a CIDR. Limited to 10,000 scanned records and 100 groups. IPv4 aliases are excluded.",
+    "arguments": [
+      {
+        "name": "database",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "group_by",
+        "type": "string",
+        "desc": "Field path, array index, or $ for a scalar record. Missing fields form a separate group."
+      },
+      {
+        "name": "network",
+        "type": "string",
+        "desc": "IPv4 /8 or smaller, or IPv6 /32 or smaller"
+      },
+      {
+        "name": "filter_mode",
+        "type": "string",
+        "desc": "How to combine filters: 'and' or 'or' (default: 'and')",
+        "optional": true
+      },
+      {
+        "name": "filters",
+        "type": "array",
+        "desc": "Filters for a new query; omit to keep filters when continuing a query",
+        "optional": true,
+        "items": {
+          "type": "object"
+        }
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "update_databases",
+    "description": "Download and replace configured databases with the latest MaxMind editions",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "verify_database",
+    "description": "Verify the integrity of a loaded database. Only one verification runs at a time. Cancellation can stop a queued request, but verification runs to completion once started.",
+    "arguments": [
+      {
+        "name": "database",
+        "type": "string",
+        "desc": ""
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  }
+]
