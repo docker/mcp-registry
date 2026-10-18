@@ -1,0 +1,529 @@
+[
+  {
+    "name": "recent_activity",
+    "description": "List commits on HEAD from the last N days, newest first. Optionally filter by author (case-sensitive substring of the author name) and/or a repository-relative path.",
+    "arguments": [
+      {
+        "name": "repo",
+        "type": "string",
+        "desc": "Repository name or absolute path from the allowlist. Defaults to the first configured repo.",
+        "optional": true
+      },
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Size of the time window in days.",
+        "optional": true
+      },
+      {
+        "name": "author",
+        "type": "string",
+        "desc": "Only commits whose author name contains this text.",
+        "optional": true
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Only commits touching this file or directory.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of results (1-200).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Recent activity",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "commit_search",
+    "description": "Search commit messages (subject and body) on HEAD for a literal, case-insensitive text, newest first. Useful for finding when and why something changed, e.g. a ticket id, a feature name or \"revert\". Optionally limited to a time window, author and/or path.",
+    "arguments": [
+      {
+        "name": "repo",
+        "type": "string",
+        "desc": "Repository name or absolute path from the allowlist. Defaults to the first configured repo.",
+        "optional": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Text to look for in commit messages."
+      },
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Only search the last N days. Omit to search the whole history.",
+        "optional": true
+      },
+      {
+        "name": "author",
+        "type": "string",
+        "desc": "Only commits whose author name contains this text.",
+        "optional": true
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Only commits touching this file or directory.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of results (1-100).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Commit search",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "file_history",
+    "description": "List the commits on HEAD that changed a single file, newest first, following the file across renames. Each commit includes the path it had then and lines added/removed. Useful for \"how did this file evolve?\" and \"who reworked it, and when?\".",
+    "arguments": [
+      {
+        "name": "repo",
+        "type": "string",
+        "desc": "Repository name or absolute path from the allowlist. Defaults to the first configured repo.",
+        "optional": true
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Repository-relative path of a single file, as named at HEAD."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of results (1-100).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "File history",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "file_hotspots",
+    "description": "Rank files by how many commits changed them in the last N days (merge commits excluded), with how many of those commits were fixes. Pass types: [\"fix\"] to rank by bug fixes only and find the files that keep breaking. Useful for spotting churn, risky areas and refactoring candidates.",
+    "arguments": [
+      {
+        "name": "repo",
+        "type": "string",
+        "desc": "Repository name or absolute path from the allowlist. Defaults to the first configured repo.",
+        "optional": true
+      },
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Size of the time window in days.",
+        "optional": true
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Restrict to this file or directory.",
+        "optional": true
+      },
+      {
+        "name": "exclude",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Glob patterns for files to leave out, e.g. [\"*.lock\", \"dist/\", \"docs/**/*.md\"]. A pattern without \"/\" matches at any depth; a trailing \"/\" excludes a directory.",
+        "optional": true
+      },
+      {
+        "name": "types",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Only count commits of these conventional-commit types, e.g. [\"fix\"]. Commits without a type count as \"fix\" when their subject mentions fix, bug or hotfix.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of results (1-100).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "File hotspots",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "change_coupling",
+    "description": "Find pairs of files that are often changed in the same commits in the last N days (merge commits excluded), most shared commits first. Reveals hidden dependencies that imports do not show, e.g. code and the config or test it always drags along. Pass \"file\" to see what usually changes together with one file.",
+    "arguments": [
+      {
+        "name": "repo",
+        "type": "string",
+        "desc": "Repository name or absolute path from the allowlist. Defaults to the first configured repo.",
+        "optional": true
+      },
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Size of the time window in days.",
+        "optional": true
+      },
+      {
+        "name": "file",
+        "type": "string",
+        "desc": "Only pairs that include this repository-relative file.",
+        "optional": true
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Restrict to this file or directory.",
+        "optional": true
+      },
+      {
+        "name": "exclude",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Glob patterns for files to leave out, same syntax as in file_hotspots.",
+        "optional": true
+      },
+      {
+        "name": "minShared",
+        "type": "integer",
+        "desc": "Minimum number of shared commits for a pair to be listed.",
+        "optional": true
+      },
+      {
+        "name": "maxFilesPerCommit",
+        "type": "integer",
+        "desc": "Skip commits touching more files than this (bulk renames, formatting).",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of results (1-100).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Change coupling",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "list_tags",
+    "description": "List tags (releases) newest first with their date and tagged commit, plus the latest tag reachable from HEAD and how many commits were made since it (unreleased work). Use it to find tag names for release_notes_draft or compare_refs.",
+    "arguments": [
+      {
+        "name": "repo",
+        "type": "string",
+        "desc": "Repository name or absolute path from the allowlist. Defaults to the first configured repo.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of results (1-200).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List tags",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "release_notes_draft",
+    "description": "Group commits between two refs by conventional-commit type (breaking changes, features, fixes, ...) and return both structured sections and a Markdown draft. \"from\" defaults to the latest tag before \"to\"; without any tag, all commits up to \"to\" are used. To draft notes for an existing release, pass its tag as \"to\" (see list_tags).",
+    "arguments": [
+      {
+        "name": "repo",
+        "type": "string",
+        "desc": "Repository name or absolute path from the allowlist. Defaults to the first configured repo.",
+        "optional": true
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "Start ref, exclusive (tag, branch or commit).",
+        "optional": true
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "End ref, inclusive.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Release notes draft",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "compare_refs",
+    "description": "Compare two refs (branches, tags or commits): how many commits \"head\" is ahead of and behind \"base\", and which commits those are, newest first. Useful for \"how far behind main is my branch?\" or \"what is on this branch that is not released yet?\".",
+    "arguments": [
+      {
+        "name": "repo",
+        "type": "string",
+        "desc": "Repository name or absolute path from the allowlist. Defaults to the first configured repo.",
+        "optional": true
+      },
+      {
+        "name": "base",
+        "type": "string",
+        "desc": "Ref to compare against, e.g. \"main\" or a tag."
+      },
+      {
+        "name": "head",
+        "type": "string",
+        "desc": "Ref to compare, e.g. a branch.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of results (1-100).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Compare refs",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "stale_branches",
+    "description": "List branches whose latest commit is at least N days old, oldest first, and whether each is already merged into HEAD.",
+    "arguments": [
+      {
+        "name": "repo",
+        "type": "string",
+        "desc": "Repository name or absolute path from the allowlist. Defaults to the first configured repo.",
+        "optional": true
+      },
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Size of the time window in days.",
+        "optional": true
+      },
+      {
+        "name": "includeRemote",
+        "type": "boolean",
+        "desc": "Also include remote-tracking branches.",
+        "optional": true
+      },
+      {
+        "name": "mergedOnly",
+        "type": "boolean",
+        "desc": "Only list branches already merged into HEAD, i.e. safe cleanup candidates.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of results (1-200).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Stale branches",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "knowledge_map",
+    "description": "Who knows a file or directory: each author's share of the knowledge, from the commits they made in the last N days (merge commits excluded), with recent commits weighted more. Also returns the bus factor and how many files depend on a single person. Useful for \"who should review this?\" and \"who knows the auth module best?\".",
+    "arguments": [
+      {
+        "name": "repo",
+        "type": "string",
+        "desc": "Repository name or absolute path from the allowlist. Defaults to the first configured repo.",
+        "optional": true
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Restrict to this file or directory.",
+        "optional": true
+      },
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Size of the time window in days.",
+        "optional": true
+      },
+      {
+        "name": "halfLifeDays",
+        "type": "integer",
+        "desc": "A commit counts half as much for every this many days of age.",
+        "optional": true
+      },
+      {
+        "name": "exclude",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Glob patterns for files to leave out, same syntax as in file_hotspots.",
+        "optional": true
+      },
+      {
+        "name": "maxFilesPerCommit",
+        "type": "integer",
+        "desc": "Skip commits touching more files than this (bulk renames, formatting).",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of results (1-100).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Knowledge map",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "review_context",
+    "description": "Review briefing for the changes in base..head (e.g. a branch or pull request): the changed files ranked by how often they changed and broke on base, files that usually change together with them but were left out (a forgotten test, config or caller), and who knows the changed files best as suggested reviewers. Merge commits are excluded.",
+    "arguments": [
+      {
+        "name": "repo",
+        "type": "string",
+        "desc": "Repository name or absolute path from the allowlist. Defaults to the first configured repo.",
+        "optional": true
+      },
+      {
+        "name": "base",
+        "type": "string",
+        "desc": "Target ref the changes would merge into, e.g. \"main\"."
+      },
+      {
+        "name": "head",
+        "type": "string",
+        "desc": "Ref with the changes, e.g. a branch.",
+        "optional": true
+      },
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Size of the time window in days.",
+        "optional": true
+      },
+      {
+        "name": "halfLifeDays",
+        "type": "integer",
+        "desc": "For reviewers: a commit counts half as much for every this many days of age.",
+        "optional": true
+      },
+      {
+        "name": "exclude",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Glob patterns for files to leave out, same syntax as in file_hotspots.",
+        "optional": true
+      },
+      {
+        "name": "minShared",
+        "type": "integer",
+        "desc": "Minimum shared commits for a missing companion.",
+        "optional": true
+      },
+      {
+        "name": "minDegree",
+        "type": "integer",
+        "desc": "Minimum coupling degree (percentage) for a missing companion.",
+        "optional": true
+      },
+      {
+        "name": "maxFilesPerCommit",
+        "type": "integer",
+        "desc": "Skip history commits touching more files than this (bulk renames, formatting).",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of results (1-100).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Review context",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "contributor_summary",
+    "description": "Count commits per author on HEAD in the last N days, most active first. Optionally restricted to a path.",
+    "arguments": [
+      {
+        "name": "repo",
+        "type": "string",
+        "desc": "Repository name or absolute path from the allowlist. Defaults to the first configured repo.",
+        "optional": true
+      },
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Size of the time window in days.",
+        "optional": true
+      },
+      {
+        "name": "includeMerges",
+        "type": "boolean",
+        "desc": "Count merge commits too.",
+        "optional": true
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Restrict to this file or directory.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of results (1-100).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Contributor summary",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  }
+]
