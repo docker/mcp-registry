@@ -1,0 +1,43 @@
+name: repo-pulse
+image: mcp/repo-pulse
+type: server
+meta:
+  category: devops
+  tags:
+    - git
+    - devops
+    - code-review
+about:
+  title: Repo Pulse
+  description: Read-only git insights for local repositories. Review context for a branch (risky files, forgotten companion files, suggested reviewers), bug-fix hotspots, code ownership and bus factor, code age, change coupling, release-notes drafts and stale branches.
+  icon: https://avatars.githubusercontent.com/u/28481316?s=200&v=4
+source:
+  project: https://github.com/hasanyelaldi/repo-pulse-mcp
+  commit: eec7bf66a515627edebf39df9a63c194552398e4
+run:
+  command:
+    - "{{repo-pulse.paths|volume-target|into}}"
+  volumes:
+    - "{{repo-pulse.paths|volume|into}}"
+  disableNetwork: true
+config:
+  description: The git repositories repo-pulse is allowed to read, and optionally which tools to enable
+  env:
+    - name: REPO_PULSE_TOOLS
+      example: review,ownership
+      value: "{{repo-pulse.tools}}"
+  parameters:
+    type: object
+    properties:
+      paths:
+        type: array
+        items:
+          type: string
+        default:
+          - /Users/local-test
+      tools:
+        type: string
+        description: "Toolsets (review, ownership, releases, history) or tool names to enable, comma-separated. Fewer tools cost fewer tokens per session."
+        default: all
+    required:
+      - paths
