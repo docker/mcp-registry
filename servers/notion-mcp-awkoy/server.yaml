@@ -6,37 +6,79 @@ meta:
   tags:
     - notion
     - productivity
+    - documentation
+    - collaboration
 about:
   title: Notion Community (Token Auth)
   description: |
-    Community Notion MCP server that authenticates with a token, so it runs
-    headless — CI, cron jobs, and background agents — where OAuth-only servers
-    can't. 43 operations (pages, databases, blocks, comments, users, files,
-    templates) behind 2 context-efficient tools, with batched mutations and
-    atomic rollback, idempotency keys, automatic retry on rate limits, and
-    full markdown round-trip.
+    Community Notion server that authenticates with a token, so it runs
+    headless in CI, cron jobs and background agents, where an OAuth-only
+    server can't. 47 operations across pages, databases, data sources, views,
+    blocks, comments, users and files sit behind three tools: notion_read,
+    notion_write, and notion_describe, which returns any operation's JSON
+    Schema with a working example. Pages are read and written as markdown,
+    batched writes return per-item results with optional atomic rollback, and
+    rate limits are retried automatically. A read-only switch, operation
+    allow and block lists, and a confirmation prompt before destructive
+    operations limit what the model can change.
   icon: https://raw.githubusercontent.com/awkoy/notion-mcp-server/main/assets/logo.png
 source:
   project: https://github.com/awkoy/notion-mcp-server
-  commit: c855bd586283a6c244a6f48786fbe963ddfea8e2
+  commit: cefd835f5afe7a29b418b944fb8dc4adb827470e
 config:
   description: |
     Set NOTION_TOKEN to a Notion Personal Access Token (ntn_...) created at
-    https://app.notion.com/developers/tokens, or an Internal Integration
-    Secret. Optionally set a default parent page ID used by create_page /
-    create_database when no parent is passed.
+    https://app.notion.com/developers/tokens, which sees everything you can
+    see, or to an Internal Integration secret, which sees only the pages
+    shared with that integration. Every other setting is optional.
   secrets:
     - name: notion-mcp-awkoy.notion_token
       env: NOTION_TOKEN
       example: ntn_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-      description: Notion Personal Access Token or Internal Integration Secret.
+      description: Notion Personal Access Token or Internal Integration secret.
   env:
     - name: NOTION_PAGE_ID
       example: 8a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d
       value: "{{notion-mcp-awkoy.notion_page_id}}"
+    - name: NOTION_READ_ONLY
+      example: "false"
+      value: "{{notion-mcp-awkoy.read_only}}"
+    - name: NOTION_ALLOWED_OPERATIONS
+      example: read,append_blocks,add_page_comment
+      value: "{{notion-mcp-awkoy.allowed_operations}}"
+    - name: NOTION_BLOCKED_OPERATIONS
+      example: destructive
+      value: "{{notion-mcp-awkoy.blocked_operations}}"
+    - name: NOTION_CONFIRM_DESTRUCTIVE
+      example: "false"
+      value: "{{notion-mcp-awkoy.confirm_destructive}}"
+    - name: NOTION_UPLOAD_ROOT
+      example: /tmp/uploads
+      value: "{{notion-mcp-awkoy.upload_root}}"
+    - name: NOTION_FILE_URLS
+      example: ref
+      value: "{{notion-mcp-awkoy.file_urls}}"
   parameters:
     type: object
     properties:
       notion_page_id:
         type: string
-        description: Default parent page ID used when none is passed at call time.
+        description: Default parent page for create_page and create_database when the call passes no parent. A page URL or its 32-character id.
+      read_only:
+        type: boolean
+        description: Disable every write operation.
+      allowed_operations:
+        type: string
+        description: Comma-separated allowlist of operation names or groups (read, write, destructive, pages, blocks, databases, data_sources, views, comments, users, files). Empty means all.
+      blocked_operations:
+        type: string
+        description: Comma-separated blocklist with the same names and groups. Wins over the allowlist.
+      confirm_destructive:
+        type: boolean
+        description: Ask before each destructive operation (archive, trash, delete) runs. Needs an MCP client that supports elicitation.
+      upload_root:
+        type: string
+        description: Confine upload_file's local path source to this directory inside the container. URL and base64 uploads are not affected.
+      file_urls:
+        type: string
+        description: Set to "ref" to replace Notion's long signed file URLs in responses with short notion-file refs. Default is full URLs.
