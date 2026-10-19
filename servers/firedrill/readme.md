@@ -1,6 +1,6 @@
 # Firedrill
 
-[Setup and documentation](https://docs.firedrill.run/guides/operator-mcp)
+[Setup and documentation](https://docs.firedrill.run/guides/control-mcp)
 · [Agent quickstart](https://firedrill.run/agents)
 
 Firedrill is a simulation platform for AI agents. A coding agent can prepare
