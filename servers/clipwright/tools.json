@@ -205,6 +205,11 @@
         "desc": "Speech model: eleven_v3 | eleven_flash_v2_5 | eleven_turbo_v2_5 | eleven_v4 | gemini-3.8-flash-tts. Omitted means the model of the chosen voice (list_voices shows it): eleven_v4 for the Russian presets and for catalog voices named ru_*, gemini-3.8-flash-tts for its own voices, eleven_v3 for every other preset and catalog voice. A raw voice_id speaks eleven_v4 when the script is mostly Cyrillic and eleven_v3 otherwise. An explicit tts_model always wins. eleven_v4, eleven_v3 and gemini-3.8-flash-tts read stress marks (a capital vowel inside a Russian word, \"потОм\", becomes one; see script); eleven_flash_v2_5 and eleven_turbo_v2_5 are cheaper alternatives for languages other than Russian. gemini-3.8-flash-tts speaks only its own voices (list_voices with model=gemini-3.8-flash-tts; without voice, kore for a female actor and charon otherwise) and returns no word timings: a preset or catalog voice, voice_id, captions=true, segments and inserts are refused with it before any charge. Audio tags in square brackets are an eleven_v3 and eleven_v4 convention and are not measured on it. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters; eleven_v4: 5000 characters; gemini-3.8-flash-tts: 5000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. Break tags are cut from the text sent to eleven_v4 and gemini-3.8-flash-tts and are not counted there. There is no word-count limit. Duration and price are estimates until measured."
       },
       {
+        "name": "visible_ai_label",
+        "type": "boolean",
+        "desc": "Visible AI label for newly marked presenter videos, including long form; defaults to true in the server admission policy. False hides only the visible label and does not disable invisible marking or signed provenance. Historical outputs are unchanged."
+      },
+      {
         "name": "background",
         "type": "string",
         "desc": ""
@@ -218,7 +223,7 @@
   },
   {
     "name": "get_run",
-    "description": "Check the status of a video generation started by make_ugc or make_faceless. Pass the run_id. While the run is still working it returns status IN_PROGRESS with a next_action telling you to poll again; repeat every ~5 seconds until it reaches a terminal state — SUCCEEDED (with video_url) or FAILED.",
+    "description": "Check the status of a video generation started by make_ugc or make_faceless, or of a generate_image or generate_video run. Pass the run_id. While the run is still working it returns status IN_PROGRESS with a next_action telling you to poll again; repeat every ~5 seconds until it reaches a terminal state — SUCCEEDED (with video_url, or generation.url for generate_image and generate_video) or FAILED.",
     "arguments": [
       {
         "name": "run_id",
@@ -338,6 +343,175 @@
     ]
   },
   {
+    "name": "list_generation_models",
+    "description": "List the models generate_image and generate_video take, each with its modes, aspect ratios, resolutions, durations, output width and height, and unit_credits: credits per image, or per second of a clip. Only measured combinations are listed; any other is refused with unsupported_combination before any charge. Free.",
+    "arguments": []
+  },
+  {
+    "name": "quote_image",
+    "description": "Price one generate_image call WITHOUT spending credits: its credits (one image at its model's unit_credits), its width and height, and warnings. Always call this first and show the user the price before generate_image. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image (rights_confirmed states you may use the people and works in it) or {run_id} of a succeeded generate_image run of this account until its reusable_until. A generation that fails is charged nothing, even when the vendor was already paid. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing.",
+    "arguments": [
+      {
+        "name": "prompt",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "model",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "aspect_ratio",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "references",
+        "type": "array",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "generate_image",
+    "description": "Generate one image from a prompt (paid): a NEW run of skill generate_image, charged the quoted credits per image once it is delivered. Call quote_image first and show the user the price. Poll the run with get_run; once it succeeded, generation.url is the image and its run_id can be a reference of a later generation. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image (rights_confirmed states you may use the people and works in it) or {run_id} of a succeeded generate_image run of this account until its reusable_until. A generation that fails is charged nothing, even when the vendor was already paid. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing.",
+    "arguments": [
+      {
+        "name": "prompt",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "model",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "aspect_ratio",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "references",
+        "type": "array",
+        "desc": ""
+      },
+      {
+        "name": "attempt",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "quote_video",
+    "description": "Price one generate_video call WITHOUT spending credits: its credits (unit_credits per second of duration_s), its width and height, and warnings. Always call this first and show the user the price before generate_video. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image (rights_confirmed states you may use the people and works in it) or {run_id} of a succeeded generate_image run of this account until its reusable_until. A generation that fails is charged nothing, even when the vendor was already paid. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing.",
+    "arguments": [
+      {
+        "name": "prompt",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "model",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "aspect_ratio",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "resolution",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "duration_s",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "first_frame",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "last_frame",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "references",
+        "type": "array",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "generate_video",
+    "description": "Generate one silent clip (paid): a NEW run of skill generate_video, charged unit_credits per second of duration_s once it is delivered. Modes: text; first_frame (first_frame, optional last_frame, of the requested aspect ratio within 2%); reference (1 to 4 references). Call quote_video first and show the user the price. Poll the run with get_run; once it succeeded, generation.url is the clip. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image (rights_confirmed states you may use the people and works in it) or {run_id} of a succeeded generate_image run of this account until its reusable_until. A generation that fails is charged nothing, even when the vendor was already paid. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing.",
+    "arguments": [
+      {
+        "name": "prompt",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "model",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "aspect_ratio",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "resolution",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "duration_s",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "first_frame",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "last_frame",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "references",
+        "type": "array",
+        "desc": ""
+      },
+      {
+        "name": "attempt",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
     "name": "quote_ugc",
     "description": "Estimate the credit cost of a make_ugc call WITHOUT spending credits. Always call this first and show the user the price before make_ugc.",
     "arguments": [
@@ -427,6 +601,11 @@
         "desc": "Speech model: eleven_v3 | eleven_flash_v2_5 | eleven_turbo_v2_5 | eleven_v4 | gemini-3.8-flash-tts. Omitted means the model of the chosen voice (list_voices shows it): eleven_v4 for the Russian presets and for catalog voices named ru_*, gemini-3.8-flash-tts for its own voices, eleven_v3 for every other preset and catalog voice. A raw voice_id speaks eleven_v4 when the script is mostly Cyrillic and eleven_v3 otherwise. An explicit tts_model always wins. eleven_v4, eleven_v3 and gemini-3.8-flash-tts read stress marks (a capital vowel inside a Russian word, \"потОм\", becomes one; see script); eleven_flash_v2_5 and eleven_turbo_v2_5 are cheaper alternatives for languages other than Russian. gemini-3.8-flash-tts speaks only its own voices (list_voices with model=gemini-3.8-flash-tts; without voice, kore for a female actor and charon otherwise) and returns no word timings: a preset or catalog voice, voice_id, captions=true, segments and inserts are refused with it before any charge. Audio tags in square brackets are an eleven_v3 and eleven_v4 convention and are not measured on it. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters; eleven_v4: 5000 characters; gemini-3.8-flash-tts: 5000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. Break tags are cut from the text sent to eleven_v4 and gemini-3.8-flash-tts and are not counted there. There is no word-count limit. Duration and price are estimates until measured."
       },
       {
+        "name": "visible_ai_label",
+        "type": "boolean",
+        "desc": "Visible AI label for newly marked presenter videos, including long form; defaults to true in the server admission policy. False hides only the visible label and does not disable invisible marking or signed provenance. Historical outputs are unchanged."
+      },
+      {
         "name": "background",
         "type": "string",
         "desc": ""
@@ -435,7 +614,7 @@
   },
   {
     "name": "upload_image",
-    "description": "Upload a LOCAL image file (PNG or JPEG, up to 10 MB) and get an https url to pass as `image` to quote_ugc / make_ugc. The url is signed and expires in 24 hours; upload again after that. Use this whenever the user points at a file on disk — `image` itself accepts only public https urls. Then set `aspect_ratio` EXPLICITLY to match the picture (a 16:9 photo with no aspect_ratio renders vertical 9:16 with a warning). Free: spends no credits; 20 uploads per day per account.",
+    "description": "Upload a LOCAL image file (PNG or JPEG, up to 10 MB) and get an https url to pass as `image` to quote_ugc / make_ugc. The url is signed and expires in 24 hours; upload again after that. Use this whenever the user points at a file on disk — `image` itself accepts only public https urls. Then set `aspect_ratio` EXPLICITLY to match the picture (a 16:9 photo with no aspect_ratio renders vertical 9:16 with a warning). For workflow assets, use the returned upload_id as asset_id and content_digest directly: it is the SHA-256 of the original uploaded bytes. Free: spends no credits; 20 uploads per day per account.",
     "arguments": [
       {
         "name": "path",
