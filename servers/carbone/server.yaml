@@ -4,20 +4,30 @@ type: server
 meta:
   category: productivity
   tags:
-    - document-generation
-    - pdf
-    - templates
     - productivity
+    - document-generation
+    - document-conversion
+    - pdf
+    - docx
+    - templates
+    - reporting
 about:
   title: Carbone
-  description: The official MCP server for Carbone, enabling AI assistants to automate document generation, conversion, and templating across 100+ formats including PDF, DOCX, XLSX, PPTX, MD, and HTML.
+  description: >-
+    Official Carbone server: generate PDF, Word (DOCX), Excel (XLSX) and
+    PowerPoint (PPTX) documents from templates and JSON data, and convert
+    DOCX, HTML or Markdown to PDF. Automate invoices, contracts and reports,
+    and manage versioned templates, on Carbone Cloud or on-premise.
   icon: https://raw.githubusercontent.com/carboneio/carbone/refs/heads/master/doc/carbone_icon_large.svg
 source:
   project: https://github.com/carboneio/carbone-mcp
   branch: master
-  commit: 60d9ab560f607191fce0a8c14b356f744ce64d4e
+  commit: bc89d34d87b51bc6486a178a505e11158f08eec1
+run:
+  volumes:
+    - "{{carbone.paths|volume|into}}"
 config:
-  description: Configure the connection to Carbone API
+  description: Connect to Carbone Cloud with an API key from https://account.carbone.io, or to your own on-premise Carbone server
   secrets:
     - name: carbone.api_key
       env: CARBONE_API_KEY
@@ -34,5 +44,10 @@ config:
     properties:
       carbone_base_url:
         type: string
-        description: Carbone API base URL. Defaults to https://api.carbone.io for cloud; change for on-premise deployments.
+        description: Carbone API base URL. Keep https://api.carbone.io for Carbone Cloud, or set the URL of your on-premise Carbone server (if it has no authentication, any API key value works).
         default: https://api.carbone.io
+      paths:
+        type: array
+        items:
+          type: string
+        description: Optional. Local folders Carbone can read templates and files from, and save generated documents to (e.g. /Users/me/Documents/invoices). On macOS and Linux, use the same paths as on your machine. Leave empty to work with URLs, base64 and download links only.
