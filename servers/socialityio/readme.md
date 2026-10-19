@@ -1,7 +1,11 @@
-# Sociality.io MCP Server
+# Sociality MCP
 
 Documentation: https://sociality.io/docs
 
 Repository: https://github.com/socialityio/sociality-mcp
 
-Sociality.io provides a hosted MCP server for social media analytics, post insights, publishing workflows, moderation, competitor benchmarking, and reporting across owned channels and tracked public accounts.
+Product: https://sociality.io/mcp
+
+Sociality MCP is a hosted remote server for social media account analytics, post insights, and public competitor benchmarking across Facebook, X, Instagram, YouTube, LinkedIn, and TikTok.
+
+It exposes seven tools: six read-only tools and one tool for explicitly adding a tracked competitor. Connect with OAuth using the `mcp:use` scope. Access follows the authorized user's workspace permissions; analytics and post queries consume MCP credits.
