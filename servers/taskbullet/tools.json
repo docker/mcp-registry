@@ -1,0 +1,539 @@
+[
+  {
+    "name": "get_balance",
+    "description": "Return remaining VA hours, capRoom, and whether a new cap can be filed. Also returns the calls wallet: balance_cents is spendable after open holds, wallet_cents is that amount plus holds_cents, and holds_cents is the sum of unsettled holds. addFundsUrl is POST /api/v1/billing/add-funds and this read",
+    "arguments": []
+  },
+  {
+    "name": "delegate_task",
+    "description": "Call get_balance first, then confirm with the user before sending (real hours) unless they already said to send it. Delegate a task to a real human virtual assistant when the AI cannot complete it autonomously. Use this for phone calls, owner-authorized login or captcha steps (never send passwords o",
+    "arguments": [
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Concise directive (max 5000 chars)."
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Detailed context, instructions, and constraints (max 8000 chars). Never include passwords, OTP codes, recovery keys, cookies, or API keys."
+      },
+      {
+        "name": "priority",
+        "type": "string",
+        "desc": "priority"
+      },
+      {
+        "name": "dueDate",
+        "type": "string",
+        "desc": "Optional human-readable due date (e.g. EOD Friday)."
+      },
+      {
+        "name": "sourceAgent",
+        "type": "string",
+        "desc": "Optional calling-agent label for the audit trail (e.g. grok-bot)."
+      },
+      {
+        "name": "webhookUrl",
+        "type": "string",
+        "desc": "Optional public HTTPS callback URL."
+      },
+      {
+        "name": "maxHours",
+        "type": "number",
+        "desc": "Spend cap in hours (default 0.5). VA/AM stop and ask before exceeding. Actual tracked time is billed, not this cap. Max 8."
+      },
+      {
+        "name": "idempotencyKey",
+        "type": "string",
+        "desc": "Same value as the REST Idempotency-Key header. Required. A repeat returns the original task."
+      }
+    ]
+  },
+  {
+    "name": "list_tasks",
+    "description": "List recently delegated tasks for this account (id, title, status, short result). awaitingCustomerConfirm true means the delivery is done and the human must confirm, cancel, or reopen. amNote is the delivery note and deliverableLinks are https links from that note. pending and in_progress omit custo",
+    "arguments": [
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "status"
+      }
+    ]
+  },
+  {
+    "name": "get_task",
+    "description": "Get the current status, title, completion timestamp, and full result notes for a specific delegated task. awaitingCustomerConfirm true means ask the human, then confirm_task, cancel_task, or reopen_task. amNote is the AM or VA note. deliverableLinks lists https links. Stop when status is completed, ",
+    "arguments": [
+      {
+        "name": "taskId",
+        "type": "string",
+        "desc": "The taskId returned by delegate_task."
+      }
+    ]
+  },
+  {
+    "name": "confirm_task",
+    "description": "Accept a delivery that is awaitingCustomerConfirm. Settles tracked hours, releases the board and ledger hold, and marks the task completed. If the human does not respond, the job confirms itself after 3 days. Ask the human first. Idempotency-Key is required. A repeat of the same key returns the same",
+    "arguments": [
+      {
+        "name": "taskId",
+        "type": "string",
+        "desc": "The taskId returned by delegate_task."
+      },
+      {
+        "name": "idempotencyKey",
+        "type": "string",
+        "desc": "Same value as the REST Idempotency-Key header. Required."
+      }
+    ]
+  },
+  {
+    "name": "cancel_task",
+    "description": "Customer never mind. Releases the hold and bills only tracked time. Does not send the completion webhook. Ask the human first. Idempotency-Key is required.",
+    "arguments": [
+      {
+        "name": "taskId",
+        "type": "string",
+        "desc": "The taskId returned by delegate_task."
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional note. Do not include secrets."
+      },
+      {
+        "name": "idempotencyKey",
+        "type": "string",
+        "desc": "Same value as the REST Idempotency-Key header. Required."
+      }
+    ]
+  },
+  {
+    "name": "reopen_task",
+    "description": "Send a delivery that is awaitingCustomerConfirm back to the account manager with a reason. Does not settle hours. Ask the human first. Idempotency-Key is required.",
+    "arguments": [
+      {
+        "name": "taskId",
+        "type": "string",
+        "desc": "The taskId returned by delegate_task."
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "What should happen next. Required. Do not include secrets."
+      },
+      {
+        "name": "idempotencyKey",
+        "type": "string",
+        "desc": "Same value as the REST Idempotency-Key header. Required."
+      }
+    ]
+  },
+  {
+    "name": "place_call",
+    "description": "Place one human phone call. The hold is the full call: the tier minimum once, or max_minutes times the per-minute rate, whichever is higher. Default max_minutes is 5, so a tier 1 US or Canada call holds $5. Raise max_minutes on that call to hold more. record_call must be false or omitted. Only US an",
+    "arguments": [
+      {
+        "name": "phone",
+        "type": "string",
+        "desc": "US or Canada number. 801-414-4664, (801) 414-4664, and +1 801 414 4664 are accepted and stored as E.164."
+      },
+      {
+        "name": "extension",
+        "type": "string",
+        "desc": "Optional digits. Passed into the VA instructions. Not billed."
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "en, fil, tl, war, or ceb. Default en."
+      },
+      {
+        "name": "business_name",
+        "type": "string",
+        "desc": "business_name"
+      },
+      {
+        "name": "purpose",
+        "type": "string",
+        "desc": "purpose"
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "goal"
+      },
+      {
+        "name": "record_call",
+        "type": "boolean",
+        "desc": "False or omit. True is rejected: recording is not available."
+      },
+      {
+        "name": "script_mode",
+        "type": "string",
+        "desc": "script_mode"
+      },
+      {
+        "name": "script",
+        "type": "string",
+        "desc": "script"
+      },
+      {
+        "name": "instructions",
+        "type": "string",
+        "desc": "Outranks script wording. The extension is appended for the VA."
+      },
+      {
+        "name": "questions",
+        "type": "array",
+        "desc": "One to 20 questions. Each item is {id, ask, type?}."
+      },
+      {
+        "name": "allowed_disclosures",
+        "type": "string",
+        "desc": "allowed_disclosures"
+      },
+      {
+        "name": "on_behalf_of",
+        "type": "string",
+        "desc": "on_behalf_of"
+      },
+      {
+        "name": "shareable_contact",
+        "type": "string",
+        "desc": "shareable_contact"
+      },
+      {
+        "name": "deadline",
+        "type": "string",
+        "desc": "ISO-8601. Needs 60 minutes of weekday 09:00–17:00 recipient-local, unless allow_outside_business_hours is true."
+      },
+      {
+        "name": "time_window",
+        "type": "string",
+        "desc": "Optional 24-hour HH:MM-HH:MM in the recipient time zone. Example: 09:00-17:00. End must be after start."
+      },
+      {
+        "name": "recipient_timezone",
+        "type": "string",
+        "desc": "IANA zone. Omit it and TaskBullet infers a US or Canada area code. An uninferable number needs this field."
+      },
+      {
+        "name": "retry_preference",
+        "type": "string",
+        "desc": "retry_preference"
+      },
+      {
+        "name": "allow_outside_business_hours",
+        "type": "boolean",
+        "desc": "Set true only after the customer confirms the call may happen outside weekday 09:00–17:00 in the recipient time zone. The deadline then needs 60 minutes of clock time. Omit or false keeps the weekday "
+      },
+      {
+        "name": "consent_attestation",
+        "type": "boolean",
+        "desc": "Must be true."
+      },
+      {
+        "name": "max_attempts",
+        "type": "integer",
+        "desc": "Default 3. Maximum 5."
+      },
+      {
+        "name": "max_minutes",
+        "type": "integer",
+        "desc": "Default 5. Maximum 60. The hold covers this many minutes."
+      },
+      {
+        "name": "callback_url",
+        "type": "string",
+        "desc": "callback_url"
+      },
+      {
+        "name": "idempotencyKey",
+        "type": "string",
+        "desc": "Same value as the REST Idempotency-Key header."
+      }
+    ]
+  },
+  {
+    "name": "validate_call",
+    "description": "Check a phone-call body without creating a call or placing a hold. Same fields as place_call, without idempotencyKey. A ready body includes hold_cents for the full call (tier 1 default $5 at 5 minutes) and whether recipient_timezone was inferred. valid stays true when spendable balance is below the ",
+    "arguments": [
+      {
+        "name": "phone",
+        "type": "string",
+        "desc": "phone"
+      },
+      {
+        "name": "extension",
+        "type": "string",
+        "desc": "extension"
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "language"
+      },
+      {
+        "name": "business_name",
+        "type": "string",
+        "desc": "business_name"
+      },
+      {
+        "name": "purpose",
+        "type": "string",
+        "desc": "purpose"
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "goal"
+      },
+      {
+        "name": "record_call",
+        "type": "boolean",
+        "desc": "False or omit."
+      },
+      {
+        "name": "script_mode",
+        "type": "string",
+        "desc": "script_mode"
+      },
+      {
+        "name": "script",
+        "type": "string",
+        "desc": "script"
+      },
+      {
+        "name": "instructions",
+        "type": "string",
+        "desc": "instructions"
+      },
+      {
+        "name": "questions",
+        "type": "array",
+        "desc": "questions"
+      },
+      {
+        "name": "allowed_disclosures",
+        "type": "string",
+        "desc": "allowed_disclosures"
+      },
+      {
+        "name": "on_behalf_of",
+        "type": "string",
+        "desc": "on_behalf_of"
+      },
+      {
+        "name": "shareable_contact",
+        "type": "string",
+        "desc": "shareable_contact"
+      },
+      {
+        "name": "deadline",
+        "type": "string",
+        "desc": "deadline"
+      },
+      {
+        "name": "time_window",
+        "type": "string",
+        "desc": "HH:MM-HH:MM, 24-hour, end after start."
+      },
+      {
+        "name": "recipient_timezone",
+        "type": "string",
+        "desc": "recipient_timezone"
+      },
+      {
+        "name": "retry_preference",
+        "type": "string",
+        "desc": "retry_preference"
+      },
+      {
+        "name": "allow_outside_business_hours",
+        "type": "boolean",
+        "desc": "allow_outside_business_hours"
+      },
+      {
+        "name": "consent_attestation",
+        "type": "boolean",
+        "desc": "consent_attestation"
+      },
+      {
+        "name": "max_attempts",
+        "type": "integer",
+        "desc": "max_attempts"
+      },
+      {
+        "name": "max_minutes",
+        "type": "integer",
+        "desc": "max_minutes"
+      },
+      {
+        "name": "callback_url",
+        "type": "string",
+        "desc": "callback_url"
+      }
+    ]
+  },
+  {
+    "name": "get_call",
+    "description": "Read one human phone call, including needs_info missing_fields or the final result.",
+    "arguments": [
+      {
+        "name": "call_id",
+        "type": "string",
+        "desc": "call_id"
+      }
+    ]
+  },
+  {
+    "name": "update_call",
+    "description": "Fill missing_fields on a call in needs_info. Same result shapes as place_call.",
+    "arguments": [
+      {
+        "name": "call_id",
+        "type": "string",
+        "desc": "call_id"
+      },
+      {
+        "name": "phone",
+        "type": "string",
+        "desc": "phone"
+      },
+      {
+        "name": "extension",
+        "type": "string",
+        "desc": "Optional digits. Passed into the VA instructions."
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "language"
+      },
+      {
+        "name": "business_name",
+        "type": "string",
+        "desc": "business_name"
+      },
+      {
+        "name": "purpose",
+        "type": "string",
+        "desc": "purpose"
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "goal"
+      },
+      {
+        "name": "record_call",
+        "type": "boolean",
+        "desc": "record_call"
+      },
+      {
+        "name": "script_mode",
+        "type": "string",
+        "desc": "script_mode"
+      },
+      {
+        "name": "script",
+        "type": "string",
+        "desc": "script"
+      },
+      {
+        "name": "instructions",
+        "type": "string",
+        "desc": "instructions"
+      },
+      {
+        "name": "questions",
+        "type": "array",
+        "desc": "questions"
+      },
+      {
+        "name": "allowed_disclosures",
+        "type": "string",
+        "desc": "allowed_disclosures"
+      },
+      {
+        "name": "on_behalf_of",
+        "type": "string",
+        "desc": "on_behalf_of"
+      },
+      {
+        "name": "shareable_contact",
+        "type": "string",
+        "desc": "shareable_contact"
+      },
+      {
+        "name": "deadline",
+        "type": "string",
+        "desc": "deadline"
+      },
+      {
+        "name": "time_window",
+        "type": "string",
+        "desc": "time_window"
+      },
+      {
+        "name": "recipient_timezone",
+        "type": "string",
+        "desc": "recipient_timezone"
+      },
+      {
+        "name": "retry_preference",
+        "type": "string",
+        "desc": "retry_preference"
+      },
+      {
+        "name": "allow_outside_business_hours",
+        "type": "boolean",
+        "desc": "Set true only after the customer confirms the call may happen outside weekday 09:00–17:00 in the recipient time zone. The deadline then needs 60 minutes of clock time. Omit or false keeps the weekday "
+      },
+      {
+        "name": "consent_attestation",
+        "type": "boolean",
+        "desc": "consent_attestation"
+      },
+      {
+        "name": "max_attempts",
+        "type": "integer",
+        "desc": "max_attempts"
+      },
+      {
+        "name": "max_minutes",
+        "type": "integer",
+        "desc": "max_minutes"
+      },
+      {
+        "name": "callback_url",
+        "type": "string",
+        "desc": "callback_url"
+      }
+    ]
+  },
+  {
+    "name": "cancel_call",
+    "description": "Cancel a call before the first dial and release the hold. After dialing, the current attempt finishes.",
+    "arguments": [
+      {
+        "name": "call_id",
+        "type": "string",
+        "desc": "call_id"
+      }
+    ]
+  },
+  {
+    "name": "get_transcript",
+    "description": "Read transcript.txt for one call. A cancelled call returns call_cancelled. An empty transcript returns transcript_not_ready.",
+    "arguments": [
+      {
+        "name": "call_id",
+        "type": "string",
+        "desc": "call_id"
+      }
+    ]
+  }
+]
