@@ -1,6 +1,6 @@
 # HelpWell
 
-[HelpWell](https://helpwell.ai), by Workado, LLC, connects AI assistants to your help desk, support ticketing software, knowledge base, help docs, live chat support, contacts, email marketing, and marketing automation for SaaS.
+[HelpWell](https://helpwell.ai), by BrandWell (Workado, LLC), connects AI assistants to your help desk, support ticketing software, knowledge base, help docs, live chat support, contacts, email marketing, and marketing automation for SaaS.
 
 ## Connect
 
