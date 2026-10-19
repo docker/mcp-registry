@@ -15,9 +15,9 @@ about:
   icon: https://avatars.githubusercontent.com/u/252354070?s=200&v=4
 source:
   project: https://github.com/TheK3nsai/ops-brain
-  commit: 2c120e36a940d4c5a196b95e10e0b9ff4758ed37
+  commit: 9b6902c9af9b09ab0180ef678f83682e270736e4
 config:
-  description: Connect ops-brain to your own PostgreSQL database with the pgvector extension. Migrations run on startup. Embeddings are optional; full-text search works without them.
+  description: Connect ops-brain to your own PostgreSQL database with the pgvector extension. Migrations run on startup. Embeddings are optional and off unless an embedding URL is set; full-text search works without them. Over stdio it runs as a single trusted operator; multi-machine teams should use the HTTP setup with per-agent tokens (see the repo docs).
   secrets:
     - name: ops-brain.database_url
       env: DATABASE_URL
@@ -27,9 +27,6 @@ config:
       example: <OPS_BRAIN_EMBEDDING_API_KEY>
       required: false
   env:
-    - name: OPS_BRAIN_EMBEDDINGS_ENABLED
-      example: "false"
-      value: "{{ops-brain.embeddings_enabled}}"
     - name: OPS_BRAIN_EMBEDDING_URL
       example: http://host.docker.internal:11434/v1/embeddings
       value: "{{ops-brain.embedding_url}}"
@@ -39,15 +36,9 @@ config:
   parameters:
     type: object
     properties:
-      embeddings_enabled:
-        type: boolean
-        description: Generate embeddings for semantic and hybrid search. Leave off to use full-text search only.
-        default: false
       embedding_url:
         type: string
-        description: OpenAI-compatible embeddings endpoint, such as Ollama serving nomic-embed-text.
-        default: http://host.docker.internal:11434/v1/embeddings
+        description: Optional OpenAI-compatible embeddings endpoint, such as Ollama serving nomic-embed-text. Leave empty to keep embeddings off.
       embedding_model:
         type: string
-        description: Embedding model name. It must produce 768-dimension vectors.
-        default: nomic-embed-text
+        description: Embedding model name. It must produce 768-dimension vectors. Empty uses nomic-embed-text.
