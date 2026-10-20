@@ -1,0 +1,554 @@
+[
+  {
+    "name": "convert_document",
+    "description": "Convert a document to another format without storing a template. Pure conversion: no data is sent, so Carbone tags such as {d.name} are kept as written; this is also how you proof a template in another format (DOCX template → PDF, or DOCX → ODT while it stays a template). The source file can be a local file path, an HTTPS URL, or a base64-encoded string. Use render_document instead when you need data injection ({d.field} tags resolved), translations, or batch generation. Example: { \"file\": \"/Users/me/report.docx\", \"convertTo\": \"pdf\" } (a bare file name such as \"report.docx\" is not a path). Common conversions: DOCX → PDF (add converter: \"I\" for the fastest conversion), XLSX → PDF, PPTX → PDF, HTML → PDF (converter: \"C\" for full CSS/JS rendering), DOCX → HTML, XLSX → CSV, PDF → PNG, PPTX → PNG (first slide as image), MD → PDF.",
+    "arguments": [
+      {
+        "name": "convertTo",
+        "type": "string",
+        "desc": "Target output format. Valid outputs depend on the input format (e.g. HTML converts to pdf, docx or png, but not xlsx); see the conversion matrix: https://carbone.io/documentation/developer/http-api/generate-reports.html#output-file-type. \"doc\", \"xls\" and \"ppt\" are output formats; as input, use DOCX, XLSX or PPTX. Simple usage: \"pdf\". With options: { \"formatName\": \"pdf\", \"formatOptions\": { ... } }."
+      },
+      {
+        "name": "file",
+        "type": "string",
+        "desc": "The document to convert. Three input forms are accepted: (1) Local file path — absolute, e.g. \"/Users/me/report.docx\" (or \"C:\\Users\\me\\report.docx\" on Windows), or under the home directory, e.g. \"~/report.docx\". A relative path must start with \"./\" or \"../\" and resolves against the server process's working directory, which is rarely yours: prefer an absolute path. A bare file name such as \"report.docx\" is NOT a path: it would be sent as base64 content. (2) HTTPS URL — the file is downloaded automatically, e.g. \"https://example.com/file.pptx\". (3) Base64-encoded string — the raw file content encoded as base64. Supported input formats: DOCX, XLSX, PPTX, ODT, ODS, ODP, ODG, HTML, XHTML, XML, SVG, IDML, MD, TXT, CSV, RTF, PDF. Carbone reads XML-based and text-based documents (plus PDF): the legacy binary Office formats DOC, XLS and PPT are rejected as input, although they are valid outputs. Re-save such a file as DOCX, XLSX or PPTX first. Full conversion matrix: https://carbone.io/documentation/developer/http-api/generate-reports.html#output-file-type"
+      },
+      {
+        "name": "asAttachment",
+        "type": "boolean",
+        "desc": "If true, return the document as a downloadable file attachment (a base64 EmbeddedResource), for any format. Default delivery: text and png/jpg/gif/webp are returned inline; other binary outputs (PDF, Office, …) are saved to a temp file (path returned). Ignored when outputPath or returnLink is set.",
+        "optional": true
+      },
+      {
+        "name": "converter",
+        "type": "string",
+        "desc": "Converter engine, used whenever the format changes (not only for PDF). If omitted, \"L\" is used. \"L\" LibreOffice: DOCX, XLSX, PPTX, ODT, ODS, ODP, ODG, MD, PDF; the only converter supporting all PDF options. \"I\" Carbone ICE: DOCX and ODT to PDF; Carbone's own engine, 3x to 300x faster, recommended over \"O\" for DOCX from v5.15.0. It converts all content except WEBP and EMF/WMF images, SmartArt and complex charts (bar, line, area, pie and doughnut charts are drawn), comments, tracked changes, form fields and equations: keep the default \"L\" for documents with those. A missing font is replaced by Noto Sans (https://carbone.io/documentation/developer/http-api/generate-reports.html#converters-carbone-ice-limitations). \"O\" OnlyOffice: DOCX, XLSX, PPTX to PDF. \"C\" Chromium: HTML to PDF, JPG, PNG, WEBP with full CSS/JS; 100 MB max. PDF options: \"L\" supports all of them; \"O\", \"C\" and \"I\" apply Security (passwords, permissions) and Watermarks. Docs: https://carbone.io/documentation/developer/http-api/generate-reports.html#converters",
+        "optional": true
+      },
+      {
+        "name": "egressAuthorization",
+        "type": "string",
+        "desc": "Value for the Authorization header Carbone adds to its OUTBOUND (egress) requests during conversion — e.g. when a Chromium HTML→PDF conversion fetches a protected external image or stylesheet. For example \"Bearer abc123\" makes Carbone send `authorization: Bearer abc123` to those hosts. Only the authorization header can be customised; max 511 characters.",
+        "optional": true
+      },
+      {
+        "name": "hardRefresh",
+        "type": "boolean",
+        "desc": "If true, Carbone runs the converter even when the output format equals the input format, and recomputes pagination and the table of contents at the end of the conversion. Needed for PDF → PDF: without it Carbone returns the PDF unchanged and formatOptions (password, permissions, watermarks, PDF/A, …) are NOT applied. This server sets it automatically when the input is a PDF, convertTo is \"pdf\" and formatOptions are given; pass false to opt out. Example (PDF → PDF/A-4): { \"hardRefresh\": true, \"convertTo\": { \"formatName\": \"pdf\", \"formatOptions\": { \"SelectPdfVersion\": 4 } } }.",
+        "optional": true
+      },
+      {
+        "name": "outputPath",
+        "type": "string",
+        "desc": "Optional local file path to save the converted document to (e.g. \"/home/user/out.pdf\" or \"~/out.pdf\"). When set, the file is written to disk and the tool returns the saved path + size instead of embedding the document inline — ideal for large files. The path must not exist yet: an existing file is never overwritten (the call fails and asks for a new file name).",
+        "optional": true
+      },
+      {
+        "name": "reportName",
+        "type": "string",
+        "desc": "Name of the delivered file, WITHOUT extension (e.g. \"contract\", \"2026-invoice\"). The document is delivered as \"<reportName>.<ext>\", with the extension of convertTo, used as the attachment name and the default saved file name. This server names the file itself: a conversion has no templating pass, which is where Carbone resolves reportName. Used literally: Carbone tags such as {d.id} are not resolved here. Ignored with returnLink (a download URL, not a named file) and with outputPath (which sets the path itself).",
+        "optional": true
+      },
+      {
+        "name": "returnLink",
+        "type": "boolean",
+        "desc": "If true, generate the document and return a public download URL instead of the file contents. The link is SHORT-LIVED and ONE-TIME — Carbone deletes the file after the first download — so it is meant for the end user to download once (do not fetch it programmatically). Works in stdio and HTTP. Mutually exclusive with outputPath and asAttachment.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Convert Document",
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "delete_template",
+    "description": "Delete a stored Carbone template. Takes effect immediately: the template is no longer listed, downloadable or renderable (404); the file itself is purged after the retention delay (Carbone Cloud: 24 hours). You can delete by Template ID (removes all versions) or by Version ID (removes only that specific version). To schedule a deletion instead, use update_template_metadata with expireAt set to a future Unix timestamp.",
+    "arguments": [
+      {
+        "name": "templateId",
+        "type": "string",
+        "desc": "Template ID (64-bit) or Version ID (SHA-256) to delete. Template ID — deletes the template record and all its versions. Version ID — deletes only that specific version, leaving other versions intact. Both formats are returned by upload_template and list_templates."
+      }
+    ],
+    "annotations": {
+      "title": "Delete Template",
+      "destructiveHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "download_template",
+    "description": "Download the original source file of a stored Carbone template (e.g. the DOCX, XLSX, PPTX, or HTML file that was uploaded). Use this to inspect, edit, or back up a template. Pass a Template ID to download the currently deployed version, or a Version ID to download a specific version. Set sample: true to get the JSON sample dataset stored with the template instead of the template file.",
+    "arguments": [
+      {
+        "name": "templateId",
+        "type": "string",
+        "desc": "Template ID (64-bit) or Version ID (SHA-256) to download. Template ID — downloads the currently deployed version of the template. Version ID — downloads that exact version regardless of deployment status. Both formats are returned by upload_template and list_templates."
+      },
+      {
+        "name": "asAttachment",
+        "type": "boolean",
+        "desc": "If true, return the template as a downloadable file attachment (base64 resource) instead of inline text/image. Useful in HTTP mode where outputPath is unavailable. Default: false. Ignored when outputPath is set.",
+        "optional": true
+      },
+      {
+        "name": "outputPath",
+        "type": "string",
+        "desc": "Optional local file path to save the template file to (e.g. \"/home/user/out.pdf\" or \"~/out.pdf\"). When set, the file is written to disk and the tool returns the saved path + size instead of embedding the document inline — ideal for large files. The path must not exist yet: an existing file is never overwritten (the call fails and asks for a new file name).",
+        "optional": true
+      },
+      {
+        "name": "sample",
+        "type": "boolean",
+        "desc": "If true, download the JSON SAMPLE DATASET saved with the template (the \"sample\" array passed to upload_template) instead of the template file, returned as inline JSON text by default, of the form [{ \"data\": {...}, \"complement\": {...}, \"translations\": {...}, \"enum\": {...} }] (each key optional). Use it to recover the example data a template expects before calling render_document. Errors if the template was uploaded without a sample.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Download Template"
+    }
+  },
+  {
+    "name": "get_api_status",
+    "description": "Check Carbone API health and version. Returns the current API version and a status message. Useful for verifying connectivity and confirming which Carbone version is active.",
+    "annotations": {
+      "title": "API Status",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "get_capabilities",
+    "description": "Returns a summary of all Carbone capabilities: supported formats, features, tool usage examples, and links to full documentation. Call this first if you are unsure what Carbone can do.",
+    "annotations": {
+      "title": "Capabilities",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "inspect_template",
+    "description": "List the Carbone tags a template uses and return a sample JSON dataset matching its structure. Call it before render_document when you do not know which data a template expects. Pass exactly one of templateId (a stored template: Template ID or Version ID) or template: a local file path, an HTTPS URL, or a base64-encoded string. It runs one render on the Carbone account and discards the document. {t()} translation tags are not listed.",
+    "arguments": [
+      {
+        "name": "template",
+        "type": "string",
+        "desc": "Inline template to inspect, without storing it. Three input forms are accepted: (1) Local file path — absolute, e.g. \"/Users/me/report.docx\" (or \"C:\\Users\\me\\report.docx\" on Windows), or under the home directory, e.g. \"~/report.docx\". A relative path must start with \"./\" or \"../\" and resolves against the server process's working directory, which is rarely yours: prefer an absolute path. A bare file name such as \"report.docx\" is NOT a path: it would be sent as base64 content. (2) HTTPS URL — the file is downloaded automatically, e.g. \"https://example.com/file.pptx\". (3) Base64-encoded string — the raw file content encoded as base64. Supported input formats: DOCX, XLSX, PPTX, ODT, ODS, ODP, ODG, HTML, XHTML, XML, SVG, IDML, MD, TXT, CSV, RTF, PDF. Carbone reads XML-based and text-based documents (plus PDF): the legacy binary Office formats DOC, XLS and PPT are rejected as input, although they are valid outputs. Re-save such a file as DOCX, XLSX or PPTX first. Mutually exclusive with templateId — provide exactly one, never both.",
+        "optional": true
+      },
+      {
+        "name": "templateId",
+        "type": "string",
+        "desc": "The ID of a stored template to inspect. Two ID formats are accepted: (1) Template ID (64-bit) — the deployed version is inspected. (2) Version ID (SHA-256) — that exact version is inspected. Both are returned by upload_template and list_templates. Mutually exclusive with template — provide exactly one, never both.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Inspect Template",
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "list_categories",
+    "description": "List all template categories currently in use in your Carbone account. Categories act like folders for organising templates (e.g. \"invoices\", \"legal\", \"hr\"). Use the returned names as the category filter in list_templates or upload_template.",
+    "annotations": {
+      "title": "List Categories",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "list_tags",
+    "description": "List all tags currently used across templates in your Carbone account. Tags are free-form labels attached to templates (e.g. \"sales\", \"billing\", \"v2\"). To find the templates with a tag, call list_templates and keep the results whose `tags` include it.",
+    "annotations": {
+      "title": "List Tags",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "list_templates",
+    "description": "List stored Carbone templates with filtering, search, and pagination. Filter by Template ID, Version ID, category, or upload origin. Use includeVersions to see the full version history of each template. Supports cursor-based pagination for large collections. Each result carries its `tags`: to find templates by tag, keep the results whose `tags` include it (list_tags lists the tags in use). Note: templates uploaded with versioning disabled appear with id = null and are identified only by their versionId — pass that versionId where a Template ID is expected (e.g. delete_template, download_template).",
+    "arguments": [
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Filter by category (e.g. \"invoices\", \"legal\").",
+        "optional": true
+      },
+      {
+        "name": "cursor",
+        "type": "string",
+        "desc": "Pagination cursor from the previous response nextCursor field. Use to fetch the next page.",
+        "optional": true
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Filter by Template ID (64-bit format). Cannot be a Version ID.",
+        "optional": true
+      },
+      {
+        "name": "includeVersions",
+        "type": "boolean",
+        "desc": "If true, returns all versions for each template. Default: false (only deployed version).",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of results to return, between 1 and 100 (Carbone API limit). Default: 100. Use cursor to page beyond that.",
+        "optional": true
+      },
+      {
+        "name": "origin",
+        "type": "integer",
+        "desc": "Filter by upload origin: 0 = API, 1 = Carbone Studio, 2 = Salesforce integration, 3 = Odoo integration, 4 = HubSpot integration. Templates uploaded through this MCP server are origin 0.",
+        "optional": true
+      },
+      {
+        "name": "search",
+        "type": "string",
+        "desc": "Fuzzy search in template names, or exact match on Template ID / Version ID.",
+        "optional": true
+      },
+      {
+        "name": "versionId",
+        "type": "string",
+        "desc": "Filter by Version ID (SHA-256 format).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Templates",
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "render_document",
+    "description": "Generate a document by merging a Carbone template with JSON data. Two modes: (1) pass templateId to use a previously uploaded template; (2) pass template (a local file path, an HTTPS URL, or a base64-encoded string) to upload and render in a single request without storing a template. Supports output format conversion, multilingual rendering, currency conversion, batch generation, and advanced PDF options (watermark, password, PDF/A). Without data, every tag resolves to empty; to keep the tags as written, pass keepTags: true (e.g. to proof a stored template), or use convert_document for a file. Async mode: pass webhookUrl. This tool then returns only Carbone's acceptance message, never the document: Carbone POSTs { \"success\": true, \"data\": { \"renderId\": \"...\" } } to the webhook, whose server downloads the document itself from GET /render/{renderId} (one-time, no auth). You cannot fetch it from here. Batch generation (batchSplitBy) is always delivered this way.",
+    "arguments": [
+      {
+        "name": "asAttachment",
+        "type": "boolean",
+        "desc": "If true, return the document as a downloadable file attachment (a base64 EmbeddedResource), for any format. Default delivery: text and png/jpg/gif/webp are returned inline; other binary outputs (PDF, Office, …) are saved to a temp file (path returned). Ignored when outputPath or returnLink is set.",
+        "optional": true
+      },
+      {
+        "name": "batchOutput",
+        "type": "string",
+        "desc": "Batch result type, with batchSplitBy. \"zip\" (default): an archive of all generated documents. \"pdf\": the generated PDFs concatenated into one file; requires convertTo \"pdf\".",
+        "optional": true
+      },
+      {
+        "name": "batchReportName",
+        "type": "string",
+        "desc": "Name of each file inside the batch ZIP, WITHOUT extension (Carbone appends it). Carbone tags are resolved against each batch item, e.g. \"invoice-{d.id}\". Ignored when batchOutput is \"pdf\". From v5.14, an index is appended to every file as soon as two names collide (invoice_1.pdf, invoice_2.pdf). Requires batchSplitBy.",
+        "optional": true
+      },
+      {
+        "name": "batchSplitBy",
+        "type": "string",
+        "desc": "Batch generation: one document per object of an array. Use \"d\" when data itself is an array, or \"d.items\" for a direct child array of data. Requires webhookUrl (batch is always asynchronous: the result goes to the webhook, not to this tool). At most 100 objects on Carbone Cloud. Combine with batchOutput and batchReportName. Docs: https://carbone.io/documentation/developer/http-api/generate-reports.html#batch-processing",
+        "optional": true
+      },
+      {
+        "name": "complement",
+        "type": "string",
+        "desc": "Extra data object accessible in templates with {c.field} tags (as opposed to {d.field} for main data). Useful for static or shared values that should not be mixed into the main dataset: company info, logo URLs, footer text, configuration constants. Example: { \"company\": \"Acme Corp\", \"address\": \"123 Main St\", \"vatNumber\": \"FR12345\" }. Like data, may instead be passed by reference as a string — a local file path (e.g. \"/data/invoices.json\"), an HTTPS URL, or a base64-encoded JSON string.",
+        "optional": true
+      },
+      {
+        "name": "convertTo",
+        "type": "string",
+        "desc": "Output format. If omitted, the output keeps the template format. Valid outputs depend on the input format (e.g. HTML converts to pdf, docx or png, but not xlsx); see the conversion matrix: https://carbone.io/documentation/developer/http-api/generate-reports.html#output-file-type. \"doc\", \"xls\" and \"ppt\" are output formats; as input, use DOCX, XLSX or PPTX. Simple usage: \"pdf\". With options: { \"formatName\": \"pdf\", \"formatOptions\": { ... } }.",
+        "optional": true
+      },
+      {
+        "name": "converter",
+        "type": "string",
+        "desc": "Converter engine, used whenever the format changes (not only for PDF). If omitted, \"L\" is used. \"L\" LibreOffice: DOCX, XLSX, PPTX, ODT, ODS, ODP, ODG, MD, PDF; the only converter supporting all PDF options. \"I\" Carbone ICE: DOCX and ODT to PDF; Carbone's own engine, 3x to 300x faster, recommended over \"O\" for DOCX from v5.15.0. It converts all content except WEBP and EMF/WMF images, SmartArt and complex charts (bar, line, area, pie and doughnut charts are drawn), comments, tracked changes, form fields and equations: keep the default \"L\" for documents with those. A missing font is replaced by Noto Sans (https://carbone.io/documentation/developer/http-api/generate-reports.html#converters-carbone-ice-limitations). \"O\" OnlyOffice: DOCX, XLSX, PPTX to PDF. \"C\" Chromium: HTML to PDF, JPG, PNG, WEBP with full CSS/JS; 100 MB max. PDF options: \"L\" supports all of them; \"O\", \"C\" and \"I\" apply Security (passwords, permissions) and Watermarks. Docs: https://carbone.io/documentation/developer/http-api/generate-reports.html#converters",
+        "optional": true
+      },
+      {
+        "name": "currencyRates",
+        "type": "string",
+        "desc": "Exchange rate table used by :formatC for currency conversion. Keys are ISO 4217 currency codes; values are rates relative to a common base. The base currency should have rate 1. Example: { \"EUR\": 1, \"USD\": 1.08, \"GBP\": 0.86, \"JPY\": 160.5 }. May instead be passed by reference as a string — a local file path (e.g. \"/data/invoices.json\"), an HTTPS URL, or a base64-encoded JSON string.",
+        "optional": true
+      },
+      {
+        "name": "currencySource",
+        "type": "string",
+        "desc": "ISO 4217 currency code of the monetary amounts in the JSON data. Used by the :formatC formatter as the conversion source. Must be set together with currencyTarget and currencyRates. Example: \"EUR\" if all prices in your data are in euros.",
+        "optional": true
+      },
+      {
+        "name": "currencyTarget",
+        "type": "string",
+        "desc": "ISO 4217 currency code of the output document. The :formatC formatter converts amounts from currencySource to this currency using currencyRates. Must be set together with currencySource and currencyRates. Example: \"USD\" to display prices in US dollars. Documentation: https://carbone.io/documentation/design/formatters/currency.html#formatc-precisionorformat-targetcurrency",
+        "optional": true
+      },
+      {
+        "name": "data",
+        "type": "string",
+        "desc": "JSON data merged into the template — an object, or a top-level array (accessed with {d[i].field}). Access fields with {d.fieldName} tags. Nested objects: {d.customer.name}. Array loops: {d.items[i].description} … {d.items[i+1]}. Conditions: {d.status:ifEQ(active):show(Yes):elseShow(No)}. Optional: if omitted, {} is sent, so every tag resolves to empty (\"Hello {d.name}!\" becomes \"Hello !\"). To keep the tags as written instead, pass keepTags: true (and no data). Instead of inlining a large dataset, you may pass a STRING reference to the JSON: a local file path (e.g. \"/data/invoices.json\"), an HTTPS URL, or a base64-encoded JSON string — it is read and parsed server-side.",
+        "optional": true
+      },
+      {
+        "name": "egressAuthorization",
+        "type": "string",
+        "desc": "Value for the Authorization header Carbone adds to its OUTBOUND (egress) requests while rendering — fetching external images ({d.imageUrl}), external PDFs (:appendFile / :attachFile), and calling webhooks. For example \"Bearer abc123\" or \"my-secret\" makes Carbone send `authorization: <value>` to those hosts. Only the authorization header can be customised; max 511 characters. For webhook calls specifically, webhookHeaders.authorization (if set) overrides this value.",
+        "optional": true
+      },
+      {
+        "name": "enum",
+        "type": "string",
+        "desc": "Enumeration map used with the :convEnum(TYPE) formatter to translate code values into human-readable labels. Define one key per enum type; each value is an object mapping code → label. Example: { \"STATUS\": { \"1\": \"Active\", \"2\": \"Inactive\", \"3\": \"Pending\" }, \"ROLE\": { \"A\": \"Admin\", \"U\": \"User\" } }. Template usage: {d.status:convEnum(STATUS)}, {d.role:convEnum(ROLE)}. May instead be passed by reference as a string — a local file path (e.g. \"/data/invoices.json\"), an HTTPS URL, or a base64-encoded JSON string. Documentation: https://carbone.io/documentation/design/advanced-features/key-value-mapping.html#convenum-type",
+        "optional": true
+      },
+      {
+        "name": "failOn",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Conditions that stop the render and return an error (Carbone v5.15.0+). \"IMAGE_URL_ERROR\": an image that cannot be downloaded from its URL fails the render, instead of being replaced with the broken-image placeholder. Empty image values are skipped; base64 images, barcodes and charts are not concerned. Example: [\"IMAGE_URL_ERROR\"]. Docs: https://carbone.io/documentation/developer/http-api/generate-reports.html#fail-on",
+        "optional": true
+      },
+      {
+        "name": "hardRefresh",
+        "type": "boolean",
+        "desc": "If true, Carbone recomputes pagination and refreshes the table of contents after rendering. Requires convertTo to be defined. Use this for DOCX/ODT templates that contain a TOC field or cross-references that need updating after data injection.",
+        "optional": true
+      },
+      {
+        "name": "keepTags",
+        "type": "boolean",
+        "desc": "If true, SKIP templating entirely and leave every Carbone tag in the document exactly as written: {d.customer} comes out as the literal text \"{d.customer}\", formatters included. Use it to proof a stored template in another format (e.g. render templateId to PDF to check the tag layout), or to convert a template between formats while it stays a template. Mutually exclusive with data: passing both is rejected, because data would have nothing to fill. Not the same as omitting data: no data renders the template with an EMPTY dataset, so every tag resolves to an empty string; keepTags leaves the tags themselves in place.",
+        "optional": true
+      },
+      {
+        "name": "lang",
+        "type": "string",
+        "desc": "Locale of the generated document. Affects three things: (1) {t(key)} translation tags — selects the matching translation from the translations map. (2) :formatN number formatter — applies locale-specific thousand/decimal separators. (3) :formatC currency formatter — applies locale-specific currency symbols and formatting. Format: BCP-47 lowercase, e.g. \"fr-fr\", \"en-us\", \"de-de\", \"es-es\", \"pt-br\", \"zh-cn\", \"ja-jp\". Full list: https://github.com/carboneio/carbone/blob/master/formatters/_locale.js",
+        "optional": true
+      },
+      {
+        "name": "outputPath",
+        "type": "string",
+        "desc": "Optional local file path to save the generated document to (e.g. \"/home/user/out.pdf\" or \"~/out.pdf\"). When set, the file is written to disk and the tool returns the saved path + size instead of embedding the document inline — ideal for large files. The path must not exist yet: an existing file is never overwritten (the call fails and asks for a new file name). Ignored for async/webhook renders (no document is returned inline).",
+        "optional": true
+      },
+      {
+        "name": "preReleaseFeatureIn",
+        "type": "integer",
+        "desc": "Pre-release feature level for this render only: features and fixes introduced up to this tag apply, later ones stay disabled. Overrides the server default; a tag set in the template overrides it. Example: 5000000. Docs: https://carbone.io/documentation/design/overview/version-lifecycle.html#pre-release-features",
+        "optional": true
+      },
+      {
+        "name": "reportName",
+        "type": "string",
+        "desc": "Filename (WITHOUT extension) for the generated document, returned in the Content-Disposition header. Carbone automatically appends the extension that matches convertTo, so do not include one — passing \"invoice.pdf\" yields \"invoice.pdf.pdf\". Supports Carbone tags resolved against the data at render time. Examples: \"invoice\" (static), \"{d.type}-{d.id}\" (dynamic), \"{d.client}-{d.date:formatD(YYYY-MM)}\". With keepTags (no templating pass), this server names the file \"<reportName>.<ext>\" itself, literally (tags are not resolved).",
+        "optional": true
+      },
+      {
+        "name": "returnLink",
+        "type": "boolean",
+        "desc": "If true, generate the document and return a public download URL instead of the file contents. The link is SHORT-LIVED and ONE-TIME — Carbone deletes the file after the first download — so it is meant for the end user to download once (do not fetch it programmatically). Works in stdio and HTTP. Mutually exclusive with outputPath and asAttachment. Ignored when webhookUrl is set (no link is returned).",
+        "optional": true
+      },
+      {
+        "name": "template",
+        "type": "string",
+        "desc": "Inline template for one-shot render without storing a template first. Three input forms are accepted: (1) Local file path — absolute, e.g. \"/Users/me/report.docx\" (or \"C:\\Users\\me\\report.docx\" on Windows), or under the home directory, e.g. \"~/report.docx\". A relative path must start with \"./\" or \"../\" and resolves against the server process's working directory, which is rarely yours: prefer an absolute path. A bare file name such as \"report.docx\" is NOT a path: it would be sent as base64 content. (2) HTTPS URL — the file is downloaded automatically, e.g. \"https://example.com/file.pptx\". (3) Base64-encoded string — the raw file content encoded as base64. The template is uploaded and rendered in a single API request — no Template ID is returned. Use this for ephemeral renders; use upload_template + templateId when you need to reuse the template. Supported input formats: DOCX, XLSX, PPTX, ODT, ODS, ODP, ODG, HTML, XHTML, XML, SVG, IDML, MD, TXT, CSV, RTF, PDF. Carbone reads XML-based and text-based documents (plus PDF): the legacy binary Office formats DOC, XLS and PPT are rejected as input, although they are valid outputs. Re-save such a file as DOCX, XLSX or PPTX first. Mutually exclusive with templateId — provide exactly one, never both.",
+        "optional": true
+      },
+      {
+        "name": "templateId",
+        "type": "string",
+        "desc": "The ID of a previously uploaded template to render. Two ID formats are accepted: (1) Template ID (64-bit) — stable identifier shared across versions; Carbone automatically uses the deployed version. (2) Version ID (SHA-256) — pins rendering to a specific version regardless of deployment status. Both are returned by upload_template. Mutually exclusive with template — provide exactly one, never both.",
+        "optional": true
+      },
+      {
+        "name": "timezone",
+        "type": "string",
+        "desc": "IANA timezone used to convert dates in the rendered document. Default: \"Europe/Paris\". Applied when templates use the :formatD formatter, e.g. {d.date:formatD(YYYY-MM-DD HH:mm)}. Common values: \"UTC\", \"America/New_York\", \"America/Los_Angeles\", \"Europe/London\", \"Europe/Paris\", \"Europe/Berlin\", \"Asia/Tokyo\", \"Asia/Shanghai\", \"Australia/Sydney\". Full list (TZ identifier column): https://en.wikipedia.org/wiki/List_of_tz_database_time_zones",
+        "optional": true
+      },
+      {
+        "name": "translations",
+        "type": "string",
+        "desc": "Translation map for multilingual documents. Requires \"lang\" to be set to select the active locale. Top-level keys are BCP-47 locale codes; values are key → translated-string maps. Template usage: {t(greeting)} is replaced by the matching string for the active locale. Example: { \"fr-fr\": { \"greeting\": \"Bonjour\", \"total\": \"Total\" }, \"en-us\": { \"greeting\": \"Hello\", \"total\": \"Total\" } }. These dictionaries get large, so you may instead pass a string reference — a local file path (e.g. \"/data/invoices.json\"), an HTTPS URL, or a base64-encoded JSON string. Documentation: https://carbone.io/documentation/design/advanced-features/translations-i18n.html",
+        "optional": true
+      },
+      {
+        "name": "variableStr",
+        "type": "string",
+        "desc": "Carbone alias definitions applied to the whole template, as if written in it. An alias is a shortcut to a data path, not a variable: it stores no value and computes nothing (no arithmetic, no concatenation). Define with {#alias = d.path}, optionally with $parameters: {#mealOf($weekday) = d[weekday = $weekday]}. Use them in the template with {$alias}, e.g. {$mealOf(2).name}. Example: \"{#buyer = d.order.customer}\", then {$buyer.name} in the template renders d.order.customer.name. To store a computed value, use the :set formatter instead. Documentation: https://carbone.io/documentation/design/substitutions/aliases.html#alias",
+        "optional": true
+      },
+      {
+        "name": "webhookHeaders",
+        "type": "object",
+        "desc": "Custom headers Carbone will include when POSTing to your webhookUrl. Pass plain header names as keys — the prefix \"carbone-webhook-header-\" is added automatically before sending to Carbone, and Carbone forwards the original header names to your webhook endpoint. Example: { \"authorization\": \"my-secret\", \"custom-id\": \"12345\", \"custom-name\": \"Jane Doe\" } — Carbone will call your URL with headers: authorization: my-secret, custom-id: 12345, custom-name: Jane Doe. Requires webhookUrl to be set.",
+        "optional": true
+      },
+      {
+        "name": "webhookUrl",
+        "type": "string",
+        "desc": "Webhook URL that enables asynchronous rendering (render timeout raised to 5 minutes). This tool then returns only Carbone's acceptance message, never the document. When the document is ready, Carbone POSTs { \"success\": true, \"data\": { \"renderId\": \"...\" } } to this URL; the server behind it must download the document itself with GET /render/{renderId} on the Carbone API (one-time, no auth). You cannot fetch it from here. Required for batchSplitBy: batch output is always delivered this way. outputPath, asAttachment and returnLink are ignored in this mode. Example: \"https://your-server.com/carbone-webhook\".",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Generate Document",
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "update_template_metadata",
+    "description": "Update the metadata of ONE stored template version: name, comment, category, tags, deployment (deployedAt), scheduled deletion (expireAt), or the Template ID it belongs to (moveToTemplateId). With a Template ID, Carbone patches its currently deployed version only; with a Version ID, that exact version. Use deployedAt to choose the version used when rendering by Template ID. Returns the patched versionId and the updated fields, as echoed back by Carbone. To delete a template now, use delete_template.",
+    "arguments": [
+      {
+        "name": "templateId",
+        "type": "string",
+        "desc": "Template ID (64-bit) or Version ID (SHA-256) of the version to update. A Template ID patches only its currently deployed version (not every version). A Version ID patches that exact version."
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "New category, max 200 characters.",
+        "optional": true
+      },
+      {
+        "name": "comment",
+        "type": "string",
+        "desc": "New free-text comment, max 200 characters.",
+        "optional": true
+      },
+      {
+        "name": "deployedAt",
+        "type": "integer",
+        "desc": "Unix timestamp (seconds) to set as the deployment time for this version. Carbone picks the version with the most recent deployedAt when rendering by Template ID. Use 42000000000 to deploy immediately (special \"NOW\" value). Future values are not allowed, and the deployed version's deployedAt cannot move back in time.",
+        "optional": true
+      },
+      {
+        "name": "expireAt",
+        "type": "integer",
+        "desc": "Schedule deletion of the patched version at a UTC Unix timestamp (seconds). After that time it is no longer listed, downloadable or renderable (404), and the file is purged after the retention delay. Send 0 to cancel a scheduled deletion (permanent again); omit to leave it unchanged. To delete now, use delete_template.",
+        "optional": true
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "DEPRECATED: the 1.6.0 name of moveToTemplateId, kept so existing callers keep working. Use moveToTemplateId; passing both with different values is rejected.",
+        "optional": true
+      },
+      {
+        "name": "moveToTemplateId",
+        "type": "string",
+        "desc": "CAUTION, structural change: moves the patched version to this other Template ID (64-bit; a Version ID is rejected). It is NOT the template to patch (that is templateId). Pass the version's Version ID as templateId; with a Template ID, its currently deployed version is moved and that Template ID falls back to its next most recent version (or stops resolving if none is left). Fails if the move creates a deployedAt conflict at the destination. Only use it when the user asks to move a version.",
+        "optional": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "New display name, max 200 characters.",
+        "optional": true
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "New list of tags, replacing the existing ones. Duplicates are removed and the list is sorted; the whole list is limited to 100 characters (about 8 tags of 9 characters).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Update Template Metadata",
+      "destructiveHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "upload_template",
+    "description": "Upload and store a reusable Carbone template. Once uploaded, use render_document with the returned Template ID to generate documents from it. Supports versioning: multiple versions can live under a single stable Template ID, and rendering by Template ID uses the version with the most recent deployedAt. A result deployedAt of 0 means the version is not explicitly deployed: if another version of the same Template ID is deployed, renders by Template ID keep using that one. Accepted formats: DOCX, XLSX, PPTX, ODT, ODS, ODP, ODG, HTML, XHTML, XML, SVG, IDML, Markdown, TXT, CSV, RTF and PDF (not the legacy binary DOC, XLS or PPT).",
+    "arguments": [
+      {
+        "name": "template",
+        "type": "string",
+        "desc": "The template file. Three input forms are accepted: (1) Local file path — absolute, e.g. \"/Users/me/report.docx\" (or \"C:\\Users\\me\\report.docx\" on Windows), or under the home directory, e.g. \"~/report.docx\". A relative path must start with \"./\" or \"../\" and resolves against the server process's working directory, which is rarely yours: prefer an absolute path. A bare file name such as \"report.docx\" is NOT a path: it would be sent as base64 content. (2) HTTPS URL — the file is downloaded automatically, e.g. \"https://example.com/file.pptx\". (3) Base64-encoded string — the raw file content encoded as base64. Supported input formats: DOCX, XLSX, PPTX, ODT, ODS, ODP, ODG, HTML, XHTML, XML, SVG, IDML, MD, TXT, CSV, RTF, PDF. Carbone reads XML-based and text-based documents (plus PDF): the legacy binary Office formats DOC, XLS and PPT are rejected as input, although they are valid outputs. Re-save such a file as DOCX, XLSX or PPTX first."
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Group templates into folders/categories, max 200 characters (e.g. \"invoices\", \"legal\", \"hr\").",
+        "optional": true
+      },
+      {
+        "name": "comment",
+        "type": "string",
+        "desc": "Free-text comment to describe the template version or its purpose, max 200 characters.",
+        "optional": true
+      },
+      {
+        "name": "deployedAt",
+        "type": "integer",
+        "desc": "UTC Unix timestamp (seconds) to set as the deployment time for this version. Carbone uses the version with the most recent deployedAt when rendering via Template ID. Use 42000000000 to deploy immediately (special \"NOW\" sentinel value). Future values are not allowed.",
+        "optional": true
+      },
+      {
+        "name": "expireAt",
+        "type": "integer",
+        "desc": "Schedule deletion at a UTC Unix timestamp (seconds); 0 (default) means the template never expires. After that time it is no longer listed, downloadable or renderable (404), and the file is purged after the retention delay. To remove a template now, use delete_template.",
+        "optional": true
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Existing Template ID (64-bit format) to add this upload to its version history. If omitted, a new Template ID is generated. Providing a Version ID (SHA-256) is not allowed and will cause an error.",
+        "optional": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Display name for the template, max 200 characters (e.g. \"Invoice Template\", \"NDA Contract\"). Optional but recommended: list_templates shows it and its search matches it.",
+        "optional": true
+      },
+      {
+        "name": "sample",
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "desc": "Sample input data attached to the template for testing in Carbone Studio: an array with at most ONE object, whose keys data, complement, translations and enum are all optional. Example: [{ \"data\": { \"name\": \"Acme\" } }].",
+        "optional": true
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Labels shown by list_tags and on each list_templates result (e.g. [\"sales\", \"billing\", \"v2\"]). Duplicates are removed and the list is sorted; the whole list is limited to 100 characters (about 8 tags of 9 characters).",
+        "optional": true
+      },
+      {
+        "name": "versioning",
+        "type": "boolean",
+        "desc": "Enable template versioning (default: true). When true, a stable Template ID is generated and multiple versions can be managed under it. When false, behaves as legacy mode and returns only a templateId (SHA-256 hash) and templateExtension.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Upload Template",
+      "openWorldHint": true
+    }
+  }
+]
