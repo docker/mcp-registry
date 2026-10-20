@@ -349,7 +349,7 @@
   },
   {
     "name": "quote_image",
-    "description": "Price one generate_image call WITHOUT spending credits: its credits (one image at its model's unit_credits), its width and height, and warnings. Always call this first and show the user the price before generate_image. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image (rights_confirmed states you may use the people and works in it) or {run_id} of a succeeded generate_image run of this account until its reusable_until. A generation that fails is charged nothing, even when the vendor was already paid. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing.",
+    "description": "Price one generate_image call WITHOUT spending credits: its credits (one image at its model's unit_credits), its width and height, and warnings. Always call this first and show the user the price before generate_image. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image or create_upload (rights_confirmed states you may use the people and works in it), {run_id} of a succeeded generate_image run of this account until its reusable_until, or {asset_id} of a picture asset from create_asset, whose rights were confirmed when it was made. A generation that fails is charged nothing, even when the vendor was already paid. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing.",
     "arguments": [
       {
         "name": "prompt",
@@ -375,7 +375,7 @@
   },
   {
     "name": "generate_image",
-    "description": "Generate one image from a prompt (paid): a NEW run of skill generate_image, charged the quoted credits per image once it is delivered. Call quote_image first and show the user the price. Poll the run with get_run; once it succeeded, generation.url is the image and its run_id can be a reference of a later generation. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image (rights_confirmed states you may use the people and works in it) or {run_id} of a succeeded generate_image run of this account until its reusable_until. A generation that fails is charged nothing, even when the vendor was already paid. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing.",
+    "description": "Generate one image from a prompt (paid): a NEW run of skill generate_image, charged the quoted credits per image once it is delivered. Call quote_image first and show the user the price. Poll the run with get_run; once it succeeded, generation.url is the image and its run_id can be a reference of a later generation. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image or create_upload (rights_confirmed states you may use the people and works in it), {run_id} of a succeeded generate_image run of this account until its reusable_until, or {asset_id} of a picture asset from create_asset, whose rights were confirmed when it was made. A generation that fails is charged nothing, even when the vendor was already paid. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing.",
     "arguments": [
       {
         "name": "prompt",
@@ -406,7 +406,7 @@
   },
   {
     "name": "quote_video",
-    "description": "Price one generate_video call WITHOUT spending credits: its credits (unit_credits per second of duration_s), its width and height, and warnings. Always call this first and show the user the price before generate_video. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image (rights_confirmed states you may use the people and works in it) or {run_id} of a succeeded generate_image run of this account until its reusable_until. A generation that fails is charged nothing, even when the vendor was already paid. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing.",
+    "description": "Price one generate_video call WITHOUT spending credits: its credits (unit_credits per second of duration_s), its width and height, and warnings. Always call this first and show the user the price before generate_video. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image or create_upload (rights_confirmed states you may use the people and works in it), {run_id} of a succeeded generate_image run of this account until its reusable_until, or {asset_id} of a picture asset from create_asset, whose rights were confirmed when it was made. A generation that fails is charged nothing, even when the vendor was already paid. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing.",
     "arguments": [
       {
         "name": "prompt",
@@ -457,7 +457,7 @@
   },
   {
     "name": "generate_video",
-    "description": "Generate one silent clip (paid): a NEW run of skill generate_video, charged unit_credits per second of duration_s once it is delivered. Modes: text; first_frame (first_frame, optional last_frame, of the requested aspect ratio within 2%); reference (1 to 4 references). Call quote_video first and show the user the price. Poll the run with get_run; once it succeeded, generation.url is the clip. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image (rights_confirmed states you may use the people and works in it) or {run_id} of a succeeded generate_image run of this account until its reusable_until. A generation that fails is charged nothing, even when the vendor was already paid. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing.",
+    "description": "Generate one silent clip (paid): a NEW run of skill generate_video, charged unit_credits per second of duration_s once it is delivered. Modes: text; first_frame (first_frame, optional last_frame, of the requested aspect ratio within 2%); reference (1 to 4 references). Call quote_video first and show the user the price. Poll the run with get_run; once it succeeded, generation.url is the clip. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image or create_upload (rights_confirmed states you may use the people and works in it), {run_id} of a succeeded generate_image run of this account until its reusable_until, or {asset_id} of a picture asset from create_asset, whose rights were confirmed when it was made. A generation that fails is charged nothing, even when the vendor was already paid. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing.",
     "arguments": [
       {
         "name": "prompt",
@@ -614,12 +614,149 @@
   },
   {
     "name": "upload_image",
-    "description": "Upload a LOCAL image file (PNG or JPEG, up to 10 MB) and get an https url to pass as `image` to quote_ugc / make_ugc. The url is signed and expires in 24 hours; upload again after that. Use this whenever the user points at a file on disk — `image` itself accepts only public https urls. Then set `aspect_ratio` EXPLICITLY to match the picture (a 16:9 photo with no aspect_ratio renders vertical 9:16 with a warning). For workflow assets, use the returned upload_id as asset_id and content_digest directly: it is the SHA-256 of the original uploaded bytes. Free: spends no credits; 20 uploads per day per account.",
+    "description": "Get an upload_id and a signed https url for a PNG or JPEG up to 10 MB: from a LOCAL file (`path`, only when this server runs on your machine) or from a public https `url` that the server downloads (up to 20 seconds; redirects are followed up to 3 times). Pass the url as `image` to quote_ugc / make_ugc, and the upload_id as {upload_id, rights_confirmed: true} in references, first_frame or last_frame of quote_image, generate_image, quote_video and generate_video. The url is signed for 24 hours; the upload_id stays usable for 30 days. For workflow assets, use the upload_id as asset_id and content_digest directly: it is the SHA-256 of the original bytes. Set `aspect_ratio` EXPLICITLY to match the picture. For a file on your disk while this server is remote, use create_upload. Free: spends no credits; 20 uploads per day per account, and at most 30 url downloads per hour.",
     "arguments": [
       {
         "name": "path",
         "type": "string",
-        "desc": "Absolute or cwd-relative path to a PNG or JPEG file"
+        "desc": "Absolute or cwd-relative path to a PNG or JPEG file; only on a server running on your machine"
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "Public https URL of a PNG or JPEG; the server downloads it"
+      }
+    ]
+  },
+  {
+    "name": "create_upload",
+    "description": "Upload a LOCAL PNG or JPEG (up to 10 MB) through a one-time presigned PUT; use it when this server is remote and you have a shell. Pass media_type, the exact size in bytes and the file's sha256 (`sha256sum <file>` or `shasum -a 256 <file>`). Within 15 minutes run: `curl -X PUT -H 'content-type: <media_type>' --data-binary @<file> '<put_url>'` (curl sends the content-length itself; both headers must match what you declared). Once the PUT finished, the upload_id works as {upload_id, rights_confirmed: true} in quote_image, generate_image, quote_video and generate_video; before that they answer upload_not_finished. Call get_upload to confirm and to read content_digest, width and height; other tools that take an upload_id need that call first. Use the upload_id within 24 hours. Free; counts toward 20 uploads per day.",
+    "arguments": [
+      {
+        "name": "media_type",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "bytes",
+        "type": "integer",
+        "desc": "Exact file size in bytes"
+      },
+      {
+        "name": "sha256",
+        "type": "string",
+        "desc": "Lowercase hex SHA-256 of the file"
+      },
+      {
+        "name": "filename",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_upload",
+    "description": "Read one upload by upload_id: a freshly signed https url, content_digest, media_type, bytes, width, height and usable_until. After create_upload it also confirms the PUT: it answers upload_not_finished until the file is there and upload_expired after 24 hours. Free.",
+    "arguments": [
+      {
+        "name": "upload_id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "create_asset",
+    "description": "Save a picture as an asset of this account, kept until you delete it: a character, location, style, prop or other, with a name. source is {run_id} of a succeeded generate_image run of this account, {upload_id} of an upload from upload_image or create_upload, a public https {url} the server downloads, or {base64, media_type} of a PNG or JPEG up to 700000 bytes; on a server running on your machine also {path} of a local PNG or JPEG. For your own material (upload_id, url, base64, path) pass rights_confirmed: true, which states once that you may use the people and works in it. Use the asset_id as {asset_id} in references, first_frame or last_frame of quote_image, generate_image, quote_video and generate_video. Assets are free: creating, storing and using one spends no credits. An account keeps up to 2000 assets and 20 GB, and makes up to 100 new ones per day.",
+    "arguments": [
+      {
+        "name": "source",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "role",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "rights_confirmed",
+        "type": "boolean",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "list_assets",
+    "description": "List the assets of this account, newest first, each with a freshly signed url, its role, name, size and content_digest; filter by role and kind, and pass next_cursor as cursor for the next page. usage says how much of the 2000 assets and 20 GB is used. Free.",
+    "arguments": [
+      {
+        "name": "role",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "cursor",
+        "type": "string",
+        "desc": "next_cursor of the previous page"
+      }
+    ]
+  },
+  {
+    "name": "get_asset",
+    "description": "Read one asset by asset_id with a freshly signed url (valid for an hour), its role, name, media_type, bytes, width, height and content_digest. A deleted asset answers asset_not_found. Free.",
+    "arguments": [
+      {
+        "name": "asset_id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "update_asset",
+    "description": "Rename an asset or change its role; the picture itself does not change. Free.",
+    "arguments": [
+      {
+        "name": "asset_id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "role",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "delete_asset",
+    "description": "Delete an asset by asset_id. It leaves the list at once and a new generation can no longer use it; its file is removed from our storage by a daily cleanup once 7 days have passed. Runs already made with it stay as they are. Free.",
+    "arguments": [
+      {
+        "name": "asset_id",
+        "type": "string",
+        "desc": ""
       }
     ]
   },
