@@ -1,0 +1,777 @@
+[
+  {
+    "name": "account_settings",
+    "description": "Read the account's quota windows, or set the output language when output_language is given. The language setting slot is not live-verified (the call is sent, but Google may ignore or reject it).",
+    "arguments": [
+      {
+        "name": "output_language",
+        "type": "string",
+        "desc": "language code to set, for example en or de; omit to only read"
+      }
+    ]
+  },
+  {
+    "name": "auth_login",
+    "description": "Not available through MCP: sign-in needs the local credential store, and cookies should not pass through a chat. Returns UNSUPPORTED_BY_TRANSPORT with the CLI command to run instead (sourcebolt login --import, --browser or --attach).",
+    "arguments": [
+      {
+        "name": "method",
+        "type": "string",
+        "desc": "import (cookies or file), browser or attach"
+      },
+      {
+        "name": "profile",
+        "type": "string",
+        "desc": "account profile name"
+      },
+      {
+        "name": "host",
+        "type": "string",
+        "desc": "NotebookLM host, for example notebook.google.com"
+      },
+      {
+        "name": "file",
+        "type": "string",
+        "desc": "path of a cookie export file (method import)"
+      }
+    ]
+  },
+  {
+    "name": "auth_logout",
+    "description": "Not available through MCP: the credential store is only reachable from the CLI. Returns UNSUPPORTED_BY_TRANSPORT with the command to run instead (sourcebolt logout).",
+    "arguments": [
+      {
+        "name": "profile",
+        "type": "string",
+        "desc": "account profile name"
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "must be true to delete the stored session"
+      }
+    ]
+  },
+  {
+    "name": "chat_ask",
+    "description": "Ask a question about a notebook's sources. Streams partial text as progress notifications. Returns the answer, citations (source, cited text, UTF-16 offsets) and the conversation id. save_as_note also saves the answer as a note (note_id, or note_error when it could not be saved). wait=false returns a job_id; poll with chat_status. Not retried after sending.",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix (6+ chars) or title"
+      },
+      {
+        "name": "question",
+        "type": "string",
+        "desc": "the question to ask"
+      },
+      {
+        "name": "sources",
+        "type": "array",
+        "desc": "restrict the answer to these sources (id, id prefix or title); default all sources"
+      },
+      {
+        "name": "conversation_id",
+        "type": "string",
+        "desc": "continue this conversation; default is the notebook's newest thread"
+      },
+      {
+        "name": "new_conversation",
+        "type": "boolean",
+        "desc": "start a fresh conversation instead of the default thread"
+      },
+      {
+        "name": "wait",
+        "type": "boolean",
+        "desc": "wait for the answer (default true); false returns a job_id to poll with chat_status"
+      },
+      {
+        "name": "save_as_note",
+        "type": "boolean",
+        "desc": "also save the answer as a note, as the web app's Save to note does (the server picks the note title)"
+      }
+    ]
+  },
+  {
+    "name": "chat_configure",
+    "description": "Change a notebook's chat settings: mode (default, learning_guide, or custom with custom_prompt) and response_length (default, longer or shorter). Unset fields keep their value. mode default with response_length default resets the notebook to the web app's defaults.",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix (6+ chars) or title"
+      },
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": "conversational goal; custom needs custom_prompt"
+      },
+      {
+        "name": "custom_prompt",
+        "type": "string",
+        "desc": "instructions for mode custom, up to 10000 characters"
+      },
+      {
+        "name": "response_length",
+        "type": "string",
+        "desc": "response length"
+      }
+    ]
+  },
+  {
+    "name": "chat_history",
+    "description": "Read a notebook conversation (oldest turn first within a page), with cursor paging. format=markdown adds a rendered transcript. Turn layout is not yet live-verified.",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix (6+ chars) or title"
+      },
+      {
+        "name": "conversation_id",
+        "type": "string",
+        "desc": "conversation to read; default is the newest thread"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "max turns per page (default 20)"
+      },
+      {
+        "name": "cursor",
+        "type": "string",
+        "desc": "next_cursor of the previous page (older turns)"
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "json (default) or markdown"
+      }
+    ]
+  },
+  {
+    "name": "chat_status",
+    "description": "Status and result of a detached chat_ask (wait=false): running, done, failed or cancelled. Jobs live in memory and are dropped an hour after they finish or when the server restarts.",
+    "arguments": [
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "job id returned by chat_ask with wait=false"
+      }
+    ]
+  },
+  {
+    "name": "delete",
+    "description": "Delete notebooks, sources, notes, artifacts, chat history, labels or collections. Without confirm:true it only returns a preview of what would be deleted and changes nothing. Items are matched strictly (exact id, unique id prefix or exact title) against a fresh list. source, note and chat_history need notebook; chat_history deletes the whole history of the given conversations; it reaches only the newest 20 conversations of a notebook, and its preview shows their created and updated times and, when the whole history can be read, the first question. Kinds artifact, label and collection are not available yet and return UNSUPPORTED_BY_TRANSPORT.",
+    "arguments": [
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "notebook, source, note, artifact, chat_history, label or collection"
+      },
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, prefix or title; required for every kind except notebook"
+      },
+      {
+        "name": "ids",
+        "type": "array",
+        "desc": "ids (or exact titles) of the items to delete; for chat_history, conversation ids"
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "must be true to delete; without it only a preview is returned"
+      }
+    ]
+  },
+  {
+    "name": "job_cancel",
+    "description": "Cancel a running detached job (chat_ask with wait=false, deep research). For an ask with a known conversation the server-side generation is also stopped, best effort.",
+    "arguments": [
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "job id to cancel"
+      }
+    ]
+  },
+  {
+    "name": "label_list",
+    "description": "List a notebook's source labels with emoji and the ids of the sources in each. Collections are not available yet.",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix (6+ chars) or title"
+      },
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": "source_labels (default); collections are not available yet"
+      }
+    ]
+  },
+  {
+    "name": "label_update",
+    "description": "Rename a label, set its emoji, or add/remove sources. Actions auto and create (and notebook collections) are not available yet and return UNSUPPORTED_BY_TRANSPORT. Payload shapes are not live-verified.",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix (6+ chars) or title"
+      },
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": "source_labels (default)"
+      },
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "rename, set_emoji, add_sources or remove_sources (auto and create are not available yet)"
+      },
+      {
+        "name": "label",
+        "type": "string",
+        "desc": "label id or name"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "new name for rename"
+      },
+      {
+        "name": "emoji",
+        "type": "string",
+        "desc": "emoji for set_emoji"
+      },
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "source ids, id prefixes or titles for add_sources / remove_sources"
+      }
+    ]
+  },
+  {
+    "name": "note_list",
+    "description": "List the notes of a notebook with id, title and content. Deleted notes are not shown.",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix (6+ chars) or title"
+      },
+      {
+        "name": "include_mind_maps",
+        "type": "boolean",
+        "desc": "accepted for compatibility; mind maps are not listed yet"
+      }
+    ]
+  },
+  {
+    "name": "note_save",
+    "description": "Create a note, or update an existing one (note = id or title). from_turn (save a chat turn as a note) is not available yet and returns UNSUPPORTED_BY_TRANSPORT.",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix (6+ chars) or title"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "existing note id or title to update; omit to create a new note"
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "note title"
+      },
+      {
+        "name": "content",
+        "type": "string",
+        "desc": "note body"
+      },
+      {
+        "name": "from_turn",
+        "type": "string",
+        "desc": "save a chat turn as a note (not available yet)"
+      }
+    ]
+  },
+  {
+    "name": "notebook_create",
+    "description": "Create a notebook with a title and optionally add sources in the same call (same items as source_add). The create call is sent once and never retried. emoji is accepted but ignored (no known wire slot). If the rename or the source add fails, the notebook still exists and its id is returned with warnings.",
+    "arguments": [
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "title of the new notebook"
+      },
+      {
+        "name": "emoji",
+        "type": "string",
+        "desc": "notebook emoji (ignored: no known wire slot yet)"
+      },
+      {
+        "name": "sources",
+        "type": "array",
+        "desc": "sources to add right after creation; same items as source_add"
+      }
+    ]
+  },
+  {
+    "name": "notebook_list",
+    "description": "List NotebookLM notebooks with id, title, source count and ownership. Filter by title and scope. Returns 20 by default; has_more says whether to page with offset. Cached 30 s.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "case-insensitive filter on notebook titles"
+      },
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": "mine, shared or all (default all)"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "max notebooks to return (default 20; page with offset)"
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "skip this many notebooks"
+      },
+      {
+        "name": "refresh",
+        "type": "boolean",
+        "desc": "bypass the 30 s cache"
+      }
+    ]
+  },
+  {
+    "name": "notebook_open",
+    "description": "Open one notebook by id or title: its sources with status, summary and suggested questions.",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix (6+ chars) or title"
+      }
+    ]
+  },
+  {
+    "name": "notebook_update",
+    "description": "Rename a notebook (title, verified by read-back) and/or drop it from the recently viewed list (remove_from_recent). emoji, pinned, alias and tags are not available yet and are ignored with a note.",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix (6+ chars) or title"
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "new title"
+      },
+      {
+        "name": "remove_from_recent",
+        "type": "boolean",
+        "desc": "drop the notebook from the recently viewed list"
+      },
+      {
+        "name": "emoji",
+        "type": "string",
+        "desc": "not available yet (ignored)"
+      },
+      {
+        "name": "pinned",
+        "type": "boolean",
+        "desc": "not available yet (ignored)"
+      },
+      {
+        "name": "alias",
+        "type": "string",
+        "desc": "not available yet (ignored)"
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "desc": "not available yet (ignored)"
+      }
+    ]
+  },
+  {
+    "name": "research_import",
+    "description": "Import research candidates as notebook sources, by urls (from research_status), report, or all. Candidates are matched by URL against a fresh read, so results reordered since research_status still import the intended ones; an unknown URL is NOT_FOUND. Candidates already in the notebook are skipped, so a retry is safe. Reports added, skipped and failed per candidate.",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix (6+ chars) or title"
+      },
+      {
+        "name": "job",
+        "type": "string",
+        "desc": "research job id from research_start or research_status"
+      },
+      {
+        "name": "urls",
+        "type": "array",
+        "desc": "URLs of the web candidates to import, as listed by research_status"
+      },
+      {
+        "name": "report",
+        "type": "boolean",
+        "desc": "also import the deep-research report candidate"
+      },
+      {
+        "name": "all",
+        "type": "boolean",
+        "desc": "import every candidate"
+      }
+    ]
+  },
+  {
+    "name": "research_start",
+    "description": "Start a web or Drive research job in a notebook (fast or deep). Returns a job handle; poll with research_status, then import with research_import. Queries under 4 words are rejected unless force is true. Mode discover is not yet available (UNSUPPORTED_BY_TRANSPORT).",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix (6+ chars) or title"
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "what to research; at least 4 words unless force is set"
+      },
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": "fast (default) or deep; discover is not yet available"
+      },
+      {
+        "name": "corpus",
+        "type": "string",
+        "desc": "web (default) or drive; deep supports web only"
+      },
+      {
+        "name": "force",
+        "type": "boolean",
+        "desc": "allow a query shorter than 4 words"
+      }
+    ]
+  },
+  {
+    "name": "research_status",
+    "description": "Check research jobs of a notebook and list their candidates (pick them by url in research_import). With wait_seconds (0-120) polls every 3 s, reporting progress, until the job is done.",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix (6+ chars) or title"
+      },
+      {
+        "name": "job",
+        "type": "string",
+        "desc": "research job id; omit for all jobs of the notebook"
+      },
+      {
+        "name": "wait_seconds",
+        "type": "integer",
+        "desc": "0-120: poll every 3 s until the job is done or time runs out"
+      },
+      {
+        "name": "include_report",
+        "type": "boolean",
+        "desc": "include the deep-research report text"
+      }
+    ]
+  },
+  {
+    "name": "server_info",
+    "description": "Show the sourcebolt version, active Google profile, NotebookLM host, enabled tools and which transport served the last call. No Google call unless include_usage is set.",
+    "arguments": [
+      {
+        "name": "include_usage",
+        "type": "boolean",
+        "desc": "also fetch account tier and quota windows (one Google call)"
+      }
+    ]
+  },
+  {
+    "name": "share_status",
+    "description": "Show who a notebook is shared with and whether the link is public.",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix (6+ chars) or title"
+      }
+    ]
+  },
+  {
+    "name": "share_update",
+    "description": "Change notebook sharing: link visibility (public) and per-user roles (viewer, editor, remove). Widening access or removing people requires confirm:true; without it a preview is returned and nothing is sent. The link setting and the user changes are sent as two calls; if only one applies, status is partial and parts says which applied and which failed. Payload shapes are not live-verified. view_level and artifact sharing are not available yet.",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix (6+ chars) or title"
+      },
+      {
+        "name": "public",
+        "type": "boolean",
+        "desc": "true = anyone with the link can view, false = restricted"
+      },
+      {
+        "name": "users",
+        "type": "array",
+        "desc": "per-user changes"
+      },
+      {
+        "name": "notify",
+        "type": "boolean",
+        "desc": "email the added people"
+      },
+      {
+        "name": "message",
+        "type": "string",
+        "desc": "message to include in the notification"
+      },
+      {
+        "name": "view_level",
+        "type": "string",
+        "desc": "full or chat_only (not available yet)"
+      },
+      {
+        "name": "artifact",
+        "type": "string",
+        "desc": "share one artifact instead of the notebook (not available yet)"
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "required to widen access or remove people; without it only a preview is returned"
+      }
+    ]
+  },
+  {
+    "name": "source_add",
+    "description": "Add sources to a notebook: public URLs (YouTube auto-detected) and pasted text, in one call. Returns a per-item outcome. Drive and file items are not yet available (UNSUPPORTED_BY_TRANSPORT). URLs to private or internal addresses are rejected.",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix (6+ chars) or title"
+      },
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "sources to add; each item sets exactly one of url, text, drive, file"
+      }
+    ]
+  },
+  {
+    "name": "source_list",
+    "description": "List a notebook's sources with type and processing status; optionally filter by status.",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix (6+ chars) or title"
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "filter: processing, ready, error, preparing or a raw status number"
+      }
+    ]
+  },
+  {
+    "name": "source_read",
+    "description": "Read a source's full text, markdown, or guide (summary and keywords), paged by character offset (max_chars default 20000; see truncated and next_offset).",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix (6+ chars) or title"
+      },
+      {
+        "name": "source",
+        "type": "string",
+        "desc": "source id, id prefix or title"
+      },
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": "fulltext (default), markdown, or guide (the source guide: summary as text plus keywords)"
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "character offset to start from"
+      },
+      {
+        "name": "max_chars",
+        "type": "integer",
+        "desc": "max characters to return (default 20000, cap 200000)"
+      }
+    ]
+  },
+  {
+    "name": "source_update",
+    "description": "Rename a source (title) and/or check whether it is up to date (check_freshness). refresh is not yet available (UNSUPPORTED_BY_TRANSPORT).",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix (6+ chars) or title"
+      },
+      {
+        "name": "source",
+        "type": "string",
+        "desc": "source id, id prefix or title"
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "new title"
+      },
+      {
+        "name": "refresh",
+        "type": "boolean",
+        "desc": "re-fetch the source (not yet available)"
+      },
+      {
+        "name": "check_freshness",
+        "type": "boolean",
+        "desc": "report whether the source is up to date"
+      }
+    ]
+  },
+  {
+    "name": "studio_generate",
+    "description": "Generate a Studio artifact: audio, video, report, interactive_report, slide_deck, mind_map, quiz, flashcards, infographic or data_table. Each kind takes only the option values a live capture has proven (the enums); other values the web app offers return UNSUPPORTED_BY_TRANSPORT naming the option, before any call. Omitted options take the web app's defaults. instructions is optional for audio, video, slide_deck and quiz, required for report, mind_map, flashcards and data_table, and refused by infographic and interactive_report (each as captured). video.generate_later asks for deferred generation (cinematic format only). report needs report.title and report.description plus instructions as the prompt (suggest surface report returns ready-made triples). Checks the account quota first and returns a QUOTA error when it is used up. Artifacts are built from the notebook's sources only, not notes (the web app can add notes; that is not supported). Returns the new artifact as pending; poll studio_list for its status. Not retried after sending.",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix (6+ chars) or title"
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "the artifact kind"
+      },
+      {
+        "name": "sources",
+        "type": "array",
+        "desc": "source ids, id prefixes or titles; default all sources (notes cannot be used as sources)"
+      },
+      {
+        "name": "instructions",
+        "type": "string",
+        "desc": "free text: audio and video focus, slide deck description and quiz topic (optional); report prompt, data table description, mind map and flashcards topic (required); infographic and interactive_report take none"
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "output language code as the web app sends it (default en; cinematic video takes none)"
+      },
+      {
+        "name": "audio",
+        "type": "object",
+        "desc": "options for kind audio"
+      },
+      {
+        "name": "video",
+        "type": "object",
+        "desc": "options for kind video"
+      },
+      {
+        "name": "report",
+        "type": "object",
+        "desc": "options for kind report (required)"
+      },
+      {
+        "name": "slide_deck",
+        "type": "object",
+        "desc": "options for kind slide_deck"
+      },
+      {
+        "name": "quiz",
+        "type": "object",
+        "desc": "options for kind quiz"
+      },
+      {
+        "name": "flashcards",
+        "type": "object",
+        "desc": "options for kind flashcards"
+      },
+      {
+        "name": "infographic",
+        "type": "object",
+        "desc": "options for kind infographic"
+      }
+    ]
+  },
+  {
+    "name": "studio_list",
+    "description": "List a notebook's Studio artifacts (audio, video, report, slide_deck, mind_map, quiz, flashcards, infographic, data_table) with kind and status (pending while queued or generating, then ready or failed). Pass artifact to read one with its interactive content (HTML or mind-map tree) when Google has any.",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix (6+ chars) or title"
+      },
+      {
+        "name": "artifact",
+        "type": "string",
+        "desc": "one artifact id or title; returns it with its interactive content when available"
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "filter by kind: audio, video, report, slide_deck, mind_map, quiz, flashcards, infographic, data_table (interactive and unknown for unrecognized rows)"
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "filter by status: pending (queued or generating), ready or failed"
+      }
+    ]
+  },
+  {
+    "name": "suggest",
+    "description": "Suggested prompts for a surface: chat, report or studio_options. The followups surface is not yet available (UNSUPPORTED_BY_TRANSPORT until a live capture pins it).",
+    "arguments": [
+      {
+        "name": "notebook",
+        "type": "string",
+        "desc": "notebook id, id prefix or title (not needed for studio_options)"
+      },
+      {
+        "name": "surface",
+        "type": "string",
+        "desc": "chat, followups, report or studio_options"
+      },
+      {
+        "name": "sources",
+        "type": "array",
+        "desc": "limit to these sources (id, id prefix or title)"
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "steer chat suggestions toward this topic"
+      }
+    ]
+  }
+]
