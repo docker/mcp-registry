@@ -1,33 +1,33 @@
 [
   {
     "name": "compare_databases",
-    "description": "Compare lookup answers in two loaded databases within a CIDR. Returns paginated added, removed, and changed address ranges. Equal answers with different network boundaries are unchanged.",
+    "description": "Compare lookup answers in two loaded databases within a CIDR, for example before and after an update. Returns paginated added, removed, and changed address ranges. Equal answers with different network boundaries are unchanged. Pages scan at most 10,000 segments and can contain no changes while has_more is true. Continue until has_more is false.",
     "arguments": [
       {
         "name": "network",
         "type": "string",
-        "desc": "IPv4 /8 or smaller, or IPv6 /32 or smaller"
+        "desc": "CIDR to compare. Use an IPv4 prefix length of 8 or greater, or a native IPv6 prefix length of 32 or greater. Repeat on each page."
       },
       {
         "name": "new_database",
         "type": "string",
-        "desc": ""
+        "desc": "Comparison database's exact filename from list_databases. Supplies the after values. Both databases must be loaded."
       },
       {
         "name": "old_database",
         "type": "string",
-        "desc": ""
+        "desc": "Baseline database's exact filename from list_databases. Supplies the before values."
       },
       {
         "name": "max_results",
         "type": "integer",
-        "desc": "",
+        "desc": "Maximum changed address ranges to return on this page.",
         "optional": true
       },
       {
         "name": "resume_token",
         "type": "string",
-        "desc": "",
+        "desc": "Token from the previous page. Omit on the first request. Repeat both database names and network. If either loaded database changed, start a new comparison.",
         "optional": true
       }
     ],
@@ -40,17 +40,17 @@
   },
   {
     "name": "inspect_database",
-    "description": "Read full MMDB metadata and observe field paths, types, and examples from a bounded sample. The observed fields are not a complete schema.",
+    "description": "Read MMDB metadata and sample field paths, types, and examples. Use this to choose fields, filter paths, or a summarize_network group_by field. Sampling starts at the first network record, so observed fields are not a complete schema. Use verify_database to check file integrity.",
     "arguments": [
       {
         "name": "database",
         "type": "string",
-        "desc": ""
+        "desc": "Exact filename of a loaded database from list_databases."
       },
       {
         "name": "sample_size",
         "type": "integer",
-        "desc": "",
+        "desc": "Maximum network records to sample. Larger samples may reveal more fields. Sampling can stop early at internal field limits.",
         "optional": true
       }
     ],
@@ -63,12 +63,12 @@
   },
   {
     "name": "install_database",
-    "description": "Download and load a database from an HTTP or HTTPS URL. Accepts MMDB, gzip, tar, tar.gz, or ZIP with exactly one MMDB. Downloads and expanded data are limited to 1 GiB. Uses the configured download folder, or the first folder in directory mode. Does not use MaxMind credentials or save the URL for updates.",
+    "description": "Download, validate, and load a database from an HTTP or HTTPS URL. Use install_edition, when available, for MaxMind editions with managed updates. Accepts MMDB, gzip, tar, tar.gz, or ZIP with exactly one MMDB. Downloads and expanded data are limited to 1 GiB. Uses the configured download folder, or the first folder in directory mode. Existing files require overwrite: true and are replaced only after validation. Does not use MaxMind credentials or save the URL for updates.",
     "arguments": [
       {
         "name": "database",
         "type": "string",
-        "desc": "Destination filename ending in .mmdb, without a directory path."
+        "desc": "Destination filename ending in .mmdb, without a directory path. A name loaded from another folder is rejected, even with overwrite. MaxMind updates can replace imports named after configured or API-installed editions."
       },
       {
         "name": "url",
@@ -91,7 +91,7 @@
   },
   {
     "name": "install_edition",
-    "description": "Download a MaxMind MMDB edition using configured credentials, load it immediately, and remember it for future updates. The edition need not be in the server configuration. Replaces an existing file for that edition.",
+    "description": "Download a MaxMind MMDB edition using configured credentials, load it immediately, and remember it for future updates. The edition need not be in the server configuration. Replaces an existing file for that edition after validation. Use install_database for a one-time import from a URL.",
     "arguments": [
       {
         "name": "edition",
@@ -108,7 +108,7 @@
   },
   {
     "name": "list_databases",
-    "description": "List available databases, download status, and setup instructions",
+    "description": "List loaded databases, their metadata, download status, and setup instructions. Call this first to choose exact database filenames for other tools. An empty list can mean the initial download is still running. If status is downloading, wait and call again without starting another update.",
     "annotations": {
       "readOnlyHint": true,
       "destructiveHint": false,
@@ -118,17 +118,17 @@
   },
   {
     "name": "lookup_ip",
-    "description": "Look up an IP address in one database or all loaded databases",
+    "description": "Look up one IP address in local MMDB databases. Returns the matching record and network, with found=false when no record matches. Use lookup_ips for a batch of addresses or lookup_network to enumerate records in a CIDR.",
     "arguments": [
       {
         "name": "ip",
         "type": "string",
-        "desc": "IP address to lookup"
+        "desc": "IPv4 or IPv6 address, for example 8.8.8.8 or 2001:4860:4860::8888."
       },
       {
         "name": "database",
         "type": "string",
-        "desc": "Specific database to query (optional)",
+        "desc": "Exact filename from list_databases. Omit to query all loaded databases.",
         "optional": true
       },
       {
@@ -150,12 +150,12 @@
   },
   {
     "name": "lookup_ips",
-    "description": "Look up 1 to 100 IP addresses in input order, in one database or all loaded databases. Each result includes its IP and lookup data or an error.",
+    "description": "Look up a batch of IP addresses in local MMDB databases. Each result contains the matching record and network, found=false for no match, or an error for that address. Other addresses are still processed after an error. Use lookup_ip for a single address.",
     "arguments": [
       {
         "name": "ips",
         "type": "array",
-        "desc": "",
+        "desc": "IPv4 or IPv6 addresses to look up. Results preserve input order, including duplicate addresses.",
         "items": {
           "type": "string"
         }
@@ -163,7 +163,7 @@
       {
         "name": "database",
         "type": "string",
-        "desc": "Specific database from list_databases (optional)",
+        "desc": "Exact filename from list_databases. Omit to query all loaded databases.",
         "optional": true
       },
       {
@@ -185,17 +185,17 @@
   },
   {
     "name": "lookup_network",
-    "description": "Query a CIDR range with optional filters. filters must be an array of objects with keys: field, operator, value. Example: {\"field\":\"traits.user_type\",\"operator\":\"equals\",\"value\":\"residential\"}. Supported operators: equals, not_equals, in, not_in, contains, regex, greater_than, greater_than_or_equal, less_than, less_than_or_equal, exists.",
+    "description": "Find stored network records overlapping a CIDR, with optional filters and field selection. Returned networks may extend beyond the requested CIDR. Use lookup_range for start/end bounds or summarize_network for grouped counts. Repeat the network and database on each page. Stop when has_more is false.",
     "arguments": [
       {
         "name": "network",
         "type": "string",
-        "desc": "CIDR network to scan (e.g., '192.168.1.0/24')"
+        "desc": "IPv4 or IPv6 CIDR to scan, for example 192.168.1.0/24 or 2001:db8::/32. Broad queries may scan many records."
       },
       {
         "name": "database",
         "type": "string",
-        "desc": "Database name from list_databases; required when more than one is loaded",
+        "desc": "Exact filename from list_databases. Required when more than one database is loaded. Repeat the same name on each page.",
         "optional": true
       },
       {
@@ -210,13 +210,13 @@
       {
         "name": "filter_mode",
         "type": "string",
-        "desc": "How to combine filters: 'and' or 'or' (default: 'and')",
+        "desc": "Combine filters with and (all must match) or or (any can match). Defaults to and for a new query. Omit when paging to retain the original mode.",
         "optional": true
       },
       {
         "name": "filters",
         "type": "array",
-        "desc": "Filters for a new query; omit to keep filters when continuing a query",
+        "desc": "Conditions on record fields. For example, [{\"field\":\"autonomous_system_number\",\"operator\":\"equals\",\"value\":13335}]. Omit for no filtering on a new query. On paginated queries, omit to retain the original filters.",
         "optional": true,
         "items": {
           "type": "object"
@@ -225,19 +225,19 @@
       {
         "name": "iterator_id",
         "type": "string",
-        "desc": "Resume existing iterator (fast path)",
+        "desc": "ID from the previous page. Omit on the first request. Send with the latest resume_token to continue if the iterator expires.",
         "optional": true
       },
       {
         "name": "max_results",
         "type": "integer",
-        "desc": "Page size from 1 to 1000",
+        "desc": "Maximum matching records to return on this page. Use a smaller page to reduce response size.",
         "optional": true
       },
       {
         "name": "resume_token",
         "type": "string",
-        "desc": "Fallback token if iterator expired",
+        "desc": "Token from the previous page, used if iterator_id is missing or expired. Omit on the first request. If the database build changed, start a new query.",
         "optional": true
       }
     ],
@@ -250,22 +250,22 @@
   },
   {
     "name": "lookup_range",
-    "description": "Query stored network records overlapping an inclusive start/end IP range, with filters, field selection, and pagination. Returns each overlapping network once, not each IP address. Repeat the endpoints on every page.",
+    "description": "Find stored network records overlapping an inclusive start/end IP range, with optional filters and field selection. Use lookup_network when the bounds are a CIDR. Returns each overlapping network once, including networks extending beyond the bounds. Repeat the endpoints and database on each page. Stop when has_more is false.",
     "arguments": [
       {
         "name": "end_ip",
         "type": "string",
-        "desc": ""
+        "desc": "Last address to include, for example 192.0.2.200. Must be at or after start_ip in the same address family, without a zone identifier."
       },
       {
         "name": "start_ip",
         "type": "string",
-        "desc": ""
+        "desc": "First IPv4 or IPv6 address to include, for example 192.0.2.10. Zone identifiers are not supported."
       },
       {
         "name": "database",
         "type": "string",
-        "desc": "Database name from list_databases; required when more than one is loaded",
+        "desc": "Exact filename from list_databases. Required when more than one database is loaded. Repeat the same name on each page.",
         "optional": true
       },
       {
@@ -280,13 +280,13 @@
       {
         "name": "filter_mode",
         "type": "string",
-        "desc": "How to combine filters: 'and' or 'or' (default: 'and')",
+        "desc": "Combine filters with and (all must match) or or (any can match). Defaults to and for a new query. Omit when paging to retain the original mode.",
         "optional": true
       },
       {
         "name": "filters",
         "type": "array",
-        "desc": "Filters for a new query; omit to keep filters when continuing a query",
+        "desc": "Conditions on record fields. For example, [{\"field\":\"autonomous_system_number\",\"operator\":\"equals\",\"value\":13335}]. Omit for no filtering on a new query. On paginated queries, omit to retain the original filters.",
         "optional": true,
         "items": {
           "type": "object"
@@ -295,19 +295,19 @@
       {
         "name": "iterator_id",
         "type": "string",
-        "desc": "Resume existing iterator (fast path)",
+        "desc": "ID from the previous page. Omit on the first request. Send with the latest resume_token to continue if the iterator expires.",
         "optional": true
       },
       {
         "name": "max_results",
         "type": "integer",
-        "desc": "Page size from 1 to 1000",
+        "desc": "Maximum matching records to return on this page. Use a smaller page to reduce response size.",
         "optional": true
       },
       {
         "name": "resume_token",
         "type": "string",
-        "desc": "Fallback token if iterator expired",
+        "desc": "Token from the previous page, used if iterator_id is missing or expired. Omit on the first request. If the database build changed, start a new query.",
         "optional": true
       }
     ],
@@ -320,33 +320,33 @@
   },
   {
     "name": "summarize_network",
-    "description": "Group matching records by a scalar field and count records and covered addresses within a CIDR. Limited to 10,000 scanned records and 100 groups. IPv4 aliases are excluded.",
+    "description": "Group matching records by a scalar field, such as country.iso_code or autonomous_system_number. Count records and covered addresses within a CIDR. Use lookup_network to retrieve individual records. IPv4 aliases are excluded. Exceeding 10,000 scanned records or 100 groups returns an error. Use a smaller CIDR if a limit is reached.",
     "arguments": [
       {
         "name": "database",
         "type": "string",
-        "desc": ""
+        "desc": "Exact filename of a loaded database from list_databases."
       },
       {
         "name": "group_by",
         "type": "string",
-        "desc": "Field path, array index, or $ for a scalar record. Missing fields form a separate group."
+        "desc": "Path to a scalar field, for example country.iso_code or autonomous_system_number. Use inspect_database to find paths. Supports numeric array indexes and $ for a scalar record. Missing fields form a separate group."
       },
       {
         "name": "network",
         "type": "string",
-        "desc": "IPv4 /8 or smaller, or IPv6 /32 or smaller"
+        "desc": "CIDR to summarize. Use an IPv4 prefix length of 8 or greater, or a native IPv6 prefix length of 32 or greater."
       },
       {
         "name": "filter_mode",
         "type": "string",
-        "desc": "How to combine filters: 'and' or 'or' (default: 'and')",
+        "desc": "Combine filters with and (all must match) or or (any can match). Defaults to and for a new query. Omit when paging to retain the original mode.",
         "optional": true
       },
       {
         "name": "filters",
         "type": "array",
-        "desc": "Filters for a new query; omit to keep filters when continuing a query",
+        "desc": "Conditions on record fields. For example, [{\"field\":\"autonomous_system_number\",\"operator\":\"equals\",\"value\":13335}]. Omit for no filtering on a new query. On paginated queries, omit to retain the original filters.",
         "optional": true,
         "items": {
           "type": "object"
@@ -362,7 +362,7 @@
   },
   {
     "name": "update_databases",
-    "description": "Download and replace configured databases with the latest MaxMind editions",
+    "description": "Update configured and API-installed MaxMind editions using the server's credentials. Downloads and loads changed databases, replacing existing files. Returns a result or error for each edition. Use install_edition to add an edition. URL imports from install_database are not tracked for updates.",
     "annotations": {
       "readOnlyHint": false,
       "destructiveHint": true,
@@ -372,12 +372,12 @@
   },
   {
     "name": "verify_database",
-    "description": "Verify the integrity of a loaded database. Only one verification runs at a time. Cancellation can stop a queued request, but verification runs to completion once started.",
+    "description": "Check a loaded MMDB for structural corruption, such as after importing a database or encountering decode errors. Returns valid=true on success or a verification error. Use inspect_database for metadata and field samples. Only one verification runs at a time. Cancellation can stop a queued request, but verification runs to completion once started.",
     "arguments": [
       {
         "name": "database",
         "type": "string",
-        "desc": ""
+        "desc": "Exact filename of a loaded database from list_databases."
       }
     ],
     "annotations": {
