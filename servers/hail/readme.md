@@ -4,7 +4,7 @@ Add phone numbers to your project without setting up separate carrier
 accounts and integrations.
 
 Connect Docker MCP Toolkit to Hail's hosted MCP service. Search numbers
-across 100+ countries, compare prices, and read registration requirements.
+in 120 countries, compare prices, and read registration requirements.
 Your assistant can submit the details and documents you supply, check
 approval, and order numbers after you confirm. Carriers make the approval
 decision. Availability and local requirements vary.
@@ -26,8 +26,9 @@ OAuth sign-in, and client setup. Hail Cloud charges for communication usage.
 Number purchases and paid registrations require account credit.
 Approve the required details, documents, and fees before submitting.
 Sending requires account credit, a usable sender, and recipient permission.
-Outbound SMS to US numbers is not supported. US inbound and outbound calls
-are supported. Use a supported non-US destination when testing outbound SMS.
+US outbound SMS is supported. Hail helps prepare and submit A2P 10DLC
+registration for US local-number texting. Test with an approved registration
+and a ready SMS sender. US inbound and outbound calls are also supported.
 
 The [source code](https://github.com/hail-hq/hail) is available under AGPL-3.0-or-later.
 This entry connects to Hail Cloud. Docker does not build or distribute the
