@@ -1,339 +1,758 @@
 [
   {
-    "name": "check_pod_health",
-    "description": "Check the health status of a pod.",
-    "arguments": [
-      {
-        "name": "pod_name",
-        "type": "string",
-        "desc": ""
-      },
-      {
-        "name": "namespace",
-        "type": "string",
-        "desc": "",
-        "optional": true
-      }
-    ]
-  },
-  {
-    "name": "create_deployment",
-    "description": "Create a new deployment.",
-    "arguments": [
-      {
-        "name": "image",
-        "type": "string",
-        "desc": ""
-      },
-      {
-        "name": "name",
-        "type": "string",
-        "desc": ""
-      },
-      {
-        "name": "replicas",
-        "type": "integer",
-        "desc": ""
-      },
-      {
-        "name": "namespace",
-        "type": "string",
-        "desc": "",
-        "optional": true
-      }
-    ]
-  },
-  {
     "name": "delete_resource",
     "description": "Delete a Kubernetes resource.",
     "arguments": [
       {
-        "name": "name",
-        "type": "string",
-        "desc": ""
-      },
-      {
         "name": "resource_type",
         "type": "string",
-        "desc": ""
+        "desc": "Type of resource to delete"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the resource"
       },
       {
         "name": "namespace",
         "type": "string",
-        "desc": "",
+        "desc": "Target namespace",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context to use (optional, uses current context if not specified)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "detect_ecosystem",
+    "description": "Detect installed operators (Flux, Argo CD, cert-manager, Kyverno, Istio, ...) and local CLIs, and report which toolsets or dedicated MCP servers cover them.",
+    "arguments": [
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context (optional)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "detect_pending_pods",
+    "description": "Find pending pods and explain why they are not scheduled.",
+    "arguments": [
+      {
+        "name": "namespace",
+        "type": "string",
+        "desc": "Namespace to search (all namespaces if not specified)",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context to use (uses current context if not specified)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "diagnose_pod_crash",
+    "description": "Automated diagnosis of pod crash loops and failures.",
+    "arguments": [
+      {
+        "name": "pod_name",
+        "type": "string",
+        "desc": "Name of the pod"
+      },
+      {
+        "name": "namespace",
+        "type": "string",
+        "desc": "Namespace of the pod",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context to use (uses current context if not specified)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "exec_in_pod",
+    "description": "Execute a command inside a pod.",
+    "arguments": [
+      {
+        "name": "pod_name",
+        "type": "string",
+        "desc": "Name of the pod"
+      },
+      {
+        "name": "command",
+        "type": "string",
+        "desc": "Command to execute"
+      },
+      {
+        "name": "namespace",
+        "type": "string",
+        "desc": "Namespace of the pod",
+        "optional": true
+      },
+      {
+        "name": "container",
+        "type": "string",
+        "desc": "Container name (for multi-container pods)",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context to use (uses current context if not specified)",
         "optional": true
       }
     ]
   },
   {
     "name": "get_api_resources",
-    "description": "List Kubernetes API resources."
-  },
-  {
-    "name": "get_cluster_roles",
-    "description": "Get all cluster-wide RBAC roles."
-  },
-  {
-    "name": "get_configmaps",
-    "description": "Get all ConfigMaps in the specified namespace.",
+    "description": "Get available API resources.",
     "arguments": [
       {
-        "name": "namespace",
+        "name": "context",
         "type": "string",
-        "desc": "",
-        "optional": true
-      }
-    ]
-  },
-  {
-    "name": "get_current_context",
-    "description": "Get current kubeconfig context."
-  },
-  {
-    "name": "get_deployments",
-    "description": "Get all deployments in the specified namespace.",
-    "arguments": [
-      {
-        "name": "namespace",
-        "type": "string",
-        "desc": "",
-        "optional": true
-      }
-    ]
-  },
-  {
-    "name": "get_events",
-    "description": "Get all events in the specified namespace.",
-    "arguments": [
-      {
-        "name": "namespace",
-        "type": "string",
-        "desc": "",
-        "optional": true
-      }
-    ]
-  },
-  {
-    "name": "get_logs",
-    "description": "Get logs from a pod.",
-    "arguments": [
-      {
-        "name": "pod_name",
-        "type": "string",
-        "desc": ""
-      },
-      {
-        "name": "container",
-        "type": "string",
-        "desc": "",
-        "optional": true
-      },
-      {
-        "name": "namespace",
-        "type": "string",
-        "desc": "",
-        "optional": true
-      },
-      {
-        "name": "tail",
-        "type": "string",
-        "desc": "",
-        "optional": true
-      }
-    ]
-  },
-  {
-    "name": "get_namespaces",
-    "description": "Get all Kubernetes namespaces."
-  },
-  {
-    "name": "get_nodes",
-    "description": "Get all nodes in the cluster."
-  },
-  {
-    "name": "get_pod_events",
-    "description": "Get events for a specific pod.",
-    "arguments": [
-      {
-        "name": "pod_name",
-        "type": "string",
-        "desc": ""
-      },
-      {
-        "name": "namespace",
-        "type": "string",
-        "desc": "",
-        "optional": true
-      }
-    ]
-  },
-  {
-    "name": "get_pods",
-    "description": "Get all pods in the specified namespace.",
-    "arguments": [
-      {
-        "name": "namespace",
-        "type": "string",
-        "desc": "",
-        "optional": true
-      }
-    ]
-  },
-  {
-    "name": "get_rbac_roles",
-    "description": "Get all RBAC roles in the specified namespace.",
-    "arguments": [
-      {
-        "name": "namespace",
-        "type": "string",
-        "desc": "",
-        "optional": true
-      }
-    ]
-  },
-  {
-    "name": "get_resource_usage",
-    "description": "Get resource usage statistics via kubectl top.",
-    "arguments": [
-      {
-        "name": "namespace",
-        "type": "string",
-        "desc": "",
-        "optional": true
-      }
-    ]
-  },
-  {
-    "name": "get_secrets",
-    "description": "Get all Secrets in the specified namespace.",
-    "arguments": [
-      {
-        "name": "namespace",
-        "type": "string",
-        "desc": "",
-        "optional": true
-      }
-    ]
-  },
-  {
-    "name": "get_services",
-    "description": "Get all services in the specified namespace.",
-    "arguments": [
-      {
-        "name": "namespace",
-        "type": "string",
-        "desc": "",
+        "desc": "Kubernetes context to use (uses current context if not specified)",
         "optional": true
       }
     ]
   },
   {
     "name": "health_check",
-    "description": "Check cluster health by pinging the API server."
+    "description": "Perform a cluster health check.",
+    "arguments": [
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context to use (uses current context if not specified)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "helm_get",
+    "description": "Get details of a Helm release: values, manifest, notes, hooks, or all.",
+    "arguments": [
+      {
+        "name": "release_name",
+        "type": "string",
+        "desc": "Name of the release"
+      },
+      {
+        "name": "what",
+        "type": "string",
+        "desc": "values (default), manifest, notes, hooks, or all",
+        "optional": true
+      },
+      {
+        "name": "namespace",
+        "type": "string",
+        "desc": "Kubernetes namespace",
+        "optional": true
+      },
+      {
+        "name": "revision",
+        "type": "integer",
+        "desc": "Specific revision (default: latest)",
+        "optional": true
+      },
+      {
+        "name": "all_values",
+        "type": "boolean",
+        "desc": "For values, include chart defaults, not just user-supplied values",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context to use (optional, uses current context if not specified)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "helm_history",
+    "description": "Get the revision history of a Helm release.",
+    "arguments": [
+      {
+        "name": "release_name",
+        "type": "string",
+        "desc": "Name of the release"
+      },
+      {
+        "name": "namespace",
+        "type": "string",
+        "desc": "Kubernetes namespace",
+        "optional": true
+      },
+      {
+        "name": "max_revisions",
+        "type": "integer",
+        "desc": "Maximum number of revisions to return",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context to use (optional, uses current context if not specified)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "helm_list",
+    "description": "List Helm releases with optional filtering.",
+    "arguments": [
+      {
+        "name": "namespace",
+        "type": "string",
+        "desc": "Target namespace (default: current namespace)",
+        "optional": true
+      },
+      {
+        "name": "all_namespaces",
+        "type": "boolean",
+        "desc": "List releases across all namespaces",
+        "optional": true
+      },
+      {
+        "name": "filter",
+        "type": "string",
+        "desc": "Filter releases by name using regex",
+        "optional": true
+      },
+      {
+        "name": "deployed",
+        "type": "boolean",
+        "desc": "Show deployed releases only",
+        "optional": true
+      },
+      {
+        "name": "failed",
+        "type": "boolean",
+        "desc": "Show failed releases only",
+        "optional": true
+      },
+      {
+        "name": "pending",
+        "type": "boolean",
+        "desc": "Show pending releases only",
+        "optional": true
+      },
+      {
+        "name": "uninstalled",
+        "type": "boolean",
+        "desc": "Show uninstalled releases (if kept with --keep-history)",
+        "optional": true
+      },
+      {
+        "name": "superseded",
+        "type": "boolean",
+        "desc": "Show superseded releases only",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context to use (optional, uses current context if not specified)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "helm_rollback",
+    "description": "Rollback a Helm release to a previous revision.",
+    "arguments": [
+      {
+        "name": "release_name",
+        "type": "string",
+        "desc": "Name of the release"
+      },
+      {
+        "name": "revision",
+        "type": "integer",
+        "desc": "Revision number to rollback to (use helm_history to see revisions)"
+      },
+      {
+        "name": "namespace",
+        "type": "string",
+        "desc": "Kubernetes namespace",
+        "optional": true
+      },
+      {
+        "name": "force",
+        "type": "boolean",
+        "desc": "Force resource updates through delete/recreate",
+        "optional": true
+      },
+      {
+        "name": "recreate_pods",
+        "type": "boolean",
+        "desc": "Force pod restarts",
+        "optional": true
+      },
+      {
+        "name": "cleanup_on_fail",
+        "type": "boolean",
+        "desc": "Delete newly created resources on failure",
+        "optional": true
+      },
+      {
+        "name": "wait",
+        "type": "boolean",
+        "desc": "Wait until all resources are ready",
+        "optional": true
+      },
+      {
+        "name": "timeout",
+        "type": "string",
+        "desc": "Timeout for waiting",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context to use (optional, uses current context if not specified)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "helm_status",
+    "description": "Get the status of a Helm release.",
+    "arguments": [
+      {
+        "name": "release_name",
+        "type": "string",
+        "desc": "Name of the release"
+      },
+      {
+        "name": "namespace",
+        "type": "string",
+        "desc": "Kubernetes namespace",
+        "optional": true
+      },
+      {
+        "name": "revision",
+        "type": "integer",
+        "desc": "Show status for a specific revision (default: latest)",
+        "optional": true
+      },
+      {
+        "name": "show_desc",
+        "type": "boolean",
+        "desc": "Show description of the release",
+        "optional": true
+      },
+      {
+        "name": "show_resources",
+        "type": "boolean",
+        "desc": "Show resources created by the release",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context to use (optional, uses current context if not specified)",
+        "optional": true
+      }
+    ]
   },
   {
     "name": "install_helm_chart",
     "description": "Install a Helm chart.",
     "arguments": [
       {
-        "name": "chart",
-        "type": "string",
-        "desc": ""
-      },
-      {
         "name": "name",
         "type": "string",
-        "desc": ""
+        "desc": "Release name"
+      },
+      {
+        "name": "chart",
+        "type": "string",
+        "desc": "Chart reference"
       },
       {
         "name": "namespace",
         "type": "string",
-        "desc": ""
+        "desc": "Target namespace"
       },
       {
         "name": "repo",
         "type": "string",
-        "desc": "",
+        "desc": "Repository in format 'repo_name=repo_url'",
         "optional": true
       },
       {
         "name": "values",
+        "type": "object",
+        "desc": "Values to override",
+        "optional": true
+      },
+      {
+        "name": "context",
         "type": "string",
-        "desc": "",
+        "desc": "Kubernetes context to use (optional, uses current context if not specified)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "kubectl_apply",
+    "description": "Apply a YAML manifest to the cluster.",
+    "arguments": [
+      {
+        "name": "manifest",
+        "type": "string",
+        "desc": "YAML manifest content to apply"
+      },
+      {
+        "name": "namespace",
+        "type": "string",
+        "desc": "Target namespace",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context to use (optional, uses current context if not specified)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "kubectl_describe",
+    "description": "Describe a Kubernetes resource in detail.",
+    "arguments": [
+      {
+        "name": "resource_type",
+        "type": "string",
+        "desc": "Type of resource (e.g., pod, deployment, service)"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the resource"
+      },
+      {
+        "name": "namespace",
+        "type": "string",
+        "desc": "Target namespace",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context to use (optional, uses current context if not specified)",
         "optional": true
       }
     ]
   },
   {
     "name": "kubectl_explain",
-    "description": "Explain a Kubernetes resource using kubectl explain.",
+    "description": "Explain a Kubernetes resource.",
     "arguments": [
       {
         "name": "resource",
         "type": "string",
-        "desc": ""
-      }
-    ]
-  },
-  {
-    "name": "port_forward",
-    "description": "Forward local port to pod port.",
-    "arguments": [
-      {
-        "name": "local_port",
-        "type": "integer",
-        "desc": ""
+        "desc": "Resource type to explain (e.g., pods, deployments.spec)"
       },
       {
-        "name": "pod_name",
+        "name": "context",
         "type": "string",
-        "desc": ""
-      },
-      {
-        "name": "pod_port",
-        "type": "integer",
-        "desc": ""
-      },
-      {
-        "name": "namespace",
-        "type": "string",
-        "desc": "",
+        "desc": "Kubernetes context to use (uses current context if not specified)",
         "optional": true
       }
     ]
   },
   {
-    "name": "scale_deployment",
-    "description": "Scale a deployment.",
+    "name": "kubectl_generic",
+    "description": "Execute any kubectl command. Use with caution.",
     "arguments": [
+      {
+        "name": "command",
+        "type": "string",
+        "desc": "kubectl command to execute (without kubectl prefix)"
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context to use (optional, uses current context if not specified)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "kubectl_get",
+    "description": "List or get any Kubernetes resource, including custom resources (kubectl get).",
+    "arguments": [
+      {
+        "name": "resource_type",
+        "type": "string",
+        "desc": "Kind, plural or short name, e.g. pods, deploy, svc, nodes, events, certificates.cert-manager.io"
+      },
       {
         "name": "name",
         "type": "string",
-        "desc": ""
+        "desc": "A single resource name (omit to list)",
+        "optional": true
+      },
+      {
+        "name": "namespace",
+        "type": "string",
+        "desc": "Namespace (omit for the context default; ignored for cluster-scoped kinds)",
+        "optional": true
+      },
+      {
+        "name": "all_namespaces",
+        "type": "boolean",
+        "desc": "List across all namespaces",
+        "optional": true
+      },
+      {
+        "name": "label_selector",
+        "type": "string",
+        "desc": "e.g. app=web,tier!=db",
+        "optional": true
+      },
+      {
+        "name": "field_selector",
+        "type": "string",
+        "desc": "e.g. status.phase=Running or involvedObject.name=web-123",
+        "optional": true
+      },
+      {
+        "name": "output",
+        "type": "string",
+        "desc": "table (default), wide, name, yaml or json. Secret values are always redacted",
+        "optional": true
+      },
+      {
+        "name": "sort_by",
+        "type": "string",
+        "desc": "JSONPath to sort by, e.g. .lastTimestamp for events",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context (optional)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "kubectl_logs",
+    "description": "Get container logs (kubectl logs).",
+    "arguments": [
+      {
+        "name": "pod_name",
+        "type": "string",
+        "desc": "Pod name, or TYPE/NAME such as deployment/web to pick a pod of a workload"
+      },
+      {
+        "name": "namespace",
+        "type": "string",
+        "desc": "Namespace of the pod",
+        "optional": true
+      },
+      {
+        "name": "container",
+        "type": "string",
+        "desc": "Container name for multi-container pods",
+        "optional": true
+      },
+      {
+        "name": "tail",
+        "type": "integer",
+        "desc": "Lines from the end (default 200; -1 for all)",
+        "optional": true
+      },
+      {
+        "name": "previous",
+        "type": "boolean",
+        "desc": "Logs of the previous, crashed container instance",
+        "optional": true
+      },
+      {
+        "name": "since",
+        "type": "string",
+        "desc": "Only newer logs, e.g. 10m or 2h",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context (optional)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "kubectl_patch",
+    "description": "Patch a Kubernetes resource.",
+    "arguments": [
+      {
+        "name": "resource_type",
+        "type": "string",
+        "desc": "Type of resource to patch"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the resource"
+      },
+      {
+        "name": "patch",
+        "type": "string",
+        "desc": "JSON patch content"
+      },
+      {
+        "name": "patch_type",
+        "type": "string",
+        "desc": "Type of patch (strategic, merge, json)",
+        "optional": true
+      },
+      {
+        "name": "namespace",
+        "type": "string",
+        "desc": "Target namespace",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context to use (optional, uses current context if not specified)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "kubectl_rollout",
+    "description": "Manage rollouts (restart, status, history, undo, pause, resume).",
+    "arguments": [
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "Rollout action (status, history, restart, undo, pause, resume)"
+      },
+      {
+        "name": "resource_type",
+        "type": "string",
+        "desc": "Type of resource (deployment, statefulset, daemonset)"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the resource"
+      },
+      {
+        "name": "namespace",
+        "type": "string",
+        "desc": "Target namespace",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context to use (optional, uses current context if not specified)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "kubectl_scale",
+    "description": "Scale a deployment, statefulset, replicaset or any scalable resource (kubectl scale).",
+    "arguments": [
+      {
+        "name": "resource_type",
+        "type": "string",
+        "desc": "deployment, statefulset, replicaset, or another kind with a scale subresource"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Resource name"
       },
       {
         "name": "replicas",
         "type": "integer",
-        "desc": ""
+        "desc": "Desired replica count (0 stops the workload and needs confirmation in confirm mode)"
       },
       {
         "name": "namespace",
         "type": "string",
-        "desc": "",
+        "desc": "Namespace",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context (optional)",
         "optional": true
       }
     ]
   },
   {
-    "name": "switch_context",
-    "description": "Switch current kubeconfig context.",
+    "name": "kubectl_top",
+    "description": "CPU and memory usage of pods or nodes from metrics-server (kubectl top).",
     "arguments": [
       {
-        "name": "context_name",
+        "name": "resource",
         "type": "string",
-        "desc": ""
+        "desc": "pods or nodes",
+        "optional": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "A single pod or node",
+        "optional": true
+      },
+      {
+        "name": "namespace",
+        "type": "string",
+        "desc": "Namespace for pods",
+        "optional": true
+      },
+      {
+        "name": "all_namespaces",
+        "type": "boolean",
+        "desc": "Pods across all namespaces",
+        "optional": true
+      },
+      {
+        "name": "containers",
+        "type": "boolean",
+        "desc": "Per-container usage for pods",
+        "optional": true
+      },
+      {
+        "name": "sort_by",
+        "type": "string",
+        "desc": "cpu or memory",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context (optional)",
+        "optional": true
       }
     ]
+  },
+  {
+    "name": "list_contexts",
+    "description": "List all available kubectl contexts with detailed info."
   },
   {
     "name": "uninstall_helm_chart",
@@ -342,12 +761,18 @@
       {
         "name": "name",
         "type": "string",
-        "desc": ""
+        "desc": "Release name to uninstall"
       },
       {
         "name": "namespace",
         "type": "string",
-        "desc": ""
+        "desc": "Target namespace"
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Kubernetes context to use (optional, uses current context if not specified)",
+        "optional": true
       }
     ]
   },
@@ -356,30 +781,36 @@
     "description": "Upgrade a Helm release.",
     "arguments": [
       {
-        "name": "chart",
-        "type": "string",
-        "desc": ""
-      },
-      {
         "name": "name",
         "type": "string",
-        "desc": ""
+        "desc": "Release name"
+      },
+      {
+        "name": "chart",
+        "type": "string",
+        "desc": "Chart reference"
       },
       {
         "name": "namespace",
         "type": "string",
-        "desc": ""
+        "desc": "Target namespace"
       },
       {
         "name": "repo",
         "type": "string",
-        "desc": "",
+        "desc": "Repository in format 'repo_name=repo_url'",
         "optional": true
       },
       {
         "name": "values",
+        "type": "object",
+        "desc": "Values to override",
+        "optional": true
+      },
+      {
+        "name": "context",
         "type": "string",
-        "desc": "",
+        "desc": "Kubernetes context to use (optional, uses current context if not specified)",
         "optional": true
       }
     ]
