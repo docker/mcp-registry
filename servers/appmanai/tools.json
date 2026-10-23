@@ -1,0 +1,1234 @@
+[
+  {
+    "name": "app_metrics_metadata",
+    "description": "Fetch the full store listing for one app (title, developer, ratings, category, metadata, whether it shows ads or sells in-app purchases, and their price range and the purchase items the store lists with prices) by its package id. If you only have the app name, call app_search first to resolve it. Costs 3 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "package",
+        "type": "string",
+        "desc": "App package / bundle id, e.g. \"com.discord\" (Android) or a numeric App Store id. If you only have the app name, call app_search first to resolve it."
+      },
+      {
+        "name": "force_update",
+        "type": "boolean",
+        "desc": "Bypass the cache and refetch from the store. Slower; use sparingly.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Get app metadata",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "app_metrics_metadata_batch",
+    "description": "Fetch store listings for a list of package ids in one call — the bulk form of app_metrics_metadata. Use it when comparing apps, instead of one call per app. Costs 8 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "packages",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "App package / bundle ids, up to 20, e.g. [\"com.discord\", \"com.spotify.music\"]."
+      }
+    ],
+    "annotations": {
+      "title": "Get several app listings at once",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "app_search",
+    "description": "Search a store for apps matching a name or phrase. Returns matching apps with their package ids — the way to resolve a name into a package id for the other tools. Costs 2 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "q",
+        "type": "string",
+        "desc": "Search text, e.g. \"meditation\"."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many rows to return, up to 50.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Search apps by name",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "app_similar",
+    "description": "List the apps the store itself considers similar to a given app (title, developer, icon). The quickest way to build a competitor set from one seed app. Costs 5 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "package",
+        "type": "string",
+        "desc": "App package / bundle id, e.g. \"com.discord\" (Android) or a numeric App Store id. If you only have the app name, call app_search first to resolve it."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many rows to return, up to 100.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Apps similar to one app",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "app_metrics_ratings_worldwide",
+    "description": "An app's current rating and per-star vote counts in every country it is listed in. Use it to see where an app is rated well or badly; app_metrics_ratings_history tracks one country over time. Costs 6 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "package",
+        "type": "string",
+        "desc": "App package / bundle id, e.g. \"com.discord\" (Android) or a numeric App Store id. If you only have the app name, call app_search first to resolve it."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many countries to return, up to 250. 50 by default.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "App rating by country",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "app_metrics_ratings_history",
+    "description": "An app's average rating and star breakdown over time in one country — a dated series for charting whether a release helped or hurt. app_metrics_ratings_worldwide gives the current picture across all countries instead. Costs 5 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "package",
+        "type": "string",
+        "desc": "App package / bundle id, e.g. \"com.discord\" (Android) or a numeric App Store id. If you only have the app name, call app_search first to resolve it."
+      }
+    ],
+    "annotations": {
+      "title": "App rating over time",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "app_metrics_installs_history",
+    "description": "An app's total installs worldwide, at most one point per day (days without data are absent), with `daily` — the gain per day since the previous point (null on a first point with no earlier data and on a day the total fell). For growth over the window, subtract the first `total` from the last. Worldwide only: there is no per-country figure. Google Play figures are Google's exact install count, and `total_bucket` is the range its store page shows. Apple publishes no install counts, so App Store figures are an estimate: approximate for any single app, most reliable as a trend over time or between similar apps, and to be presented to the user as an estimate. Pick the window with `from` / `to`; the last 30 days by default. Costs 10 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "package",
+        "type": "string",
+        "desc": "App package / bundle id, e.g. \"com.discord\" (Android) or a numeric App Store id. If you only have the app name, call app_search first to resolve it."
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "First day, YYYY-MM-DD. 30 days before `to` by default.",
+        "optional": true
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "Last day, YYYY-MM-DD, not before `from`. Today by default.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "App installs over time",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "app_metrics_revenue_worldwide",
+    "description": "An app's estimated revenue from store purchases over the last 30 days: worldwide `gross` (what users paid) and `net` (what the developer keeps after the store's commission), each with a `low`–`high` range and a size `bucket`, plus the split by country, largest first. Neither store publishes revenue, so these are estimates on both stores: approximate for any single app, best for sizing an app or comparing apps, and to be presented to the user as estimates. An app the store lists no purchases for reads 0. Figures are in USD unless `currency` is given. Costs 10 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "package",
+        "type": "string",
+        "desc": "App package / bundle id, e.g. \"com.discord\" (Android) or a numeric App Store id. If you only have the app name, call app_search first to resolve it."
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": "Currency of the figures, an ISO 4217 code such as \"EUR\" or \"GBP\". USD by default.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many countries to return, up to 250. 50 by default.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "App revenue estimate",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "app_reviews",
+    "description": "Read real user reviews of an app: author, star rating, text and date, 40 per page. Use it to find out what users actually complain about or praise. On Google Play, page through in order (1, 2, 3…) while `has_more` is true, each page within about an hour of the previous one and with the same sort_type; skipping ahead fails with PAGE_EXPIRED (not charged), so start again from page 1. The App Store serves a single page: there is no page 2 on ios. Costs 4 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "package",
+        "type": "string",
+        "desc": "App package / bundle id, e.g. \"com.discord\" (Android) or a numeric App Store id. If you only have the app name, call app_search first to resolve it."
+      },
+      {
+        "name": "star_filter",
+        "type": "integer",
+        "desc": "Only reviews with this star rating.",
+        "optional": true
+      },
+      {
+        "name": "sort_type",
+        "type": "number",
+        "desc": "Review sort order: 0 most relevant, 1 most recent (default), 3 top rated.",
+        "optional": true
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "desc": "Page number, 1 by default. Only the page after the last one read (within about an hour, same sort_type) works; Google Play only.",
+        "optional": true
+      },
+      {
+        "name": "force_update",
+        "type": "boolean",
+        "desc": "Bypass the cache and refetch from the store. Slower; use sparingly.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Get app reviews",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "keyword_app_metrics_rankings",
+    "description": "Where one app currently ranks in search results for one keyword. The direct answer to \"am I ranking for this?\". A rank of 0 means the app is not in the results. Costs 2 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "package",
+        "type": "string",
+        "desc": "App package / bundle id, e.g. \"com.discord\" (Android) or a numeric App Store id. If you only have the app name, call app_search first to resolve it."
+      },
+      {
+        "name": "keyword",
+        "type": "string",
+        "desc": "A single search term, e.g. \"habit tracker\"."
+      },
+      {
+        "name": "cache",
+        "type": "boolean",
+        "desc": "Use a cached result. True by default; false re-checks the store live (~7s).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "App rank for a keyword",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "keyword_app_metrics_rankings_batch",
+    "description": "One app's rank for a list of keywords in a single call. Use it to check a whole keyword set at once instead of calling keyword_app_metrics_rankings repeatedly. A rank of 0 means the app is not in the results. Costs 9 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "package",
+        "type": "string",
+        "desc": "App package / bundle id, e.g. \"com.discord\" (Android) or a numeric App Store id. If you only have the app name, call app_search first to resolve it."
+      },
+      {
+        "name": "keywords",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Search terms, up to 50, e.g. [\"habit tracker\", \"daily planner\"]."
+      }
+    ],
+    "annotations": {
+      "title": "App ranks across many keywords",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "keyword_app_metrics_rankings_history",
+    "description": "One app's rank for a keyword over time — the series to chart when asking whether a change helped. Pick the window with `period`. A rank of 0 means the app is not in the results. Costs 6 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "package",
+        "type": "string",
+        "desc": "App package / bundle id, e.g. \"com.discord\" (Android) or a numeric App Store id. If you only have the app name, call app_search first to resolve it."
+      },
+      {
+        "name": "keyword",
+        "type": "string",
+        "desc": "A single search term, e.g. \"habit tracker\"."
+      },
+      {
+        "name": "period",
+        "type": "string",
+        "desc": "Window to report. Month by default.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "App rank history for a keyword",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "keyword_app_metrics_rankings_worldwide",
+    "description": "One app's rank for a keyword in every country at once. Use it to find the markets where the app already ranks, before spending calls per country. A rank of 0 means the app is not in the results. Costs 12 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "package",
+        "type": "string",
+        "desc": "App package / bundle id, e.g. \"com.discord\" (Android) or a numeric App Store id. If you only have the app name, call app_search first to resolve it."
+      },
+      {
+        "name": "keyword",
+        "type": "string",
+        "desc": "A single search term, e.g. \"habit tracker\"."
+      },
+      {
+        "name": "cache",
+        "type": "boolean",
+        "desc": "Use a cached result. True by default; false re-checks the store live (~7s).",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many countries to return, up to 250. 50 by default.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "App rank for a keyword in every country",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "keyword_app_suggestions",
+    "description": "List the keywords a specific app is recommended for / ranks on in a store/country, by its package id. The direct way to answer \"what keywords does this app rank for?\". If you only have the app name, call app_search first to resolve it. A rank of 0 means the app is not in the results. Costs 6 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "package",
+        "type": "string",
+        "desc": "App package / bundle id, e.g. \"com.discord\" (Android) or a numeric App Store id. If you only have the app name, call app_search first to resolve it."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many rows to return, up to 200.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Keywords an app ranks for",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "keyword_app_competitors",
+    "description": "List keywords that the competitors of one app rank for, with their popularity (SAP) and that app's own rank where it has one. Use it to find the gaps — keywords rivals own and this app does not. keyword_app_suggestions covers what the app itself already ranks for. Costs 6 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "package",
+        "type": "string",
+        "desc": "App package / bundle id, e.g. \"com.discord\" (Android) or a numeric App Store id. If you only have the app name, call app_search first to resolve it."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many rows to return, up to 200.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Keywords an app's competitors rank for",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "keyword_app_overlap",
+    "description": "Given a set of apps, list the keywords they compete on, each with its popularity (SAP) and every app's rank for it. Use it to compare a whole competitor set head-to-head on one keyword list; keyword_app_competitors starts from a single app instead. Costs 7 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "packages",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "App package / bundle ids, up to 20, e.g. [\"com.discord\", \"com.spotify.music\"]."
+      },
+      {
+        "name": "min_rank",
+        "type": "integer",
+        "desc": "Only keywords an app ranks at least this high for.",
+        "optional": true
+      },
+      {
+        "name": "min_sap",
+        "type": "integer",
+        "desc": "Only keywords with at least this search-ads popularity (0-100).",
+        "optional": true
+      },
+      {
+        "name": "min_apps",
+        "type": "integer",
+        "desc": "Only keywords at least this many of the apps rank for.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many rows to return, up to 200.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Keywords shared by several apps",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "keyword_metrics",
+    "description": "Get the ASO profile of a keyword: search-ads popularity (SAP), difficulty, and languages. Use it to judge whether a keyword is worth targeting. Costs 4 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "keyword",
+        "type": "string",
+        "desc": "A single search term, e.g. \"habit tracker\"."
+      }
+    ],
+    "annotations": {
+      "title": "Keyword profile",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "keyword_metrics_sap",
+    "description": "Get just the search-ads popularity (SAP, 0-100) of one keyword in a country, across both stores. The cheapest popularity check; keyword_metrics adds difficulty and languages. Costs 4 credits.",
+    "arguments": [
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "keyword",
+        "type": "string",
+        "desc": "A single search term, e.g. \"habit tracker\"."
+      },
+      {
+        "name": "cache",
+        "type": "boolean",
+        "desc": "Use a cached result. True by default; false re-checks the store live (~7s).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Keyword popularity score",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "keyword_metrics_sap_batch",
+    "description": "Get the search-ads popularity (SAP) of many keywords in one call. Use it to rank a whole keyword list by demand before profiling the promising ones. Costs 9 credits.",
+    "arguments": [
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "keywords",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Search terms, up to 50, e.g. [\"habit tracker\", \"daily planner\"]."
+      }
+    ],
+    "annotations": {
+      "title": "Keyword popularity scores in bulk",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "keyword_metrics_volatility",
+    "description": "How much the store's ranking algorithm moved in one country over a period. High volatility means rank changes are the store's doing, not yours — check it before blaming a release. Costs 8 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "Start date, YYYY-MM-DD.",
+        "optional": true
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "End date, YYYY-MM-DD.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Ranking algorithm volatility",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "keyword_metrics_volatility_worldwide",
+    "description": "Ranking-algorithm volatility for one date across every country, so you can tell a global store change from a local one. Costs 12 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "Day to report on, YYYY-MM-DD. Defaults to the latest.",
+        "optional": true
+      },
+      {
+        "name": "window",
+        "type": "integer",
+        "desc": "Days to average over.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many countries to return, up to 250. 50 by default.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Ranking volatility by country",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "keyword_top_apps",
+    "description": "List the apps that rank highest for a keyword in a store/country — the search results a user sees. Use it to find the incumbents / competitors for a keyword. Costs 5 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "keyword",
+        "type": "string",
+        "desc": "A single search term, e.g. \"habit tracker\"."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many rows to return, up to 200.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Top apps for a keyword",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "keyword_suggestions",
+    "description": "Expand a seed keyword into related keyword suggestions for a store/country. Use it to grow a keyword list before profiling or checking ranks. Costs 5 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "keyword",
+        "type": "string",
+        "desc": "A single search term, e.g. \"habit tracker\"."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many rows to return, up to 200.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Suggest related keywords",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "keyword_suggestions_worldwide",
+    "description": "Expand a seed keyword into suggestions with their popularity (SAP), across all markets at once and without picking a store or country. The cheap first pass before narrowing down with keyword_suggestions or keyword_metrics. Costs 10 credits.",
+    "arguments": [
+      {
+        "name": "keyword",
+        "type": "string",
+        "desc": "A single search term, e.g. \"habit tracker\"."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many rows to return, up to 200.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Worldwide keyword suggestions",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "category_top_apps",
+    "description": "List the apps at the top of a category chart (top free, top grossing, top paid) in a country. Use it to see who leads a category; list_categories has the valid tags. Costs 5 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Category tag from list_categories.",
+        "optional": true
+      },
+      {
+        "name": "sub_category",
+        "type": "string",
+        "desc": "Chart inside the category: \"topselling_free\", \"topgrossing\", \"topselling_paid\" on Google Play; \"top-free\", \"top-paid\" on the App Store. list_categories has the valid tags.",
+        "optional": true
+      },
+      {
+        "name": "extended",
+        "type": "boolean",
+        "desc": "Return full app profiles instead of package ids and ranks.",
+        "optional": true
+      },
+      {
+        "name": "show_diff",
+        "type": "boolean",
+        "desc": "Include each app's movement since the previous chart.",
+        "optional": true
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "Chart date, YYYY-MM-DD. Defaults to the latest.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many rows to return, up to 200.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Top apps in a category chart",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "app_category_rankings",
+    "description": "List every category chart an app currently appears in, with its rank in each. The place to start when you do not already know which chart matters. Costs 3 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "package",
+        "type": "string",
+        "desc": "App package / bundle id, e.g. \"com.discord\" (Android) or a numeric App Store id. If you only have the app name, call app_search first to resolve it."
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Category tag from list_categories.",
+        "optional": true
+      },
+      {
+        "name": "sub_category",
+        "type": "string",
+        "desc": "Chart inside the category: \"topselling_free\", \"topgrossing\", \"topselling_paid\" on Google Play; \"top-free\", \"top-paid\" on the App Store. list_categories has the valid tags.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many rows to return, up to 100.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "App ranks across category charts",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "app_category_rankings_single",
+    "description": "An app's current position in a single category chart. Use it when you know exactly which chart you mean; app_category_rankings lists every chart the app appears in. Costs 2 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "package",
+        "type": "string",
+        "desc": "App package / bundle id, e.g. \"com.discord\" (Android) or a numeric App Store id. If you only have the app name, call app_search first to resolve it."
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Category tag from list_categories.",
+        "optional": true
+      },
+      {
+        "name": "sub_category",
+        "type": "string",
+        "desc": "Chart inside the category: \"topselling_free\", \"topgrossing\", \"topselling_paid\" on Google Play; \"top-free\", \"top-paid\" on the App Store. list_categories has the valid tags.",
+        "optional": true
+      },
+      {
+        "name": "cache",
+        "type": "boolean",
+        "desc": "Use a cached result. True by default; false re-checks the store live (~7s).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "App rank in one category chart",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "app_category_rankings_history",
+    "description": "An app's position in a category chart across past days — the series to chart when asking whether an app is climbing or sliding. Costs 6 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "package",
+        "type": "string",
+        "desc": "App package / bundle id, e.g. \"com.discord\" (Android) or a numeric App Store id. If you only have the app name, call app_search first to resolve it."
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Category tag from list_categories.",
+        "optional": true
+      },
+      {
+        "name": "sub_category",
+        "type": "string",
+        "desc": "Chart inside the category: \"topselling_free\", \"topgrossing\", \"topselling_paid\" on Google Play; \"top-free\", \"top-paid\" on the App Store. list_categories has the valid tags.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many of the most recent days to return, up to 365. 90 by default.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "App category rank over time",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "app_category_start_rankings",
+    "description": "For each app given, the rank it first held in a chart from a start date — the baseline to measure a campaign against. Costs 5 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Category tag from list_categories.",
+        "optional": true
+      },
+      {
+        "name": "sub_category",
+        "type": "string",
+        "desc": "Chart inside the category: \"topselling_free\", \"topgrossing\", \"topselling_paid\" on Google Play; \"top-free\", \"top-paid\" on the App Store. list_categories has the valid tags.",
+        "optional": true
+      },
+      {
+        "name": "packages",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Package ids with a start date, up to 20, e.g. [\"com.discord:2026-01-01\"]."
+      }
+    ],
+    "annotations": {
+      "title": "Where apps entered a chart",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "generate_keywords",
+    "description": "Generate a keyword list for an app from its own store listing, each scored with its popularity (SAP) and the app's current rank where it has one. Use it to propose new keywords to target; keyword_app_suggestions reports what the app already ranks for. Costs 12 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "package",
+        "type": "string",
+        "desc": "App package / bundle id, e.g. \"com.discord\" (Android) or a numeric App Store id. If you only have the app name, call app_search first to resolve it."
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "Language code for the generated or localised text, e.g. \"en\".",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many rows to return, up to 100.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Suggest keywords for an app (AI)",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "generate_app_metadata",
+    "description": "Rewrite an app store listing — title, short and long description — optimised for the keywords you pass and the store it targets. Takes the current copy directly, not a package id, so you can iterate on drafts; use app_metrics_metadata first if you want to start from a live listing. Costs 15 credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\"."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Current app title to rewrite from.",
+        "optional": true
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Current app description to rewrite from, up to 4,000 characters."
+      },
+      {
+        "name": "category_tag",
+        "type": "string",
+        "desc": "Category tag from list_categories.",
+        "optional": true
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "Language code for the generated or localised text, e.g. \"en\".",
+        "optional": true
+      },
+      {
+        "name": "keywords",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Keywords the new copy should target, up to 50.",
+        "optional": true
+      },
+      {
+        "name": "competitors",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Competitor package ids to position against, up to 20.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Write store listing copy (AI)",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "list_countries",
+    "description": "List the countries AppmanAi covers, with languages and per-store support levels. Use it to confirm coverage or resolve a country code before other calls. Free — spends no credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Limit to one store's coverage.",
+        "optional": true
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\".",
+        "optional": true
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "Language code to localise names, e.g. \"en\".",
+        "optional": true
+      },
+      {
+        "name": "support_level",
+        "type": "integer",
+        "desc": "Only countries at this coverage level: 0 none, 1 partial, 5 full.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List supported countries",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "list_categories",
+    "description": "List a store's category tree — category tags and the charts under each (top free, top grossing, top paid). Use its tags for `category` in the category tools and `category_tag` in generate_app_metadata; they differ by store. Free — spends no credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Which app store: \"android\" (Google Play) or \"ios\" (App Store)."
+      }
+    ],
+    "annotations": {
+      "title": "List store categories",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "list_features",
+    "description": "List which parts of the dataset are available for a store and country. Use it to check whether a kind of data exists for a market before spending credits looking for it. Free — spends no credits.",
+    "arguments": [
+      {
+        "name": "store",
+        "type": "string",
+        "desc": "Limit to one store; both are returned otherwise.",
+        "optional": true
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Two-letter ISO country code, e.g. \"US\", \"GB\", \"DE\".",
+        "optional": true
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "Language code to localise names, e.g. \"en\".",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List available data features",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "user_balance",
+    "description": "Show the credit balance on the connected AppmanAi account, split into the monthly allowance and credits that never expire. Free — spends no credits.",
+    "annotations": {
+      "title": "Check credit balance",
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "user_api_usage",
+    "description": "Summarise this account's recent AppmanAi usage: credits spent, request count and a per-route breakdown over a window of days. Free — spends no credits.",
+    "arguments": [
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Window to report on, in days. Default 30.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Usage and spend statistics",
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_tools",
+    "description": "List every AppmanAi tool with what it costs in credits, plus the current balance. Answers \"what can you do?\" and \"what will this cost?\". Free — spends no credits.",
+    "annotations": {
+      "title": "List tools and credit costs",
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  }
+]
