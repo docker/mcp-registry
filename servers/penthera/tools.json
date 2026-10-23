@@ -1,0 +1,162 @@
+[
+  {
+    "name": "scan_repo",
+    "description": "White-box scan of a local project folder: hardcoded secrets, code-execution sinks, API routes and trust boundaries, runtime versions with known advisories. Offline and read-only. Returns findings with evidence at file:line and confidence labels.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Project folder to scan, relative to the workspace root or absolute inside it. Default: the workspace root.",
+        "optional": true
+      },
+      {
+        "name": "max_findings",
+        "type": "integer",
+        "desc": "How many findings to return, most severe first (default 50).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Scan a repository",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "scan_url",
+    "description": "Passive black-box scan of a running web app the user is authorized to test: TLS, security headers, cookies, CORS, exposed files and docs, OpenAPI and auth checks. Sends no attack payloads: profile quick sends no login request, standard sends one POST /api/login with invalid credentials. Only loopback targets, or hosts the user listed with --allow-host when configuring this server, can be scanned.",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "http(s) URL of the app, e.g. http://localhost:3000"
+      },
+      {
+        "name": "profile",
+        "type": "string",
+        "desc": "quick skips Retire.js and parameter discovery; standard is the full passive scan (default).",
+        "optional": true
+      },
+      {
+        "name": "max_findings",
+        "type": "integer",
+        "desc": "How many findings to return, most severe first (default 50).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Scan a running app (passive)",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "check_dependencies",
+    "description": "What each npm or Python dependency can do (install scripts, shell, network, eval, credential access), known-malicious packages and typosquats, read offline from the lockfile and installed tree. Read-only.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Project folder to scan, relative to the workspace root or absolute inside it. Default: the workspace root.",
+        "optional": true
+      },
+      {
+        "name": "prod",
+        "type": "boolean",
+        "desc": "Skip dev dependencies (npm).",
+        "optional": true
+      },
+      {
+        "name": "max_findings",
+        "type": "integer",
+        "desc": "How many findings to return, most severe first (default 50).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Check dependencies",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "audit_ai_tooling",
+    "description": "Audit the project's AI agent setup: skills, MCP servers, hooks, permissions, plugins and rule files, for hidden instructions, curl-pipe-shell, unpinned MCP packages, inline secrets and wildcard permissions. Grades A to F. Offline, deterministic, read-only.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Project folder to scan, relative to the workspace root or absolute inside it. Default: the workspace root.",
+        "optional": true
+      },
+      {
+        "name": "max_findings",
+        "type": "integer",
+        "desc": "How many findings to return, most severe first (default 50).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Audit AI agent config",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "explain_finding",
+    "description": "Explain a finding's rule: what it checks, why it matters, how to fix it, effort, whether it is an owner action (rotate a key, change DNS), research references and OWASP MCP/Agentic ids. Pass the `rule` field of a finding (e.g. agents/mcp-unpinned, secrets, headers).",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "The finding's `rule`, e.g. agents/mcp-unpinned."
+      }
+    ],
+    "annotations": {
+      "title": "Explain a finding",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "runtime_advisories",
+    "description": "Is the PHP, nginx, Apache, Node.js, Python or OpenSSL an app runs affected by a published advisory, or past end of life? Give a project path (reads Dockerfiles, compose files and version pins) or the response headers you already have (Server, X-Powered-By). Offline.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Project folder to scan, relative to the workspace root or absolute inside it. Default: the workspace root.",
+        "optional": true
+      },
+      {
+        "name": "headers",
+        "type": "object",
+        "desc": "Response headers, e.g. {\"server\": \"nginx/1.24.0\", \"x-powered-by\": \"PHP/8.1.2\"}.",
+        "optional": true
+      },
+      {
+        "name": "max_findings",
+        "type": "integer",
+        "desc": "How many findings to return, most severe first (default 50).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Runtime advisories",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  }
+]
