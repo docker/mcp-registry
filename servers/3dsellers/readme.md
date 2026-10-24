@@ -1,1 +1,1 @@
-Docs: https://github.com/3dsellers/3dsellers-mcp
+Docs: https://github.com/3dsellers/ebay-mcp-server
