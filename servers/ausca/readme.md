@@ -1,7 +1,10 @@
-Ausca sells metered agent infrastructure services: document OCR, document analysis, media transcription, remote browser sessions with CDP access, and agent inboxes. Every service is paid per call in USDC on Base over x402 v2, with no account or provider API keys, and a settlement receipt on every completed invocation.
+Ausca provides metered document OCR and analysis, media transcription, remote browser sessions with CDP access, and receive-only inboxes. Each service publishes its input contract, limits and price. Compatible clients pay per call in USDC on Base using x402 and receive evidence for completed work.
 
-This remote MCP server exposes discovery, preparation, state reads, and capability-scoped lifecycle tools. Payment signs on the buyer's machine; the local wallet-holding server ships in the `ausca` npm package (`npx -y ausca mcp`).
+The hosted MCP exposes offer discovery, invocation preparation and state, and capability-scoped browser and inbox lifecycle tools. Public discovery needs no account or provider API key. Paid invocation requires explicit payment support on the caller's side. For a service without a dedicated paid MCP tool, use the canonical HTTP resource documented in its service skill.
 
-Docs: https://ausca.com/llms.txt
+The public client also provides a local MCP server (`npx -y ausca mcp`) for caller-side wallet signing under a configured spending cap. Follow the setup guide before using paid services.
+
+Docs: https://ausca.com/docs
+Service instructions: https://ausca.com/SKILL.md
 OpenAPI: https://ausca.com/openapi.json
-Contract: https://ausca.com/SKILL.md
+Public client source: https://github.com/auscahq/ausca
