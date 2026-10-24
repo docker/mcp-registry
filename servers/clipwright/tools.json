@@ -132,7 +132,32 @@
       {
         "name": "inserts",
         "type": "array",
-        "desc": "Text-anchored image inserts over full narration, each covering cover_words spoken words from its anchor; requires long-form qualification on the server, captions=false, 1080p and explicit broll_policy=anyone."
+        "desc": "Text-anchored image or video inserts over full narration, each covering cover_words spoken words from its anchor; requires long-form qualification on the server, 1080p and explicit broll_policy=anyone. Captions draw over inserts."
+      },
+      {
+        "name": "overlays",
+        "type": "array",
+        "desc": "Text-anchored images or videos over the visible presenter, in a corner or a band at the top or bottom. At most 2 on screen at once, and two on screen together need positions that do not share a corner. Captions move to the middle or bottom third when an overlay meets them, never up over the face, and hide while neither is free. An overlay is not drawn while a full-frame insert is on screen. Same requirements as inserts: script, long-form qualification on the server, 1080p and explicit broll_policy=anyone. The presenter stays on screen, so the price does not change."
+      },
+      {
+        "name": "layout_windows",
+        "type": "array",
+        "desc": "Text-anchored reframings of the presenter: split (9:16 only) or card. Windows may not overlap one another or an insert. Same requirements as inserts. A covered or blurred presenter is still delivered vendor work and is billed as face time."
+      },
+      {
+        "name": "templates",
+        "type": "array",
+        "desc": "Graphic templates, each { id, kind, anchor, cover_words?, placement?, transition?, data }. On any script run. Templates never change the price: a plain run is billed per second of finished video (30/s); a run with inserts, overlays or layout_windows is billed long-form-v1, and a covered presenter there is still face time. Ids are unique across inserts, overlays, layout_windows and templates. Text is one line of Latin or the script's own letters, digits and common punctuation, with no emoji; a wide CJK glyph counts 2 toward a limit, and long text shrinks to fit the kind's width. size small|medium|large scales a kind; absent is medium. A media field takes { asset_id } of a ready asset of the kind it names. An inner quote names words inside the template's own words, after the one before it: its beat lands on their first word, and must not fall under an insert or full-frame template; a click or step without one is spread evenly. A beat spoken before its template has entered moves just after the enter, with a warning. A template that meets the caption band hides captions while it shows; one elsewhere, such as a small one at the top, leaves them. A full-frame template also hides the presenter, overlays and over-presenter templates while it shows, never meets a wipe or zoom insert, and the covered presenter is billed. At most 2 overlays and over-presenter templates show at once, on footprints that do not overlap. template_theme sets the look of them all. Kinds: tag (over): a short gradient pill over the presenter or an insert; without position it sits in the caption spot and hides captions while it shows; data text ≤ 32, position? top|center|bottom, size? small|medium|large. lower_third (over): a name and role bar low in the frame; captions are hidden while it shows; data name ≤ 28, role? ≤ 36, side left|right, size? small|medium|large. end_card (over): a site pill with an optional call to action in the caption spot; captions are hidden while it shows; data site ≤ 32, cta? ≤ 48, size? small|medium|large. title_card (full): a full-frame hook card: the title (up to two lines) on a white card beside an optional logo image, and an optional chip under it; data title ≤ 48, chip? ≤ 32, logo? {asset_id} image, size? small|medium|large. quote (full): a full-frame quote: marks, the text in up to four lines, then the author with an optional round photo, cut to a circle; data text ≤ 120, author? ≤ 32, photo? {asset_id} image (cut to fill), size? small|medium|large. stat (full|over): a number counting up from 0 to value (up to 2 decimals), with prefix and suffix around it and a label under it; full fills the frame, over sits at chest level on a card; data value number, prefix? ≤ 6, suffix? ≤ 6, label? ≤ 32, size? small|medium|large. callout (over): an arrow or ring that lands on a point of the frame and pulses, target {x,y} in % of the frame from its top left, with an optional label pill below or above it; it may point at the face, its label keeps off the face where it can; also over an insert; data target {x,y}, style arrow|ring, text? ≤ 24, size? small|medium|large. checklist (over): 2–4 rows, each an optional icon, a label and a switch or check box set on or off; a cursor clicks rows in turn (item is the row's index from 0), each click flipping it; below the face; data items 2–4 of {label ≤ 24, on true|false, icon? phone|briefcase|user|clock|chat|star}, clicks? 0–6 of {item number, quote? inner quote}, style? switch|check, size? small|medium|large. phone_call (over): an incoming call on a neutral phone at the side (right unless side left): the caller, a subtitle and a round avatar ring, then the call is answered on answer_at and its timer runs; beside the face in wide frames, under it in tall ones; data caller ≤ 24, subtitle? ≤ 32, avatar? {asset_id} image (cut to fill), answer_at inner quote, side? left|right, size? small|medium|large. compare (full): a full-frame card showing the before image, then the after image sweeps in on a diagonal on reveal_at and both stay side by side, each with an optional label pill; both images are cut to fill a 3:5 card; data before {asset_id} image (cut to fill), after {asset_id} image (cut to fill), labels? {before? ≤ 20, after? ≤ 20}, reveal_at inner quote, size? small|medium|large. notification (over): a phone notification at the top, above the face: an icon (else the app's initial), the app, a title and a body line; it drops in, holds at least 1.2 s, then leaves before its span ends; data app ≤ 20, title ≤ 32, body ≤ 80, icon? phone|briefcase|user|clock|chat|star, size? small|medium|large. progress (over): 2–5 steps in a column on a card, each completing with a check in turn, on its advance_at quote (one per step, in order) or spread evenly; below the face; data steps 2–5 of ≤ 20, advance_at? 2–5 of inner quote, size? small|medium|large. rating (over): five stars on a card filling in turn up to stars (1–5 in halves, a half star half filled), an optional label under them; at chest level; data stars number, label? ≤ 32, size? small|medium|large."
+      },
+      {
+        "name": "template_theme",
+        "type": "object",
+        "desc": "The look of every template in the run: a preset and an optional accent; only with templates."
+      },
+      {
+        "name": "template_sounds",
+        "type": "string",
+        "desc": "Template sounds: false for none, or { beat: name } over the defaults; list_template_sounds names them."
       },
       {
         "name": "person",
@@ -167,12 +192,22 @@
       {
         "name": "captions",
         "type": "boolean",
-        "desc": "NOT HONORED YET: captions requested but not rendered in this prototype (stage-B)"
+        "desc": "Burn word-timed captions into the video, over the presenter and over inserts. Not available with segments."
       },
       {
         "name": "caption_style",
         "type": "string",
-        "desc": "NOT HONORED YET: caption_style is not honored: captions are not rendered in this prototype (stage-B)"
+        "desc": "Caption look when captions=true. hormozi: the default: condensed bold uppercase, two to four white words per cue mid-lower in the frame, one keyword per cue in orange (the emphasised words, or else the cue's longest word that is not a stop-word); Latin and Cyrillic in one font. tiktok: bold rounded uppercase, one or two words at a time; the spoken word turns yellow and grows. youtube: clean bold sans-serif, five words on a dark rounded box near the bottom; words fade in, the spoken word in red. instagram: comic uppercase with a pink outline, two words at a time; the spoken word pops in orange. minimalist: plain sans-serif, five words on a half-transparent dark band, gentle fade. neon: cyan uppercase with a magenta outline, two words at a time; the spoken word pops in white. genz: large comic uppercase, one word at a time, slamming in with a pink highlight. campfire: rounded comic uppercase, three words; spoken words light up gold and stay lit. midnight: spooky uppercase, two words, slow fade; the spoken word in red. plottwist: heavy sans-serif, three words; the spoken word turns sky blue and grows. headline: tall condensed uppercase on a solid black band, three words; the spoken word scales up in yellow. promo: heavy sans-serif on a blue pill, three words; the spoken word pops in yellow. lecture: readable sans-serif, six words on a dark rounded box; the spoken word in green. highlighter: heavy sans-serif, four words; spoken words turn lime and stay lit. studio: sans-serif, seven words typed in on a blurred dark box; the spoken word in amber. broadcast: outlined sans-serif, eight words low in the frame; the spoken word in pale yellow. arcade: blocky yellow uppercase, two words; the spoken word bounces in white. clutch: brush uppercase, one word at a time, slamming in green. bubblegum: rounded display letters with a pink outline, two words; the spoken word bounces in yellow. crayon: marker handwriting with a navy outline, two words; the spoken word pops in orange. lyrics: handwritten script, five words; spoken words light up pink and stay lit. bassdrop: outlined display uppercase, one word at a time, scaling in orange. punch: mid-frame setup and punch: a small white lead-in line over one or two large blue glowing keywords; other words small and white. Alias: minimal draws minimalist. A font that cannot draw the script's letters is replaced by a plain sans-serif."
+      },
+      {
+        "name": "caption_emphasis",
+        "type": "array",
+        "desc": "Key words or short phrases to emphasise, each quoted from script and matched as an insert quote is (case and punctuation ignored). An item is the quote, or { quote, look }: look punch shows a small lead-in line from the same sentence over the quote as a large glowing keyword, look pill shows the quote alone in a rounded pill, look color shows it in the accent colour at the same size. Without a look, punch draws punch, hormozi draws color, and other presets draw the quote larger in their highlight colour. Every occurrence is emphasised. Requires captions=true and script; a quote absent from script is refused before any charge."
+      },
+      {
+        "name": "caption_mode",
+        "type": "string",
+        "desc": "full (default when omitted): every spoken word is captioned. highlights: captions appear only around caption_emphasis quotes (lead-in, quote, short tail) and nowhere else; requires caption_emphasis. In both modes captions are hidden while a full-frame insert is on screen or a template meets their band."
       },
       {
         "name": "look",
@@ -452,6 +487,11 @@
         "name": "references",
         "type": "array",
         "desc": ""
+      },
+      {
+        "name": "camera",
+        "type": "string",
+        "desc": ""
       }
     ]
   },
@@ -505,6 +545,11 @@
         "desc": ""
       },
       {
+        "name": "camera",
+        "type": "string",
+        "desc": ""
+      },
+      {
         "name": "attempt",
         "type": "integer",
         "desc": ""
@@ -528,7 +573,32 @@
       {
         "name": "inserts",
         "type": "array",
-        "desc": "Text-anchored image inserts over full narration, each covering cover_words spoken words from its anchor; requires long-form qualification on the server, captions=false, 1080p and explicit broll_policy=anyone."
+        "desc": "Text-anchored image or video inserts over full narration, each covering cover_words spoken words from its anchor; requires long-form qualification on the server, 1080p and explicit broll_policy=anyone. Captions draw over inserts."
+      },
+      {
+        "name": "overlays",
+        "type": "array",
+        "desc": "Text-anchored images or videos over the visible presenter, in a corner or a band at the top or bottom. At most 2 on screen at once, and two on screen together need positions that do not share a corner. Captions move to the middle or bottom third when an overlay meets them, never up over the face, and hide while neither is free. An overlay is not drawn while a full-frame insert is on screen. Same requirements as inserts: script, long-form qualification on the server, 1080p and explicit broll_policy=anyone. The presenter stays on screen, so the price does not change."
+      },
+      {
+        "name": "layout_windows",
+        "type": "array",
+        "desc": "Text-anchored reframings of the presenter: split (9:16 only) or card. Windows may not overlap one another or an insert. Same requirements as inserts. A covered or blurred presenter is still delivered vendor work and is billed as face time."
+      },
+      {
+        "name": "templates",
+        "type": "array",
+        "desc": "Graphic templates, each { id, kind, anchor, cover_words?, placement?, transition?, data }. On any script run. Templates never change the price: a plain run is billed per second of finished video (30/s); a run with inserts, overlays or layout_windows is billed long-form-v1, and a covered presenter there is still face time. Ids are unique across inserts, overlays, layout_windows and templates. Text is one line of Latin or the script's own letters, digits and common punctuation, with no emoji; a wide CJK glyph counts 2 toward a limit, and long text shrinks to fit the kind's width. size small|medium|large scales a kind; absent is medium. A media field takes { asset_id } of a ready asset of the kind it names. An inner quote names words inside the template's own words, after the one before it: its beat lands on their first word, and must not fall under an insert or full-frame template; a click or step without one is spread evenly. A beat spoken before its template has entered moves just after the enter, with a warning. A template that meets the caption band hides captions while it shows; one elsewhere, such as a small one at the top, leaves them. A full-frame template also hides the presenter, overlays and over-presenter templates while it shows, never meets a wipe or zoom insert, and the covered presenter is billed. At most 2 overlays and over-presenter templates show at once, on footprints that do not overlap. template_theme sets the look of them all. Kinds: tag (over): a short gradient pill over the presenter or an insert; without position it sits in the caption spot and hides captions while it shows; data text ≤ 32, position? top|center|bottom, size? small|medium|large. lower_third (over): a name and role bar low in the frame; captions are hidden while it shows; data name ≤ 28, role? ≤ 36, side left|right, size? small|medium|large. end_card (over): a site pill with an optional call to action in the caption spot; captions are hidden while it shows; data site ≤ 32, cta? ≤ 48, size? small|medium|large. title_card (full): a full-frame hook card: the title (up to two lines) on a white card beside an optional logo image, and an optional chip under it; data title ≤ 48, chip? ≤ 32, logo? {asset_id} image, size? small|medium|large. quote (full): a full-frame quote: marks, the text in up to four lines, then the author with an optional round photo, cut to a circle; data text ≤ 120, author? ≤ 32, photo? {asset_id} image (cut to fill), size? small|medium|large. stat (full|over): a number counting up from 0 to value (up to 2 decimals), with prefix and suffix around it and a label under it; full fills the frame, over sits at chest level on a card; data value number, prefix? ≤ 6, suffix? ≤ 6, label? ≤ 32, size? small|medium|large. callout (over): an arrow or ring that lands on a point of the frame and pulses, target {x,y} in % of the frame from its top left, with an optional label pill below or above it; it may point at the face, its label keeps off the face where it can; also over an insert; data target {x,y}, style arrow|ring, text? ≤ 24, size? small|medium|large. checklist (over): 2–4 rows, each an optional icon, a label and a switch or check box set on or off; a cursor clicks rows in turn (item is the row's index from 0), each click flipping it; below the face; data items 2–4 of {label ≤ 24, on true|false, icon? phone|briefcase|user|clock|chat|star}, clicks? 0–6 of {item number, quote? inner quote}, style? switch|check, size? small|medium|large. phone_call (over): an incoming call on a neutral phone at the side (right unless side left): the caller, a subtitle and a round avatar ring, then the call is answered on answer_at and its timer runs; beside the face in wide frames, under it in tall ones; data caller ≤ 24, subtitle? ≤ 32, avatar? {asset_id} image (cut to fill), answer_at inner quote, side? left|right, size? small|medium|large. compare (full): a full-frame card showing the before image, then the after image sweeps in on a diagonal on reveal_at and both stay side by side, each with an optional label pill; both images are cut to fill a 3:5 card; data before {asset_id} image (cut to fill), after {asset_id} image (cut to fill), labels? {before? ≤ 20, after? ≤ 20}, reveal_at inner quote, size? small|medium|large. notification (over): a phone notification at the top, above the face: an icon (else the app's initial), the app, a title and a body line; it drops in, holds at least 1.2 s, then leaves before its span ends; data app ≤ 20, title ≤ 32, body ≤ 80, icon? phone|briefcase|user|clock|chat|star, size? small|medium|large. progress (over): 2–5 steps in a column on a card, each completing with a check in turn, on its advance_at quote (one per step, in order) or spread evenly; below the face; data steps 2–5 of ≤ 20, advance_at? 2–5 of inner quote, size? small|medium|large. rating (over): five stars on a card filling in turn up to stars (1–5 in halves, a half star half filled), an optional label under them; at chest level; data stars number, label? ≤ 32, size? small|medium|large."
+      },
+      {
+        "name": "template_theme",
+        "type": "object",
+        "desc": "The look of every template in the run: a preset and an optional accent; only with templates."
+      },
+      {
+        "name": "template_sounds",
+        "type": "string",
+        "desc": "Template sounds: false for none, or { beat: name } over the defaults; list_template_sounds names them."
       },
       {
         "name": "person",
@@ -563,12 +633,22 @@
       {
         "name": "captions",
         "type": "boolean",
-        "desc": "NOT HONORED YET: captions requested but not rendered in this prototype (stage-B)"
+        "desc": "Burn word-timed captions into the video, over the presenter and over inserts. Not available with segments."
       },
       {
         "name": "caption_style",
         "type": "string",
-        "desc": "NOT HONORED YET: caption_style is not honored: captions are not rendered in this prototype (stage-B)"
+        "desc": "Caption look when captions=true. hormozi: the default: condensed bold uppercase, two to four white words per cue mid-lower in the frame, one keyword per cue in orange (the emphasised words, or else the cue's longest word that is not a stop-word); Latin and Cyrillic in one font. tiktok: bold rounded uppercase, one or two words at a time; the spoken word turns yellow and grows. youtube: clean bold sans-serif, five words on a dark rounded box near the bottom; words fade in, the spoken word in red. instagram: comic uppercase with a pink outline, two words at a time; the spoken word pops in orange. minimalist: plain sans-serif, five words on a half-transparent dark band, gentle fade. neon: cyan uppercase with a magenta outline, two words at a time; the spoken word pops in white. genz: large comic uppercase, one word at a time, slamming in with a pink highlight. campfire: rounded comic uppercase, three words; spoken words light up gold and stay lit. midnight: spooky uppercase, two words, slow fade; the spoken word in red. plottwist: heavy sans-serif, three words; the spoken word turns sky blue and grows. headline: tall condensed uppercase on a solid black band, three words; the spoken word scales up in yellow. promo: heavy sans-serif on a blue pill, three words; the spoken word pops in yellow. lecture: readable sans-serif, six words on a dark rounded box; the spoken word in green. highlighter: heavy sans-serif, four words; spoken words turn lime and stay lit. studio: sans-serif, seven words typed in on a blurred dark box; the spoken word in amber. broadcast: outlined sans-serif, eight words low in the frame; the spoken word in pale yellow. arcade: blocky yellow uppercase, two words; the spoken word bounces in white. clutch: brush uppercase, one word at a time, slamming in green. bubblegum: rounded display letters with a pink outline, two words; the spoken word bounces in yellow. crayon: marker handwriting with a navy outline, two words; the spoken word pops in orange. lyrics: handwritten script, five words; spoken words light up pink and stay lit. bassdrop: outlined display uppercase, one word at a time, scaling in orange. punch: mid-frame setup and punch: a small white lead-in line over one or two large blue glowing keywords; other words small and white. Alias: minimal draws minimalist. A font that cannot draw the script's letters is replaced by a plain sans-serif."
+      },
+      {
+        "name": "caption_emphasis",
+        "type": "array",
+        "desc": "Key words or short phrases to emphasise, each quoted from script and matched as an insert quote is (case and punctuation ignored). An item is the quote, or { quote, look }: look punch shows a small lead-in line from the same sentence over the quote as a large glowing keyword, look pill shows the quote alone in a rounded pill, look color shows it in the accent colour at the same size. Without a look, punch draws punch, hormozi draws color, and other presets draw the quote larger in their highlight colour. Every occurrence is emphasised. Requires captions=true and script; a quote absent from script is refused before any charge."
+      },
+      {
+        "name": "caption_mode",
+        "type": "string",
+        "desc": "full (default when omitted): every spoken word is captioned. highlights: captions appear only around caption_emphasis quotes (lead-in, quote, short tail) and nowhere else; requires caption_emphasis. In both modes captions are hidden while a full-frame insert is on screen or a template meets their band."
       },
       {
         "name": "look",
@@ -667,7 +747,7 @@
   },
   {
     "name": "create_asset",
-    "description": "Save a picture as an asset of this account, kept until you delete it: a character, location, style, prop or other, with a name. source is {run_id} of a succeeded generate_image run of this account, {upload_id} of an upload from upload_image or create_upload, a public https {url} the server downloads, or {base64, media_type} of a PNG or JPEG up to 700000 bytes; on a server running on your machine also {path} of a local PNG or JPEG. For your own material (upload_id, url, base64, path) pass rights_confirmed: true, which states once that you may use the people and works in it. Use the asset_id as {asset_id} in references, first_frame or last_frame of quote_image, generate_image, quote_video and generate_video. Assets are free: creating, storing and using one spends no credits. An account keeps up to 2000 assets and 20 GB, and makes up to 100 new ones per day.",
+    "description": "Save a picture or a clip as an asset of this account, kept until you delete it: a character, location, style, prop or other, with a name. source is {run_id} of a succeeded generate_image or generate_video run of this account, {upload_id} of an upload from upload_image or create_upload, a public https {url} the server downloads (add kind: \"video\" for an MP4), {base64, media_type} of a PNG or JPEG up to 700000 bytes, or {put: {media_type, bytes, sha256}} to PUT a local file yourself: the answer carries upload.put_url and put_headers; run `curl -X PUT -H 'content-type: <media_type>' --data-binary @<file> '<put_url>'` within 15 minutes, then call get_asset. On a server running on your machine also {path} of a local PNG, JPEG or MP4. A clip is an MP4 in h264 or hevc, up to 120 seconds and 100 MB; a url clip or a PUT is checked in the background, so the answer says state: \"processing\" (or \"awaiting_upload\") and get_asset says ready or failed within minutes. For your own material (upload_id, url, base64, put, path) pass rights_confirmed: true, which states once that you may use the people and works in it. Use a picture's asset_id as {asset_id} in references, first_frame or last_frame of quote_image, generate_image, quote_video and generate_video; clips are kept for assembly and are no generation reference yet. Assets are free: creating, storing and using one spends no credits. An account keeps up to 2000 assets and 20 GB, and makes up to 100 new ones per day.",
     "arguments": [
       {
         "name": "source",
@@ -693,7 +773,7 @@
   },
   {
     "name": "list_assets",
-    "description": "List the assets of this account, newest first, each with a freshly signed url, its role, name, size and content_digest; filter by role and kind, and pass next_cursor as cursor for the next page. usage says how much of the 2000 assets and 20 GB is used. Free.",
+    "description": "List the assets of this account, newest first, each with a freshly signed url, its role, name, size and content_digest; filter by role and kind, and pass next_cursor as cursor for the next page. pending lists assets still awaiting their upload or processing, and those that failed today with the reason. usage says how much of the 2000 assets and 20 GB is used. Free.",
     "arguments": [
       {
         "name": "role",
@@ -719,7 +799,7 @@
   },
   {
     "name": "get_asset",
-    "description": "Read one asset by asset_id with a freshly signed url (valid for an hour), its role, name, media_type, bytes, width, height and content_digest. A deleted asset answers asset_not_found. Free.",
+    "description": "Read one asset by asset_id with a freshly signed url (valid for an hour), its role, name, media_type, bytes, width, height, content_digest and, for a clip, duration_frames, fps, codec and pix_fmt. An asset still in progress answers state awaiting_upload (PUT the file, then read again) or processing (read again in a few seconds); a refused one answers state failed with error.code. A deleted asset answers asset_not_found. Free.",
     "arguments": [
       {
         "name": "asset_id",
@@ -795,6 +875,11 @@
         "desc": "The skill whose voices to list: make_faceless lists the narration voices of make_faceless (kind faceless_voice), make_ugc every other voice. Omitted means make_ugc. A voice is refused by the other skill before any charge"
       }
     ]
+  },
+  {
+    "name": "list_template_sounds",
+    "description": "List the sounds make_ugc templates play, by beat: where each beat plays, its default and every name it takes. A run plays the defaults; template_sounds { beat: name } swaps a beat's sound, and template_sounds=false plays none. Sounds never change the price. Free.",
+    "arguments": []
   },
   {
     "name": "list_actors",
