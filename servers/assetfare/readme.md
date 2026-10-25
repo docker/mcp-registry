@@ -20,6 +20,6 @@ session paths.
 The primary hosted endpoint is the v2-only remote MCP at
 `https://api.assetfare.dev/mcp`. Legacy compatibility tools are isolated at
 `https://api.assetfare.dev/mcp/legacy`. Current package and hosted-adapter
-release: `assetfare-mcp@1.21.5`.
+release: `assetfare-mcp@1.21.6`.
 
 Documentation: https://assetfare.dev/agents/
