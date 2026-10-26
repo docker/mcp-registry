@@ -1,0 +1,54 @@
+name: app-store-connect-mcp
+image: mcp/app-store-connect-mcp
+type: server
+meta:
+  category: devops
+  tags:
+    - devops
+    - app-store-connect
+    - ios
+    - macos
+    - testflight
+about:
+  title: App Store Connect
+  description: "App Store Connect for AI agents: release preflight, TestFlight, metadata, screenshots and the new Asset Library, review replies, sales and finance reports. Read-only by default; asks before anything goes public."
+  icon: https://raw.githubusercontent.com/idoo/app-store-connect-mcp/ea29feb435841a76011dab3482f0707b87e10ba5/packaging/mcpb/icon.png
+source:
+  project: https://github.com/idoo/app-store-connect-mcp
+  commit: ea29feb435841a76011dab3482f0707b87e10ba5
+config:
+  description: Configure an App Store Connect API key (team or individual)
+  secrets:
+    - name: app-store-connect-mcp.private_key
+      env: ASC_PRIVATE_KEY
+      example: <contents of AuthKey_XXXXXXXXXX.p8, PEM or base64 PEM>
+  env:
+    - name: ASC_KEY_ID
+      example: ABC123DEFG
+      value: "{{app-store-connect-mcp.key_id}}"
+    - name: ASC_ISSUER_ID
+      example: 57246542-96fe-1a63-e053-0824d011072a
+      value: "{{app-store-connect-mcp.issuer_id}}"
+    - name: ASC_VENDOR_NUMBER
+      example: "85000000"
+      value: "{{app-store-connect-mcp.vendor_number}}"
+    - name: ASC_MCP_ALLOW_WRITES
+      example: "false"
+      value: "{{app-store-connect-mcp.allow_writes}}"
+  parameters:
+    type: object
+    properties:
+      key_id:
+        type: string
+        description: API key ID
+      issuer_id:
+        type: string
+        description: Issuer ID for team keys; leave empty for an individual key
+      vendor_number:
+        type: string
+        description: Vendor number, needed only for sales and finance reports
+      allow_writes:
+        type: boolean
+        description: Allow changes in App Store Connect (off by default)
+    required:
+      - key_id
