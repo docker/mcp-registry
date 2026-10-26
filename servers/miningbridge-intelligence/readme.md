@@ -1,1 +1,1 @@
-Docs: https://intel.miningbridge.in/connect
+Docs: https://intel.miningbridge.com/connect
