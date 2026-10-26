@@ -1,3 +1,3 @@
 # Agent Media
 
-Documentation: https://docs.agent-media.ai
+Documentation: https://agent-media.ai/connect
