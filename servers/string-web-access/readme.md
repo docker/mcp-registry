@@ -1,3 +1,1 @@
-# String Web Access
-
-Documentation: https://portal.usestring.ai/docs/mcp/overview
+Docs: https://portal.usestring.ai/docs/mcp/v3
