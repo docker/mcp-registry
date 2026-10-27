@@ -1,0 +1,35 @@
+name: evergreen
+image: mcp/evergreen
+type: server
+meta:
+  category: code
+  tags:
+    - code
+    - dependencies
+    - deprecations
+    - end-of-life
+    - linter
+about:
+  title: Evergreen
+  description: Evidence-backed deprecation and end-of-life checks for dependencies, runtimes, and GitHub Actions, at exact file locations, with sources and migration context. Every tool is read-only and runs locally in the container; scans read the repository volume and use no network.
+  icon: https://avatars.githubusercontent.com/u/33401832?s=200&v=4
+source:
+  project: https://github.com/arminazimi/evergreen
+  branch: main
+  commit: 5bc33d0b5ee64f90b4defbff49b0273de26b95eb
+run:
+  command:
+    - mcp
+  volumes:
+    - "{{evergreen.path|volume-target}}:/workspace"
+  disableNetwork: true
+config:
+  description: The repository to scan; scans are read-only and need no other configuration
+  parameters:
+    type: object
+    properties:
+      path:
+        type: string
+        default: /Users/demo/repository
+    required:
+      - path
