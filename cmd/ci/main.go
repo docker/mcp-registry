@@ -45,6 +45,8 @@ func main() {
 		err = runCollectNewServers(args)
 	case "collect-full-audit":
 		err = runCollectFullAudit(args)
+	case "check-repositories":
+		err = runCheckRepositories(args)
 	case "update-pins":
 		err = runUpdatePins(args)
 	default:
