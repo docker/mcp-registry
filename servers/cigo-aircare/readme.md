@@ -2,7 +2,7 @@
 
 Docs: https://cigo-mcp-system-wzoy.onrender.com/docs
 
-Connect over Streamable HTTP at https://cigo-mcp-system-wzoy.onrender.com/mcp/. No account, API key, or local server installation is required. Tools are discovered dynamically.
+Connect over Streamable HTTP at https://cigo-mcp-system-wzoy.onrender.com/mcp/?source=docker. No account, API key, or local server installation is required. Tools are discovered dynamically.
 
 - `get_hvac_filter_info`: FFU/BFU dimensions, published performance, pressure-loss information, and airflow/power comparisons. Start with `filter_type=all`, `FFU`, or `BFU`.
 - `search_carsafe`: vehicle-and-year cabin filter matching and purchase links.
