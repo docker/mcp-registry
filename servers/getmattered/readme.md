@@ -2,7 +2,7 @@ Docs: https://getmattered.com/mcps
 
 # GetMattered
 
-Find jobs matched to your resume, prepare each application and submit it on the employer's own hiring site. GetMattered supports 34 hiring systems, including Workday, Greenhouse, Lever, Ashby and iCIMS.
+Find jobs matched to your resume, prepare each application and submit it on the employer's own hiring site. GetMattered supports 30+ hiring systems, including Workday, Greenhouse, Lever, Ashby and iCIMS.
 
 ## What you can do
 
