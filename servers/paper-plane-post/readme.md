@@ -1,5 +1,7 @@
 # Paper Plane Post
 
+Create and send an AI-illustrated postcard anywhere in the world
+
 [Connection instructions and examples](https://paperplanepost.com/for/agents)
 
 Connect to `https://api.paperplanepost.com/v1/mcp` using Streamable HTTP without authentication.
