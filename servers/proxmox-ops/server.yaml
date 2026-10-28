@@ -1,0 +1,50 @@
+name: proxmox-ops
+image: mcp/proxmox-ops
+type: server
+meta:
+  category: devops
+  tags:
+    - proxmox
+    - virtualization
+    - monitoring
+    - devops
+about:
+  title: Proxmox VE Ops
+  description: Diagnose Proxmox VE clusters (health, Ceph, ZFS, SMART, updates, certificates), audit backups against what actually exists on storage, and plan node maintenance. This catalog entry runs it read-only.
+  icon: https://raw.githubusercontent.com/derdennis1012/proxmox-ops-mcp/main/docs/assets/logo-256.png
+source:
+  project: https://github.com/derdennis1012/proxmox-ops-mcp
+  branch: main
+  commit: 6b96eec041870e275effd3f10ca8f318dde71f4f
+config:
+  description: Configure the connection to Proxmox VE (an API token with the PVEAuditor role is enough for all read-only tools)
+  secrets:
+    - name: proxmox-ops.token_secret
+      env: PROXMOX_TOKEN_SECRET
+      example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+  env:
+    - name: PROXMOX_HOST
+      example: pve1.example.com
+      value: "{{proxmox-ops.host}}"
+    - name: PROXMOX_TOKEN_ID
+      example: mcp@pve!ops
+      value: "{{proxmox-ops.token_id}}"
+    - name: PROXMOX_TLS_FINGERPRINT
+      example: AB:CD:...
+      value: "{{proxmox-ops.tls_fingerprint}}"
+  parameters:
+    type: object
+    properties:
+      host:
+        description: Hostname or IP of any cluster node
+        type: string
+      token_id:
+        description: API token id in the form user@realm!tokenname
+        type: string
+      tls_fingerprint:
+        description: Optional SHA-256 fingerprint to pin the node certificate (use when the certificate does not cover the host)
+        type: string
+    required:
+      - host
+      - token_id
+      - token_secret
