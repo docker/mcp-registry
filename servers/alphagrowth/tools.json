@@ -1,1 +1,375 @@
-[]
+[
+  {
+    "name": "list_keywords",
+    "description": "The keywords whose results are tracked. Returns each keyword's id, the text searched, whether it is still being searched, when it was last searched, and how many results it has found. Use an id as the `keyword_id` argument of search_results."
+  },
+  {
+    "name": "list_sources",
+    "description": "The sources that have produced results, for example twitter_spaces, tweets_en or tweets_ja. Use one as the `source` argument of search_results."
+  },
+  {
+    "name": "search_results",
+    "description": "Recorded search results, newest first. Filter by keyword, by source, and by free text scoped to result titles, to the transcripts of imported Twitter Spaces, or to both. Each entry reports its source, url, title, author, state and datetime, plus whether a transcript is available and the broadcast_id to pass to get_transcript.",
+    "arguments": [
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Rows to skip, for paging through `total`."
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Free text to match. Omit to list everything."
+      },
+      {
+        "name": "source",
+        "type": "string",
+        "desc": "Restrict to one source, from list_sources."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Rows to return, at most 100."
+      },
+      {
+        "name": "keyword_id",
+        "type": "integer",
+        "desc": "Restrict to one keyword, by id from list_keywords."
+      },
+      {
+        "name": "search_in",
+        "type": "string",
+        "desc": "Where to match `query`: result titles, Twitter Space transcripts, or both. Defaults to both. Ignored without `query`."
+      }
+    ]
+  },
+  {
+    "name": "get_transcript",
+    "description": "The full transcript of an imported Twitter Space, by the broadcast_id that search_results reports. Returns the title, start time, duration, participants, audio url when published, and the transcript as timed segments with their speaker.",
+    "arguments": [
+      {
+        "name": "broadcast_id",
+        "type": "integer",
+        "desc": "From the broadcast_id field of a search_results entry.",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "list_transcribed_spaces",
+    "description": "Twitter Spaces among the matching results whose import produced a transcript, one entry per broadcast with the keywords that found it. Takes the same filters as search_results. Use it to find transcripts worth fetching with get_transcript.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Free text to match. Omit to list everything."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Entries to return, at most 100."
+      },
+      {
+        "name": "keyword_id",
+        "type": "integer",
+        "desc": "Restrict to one keyword, by id."
+      },
+      {
+        "name": "search_in",
+        "type": "string",
+        "desc": "Where to match `query`. Defaults to both."
+      }
+    ]
+  },
+  {
+    "name": "find_projects",
+    "description": "Finds crypto projects whose name or symbol contains the query, largest TVL first, with slug, category, TVL and market cap. Includes blockchains' own projects (flagged `is_chain`: true; use chain_metrics for the chain, project_metrics for its coin). Use the slug with the other project tools. Free data from AlphaGrowth (alphagrowth.io).",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Number of projects, 1 to 20."
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Part of a project's name or symbol.",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "project_metrics",
+    "description": "A crypto project's current metrics from AlphaGrowth: TVL, price, market cap, volume, revenue, users and social followers with 1d/7d/30d changes, plus its description, categories, chains and links. Free data from AlphaGrowth (alphagrowth.io).",
+    "arguments": [
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "The project's slug; find it with find_projects.",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "project_community",
+    "description": "How fast a crypto project's community is growing: followers or members per network (X/Twitter, Telegram, Discord, Reddit) with 1d/7d/30d percent changes and one point per day for up to 90 days. Free data from AlphaGrowth (alphagrowth.io).",
+    "arguments": [
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Days of daily history, counting today."
+      },
+      {
+        "name": "network",
+        "type": "string",
+        "desc": "Only this network; all four when omitted."
+      },
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "The project's slug; find it with find_projects.",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "rank_projects",
+    "description": "Ranks crypto projects by a metric such as TVL, market cap, price, revenue or followers (or its 1d/7d/30d change), optionally within a category or chain, 50 per page. Free data from AlphaGrowth (alphagrowth.io).",
+    "arguments": [
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Only projects in the category with this slug."
+      },
+      {
+        "name": "chain",
+        "type": "string",
+        "desc": "Only projects on this chain: the `chain_slug` of a row from the chains tool."
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "desc": "Page number, 50 projects per page."
+      },
+      {
+        "name": "sort_by",
+        "type": "string",
+        "desc": "The metric to rank by."
+      },
+      {
+        "name": "sort_order",
+        "type": "string",
+        "desc": "desc for the highest first, asc for the lowest."
+      }
+    ]
+  },
+  {
+    "name": "project_funding",
+    "description": "A crypto project's funding rounds (oldest first, with date, amount, type and valuation where known), the investors behind them and the total raised. Free data from AlphaGrowth (alphagrowth.io).",
+    "arguments": [
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "The project's slug; find it with find_projects.",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "recent_funding_rounds",
+    "description": "The most recent crypto funding rounds, newest first, with project, category, amount, type and investors, optionally within a category, 50 per page. Free data from AlphaGrowth (alphagrowth.io).",
+    "arguments": [
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Only rounds of projects in the category with this slug."
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "desc": "Page number, 50 rounds per page."
+      }
+    ]
+  },
+  {
+    "name": "top_investors",
+    "description": "The top 100 crypto investors ranked by number of projects funded or by total amount invested, with their first 20 funded projects (projects_more counts the rest), 50 per page. Free data from AlphaGrowth (alphagrowth.io).",
+    "arguments": [
+      {
+        "name": "page",
+        "type": "integer",
+        "desc": "Page number, 50 investors per page."
+      },
+      {
+        "name": "sort_by",
+        "type": "string",
+        "desc": "projects ranks by projects funded, amount by USD invested."
+      }
+    ]
+  },
+  {
+    "name": "investor_profile",
+    "description": "A crypto investor's public profile (type, location, website, industries, investment criteria) and its investments, newest first, 50 per page. Free data from AlphaGrowth (alphagrowth.io).",
+    "arguments": [
+      {
+        "name": "page",
+        "type": "integer",
+        "desc": "Page number of the investments, 50 per page."
+      },
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "The investor's slug; find it with top_investors or recent_funding_rounds.",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "chains",
+    "description": "Blockchains ranked by TVL with price, market cap, 1d/7d TVL change and how many projects run on each, 50 per page. Use a chain's slug with chain_metrics and its chain_slug as the chain filter of rank_projects. Free data from AlphaGrowth (alphagrowth.io).",
+    "arguments": [
+      {
+        "name": "page",
+        "type": "integer",
+        "desc": "Page number, 50 chains per page."
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Only chains whose name contains this text."
+      }
+    ]
+  },
+  {
+    "name": "chain_metrics",
+    "description": "A blockchain's metrics as on AlphaGrowth's chain compare page. Every value (TVL, transactions, price, social numbers) is for `date`, one day ago (UTC), not the current value; the ecosystem counts (projects, dapps, games, markets, pools) are current. The chain's current price and market metrics are in project_metrics with the same slug. Free data from AlphaGrowth (alphagrowth.io).",
+    "arguments": [
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "The chain's slug as listed by chains.",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "fees",
+    "description": "Protocols ranked by fees or revenue for the latest completed day, with the 24h change, the chains they earn on and their version splits, 50 per page. The 7d fields are real sums of the last seven days including the latest one. The 24h changes are null when the day before had no value. Free data from AlphaGrowth (alphagrowth.io).",
+    "arguments": [
+      {
+        "name": "page",
+        "type": "integer",
+        "desc": "Page number, 50 protocols per page."
+      },
+      {
+        "name": "sort_by",
+        "type": "string",
+        "desc": "The column to sort by."
+      },
+      {
+        "name": "sort_order",
+        "type": "string",
+        "desc": "desc for the highest first, asc for the lowest."
+      }
+    ]
+  },
+  {
+    "name": "treasury_companies",
+    "description": "Public companies holding crypto (BTC, ETH, SOL and others) on their balance sheet: market cap, NAV, mNAV and holdings per token, 50 per page. Totals cover every company, not just the page. Free data from AlphaGrowth (alphagrowth.io).",
+    "arguments": [
+      {
+        "name": "page",
+        "type": "integer",
+        "desc": "Page number, 50 companies per page."
+      }
+    ]
+  },
+  {
+    "name": "dao_treasuries",
+    "description": "Lists DAO treasuries worth more than $500, largest first: total USD value, 24h change, category, top tokens and main chain. Use the links for a DAO's daily history. Free data from AlphaGrowth (alphagrowth.io).",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Page size, 1 to 100."
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Number of DAOs to skip."
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Only the DAO of the project with this slug."
+      }
+    ]
+  },
+  {
+    "name": "dao_treasury_snapshot",
+    "description": "Every listed DAO's treasury value in USD as of one UTC day (the last sample up to 6 days before it), largest first, for any day since 2024-07-24 up to yesterday (default: yesterday). Free data from AlphaGrowth (alphagrowth.io).",
+    "arguments": [
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "The day, YYYY-MM-DD, from 2024-07-24 to yesterday (default: yesterday, UTC)."
+      }
+    ]
+  },
+  {
+    "name": "dao_treasury_history",
+    "description": "Daily total treasury value in USD of one DAO, one point per UTC day (the day's last sample), daily since 2024-07-24; defaults to the whole history. Free data from AlphaGrowth (alphagrowth.io).",
+    "arguments": [
+      {
+        "name": "dao",
+        "type": "integer",
+        "desc": "The DAO id, as listed by dao_treasuries.",
+        "required": true
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "First day, YYYY-MM-DD (default: first day with data)."
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "Last day, YYYY-MM-DD, not after today (default: latest)."
+      }
+    ]
+  },
+  {
+    "name": "dao_holdings_history",
+    "description": "Daily token holdings of one DAO treasury (amount, USD value and price per token, one point per token per UTC day), daily since 2024-07-24. At most 92 days per call, the last 30 days by default. Free data from AlphaGrowth (alphagrowth.io).",
+    "arguments": [
+      {
+        "name": "dao",
+        "type": "integer",
+        "desc": "The DAO id, as listed by dao_treasuries.",
+        "required": true
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "First day, YYYY-MM-DD (default: 29 days before `to`)."
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "Last day, YYYY-MM-DD, not after today (default: today, UTC)."
+      }
+    ]
+  },
+  {
+    "name": "dao_treasury",
+    "description": "One DAO treasury by id: total USD value, 24h change, category, top tokens and main chain. Free data from AlphaGrowth (alphagrowth.io).",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "integer",
+        "desc": "The DAO id, as listed by dao_treasuries.",
+        "required": true
+      }
+    ]
+  }
+]
