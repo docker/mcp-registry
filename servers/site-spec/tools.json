@@ -1,0 +1,82 @@
+[
+  {
+    "name": "audit_site",
+    "description": "Audit a website and return { ok, target, mode, live, errors, warnings, pages, findings }, where every finding carries checkId, severity, file, category and fixAvailable. Covers robots.txt and llms.txt policy, canonical and noindex signals, structured data, Open Graph, security and cache headers, accessibility semantics, and the tracker and cookie surface.",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "A live URL, a bare hostname, or a path under /data to a local directory of built output"
+      },
+      {
+        "name": "checks",
+        "type": "array",
+        "items": { "type": "string" },
+        "desc": "Only report these check ids, e.g. [\"audit/noindex\"]. Omit for every check; call list_checks for the full set",
+        "optional": true
+      },
+      {
+        "name": "maxPages",
+        "type": "integer",
+        "desc": "How many pages to crawl, 1 to 200, default 25",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "fix_issue",
+    "description": "Apply the deterministic repair for one audit finding and return { checkId, fixAvailable, matchedFindings, actions, diffs, written }. Defaults to a dry run that writes nothing; write=true requires a local directory target and is refused for a URL. Unrepairable findings come back with the manual step spelled out.",
+    "arguments": [
+      {
+        "name": "url_or_path",
+        "type": "string",
+        "desc": "The live URL, or a path under /data to a local directory of built output"
+      },
+      {
+        "name": "check_id",
+        "type": "string",
+        "desc": "The single check id to repair, from an audit_site finding"
+      },
+      {
+        "name": "write",
+        "type": "boolean",
+        "desc": "Defaults to false, which only returns the diff. true writes the fix and requires a local directory",
+        "optional": true
+      },
+      {
+        "name": "out_dir",
+        "type": "string",
+        "desc": "Write the fixed output to this directory under /data instead of in place",
+        "optional": true
+      },
+      {
+        "name": "maxPages",
+        "type": "integer",
+        "desc": "How many pages to crawl while locating the finding",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "compile_spec",
+    "description": "Compile verified business data into a deployable site and return { ok, pack, spec, files, findings }, plus written and writtenTo when out_dir is given. Renders HTML, sitemap.xml, robots.txt, llms.txt, headers and icons. Validation runs at both the spec tier and the rendered tier, so an invalid site never produces output.",
+    "arguments": [
+      {
+        "name": "business",
+        "type": "string",
+        "desc": "The site config object { pack, brief, site, spec, foundation?, target? } as JSON"
+      },
+      {
+        "name": "out_dir",
+        "type": "string",
+        "desc": "Directory under /data to write the rendered site into",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "list_checks",
+    "description": "Enumerate every check the engine can raise, each with a one-line description and whether an automatic fix exists. Call this before filtering audit_site or choosing a check id for fix_issue.",
+    "arguments": []
+  }
+]
