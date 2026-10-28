@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # Use a golang image to build the reviewer and proxy binaries (with cgo disabled).
-FROM golang:1.25-trixie AS gobuilder
+FROM golang:1.26.10-trixie AS gobuilder
 ENV CGO_ENABLED=0
 
 # Create and set a working directory for the code.
@@ -19,6 +19,9 @@ RUN mkdir -p /security-reviewer/build
 RUN go build -o /security-reviewer/build/reviewer ./reviewer
 RUN go build -o /security-reviewer/build/proxy ./proxy
 
+
+# Supply the patched Node runtime separately from the Debian runtime user setup.
+FROM node:22.23.4-trixie-slim AS node-runtime
 
 # Use a debian image to host the agent.
 FROM debian:trixie-slim AS reviewer-image
@@ -38,11 +41,14 @@ RUN apt-get update \
         git \
         gnupg \
         jq \
-        nodejs \
-        npm \
+        libstdc++6 \
         ripgrep \
         unzip \
+    && dpkg --compare-versions "$(dpkg-query -W -f='${Version}' ca-certificates)" ge 20250419+deb13u1 \
     && rm -rf /var/lib/apt/lists/*
+
+# Use the incident-fixed Node runtime without inheriting its UID 1000 user.
+COPY --from=node-runtime /usr/local/ /usr/local/
 
 # Install Claude Code and Codex CLIs for headless operation.
 COPY .npmrc .
@@ -81,6 +87,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates \
         wget \
+    && dpkg --compare-versions "$(dpkg-query -W -f='${Version}' ca-certificates)" ge 20250419+deb13u1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the proxy entrypoint.

@@ -24,6 +24,6 @@ agent skills, client tooling, and registry metadata; it does not host the server
 Cloud video operations use account credits. Call `get_account` before metered
 operations and review pricing at https://cueframe.ai/pricing.
 
-Tools are discovered dynamically after authentication. Dedicated reviewer
-credentials have not been provided; authenticated Docker OAuth and tool-call
-verification remain pending.
+Tool metadata is discovered dynamically without authentication. Executing tools
+and reading account data require authentication; use browser OAuth for
+interactive sessions.
