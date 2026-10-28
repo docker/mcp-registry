@@ -16,7 +16,7 @@ Paste a resume in the conversation, or attach the file in ChatGPT, for scoring, 
 
 Connect your GetMattered account through the browser sign-in. The server uses Streamable HTTP at `https://mcp.getmattered.com/mcp` with OAuth 2.1, dynamic client registration and PKCE. It does not require a personal access token pasted into chat.
 
-The server exposes 23 tools, four prompts and three resources. Discovery is available before sign-in; tool calls require a connected account. Account reads do not generate AI content. Generation uses account AI tokens and action limits. Application submission uses application allowance.
+The server exposes 40 tools, four prompts and three resources. Discovery is available before sign-in; tool calls require a connected account. Account reads do not generate AI content. Generation uses account AI tokens and action limits. Application submission uses application allowance.
 
 Applying sends information to an employer. Use review mode to hold an application until you approve it. A submit click is not proof that an application landed; check the employer confirmation returned by the tool.
 
