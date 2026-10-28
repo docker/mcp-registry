@@ -11,7 +11,7 @@ A hosted, read-only MCP server for searching real coworking spaces, private offi
 
 ## Try asking
 
-- "Find a private office for 6 people in Berlin Mitte under â‚¬3,000 a month."
+- "Find a private office for 6 people in Berlin Mitte under €3,000 a month."
 - "What does a flex desk cost in Madrid compared with Barcelona?"
 - "Which WeWork locations are there in London, and what do they charge for a dedicated desk?"
 
