@@ -1,0 +1,202 @@
+[
+  {
+    "name": "backup_audit",
+    "description": "Find guests with missing or stale backups, unscheduled guests and failed jobs.",
+    "arguments": [
+      {
+        "name": "max_age_hours",
+        "type": "integer",
+        "desc": "Backups older than this are stale."
+      },
+      {
+        "name": "node",
+        "type": "string",
+        "desc": "Only audit guests on this node."
+      }
+    ]
+  },
+  {
+    "name": "ceph_health",
+    "description": "Analyse Ceph: health checks, OSD up/in counts, PG states, monitor quorum, capacity.",
+    "arguments": []
+  },
+  {
+    "name": "cluster_health",
+    "description": "Check quorum, node availability, CPU/memory pressure, storage fill levels and HA.",
+    "arguments": []
+  },
+  {
+    "name": "compare_nodes",
+    "description": "Compare live CPU, I/O wait, load, memory, swap and versions across nodes.",
+    "arguments": [
+      {
+        "name": "nodes",
+        "type": "array",
+        "desc": "Nodes to compare. Defaults to all online nodes."
+      }
+    ]
+  },
+  {
+    "name": "get_guest",
+    "description": "Show one guest's live status and full configuration (secrets redacted).",
+    "arguments": [
+      {
+        "name": "vmid",
+        "type": "integer",
+        "desc": "VM or container id."
+      }
+    ]
+  },
+  {
+    "name": "get_task_status",
+    "description": "Return the state of a Proxmox task and the tail of its log.",
+    "arguments": [
+      {
+        "name": "node",
+        "type": "string",
+        "desc": "Node the task ran on."
+      },
+      {
+        "name": "upid",
+        "type": "string",
+        "desc": "Task id (UPID) as returned by write tools."
+      },
+      {
+        "name": "log_lines",
+        "type": "integer",
+        "desc": "Number of log lines to return from the end of the task log (0-500)."
+      }
+    ]
+  },
+  {
+    "name": "list_guests",
+    "description": "List VMs and containers across the cluster with resource usage, tags and HA state.",
+    "arguments": [
+      {
+        "name": "node",
+        "type": "string",
+        "desc": "Only guests on this node."
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Filter by state."
+      },
+      {
+        "name": "guest_type",
+        "type": "string",
+        "desc": "'qemu' (VM) or 'lxc' (container)."
+      },
+      {
+        "name": "tag",
+        "type": "string",
+        "desc": "Only guests carrying this tag."
+      },
+      {
+        "name": "include_templates",
+        "type": "boolean",
+        "desc": "Also list VM and container templates."
+      }
+    ]
+  },
+  {
+    "name": "list_nodes",
+    "description": "List all cluster nodes with status, CPU and memory utilisation.",
+    "arguments": []
+  },
+  {
+    "name": "node_maintenance_status",
+    "description": "Show pending Proxmox updates, needed reboots and expiring node certificates.",
+    "arguments": [
+      {
+        "name": "node",
+        "type": "string",
+        "desc": "Only this node. Default: all."
+      }
+    ]
+  },
+  {
+    "name": "plan_node_evacuation",
+    "description": "Plan how to empty a node for maintenance without breaking HA or overloading others.",
+    "arguments": [
+      {
+        "name": "node",
+        "type": "string",
+        "desc": "Node to drain for maintenance."
+      },
+      {
+        "name": "exclude_targets",
+        "type": "array",
+        "desc": "Nodes that must not receive guests."
+      },
+      {
+        "name": "memory_limit",
+        "type": "number",
+        "desc": "Max memory use allowed on targets."
+      }
+    ]
+  },
+  {
+    "name": "recent_task_failures",
+    "description": "List tasks that failed recently, grouped by type. Good first stop after an incident.",
+    "arguments": [
+      {
+        "name": "hours",
+        "type": "integer",
+        "desc": "Time window to look back, in hours (1-720)."
+      },
+      {
+        "name": "task_type",
+        "type": "string",
+        "desc": "e.g. 'vzdump', 'qmigrate', 'qmstart'."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of failed tasks to return (1-500)."
+      }
+    ]
+  },
+  {
+    "name": "recommend_placement",
+    "description": "Rank nodes for a new VM/container by memory headroom, CPU load and vCPU over-commit.",
+    "arguments": [
+      {
+        "name": "cores",
+        "type": "integer",
+        "desc": "vCPUs the guest needs."
+      },
+      {
+        "name": "memory_gib",
+        "type": "number",
+        "desc": "Memory in GiB."
+      },
+      {
+        "name": "disk_gib",
+        "type": "number",
+        "desc": "Disk size in GiB (0 = skip)."
+      },
+      {
+        "name": "storage",
+        "type": "string",
+        "desc": "Require this storage id."
+      },
+      {
+        "name": "exclude_nodes",
+        "type": "array",
+        "desc": "Never pick these."
+      }
+    ]
+  },
+  {
+    "name": "storage_health",
+    "description": "Check ZFS pools and physical disks for anything that threatens data.",
+    "arguments": [
+      {
+        "name": "node",
+        "type": "string",
+        "desc": "Only this node. Default: all."
+      }
+    ]
+  }
+]
