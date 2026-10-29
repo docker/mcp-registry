@@ -1,0 +1,410 @@
+[
+  {
+    "name": "accept_handoff",
+    "description": "Claim a pending handoff and record its acceptor. Bound tokens use their own identity; family credentials and unbound broadcast claims require a concrete agent_name. Follow with complete_handoff.",
+    "arguments": [
+      {
+        "name": "agent_name",
+        "type": "string",
+        "desc": "Concrete acceptor identity. Required for family credentials and for unbound/stdio broadcast claims. Fixed agent tokens record their bound identity; a supplied name must match the fixed identity or family.",
+        "optional": true
+      },
+      {
+        "name": "handoff_id",
+        "type": "string",
+        "desc": "Handoff ID (UUID)"
+      }
+    ]
+  },
+  {
+    "name": "add_knowledge",
+    "description": "Add a knowledge entry. Cross-agent only: gotchas, safety/compliance rules, verified patterns, vendor behaviour. Host-local lessons belong in your own docs, not here. Requires `author` (your agent slug). Near-duplicates are returned instead of created unless `force`.",
+    "arguments": [
+      {
+        "name": "author",
+        "type": "string",
+        "desc": "Your agent identifier (free-form slug, 1\u201380 chars, [a-zA-Z0-9._-]). Examples: \"Claude-Laptop\", \"Codex-Buildbox\". Immutable once set \u2014 provenance cannot be rewritten via the tool surface."
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Free-form grouping label, e.g. \"gotcha\", \"pattern\", \"vendor\". Used by browse-mode filtering in `search_bus`.",
+        "optional": true
+      },
+      {
+        "name": "client_slug",
+        "type": "string",
+        "desc": "Scope this entry to the owning client (slug). Leave `cross_client_safe` false unless the content is genuinely global.",
+        "optional": true
+      },
+      {
+        "name": "content",
+        "type": "string",
+        "desc": "Markdown body of the knowledge entry"
+      },
+      {
+        "name": "cross_client_safe",
+        "type": "boolean",
+        "desc": "Allow this entry to surface in other clients' contexts (default: false)",
+        "optional": true
+      },
+      {
+        "name": "force",
+        "type": "boolean",
+        "desc": "Skip duplicate detection check. Set to true if you've already seen the warning and want to create anyway.",
+        "optional": true
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Free-form tags for retrieval. Keep them few and reusable.",
+        "optional": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Short title for the knowledge entry"
+      }
+    ]
+  },
+  {
+    "name": "check_in",
+    "description": "Pending-work query: open action handoffs addressed to you or to nobody in particular (max 20), plus recent notify-class handoffs to you or broadcast (max 5, compact). `has_more` on a section means the cap was hit \u2014 use list_handoffs for the rest. Accepted handoffs you filed to yourself are locks: counted in `self_claims_held`, not listed. Next step is get_handoff for the full body, then accept_handoff. Pass `agent_name` (your free-form agent slug \u2014 e.g. 'Claude-Laptop', 'Codex-Buildbox').",
+    "arguments": [
+      {
+        "name": "agent_name",
+        "type": "string",
+        "desc": "Your agent identifier (free-form slug, 1\u201380 chars, [a-zA-Z0-9._-]). Examples: \"Claude-Laptop\", \"Codex-Buildbox\". Used to filter handoffs addressed to you."
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "complete_handoff",
+    "description": "Mark a handoff as completed. Optional `commit_hash` records the work ref (typically a git SHA) so `mark_merged` can later flip the same handoff to `merged` when the bundle reaches main.",
+    "arguments": [
+      {
+        "name": "commit_hash",
+        "type": "string",
+        "desc": "Optional commit ref (typically a git SHA) recording the work that closed this handoff. When set, lets `mark_merged` link this handoff to a merge commit later.",
+        "optional": true
+      },
+      {
+        "name": "handoff_id",
+        "type": "string",
+        "desc": "Handoff ID (UUID)"
+      }
+    ]
+  },
+  {
+    "name": "create_handoff",
+    "description": "Create a handoff for another agent; this is sufficient notification. Category `action` = the recipient must do it; `notify` = FYI, pruned from operational queries after 7 days. Replying? Pass `in_reply_to` to stay in the existing thread instead of opening a parallel handoff.",
+    "arguments": [
+      {
+        "name": "body",
+        "type": "string",
+        "desc": "Detailed body, markdown supported (max 100,000 bytes)"
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Category: \"action\" (default \u2014 persistent until completed) or \"notify\" (ephemeral FYI, auto-pruned from operational queries after 7 days). Use \"notify\" for introductions, \"I just shipped X\" announcements \u2014 anything the recipient doesn't need to act on.",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Optional structured context: a JSON object, max 8,192 bytes serialized. Point at evidence (paths, IDs, URLs) instead of inlining it.",
+        "optional": true
+      },
+      {
+        "name": "from_agent",
+        "type": "string",
+        "desc": "Sender agent (free-form slug, 1\u201380 chars, [a-zA-Z0-9._-]). Examples: \"Claude-Laptop\", \"Codex-Buildbox\"."
+      },
+      {
+        "name": "in_reply_to",
+        "type": "string",
+        "desc": "Parent handoff ID (UUID) when this handoff is a reply to another. Enables threaded discovery via `list_replies_to_me`. The reply's `category` is preserved as written \u2014 a reply can legitimately be `action` (it requires a response) or `notify` (pure FYI).",
+        "optional": true
+      },
+      {
+        "name": "priority",
+        "type": "string",
+        "desc": "Priority: low, normal, high, or critical",
+        "optional": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Short title for the handoff (max 200 bytes)"
+      },
+      {
+        "name": "to_agent",
+        "type": "string",
+        "desc": "Target agent (free-form slug, same form as `from_agent`). Omit to broadcast: the handoff then appears in every other agent's `check_in` until one of them accepts it.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "delete_handoff",
+    "description": "Permanently delete a handoff by ID (hard delete). The delete is audited: audit_log keeps a tombstone with the handoff id, who deleted it, and its sender, recipient, title and status",
+    "arguments": [
+      {
+        "name": "handoff_id",
+        "type": "string",
+        "desc": "Handoff ID (UUID)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "delete_knowledge",
+    "description": "Delete a knowledge base entry by ID.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Knowledge entry ID (UUID)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "get_handoff",
+    "description": "Get one handoff by its full UUID, including its complete body and context.",
+    "arguments": [
+      {
+        "name": "handoff_id",
+        "type": "string",
+        "desc": "Full handoff UUID."
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "list_handoffs",
+    "description": "List handoffs with optional filters. Use status='pending' to see what needs attention.",
+    "arguments": [
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Filter by category: \"action\" or \"notify\". Overrides include_notify when set. Omit to use the default action-only view.",
+        "optional": true
+      },
+      {
+        "name": "compact",
+        "type": "boolean",
+        "desc": "Truncate body to 200 chars (default: true). Set false for full bodies.",
+        "optional": true
+      },
+      {
+        "name": "from_agent",
+        "type": "string",
+        "desc": "Filter by source agent (free-form slug; exact match, case-insensitive).",
+        "optional": true
+      },
+      {
+        "name": "include_notify",
+        "type": "boolean",
+        "desc": "Include notify-class handoffs alongside action ones (default: false). Ignored when `category` is set explicitly.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max results (default 20, clamped to 1..=200)",
+        "optional": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Filter by status: pending, accepted, completed, or merged",
+        "optional": true
+      },
+      {
+        "name": "to_agent",
+        "type": "string",
+        "desc": "Filter by target agent (free-form slug; exact match, case-insensitive).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "list_replies_to_me",
+    "description": "List handoffs that reply to ones you sent. Returns handoffs whose `in_reply_to` references a handoff with your `agent_name` as `from_agent`. Optional ISO-8601 `since` filters by reply timestamp.",
+    "arguments": [
+      {
+        "name": "agent_name",
+        "type": "string",
+        "desc": "Your agent identifier (free-form slug). Returns handoffs whose `in_reply_to` references a handoff you originally sent."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max results (default 20, clamped to 1..=200)",
+        "optional": true
+      },
+      {
+        "name": "since",
+        "type": "string",
+        "desc": "Optional ISO-8601 timestamp; only replies created after this time are returned.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "mark_merged",
+    "description": "Flip a handoff to status=merged and record the merge commit. Typically called by an integrator script after the bundle containing the handoff's commit_hash lands in main. Idempotent on identical merge_commit; refuses to overwrite a different one.",
+    "arguments": [
+      {
+        "name": "handoff_id",
+        "type": "string",
+        "desc": "Handoff ID (UUID) to mark as merged."
+      },
+      {
+        "name": "merge_commit",
+        "type": "string",
+        "desc": "Merge commit ref (typically the merge-to-main SHA that bundled the work). Free-form \u2014 any opaque identifier works."
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "search_bus",
+    "description": "Search knowledge and/or handoffs. Set tables param for multi-table. Modes: fts/semantic/hybrid (default). Empty query or '*' browses recent entries.",
+    "arguments": [
+      {
+        "name": "acknowledge_cross_client",
+        "type": "boolean",
+        "desc": "Release cross-client results withheld due to scope mismatch",
+        "optional": true
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Exact knowledge category filter in browse mode (`query` empty or `*`). Category filtering is not applied to ranked searches or handoffs.",
+        "optional": true
+      },
+      {
+        "name": "client_slug",
+        "type": "string",
+        "desc": "Scope to client. Cross-client results withheld unless acknowledged.",
+        "optional": true
+      },
+      {
+        "name": "compact",
+        "type": "boolean",
+        "desc": "Snippets instead of full bodies. Default: true multi-table, false single-table.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max results per table (default 20, clamped to 1..=200)",
+        "optional": true
+      },
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": "fts, semantic, or hybrid (default). Ignored for browse.",
+        "optional": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Search query. Use empty string or \"*\" to browse recent entries across tables.",
+        "optional": true
+      },
+      {
+        "name": "tables",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Tables to search: knowledge (default), handoffs",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "update_knowledge",
+    "description": "Update an existing knowledge base entry by ID. Only provided fields are updated.",
+    "arguments": [
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "New category for the entry",
+        "optional": true
+      },
+      {
+        "name": "content",
+        "type": "string",
+        "desc": "New markdown body for the entry",
+        "optional": true
+      },
+      {
+        "name": "cross_client_safe",
+        "type": "boolean",
+        "desc": "Allow this entry to surface in other clients' contexts",
+        "optional": true
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Knowledge entry ID (UUID)"
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Replacement list of tags for the entry",
+        "optional": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "New title for the entry",
+        "optional": true
+      },
+      {
+        "name": "verified",
+        "type": "boolean",
+        "desc": "Set to true to confirm the content is still accurate: sets last_verified_at to now without requiring content changes. This is how a `_staleness_warning` on an entry is cleared. Content edits also re-verify.",
+        "optional": true
+      }
+    ]
+  }
+]
