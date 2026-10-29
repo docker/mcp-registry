@@ -1,1 +1,1 @@
-Docs: https://www.convertapi.com/integration/mcp-server
+Docs: https://www.convertapi.com/integrations/mcp-server
