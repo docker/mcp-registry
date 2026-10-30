@@ -8,11 +8,11 @@ meta:
     - database
 about:
   title: Couchbase
-  description: Couchbase is a distributed document database with a powerful search engine and in-built operational and analytical capabilities.
+  description: Couchbase MCP Server - Enable AI agents to connect to and interact with Couchbase clusters.
   icon: https://avatars.githubusercontent.com/u/605755?s=200&v=4
 source:
-  project: https://github.com/Couchbase-Ecosystem/mcp-server-couchbase
-  commit: 1454b7b57b85fcb7fb1a72b8f248af9fbb0b5cdc
+  project: https://github.com/couchbase/mcp-server-couchbase
+  commit: d78084276cfacfd9a76f54b9cac19ad5f25694fd
 config:
   description: Configure the connection to Couchbase
   secrets:
@@ -27,13 +27,60 @@ config:
     - name: CB_USERNAME
       example: Administrator
       value: "{{couchbase.cb_username}}"
-    - name: CB_BUCKET_NAME
-      example: my-bucket
-      value: "{{couchbase.cb_bucket_name}}"
-
-    - name: CB_MCP_READ_ONLY_QUERY_MODE
+    - name: CB_CA_CERT_PATH
+      example: /path/to/ca-cert.pem
+      value: "{{couchbase.cb_ca_cert_path}}"
+    - name: CB_CLIENT_CERT_PATH
+      example: /path/to/client-cert.pem
+      value: "{{couchbase.cb_client_cert_path}}"
+    - name: CB_CLIENT_KEY_PATH
+      example: /path/to/client-key.pem
+      value: "{{couchbase.cb_client_key_path}}"
+    - name: CB_MCP_READ_ONLY_MODE
       example: "true"
-      value: "{{couchbase.cb_mcp_read_only_query_mode}}"
+      value: "{{couchbase.cb_mcp_read_only_mode}}"
+    - name: CB_MCP_TRANSPORT
+      example: stdio
+      value: "{{couchbase.cb_mcp_transport}}"
+    - name: CB_MCP_HOST
+      example: "127.0.0.1"
+      value: "{{couchbase.cb_mcp_host}}"
+    - name: CB_MCP_PORT
+      example: "8000"
+      value: "{{couchbase.cb_mcp_port}}"
+    - name: CB_MCP_DISABLED_TOOLS
+      example: "tool_1,tool_2"
+      value: "{{couchbase.cb_mcp_disabled_tools}}"
+    - name: CB_MCP_CONFIRMATION_REQUIRED_TOOLS
+      example: "tool_1,tool_2"
+      value: "{{couchbase.cb_mcp_confirmation_required_tools}}"
+    - name: CB_MCP_LOG_LEVEL
+      example: info
+      value: "{{couchbase.cb_mcp_log_level}}"
+    - name: CB_MCP_LOG_SINKS
+      example: stderr
+      value: "{{couchbase.cb_mcp_log_sinks}}"
+    - name: CB_MCP_LOG_FILE
+      example: mcp_server.log
+      value: "{{couchbase.cb_mcp_log_file}}"
+    - name: CB_MCP_LOG_MAX_BYTES
+      example: "1048576"
+      value: "{{couchbase.cb_mcp_log_max_bytes}}"
+    - name: CB_MCP_OAUTH_JWT_JWKS_URI
+      example: https://auth.example.com/.well-known/jwks.json
+      value: "{{couchbase.cb_mcp_oauth_jwt_jwks_uri}}"
+    - name: CB_MCP_OAUTH_JWT_ISSUER
+      example: https://auth.example.com/
+      value: "{{couchbase.cb_mcp_oauth_jwt_issuer}}"
+    - name: CB_MCP_OAUTH_JWT_AUDIENCE
+      example: couchbase-mcp-server
+      value: "{{couchbase.cb_mcp_oauth_jwt_audience}}"
+    - name: CB_MCP_OAUTH_JWT_ALGORITHM
+      example: RS256
+      value: "{{couchbase.cb_mcp_oauth_jwt_algorithm}}"
+    - name: CB_MCP_OAUTH_MCP_BASE_URL
+      example: https://mcp.example.com
+      value: "{{couchbase.cb_mcp_oauth_mcp_base_url}}"
   parameters:
     type: object
     properties:
@@ -43,9 +90,57 @@ config:
       cb_username:
         description: Username for the Couchbase cluster with access to the bucket.
         type: string
-      cb_bucket_name:
-        description: Bucket in the Couchbase cluster to use for the MCP server.
+      cb_ca_cert_path:
+        description: Path to the CA certificate file for TLS authentication in non-Capella clusters.
         type: string
-      cb_mcp_read_only_query_mode:
-        description: Setting to "true" (default) enables read-only query mode while running SQL++ queries.
+      cb_client_cert_path:
+        description: Path to the client certificate file for mTLS authentication.
+        type: string
+      cb_client_key_path:
+        description: Path to the client certificate key file for mTLS authentication.
+        type: string
+      cb_mcp_read_only_mode:
+        description: Setting to "true" (default) disables all write operations (KV and Query). Set to "false" to enable write operations.
+        type: string
+      cb_mcp_transport:
+        description: Transport mode for the server (stdio, http or sse). Default is stdio.
+        type: string
+      cb_mcp_host:
+        description: Host to run the MCP server on (default 127.0.0.1). Used only for HTTP and SSE transport modes.
+        type: string
+      cb_mcp_port:
+        description: Port to run the MCP server on (default 8000). Used only for HTTP and SSE transport modes.
+        type: string
+      cb_mcp_disabled_tools:
+        description: Tools to disable. Accepts comma-separated tool names or a file path containing one tool name per line.
+        type: string
+      cb_mcp_confirmation_required_tools:
+        description: Comma-separated tool names that require user confirmation before execution. Requires the MCP client to support elicitation.
+        type: string
+      cb_mcp_log_level:
+        description: 'Logging level for the MCP server: off, debug, info, warning, error. Use "off" to disable logging. Default is info.'
+        type: string
+      cb_mcp_log_sinks:
+        description: Comma-separated log destinations — stderr, file, or both. Default is stderr.
+        type: string
+      cb_mcp_log_file:
+        description: Base path for the per-level log files. Only used when the "file" sink is enabled. Default is mcp_server.log.
+        type: string
+      cb_mcp_log_max_bytes:
+        description: Maximum size in bytes per log file before it rotates. Default is 1048576 (1 MB).
+        type: string
+      cb_mcp_oauth_jwt_jwks_uri:
+        description: JWKS endpoint of the identity provider used to verify bearer JWTs. Enables OAuth when set together with the issuer and audience. Only honored with HTTP transport.
+        type: string
+      cb_mcp_oauth_jwt_issuer:
+        description: Expected JWT "iss" claim. Required to enable OAuth.
+        type: string
+      cb_mcp_oauth_jwt_audience:
+        description: Expected JWT "aud" claim. Required to enable OAuth.
+        type: string
+      cb_mcp_oauth_jwt_algorithm:
+        description: JWT signing algorithm, one of RS256/384/512, ES256/384/512, PS256/384/512. Default is RS256.
+        type: string
+      cb_mcp_oauth_mcp_base_url:
+        description: Public base URL of this server. When set, publishes RFC 9728 Protected Resource Metadata so PRM-aware clients can discover the authorization server.
         type: string
