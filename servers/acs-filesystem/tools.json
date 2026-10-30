@@ -1,0 +1,439 @@
+[
+  {
+    "name": "fs_batch_operations",
+    "displayName": "Batch File Operations",
+    "description": "Execute multiple filesystem operations (copy, move, delete) atomically with automatic rollback on failure",
+    "category": "batch",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "operations": {
+          "type": "array",
+          "description": "Array of operations to execute",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["copy", "move", "delete"],
+                "description": "Operation type"
+              },
+              "source": {
+                "type": "string",
+                "description": "Source file path (relative to workspace)"
+              },
+              "destination": {
+                "type": "string",
+                "description": "Destination file path (required for copy/move)"
+              }
+            },
+            "required": ["type", "source"]
+          }
+        },
+        "atomic": {
+          "type": "boolean",
+          "description": "If true, rollback all operations on any failure",
+          "default": true
+        }
+      },
+      "required": ["operations"]
+    },
+    "examples": [
+      {
+        "name": "Atomic batch copy",
+        "input": {
+          "operations": [
+            {
+              "type": "copy",
+              "source": "file1.txt",
+              "destination": "backup/file1.txt"
+            },
+            {
+              "type": "copy",
+              "source": "file2.txt",
+              "destination": "backup/file2.txt"
+            }
+          ],
+          "atomic": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "fs_watch_directory",
+    "displayName": "Watch Directory",
+    "description": "Monitor a directory for filesystem changes (create, modify, delete, rename) with optional filtering",
+    "category": "watching",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Directory path to watch (relative to workspace)"
+        },
+        "recursive": {
+          "type": "boolean",
+          "description": "Watch subdirectories recursively",
+          "default": false
+        },
+        "filters": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Glob patterns to filter events (e.g., ['*.ts', '*.js'])"
+        }
+      },
+      "required": ["path"]
+    },
+    "examples": [
+      {
+        "name": "Watch source directory",
+        "input": {
+          "path": "src",
+          "recursive": true,
+          "filters": ["*.ts", "*.tsx"]
+        }
+      }
+    ]
+  },
+  {
+    "name": "fs_get_watch_events",
+    "displayName": "Get Watch Events",
+    "description": "Retrieve accumulated filesystem events from an active watch session",
+    "category": "watching",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "description": "Watch session ID from fs_watch_directory"
+        }
+      },
+      "required": ["sessionId"]
+    },
+    "examples": [
+      {
+        "name": "Get events",
+        "input": {
+          "sessionId": "abc-123"
+        }
+      }
+    ]
+  },
+  {
+    "name": "fs_stop_watch",
+    "displayName": "Stop Watch",
+    "description": "Stop an active directory watch session and clean up resources",
+    "category": "watching",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "description": "Watch session ID to stop"
+        }
+      },
+      "required": ["sessionId"]
+    },
+    "examples": [
+      {
+        "name": "Stop watch",
+        "input": {
+          "sessionId": "abc-123"
+        }
+      }
+    ]
+  },
+  {
+    "name": "fs_search_files",
+    "displayName": "Search Files",
+    "description": "Search for files by name, content, or metadata with optional indexing for fast retrieval",
+    "category": "search",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "Search query string"
+        },
+        "searchType": {
+          "type": "string",
+          "enum": ["name", "content", "both"],
+          "description": "Search by filename, content, or both",
+          "default": "name"
+        },
+        "fileTypes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "File extensions to filter (e.g., ['.ts', '.js'])"
+        },
+        "minSize": {
+          "type": "number",
+          "description": "Minimum file size in bytes"
+        },
+        "maxSize": {
+          "type": "number",
+          "description": "Maximum file size in bytes"
+        },
+        "modifiedAfter": {
+          "type": "string",
+          "description": "ISO date string - only files modified after this date"
+        },
+        "useIndex": {
+          "type": "boolean",
+          "description": "Use file index for faster search",
+          "default": true
+        }
+      },
+      "required": ["query"]
+    },
+    "examples": [
+      {
+        "name": "Search for TODO comments",
+        "input": {
+          "query": "TODO",
+          "searchType": "content",
+          "fileTypes": [".ts", ".js"],
+          "useIndex": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "fs_build_index",
+    "displayName": "Build File Index",
+    "description": "Build a searchable index of files for fast searching across large codebases",
+    "category": "search",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Directory path to index (relative to workspace)"
+        },
+        "includeContent": {
+          "type": "boolean",
+          "description": "Index file contents (text files only)",
+          "default": false
+        }
+      },
+      "required": ["path"]
+    },
+    "examples": [
+      {
+        "name": "Index source directory",
+        "input": {
+          "path": "src",
+          "includeContent": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "fs_create_symlink",
+    "displayName": "Create Symlink",
+    "description": "Create a symbolic link within the workspace (target must be within workspace)",
+    "category": "links",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "linkPath": {
+          "type": "string",
+          "description": "Path where symlink will be created"
+        },
+        "targetPath": {
+          "type": "string",
+          "description": "Path the symlink points to (must be within workspace)"
+        }
+      },
+      "required": ["linkPath", "targetPath"]
+    },
+    "examples": [
+      {
+        "name": "Create symlink",
+        "input": {
+          "linkPath": "current",
+          "targetPath": "releases/v1.0.0"
+        }
+      }
+    ]
+  },
+  {
+    "name": "fs_compute_checksum",
+    "displayName": "Compute Checksum",
+    "description": "Compute file checksum for integrity verification using MD5, SHA-1, SHA-256, or SHA-512",
+    "category": "integrity",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "File path (relative to workspace)"
+        },
+        "algorithm": {
+          "type": "string",
+          "enum": ["md5", "sha1", "sha256", "sha512"],
+          "description": "Hash algorithm",
+          "default": "sha256"
+        }
+      },
+      "required": ["path"]
+    },
+    "examples": [
+      {
+        "name": "Compute SHA-256",
+        "input": {
+          "path": "important-file.zip",
+          "algorithm": "sha256"
+        }
+      }
+    ]
+  },
+  {
+    "name": "fs_verify_checksum",
+    "displayName": "Verify Checksum",
+    "description": "Verify a file's checksum matches the expected value",
+    "category": "integrity",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "File path (relative to workspace)"
+        },
+        "checksum": {
+          "type": "string",
+          "description": "Expected checksum hex string"
+        },
+        "algorithm": {
+          "type": "string",
+          "enum": ["md5", "sha1", "sha256", "sha512"],
+          "description": "Hash algorithm used",
+          "default": "sha256"
+        }
+      },
+      "required": ["path", "checksum"]
+    },
+    "examples": [
+      {
+        "name": "Verify file integrity",
+        "input": {
+          "path": "important-file.zip",
+          "checksum": "abc123...",
+          "algorithm": "sha256"
+        }
+      }
+    ]
+  },
+  {
+    "name": "fs_analyze_disk_usage",
+    "displayName": "Analyze Disk Usage",
+    "description": "Analyze disk usage, identify large files/directories, and get file type breakdowns",
+    "category": "analysis",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Directory path to analyze (relative to workspace)"
+        },
+        "depth": {
+          "type": "number",
+          "description": "Maximum depth to traverse",
+          "default": -1
+        },
+        "groupByType": {
+          "type": "boolean",
+          "description": "Group results by file extension",
+          "default": false
+        }
+      },
+      "required": ["path"]
+    },
+    "examples": [
+      {
+        "name": "Analyze project directory",
+        "input": {
+          "path": ".",
+          "depth": 3,
+          "groupByType": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "fs_copy_directory",
+    "displayName": "Copy Directory",
+    "description": "Recursively copy a directory with options to preserve metadata and exclude patterns",
+    "category": "directory",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "Source directory path"
+        },
+        "destination": {
+          "type": "string",
+          "description": "Destination directory path"
+        },
+        "preserveMetadata": {
+          "type": "boolean",
+          "description": "Preserve timestamps and permissions",
+          "default": false
+        },
+        "exclusions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Glob patterns to exclude (e.g., ['*.test.ts', 'node_modules/**'])"
+        }
+      },
+      "required": ["source", "destination"]
+    },
+    "examples": [
+      {
+        "name": "Copy with exclusions",
+        "input": {
+          "source": "src",
+          "destination": "backup",
+          "preserveMetadata": true,
+          "exclusions": ["*.test.ts", "node_modules/**"]
+        }
+      }
+    ]
+  },
+  {
+    "name": "fs_sync_directory",
+    "displayName": "Sync Directory",
+    "description": "Sync directories by copying only files that are newer or missing in the destination",
+    "category": "directory",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "Source directory path"
+        },
+        "destination": {
+          "type": "string",
+          "description": "Destination directory path"
+        },
+        "exclusions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Glob patterns to exclude"
+        }
+      },
+      "required": ["source", "destination"]
+    },
+    "examples": [
+      {
+        "name": "Sync to backup",
+        "input": {
+          "source": "src",
+          "destination": "backup",
+          "exclusions": ["*.test.ts"]
+        }
+      }
+    ]
+  }
+]
