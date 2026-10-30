@@ -1,7 +1,7 @@
 [
   {
     "name": "list_workflows",
-    "description": "List six workflow methods and their current availability. Free and read-only. Four B1 methods use native executors; website-proof-demo and kinetic-launch remain execution_blocked. Availability is not account-specific permission to buy.",
+    "description": "List seven workflow methods and their current availability. Free and read-only. Five methods use native executors; website-proof-demo and kinetic-launch remain execution_blocked. Availability is not account-specific permission to buy.",
     "arguments": []
   },
   {
@@ -33,6 +33,62 @@
         "name": "base_version",
         "type": "integer",
         "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "plan_reference_remake",
+    "description": "Compile a reference remake into a new workflow plan without paying or starting a run. Free. Pass the reference_profile of the ad to remake, the accepted script (copied unchanged), actor_id, a voice and optional ready ast_* assets. The server lays the script on the reference beats and picks templates, captions and sounds; its warnings name everything the plan does not reproduce. Nothing is generated: make missing media separately with generate_image or generate_video, each with its own quote, and compile again. Then approve, quote and run the plan as any other.",
+    "arguments": [
+      {
+        "name": "reference_profile",
+        "type": "object",
+        "desc": "The reference_profile analyze_reference returned, or one you wrote to the same schema."
+      },
+      {
+        "name": "script",
+        "type": "string",
+        "desc": "The accepted narration, copied into the plan unchanged."
+      },
+      {
+        "name": "actor_id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "voice",
+        "type": "string",
+        "desc": "Voice name from list_voices. Curated presets: owner_ru_clone | sarah | george | eric | daria_ru_female (owner_ru_clone is the Russian cloned voice). The API refuses a name list_voices does not return, before any charge. Omitted means the default voice for the actor's gender: the gender of actor_id, actor_gender with image, or george for the default actor and for image without actor_gender. gemini-3.8-flash-tts speaks only its own voices (kind model_voice in list_voices, such as kore): naming one selects that model, and a voice is refused with a tts_model that does not speak it, before any charge. Mutually exclusive with voice_id."
+      },
+      {
+        "name": "voice_id",
+        "type": "string",
+        "desc": "Raw vendor voice id (16–32 letters and digits) for a voice outside the catalog. Checked lazily: an unknown id fails the run, not the request. Refused with tts_model=gemini-3.8-flash-tts. Mutually exclusive with voice."
+      },
+      {
+        "name": "assets",
+        "type": "array",
+        "desc": "Your ready ast_* media, used in order by graphics that need it: a compare takes two images. Nothing is generated."
+      },
+      {
+        "name": "site",
+        "type": "string",
+        "desc": "Your site, for an end card on the closing beat."
+      },
+      {
+        "name": "audience",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "message",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "call",
+        "type": "object",
+        "desc": "Your call for a reference beat where the presenter listens to a recorded call: the presenter listens, then freezes, while it plays. The reference's own words are never offered; without lines the presenter keeps talking there."
       }
     ]
   },
@@ -70,7 +126,7 @@
   },
   {
     "name": "quote_workflow_plan",
-    "description": "Quote the approved current plan without spending credits. Free and read-only. Show the native price and every warning before requesting a paid launch. The returned quote_id expires and binds the exact revision and semantic input.",
+    "description": "Quote the approved current plan without spending credits. Free and read-only. Show the native price and every warning before requesting a paid launch. The returned quote_id expires and binds the exact revision and semantic input. Its launch is the ready run_workflow_plan body, with a fresh idempotency_key.",
     "arguments": [
       {
         "name": "plan_id",
@@ -81,7 +137,7 @@
   },
   {
     "name": "run_workflow_plan",
-    "description": "Start one explicitly approved paid workflow run using the exact revision, content_digest, semantic_input_digest and quote_id from its quote, plus an explicit idempotency_key. Returns immediately with its captured receipt and native run_id; poll get_run. Never auto-approve, auto-quote or invent a new key. If delivery is uncertain, recover with the original request and key; a new key can pay twice. Technical evidence is separate from human creative acceptance.",
+    "description": "Start one explicitly approved paid workflow run: pass the launch object of its quote unchanged (revision, content_digest, semantic_input_digest, quote_id and idempotency_key). Over REST, send the header Idempotency-Key equal to launch.idempotency_key; this tool sets it for you. Returns immediately with its captured receipt and native run_id; poll get_run. Never auto-approve, auto-quote or invent a new key. If delivery is uncertain, recover with the original request and key; a new key can pay twice. Technical evidence is separate from human creative acceptance. Price: the price of the native run it starts, make_ugc or make_faceless, as its quote states it. Quote first with quote_workflow_plan; list_prices names every price.",
     "arguments": [
       {
         "name": "plan_id",
@@ -117,12 +173,12 @@
   },
   {
     "name": "make_ugc",
-    "description": "Start generation of a lip-synced UGC video. Give a script within the selected speech model's text limit; the actor comes from actor_id (a saved actor from list_actors) or image, otherwise the default actor is used. Format and resolution follow the request and the source, defaulting to 1080x1920. Captions are OPT-IN: ask the user first. Fields the renderer does not honor yet carry a NOT HONORED YET note in their own description — read it instead of guessing. Call quote_ugc before generating and show the cost. This does NOT wait for the video: it starts the run and returns a run_id IMMEDIATELY. You MUST then poll get_run with that run_id until the state is 'succeeded' (video_url) or 'failed'. A 'failed' run whose paid vendor job we still hold can go back to 'queued' and reach 'succeeded' later; whenever that happens it is named in warnings[]. Pass attempt=2,3,… to deliberately start a NEW run for the same input (retry after a failure).",
+    "description": "Start generation of a lip-synced UGC video. Give a script within the selected speech model's text limit; the actor comes from actor_id (a saved actor from list_actors) or image, otherwise the default actor is used. Format and resolution follow the request and the source, defaulting to 1080x1920. Captions are OPT-IN: ask the user first. Fields the renderer does not honor yet carry a NOT HONORED YET note in their own description — read it instead of guessing. Call quote_ugc before generating and show the cost. This does NOT wait for the video: it starts the run and returns a run_id IMMEDIATELY. You MUST then poll get_run with that run_id until the state is 'succeeded' (video_url) or 'failed'. A 'failed' run whose paid vendor job we still hold can go back to 'queued' and reach 'succeeded' later; whenever that happens it is named in warnings[]. Pass attempt=2,3,… to deliberately start a NEW run for the same input (retry after a failure). Price: HeyGen presenter: presenter, HeyGen Avatar IV 12 credits per second the presenter is in the video, covered or not plus production (voice and render) 1 credits per second of video plus live avatar on a call 400 credits per call still in the video, at least 50; OmniHuman presenter: presenter, OmniHuman 2.0 22 credits per second the presenter is in the video, covered or not plus production (voice and render) 1 credits per second of video plus live avatar on a call 400 credits per call still in the video, at least 50. Quote first with quote_ugc; list_prices names every price.",
     "arguments": [
       {
         "name": "script",
         "type": "string",
-        "desc": "The words the actor says; required unless segments supplies the spoken text. Segments and text-anchored inserts require long-form qualification on the server. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters; eleven_v4: 5000 characters; gemini-3.8-flash-tts: 5000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. Break tags are cut from the text sent to eleven_v4 and gemini-3.8-flash-tts and are not counted there. There is no word-count limit. Duration and price are estimates until measured. Russian stress: write the stressed vowel as a capital inside a lowercase word (\"потОм\", \"зАмок\") and eleven_v3, eleven_v4 and gemini-3.8-flash-tts receive it as the stress mark U+0301 (\"пото́м\"); a mark typed directly is kept. A capital at the start of a word stays a capital, and a word with a second capital or a capital consonant inside (all caps, \"ВУЗы\") is left as it is. A single capital vowel inside a word is always read as stress, so write \"Яндекс Еда\", not \"ЯндексЕда\". Tell users writing in Russian that they can mark stress this way. eleven_flash_v2_5 and eleven_turbo_v2_5 cost less but misread stress marks: capitals reach them unchanged."
+        "desc": "The words the actor says; required unless segments supplies the spoken text. Segments and text-anchored inserts require long-form qualification on the server. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters; eleven_v4: 5000 characters; gemini-3.8-flash-tts: 5000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. Break tags are cut from the text sent to eleven_v4 and gemini-3.8-flash-tts and are not counted there. There is no word-count limit. Duration and price are estimates until measured. Russian stress: write the stressed vowel as a capital inside a lowercase word (\"потОм\", \"зАмок\") and eleven_v4 and gemini-3.8-flash-tts receive it as the stress mark U+0301 (\"пото́м\"); a mark typed directly is kept. A capital at the start of a word stays a capital, and a word with a second capital or a capital consonant inside (all caps, \"ВУЗы\") is left as it is. A single capital vowel inside a word is always read as stress, so write \"Яндекс Еда\", not \"ЯндексЕда\". Tell users writing in Russian that they can mark stress this way. eleven_flash_v2_5 and eleven_turbo_v2_5 cost less but misread stress marks: capitals reach them unchanged."
       },
       {
         "name": "segments",
@@ -145,9 +201,14 @@
         "desc": "Text-anchored reframings of the presenter: split (9:16 only) or card. Windows may not overlap one another or an insert. Same requirements as inserts. A covered or blurred presenter is still delivered vendor work and is billed as face time."
       },
       {
+        "name": "framing",
+        "type": "array",
+        "desc": "Text-anchored presenter sizes: each cuts to close or medium on its words and back to the take where they end. Items may not overlap one another, an insert or a layout window. A framing drawn wholly under full-frame templates is named in warnings[]. Where a punch_in emphasis meets a framing, the framing is drawn. Requires script and long-form qualification on the server; the price does not change."
+      },
+      {
         "name": "templates",
         "type": "array",
-        "desc": "Graphic templates, each { id, kind, anchor, cover_words?, placement?, transition?, data }. On any script run. Templates never change the price: a plain run is billed per second of finished video (30/s); a run with inserts, overlays or layout_windows is billed long-form-v1, and a covered presenter there is still face time. Ids are unique across inserts, overlays, layout_windows and templates. Text is one line of Latin or the script's own letters, digits and common punctuation, with no emoji; a wide CJK glyph counts 2 toward a limit, and long text shrinks to fit the kind's width. size small|medium|large scales a kind; absent is medium. A media field takes { asset_id } of a ready asset of the kind it names. An inner quote names words inside the template's own words, after the one before it: its beat lands on their first word, and must not fall under an insert or full-frame template; a click or step without one is spread evenly. A beat spoken before its template has entered moves just after the enter, with a warning. A template that meets the caption band hides captions while it shows; one elsewhere, such as a small one at the top, leaves them. A full-frame template also hides the presenter, overlays and over-presenter templates while it shows, never meets a wipe or zoom insert, and the covered presenter is billed. At most 2 overlays and over-presenter templates show at once, on footprints that do not overlap. template_theme sets the look of them all. Kinds: tag (over): a short gradient pill over the presenter or an insert; without position it sits in the caption spot and hides captions while it shows; data text ≤ 32, position? top|center|bottom, size? small|medium|large. lower_third (over): a name and role bar low in the frame; captions are hidden while it shows; data name ≤ 28, role? ≤ 36, side left|right, size? small|medium|large. end_card (over): a site pill with an optional call to action in the caption spot; captions are hidden while it shows; data site ≤ 32, cta? ≤ 48, size? small|medium|large. title_card (full): a full-frame hook card: the title (up to two lines) on a white card beside an optional logo image, and an optional chip under it; data title ≤ 48, chip? ≤ 32, logo? {asset_id} image, size? small|medium|large. quote (full): a full-frame quote: marks, the text in up to four lines, then the author with an optional round photo, cut to a circle; data text ≤ 120, author? ≤ 32, photo? {asset_id} image (cut to fill), size? small|medium|large. stat (full|over): a number counting up from 0 to value (up to 2 decimals), with prefix and suffix around it and a label under it; full fills the frame, over sits at chest level on a card; data value number, prefix? ≤ 6, suffix? ≤ 6, label? ≤ 32, size? small|medium|large. callout (over): an arrow or ring that lands on a point of the frame and pulses, target {x,y} in % of the frame from its top left, with an optional label pill below or above it; it may point at the face, its label keeps off the face where it can; also over an insert; data target {x,y}, style arrow|ring, text? ≤ 24, size? small|medium|large. checklist (over): 2–4 rows, each an optional icon, a label and a switch or check box set on or off; a cursor clicks rows in turn (item is the row's index from 0), each click flipping it; below the face; data items 2–4 of {label ≤ 24, on true|false, icon? phone|briefcase|user|clock|chat|star}, clicks? 0–6 of {item number, quote? inner quote}, style? switch|check, size? small|medium|large. phone_call (over): an incoming call on a neutral phone at the side (right unless side left): the caller, a subtitle and a round avatar ring, then the call is answered on answer_at and its timer runs; beside the face in wide frames, under it in tall ones; data caller ≤ 24, subtitle? ≤ 32, avatar? {asset_id} image (cut to fill), answer_at inner quote, side? left|right, size? small|medium|large. compare (full): a full-frame card showing the before image, then the after image sweeps in on a diagonal on reveal_at and both stay side by side, each with an optional label pill; both images are cut to fill a 3:5 card; data before {asset_id} image (cut to fill), after {asset_id} image (cut to fill), labels? {before? ≤ 20, after? ≤ 20}, reveal_at inner quote, size? small|medium|large. notification (over): a phone notification at the top, above the face: an icon (else the app's initial), the app, a title and a body line; it drops in, holds at least 1.2 s, then leaves before its span ends; data app ≤ 20, title ≤ 32, body ≤ 80, icon? phone|briefcase|user|clock|chat|star, size? small|medium|large. progress (over): 2–5 steps in a column on a card, each completing with a check in turn, on its advance_at quote (one per step, in order) or spread evenly; below the face; data steps 2–5 of ≤ 20, advance_at? 2–5 of inner quote, size? small|medium|large. rating (over): five stars on a card filling in turn up to stars (1–5 in halves, a half star half filled), an optional label under them; at chest level; data stars number, label? ≤ 32, size? small|medium|large."
+        "desc": "Graphic templates, each { id, kind, anchor, cover_words?, placement?, transition?, data }. On any script run. Templates never change the price: every run is billed by its parts as list_prices states them, and a presenter a template covers is still presenter time. Ids are unique across inserts, overlays, layout_windows and templates. Text is one line of Latin or the script's own letters, digits and common punctuation, with no emoji; a wide CJK glyph counts 2 toward a limit, and long text shrinks to fit the kind's width. size small|medium|large scales a kind; absent is medium. A media field takes { asset_id } of a ready asset of the kind it names. An inner quote names words inside the template's own words, after the one before it: its beat lands on their first word, and must not fall under an insert or full-frame template; a click or step without one is spread evenly. A beat spoken before its template has entered moves just after the enter, with a warning. A template that meets the caption band hides captions while it shows; one elsewhere, such as a small one at the top, leaves them. A full-frame template also hides the presenter, overlays and over-presenter templates while it shows, never meets a wipe or zoom insert, and the covered presenter is billed. At most 2 overlays and over-presenter templates show at once, on footprints that do not overlap. template_theme sets the look of them all. Kinds: tag (over): a short gradient pill over the presenter or an insert; without position it sits in the caption spot and hides captions while it shows; data text ≤ 32, position? top|center|bottom, size? small|medium|large. lower_third (over): a name and role bar low in the frame; captions are hidden while it shows; data name ≤ 28, role? ≤ 36, side left|right, size? small|medium|large. end_card (over): a site pill with an optional call to action in the caption spot; captions are hidden while it shows; data site ≤ 32, cta? ≤ 48, size? small|medium|large. title_card (full): a full-frame hook card: the title (up to two lines) on a white card beside an optional logo image, and an optional chip under it; data title ≤ 48, chip? ≤ 32, logo? {asset_id} image, size? small|medium|large. quote (full): a full-frame quote: marks, the text in up to four lines, then the author with an optional round photo, cut to a circle; data text ≤ 120, author? ≤ 32, photo? {asset_id} image (cut to fill), size? small|medium|large. stat (full|over): a number counting up from 0 to value (up to 2 decimals), with prefix and suffix around it and a label under it; full fills the frame, over sits at chest level on a card; data value number, prefix? ≤ 6, suffix? ≤ 6, label? ≤ 32, size? small|medium|large. callout (over): an arrow or ring that lands on a point of the frame and pulses, target {x,y} in % of the frame from its top left, with an optional label pill below or above it; it may point at the face, its label keeps off the face where it can; also over an insert; data target {x,y}, style arrow|ring, text? ≤ 24, size? small|medium|large. checklist (over): 2–4 rows, each an optional icon, a label and a switch or check box set on or off; a cursor clicks rows in turn (item is the row's index from 0), each click flipping it; below the face; data items 2–4 of {label ≤ 24, on true|false, icon? phone|briefcase|user|clock|chat|star}, clicks? 0–6 of {item number, quote? inner quote}, style? switch|check, size? small|medium|large. phone_call (over): an incoming call on a neutral phone at the side (right unless side left): the caller, a subtitle and a round avatar ring, then the call is answered on answer_at and its timer runs (or a hold banner shows); beside the face in wide frames, under it in tall ones; data caller ≤ 24, subtitle? ≤ 32, avatar? {asset_id} image (cut to fill), answer_at inner quote, side? left|right, size? small|medium|large, banner? ≤ 32, banner_note? ≤ 48, mask_number? true|false. compare (full): a full-frame card showing the before image, then the after image sweeps in on a diagonal on reveal_at and both stay side by side, each with an optional label pill; both images are cut to fill a 3:5 card; data before {asset_id} image (cut to fill), after {asset_id} image (cut to fill), labels? {before? ≤ 20, after? ≤ 20}, reveal_at inner quote, size? small|medium|large. notification (over): a phone notification at the top, above the face: an icon (else the app's initial), the app, a title and a body line; it drops in, holds at least 1.2 s, then leaves before its span ends; data app ≤ 20, title ≤ 32, body ≤ 80, icon? phone|briefcase|user|clock|chat|star, size? small|medium|large. progress (over): 2–5 steps in a column on a card, each completing with a check in turn, on its advance_at quote (one per step, in order) or spread evenly; below the face; data steps 2–5 of ≤ 20, advance_at? 2–5 of inner quote, size? small|medium|large. rating (over): five stars on a card filling in turn up to stars (1–5 in halves, a half star half filled), an optional label under them; at chest level; data stars number, label? ≤ 32, size? small|medium|large."
       },
       {
         "name": "template_theme",
@@ -160,6 +221,16 @@
         "desc": "Template sounds: false for none, or { beat: name } over the defaults; list_template_sounds names them."
       },
       {
+        "name": "edit_sounds",
+        "type": "boolean",
+        "desc": "A low sound on every cut (insert, full-frame template, layout window, framing), its peak on the cut. Needs inserts, layout_windows or framing; template_sounds.edit picks it (list_template_sounds). Price unchanged."
+      },
+      {
+        "name": "call",
+        "type": "object",
+        "desc": "A call the presenter listens to: { after: { quote }, lines: [{ speaker: agent|caller, text }] (2–12), voices?, phone? }."
+      },
+      {
         "name": "person",
         "type": "string",
         "desc": "NOT HONORED YET: person is not honored yet: this request uses the default actor; choose actor_id from list_actors or provide image to select a different face"
@@ -168,6 +239,16 @@
         "name": "actor_id",
         "type": "string",
         "desc": "Saved Clipwright actor ID from list_actors. Choose actor_id, image, or person; do not combine them. Without voice or voice_id the voice follows the actor's gender. Do not combine with actor_gender."
+      },
+      {
+        "name": "presenter_framing",
+        "type": "string",
+        "desc": "close (default) or wide: presenter lower, room above. Needs the actor's wide view (list_actors), 9:16 only; else close plus warnings[]."
+      },
+      {
+        "name": "presenter_mic",
+        "type": "boolean",
+        "desc": "true: presenter holds a tiny mic. Needs the actor's mic view in that framing (list_actors; library ones are wide); else no mic plus warnings[]."
       },
       {
         "name": "image",
@@ -197,17 +278,22 @@
       {
         "name": "caption_style",
         "type": "string",
-        "desc": "Caption look when captions=true. hormozi: the default: condensed bold uppercase, two to four white words per cue mid-lower in the frame, one keyword per cue in orange (the emphasised words, or else the cue's longest word that is not a stop-word); Latin and Cyrillic in one font. tiktok: bold rounded uppercase, one or two words at a time; the spoken word turns yellow and grows. youtube: clean bold sans-serif, five words on a dark rounded box near the bottom; words fade in, the spoken word in red. instagram: comic uppercase with a pink outline, two words at a time; the spoken word pops in orange. minimalist: plain sans-serif, five words on a half-transparent dark band, gentle fade. neon: cyan uppercase with a magenta outline, two words at a time; the spoken word pops in white. genz: large comic uppercase, one word at a time, slamming in with a pink highlight. campfire: rounded comic uppercase, three words; spoken words light up gold and stay lit. midnight: spooky uppercase, two words, slow fade; the spoken word in red. plottwist: heavy sans-serif, three words; the spoken word turns sky blue and grows. headline: tall condensed uppercase on a solid black band, three words; the spoken word scales up in yellow. promo: heavy sans-serif on a blue pill, three words; the spoken word pops in yellow. lecture: readable sans-serif, six words on a dark rounded box; the spoken word in green. highlighter: heavy sans-serif, four words; spoken words turn lime and stay lit. studio: sans-serif, seven words typed in on a blurred dark box; the spoken word in amber. broadcast: outlined sans-serif, eight words low in the frame; the spoken word in pale yellow. arcade: blocky yellow uppercase, two words; the spoken word bounces in white. clutch: brush uppercase, one word at a time, slamming in green. bubblegum: rounded display letters with a pink outline, two words; the spoken word bounces in yellow. crayon: marker handwriting with a navy outline, two words; the spoken word pops in orange. lyrics: handwritten script, five words; spoken words light up pink and stay lit. bassdrop: outlined display uppercase, one word at a time, scaling in orange. punch: mid-frame setup and punch: a small white lead-in line over one or two large blue glowing keywords; other words small and white. Alias: minimal draws minimalist. A font that cannot draw the script's letters is replaced by a plain sans-serif."
+        "desc": "Caption look when captions=true. hormozi: the default: heavy white uppercase with a thick black outline, up to three words per cue, one keyword per cue in yellow (emphasised, else the longest non-stop-word). accent: condensed bold white uppercase, no outline, up to three words per cue, one keyword per cue in orange (emphasised, else the longest non-stop-word). tiktok: bold rounded uppercase, one or two words at a time; the spoken word turns yellow and grows. youtube: clean bold sans-serif, five words on a dark rounded box near the bottom; words fade in, the spoken word in red. instagram: comic uppercase with a pink outline, two words at a time; the spoken word pops in orange. minimalist: plain sans-serif, five words on a half-transparent dark band, gentle fade. neon: cyan uppercase with a magenta outline, two words at a time; the spoken word pops in white. genz: large comic uppercase, one word at a time, slamming in with a pink highlight. campfire: rounded comic uppercase, three words; spoken words light up gold and stay lit. midnight: spooky uppercase, two words, slow fade; the spoken word in red. plottwist: heavy sans-serif, three words; the spoken word turns sky blue and grows. headline: tall condensed uppercase on a solid black band, three words; the spoken word scales up in yellow. promo: heavy sans-serif on a blue pill, three words; the spoken word pops in yellow. lecture: readable sans-serif, six words on a dark rounded box; the spoken word in green. highlighter: heavy sans-serif, four words; spoken words turn lime and stay lit. studio: sans-serif, seven words typed in on a blurred dark box; the spoken word in amber. broadcast: outlined sans-serif, eight words low in the frame; the spoken word in pale yellow. arcade: blocky yellow uppercase, two words; the spoken word bounces in white. clutch: brush uppercase, one word at a time, slamming in green. bubblegum: rounded display letters with a pink outline, two words; the spoken word bounces in yellow. crayon: marker handwriting with a navy outline, two words; the spoken word pops in orange. lyrics: handwritten script, five words; spoken words light up pink and stay lit. bassdrop: outlined display uppercase, one word at a time, scaling in orange. punch: mid-frame setup and punch: a small white lead-in line over one or two large blue glowing keywords; other words small and white. Alias: minimal draws minimalist. A font that cannot draw the script's letters is replaced by a plain sans-serif. Previews: https://clipwright.io/captions"
       },
       {
         "name": "caption_emphasis",
         "type": "array",
-        "desc": "Key words or short phrases to emphasise, each quoted from script and matched as an insert quote is (case and punctuation ignored). An item is the quote, or { quote, look }: look punch shows a small lead-in line from the same sentence over the quote as a large glowing keyword, look pill shows the quote alone in a rounded pill, look color shows it in the accent colour at the same size. Without a look, punch draws punch, hormozi draws color, and other presets draw the quote larger in their highlight colour. Every occurrence is emphasised. Requires captions=true and script; a quote absent from script is refused before any charge."
+        "desc": "Key words or short phrases to emphasise, each quoted from script and matched as an insert quote is (case and punctuation ignored). An item is the quote, or { quote, look }: look punch shows a small lead-in line from the same sentence over the quote as a large glowing keyword, look pill shows the quote alone in a rounded pill, look color shows it in the accent colour at the same size. Without a look, punch draws punch, hormozi and accent draw color, and other presets draw the quote larger in their highlight colour. Every occurrence is emphasised. Requires captions=true and script; a quote absent from script is refused before any charge."
       },
       {
         "name": "caption_mode",
         "type": "string",
         "desc": "full (default when omitted): every spoken word is captioned. highlights: captions appear only around caption_emphasis quotes (lead-in, quote, short tail) and nowhere else; requires caption_emphasis. In both modes captions are hidden while a full-frame insert is on screen or a template meets their band."
+      },
+      {
+        "name": "caption_position",
+        "type": "string",
+        "desc": "Where captions sit: top, middle, lower or bottom (80% of the height). Omitted means the caption_style's own place. Requires captions=true."
       },
       {
         "name": "look",
@@ -237,7 +323,17 @@
       {
         "name": "tts_model",
         "type": "string",
-        "desc": "Speech model: eleven_v3 | eleven_flash_v2_5 | eleven_turbo_v2_5 | eleven_v4 | gemini-3.8-flash-tts. Omitted means the model of the chosen voice (list_voices shows it): eleven_v4 for the Russian presets and for catalog voices named ru_*, gemini-3.8-flash-tts for its own voices, eleven_v3 for every other preset and catalog voice. A raw voice_id speaks eleven_v4 when the script is mostly Cyrillic and eleven_v3 otherwise. An explicit tts_model always wins. eleven_v4, eleven_v3 and gemini-3.8-flash-tts read stress marks (a capital vowel inside a Russian word, \"потОм\", becomes one; see script); eleven_flash_v2_5 and eleven_turbo_v2_5 are cheaper alternatives for languages other than Russian. gemini-3.8-flash-tts speaks only its own voices (list_voices with model=gemini-3.8-flash-tts; without voice, kore for a female actor and charon otherwise) and returns no word timings: a preset or catalog voice, voice_id, captions=true, segments and inserts are refused with it before any charge. Audio tags in square brackets are an eleven_v3 and eleven_v4 convention and are not measured on it. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters; eleven_v4: 5000 characters; gemini-3.8-flash-tts: 5000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. Break tags are cut from the text sent to eleven_v4 and gemini-3.8-flash-tts and are not counted there. There is no word-count limit. Duration and price are estimates until measured."
+        "desc": "Speech model: eleven_v3 | eleven_flash_v2_5 | eleven_turbo_v2_5 | eleven_v4 | gemini-3.8-flash-tts. Omitted means the model of the chosen voice (list_voices shows it): gemini-3.8-flash-tts for its own voices, eleven_v4 for every preset, catalog voice and raw voice_id. An explicit tts_model wins, except eleven_v3: it is no longer spoken, and a run naming it speaks eleven_v4 with a warning. eleven_v4 and gemini-3.8-flash-tts read stress marks (a capital vowel inside a Russian word, \"потОм\", becomes one; see script); eleven_flash_v2_5 and eleven_turbo_v2_5 are cheaper alternatives for languages other than Russian. gemini-3.8-flash-tts speaks only its own voices (list_voices with model=gemini-3.8-flash-tts; without voice, kore for a female actor and charon otherwise) and returns no word timings: a preset or catalog voice, voice_id, captions=true, segments and inserts are refused with it before any charge. Audio tags in square brackets are a convention of the other speech models and are not measured on it. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters; eleven_v4: 5000 characters; gemini-3.8-flash-tts: 5000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. Break tags are cut from the text sent to eleven_v4 and gemini-3.8-flash-tts and are not counted there. There is no word-count limit. Duration and price are estimates until measured."
+      },
+      {
+        "name": "voice_pace",
+        "type": "number",
+        "desc": "Narration speed; 1 is the voice's own. gemini-3.8-flash-tts gets a style hint instead; eleven_v4 has no speed, so pick a voice by list_voices words_per_second; both named in warnings[]."
+      },
+      {
+        "name": "pause_trim",
+        "type": "object",
+        "desc": "Shorten narration pauses longer than these seconds, cutting silence only."
       },
       {
         "name": "visible_ai_label",
@@ -301,7 +397,7 @@
   },
   {
     "name": "revise_run",
-    "description": "Start a revision of a run made by make_faceless (paid): a NEW run that renders the video again with the shots you change, by changes (a shot and what to generate for it) or by document (the whole edited document); pass exactly one. Call quote_revision first and show the user the price. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to start a second revision with the same request on purpose, pass attempt 2. A revision that delivers is charged its quoted total; one that fails is charged nothing, even when its paid work was already done. An original has a limit on revisions running at once and on revisions failed or unfinished, and paid edits of it close some days after it finished; a refusal names which. While paid edits are closed it answers editing_disabled and charges nothing. The result is a new run: poll it with get_run; once it succeeded it is editable under its own run_id.",
+    "description": "Start a revision of a run made by make_faceless (paid): a NEW run that renders the video again with the shots you change, by changes (a shot and what to generate for it) or by document (the whole edited document); pass exactly one. Call quote_revision first and show the user the price. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to start a second revision with the same request on purpose, pass attempt 2. A revision that delivers is charged its quoted total; one that fails is charged nothing, even when its paid work was already done. An original has a limit on revisions running at once and on revisions failed or unfinished, and paid edits of it close some days after it finished; a refusal names which. While paid edits are closed it answers editing_disabled and charges nothing. The result is a new run: poll it with get_run; once it succeeded it is editable under its own run_id. Price: each shot generated anew: picture 7, clip 49, clip with a new picture 56; plus 13 to render. A revision that generates nothing: 13. A kept candidate adds nothing. Quote first with quote_revision; list_prices names every price.",
     "arguments": [
       {
         "name": "run_id",
@@ -353,7 +449,7 @@
   },
   {
     "name": "create_candidate",
-    "description": "Make a shot candidate of a run made by make_faceless (paid): a NEW run of skill edit_shot that generates one picture or clip for one shot, to keep or discard in a later revision. Call quote_candidate first and show the user the price. A delivered candidate is charged its one unit whether it is kept or discarded; one that fails is charged nothing, even when its paid work was already done. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another candidate with the same request on purpose, pass take 2. An original has a limit on candidates running at once and on candidates failed or unfinished, apart from its revisions; a refusal names which. While shot candidates are closed it answers editing_disabled and charges nothing. The result is a new run: poll it with get_run; once it succeeded, its candidate.preview_url shows what was made.",
+    "description": "Make a shot candidate of a run made by make_faceless (paid): a NEW run of skill edit_shot that generates one picture or clip for one shot, to keep or discard in a later revision. Call quote_candidate first and show the user the price. A delivered candidate is charged its one unit whether it is kept or discarded; one that fails is charged nothing, even when its paid work was already done. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another candidate with the same request on purpose, pass take 2. An original has a limit on candidates running at once and on candidates failed or unfinished, apart from its revisions; a refusal names which. While shot candidates are closed it answers editing_disabled and charges nothing. The result is a new run: poll it with get_run; once it succeeded, its candidate.preview_url shows what was made. Price: picture: 7 credits per image; clip: 49 credits per clip; clip with a new picture: 56 credits per clip. Quote first with quote_candidate; list_prices names every price.",
     "arguments": [
       {
         "name": "run_id",
@@ -410,7 +506,7 @@
   },
   {
     "name": "generate_image",
-    "description": "Generate one image from a prompt (paid): a NEW run of skill generate_image, charged the quoted credits per image once it is delivered. Call quote_image first and show the user the price. Poll the run with get_run; once it succeeded, generation.url is the image and its run_id can be a reference of a later generation. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image or create_upload (rights_confirmed states you may use the people and works in it), {run_id} of a succeeded generate_image run of this account until its reusable_until, or {asset_id} of a picture asset from create_asset, whose rights were confirmed when it was made. A generation that fails is charged nothing, even when the vendor was already paid. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing.",
+    "description": "Generate one image from a prompt (paid): a NEW run of skill generate_image, charged the quoted credits per image once it is delivered. Call quote_image first and show the user the price. Poll the run with get_run; once it succeeded, generation.url is the image and its run_id can be a reference of a later generation. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image or create_upload (rights_confirmed states you may use the people and works in it), {run_id} of a succeeded generate_image run of this account until its reusable_until, or {asset_id} of a picture asset from create_asset, whose rights were confirmed when it was made. A generation that fails is charged nothing, even when the vendor was already paid. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing. Price: seedream-5.0-flash: 6 credits per image; flare: 8 credits per image. Quote first with quote_image; list_prices names every price.",
     "arguments": [
       {
         "name": "prompt",
@@ -497,7 +593,7 @@
   },
   {
     "name": "generate_video",
-    "description": "Generate one silent clip (paid): a NEW run of skill generate_video, charged unit_credits per second of duration_s once it is delivered. Modes: text; first_frame (first_frame, optional last_frame, of the requested aspect ratio within 2%); reference (1 to 4 references). Call quote_video first and show the user the price. Poll the run with get_run; once it succeeded, generation.url is the clip. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image or create_upload (rights_confirmed states you may use the people and works in it), {run_id} of a succeeded generate_image run of this account until its reusable_until, or {asset_id} of a picture asset from create_asset, whose rights were confirmed when it was made. A generation that fails is charged nothing, even when the vendor was already paid. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing.",
+    "description": "Generate one silent clip (paid): a NEW run of skill generate_video, charged unit_credits per second of duration_s once it is delivered. Modes: text; first_frame (first_frame, optional last_frame, of the requested aspect ratio within 2%); reference (1 to 4 references). Call quote_video first and show the user the price. Poll the run with get_run; once it succeeded, generation.url is the clip. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image or create_upload (rights_confirmed states you may use the people and works in it), {run_id} of a succeeded generate_image run of this account until its reusable_until, or {asset_id} of a picture asset from create_asset, whose rights were confirmed when it was made. A generation that fails is charged nothing, even when the vendor was already paid. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing. Price: 6 to 173 credits per second of clip, by model and size. Quote first with quote_video; list_prices names every price.",
     "arguments": [
       {
         "name": "prompt",
@@ -563,7 +659,7 @@
       {
         "name": "script",
         "type": "string",
-        "desc": "The words the actor says; required unless segments supplies the spoken text. Segments and text-anchored inserts require long-form qualification on the server. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters; eleven_v4: 5000 characters; gemini-3.8-flash-tts: 5000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. Break tags are cut from the text sent to eleven_v4 and gemini-3.8-flash-tts and are not counted there. There is no word-count limit. Duration and price are estimates until measured. Russian stress: write the stressed vowel as a capital inside a lowercase word (\"потОм\", \"зАмок\") and eleven_v3, eleven_v4 and gemini-3.8-flash-tts receive it as the stress mark U+0301 (\"пото́м\"); a mark typed directly is kept. A capital at the start of a word stays a capital, and a word with a second capital or a capital consonant inside (all caps, \"ВУЗы\") is left as it is. A single capital vowel inside a word is always read as stress, so write \"Яндекс Еда\", not \"ЯндексЕда\". Tell users writing in Russian that they can mark stress this way. eleven_flash_v2_5 and eleven_turbo_v2_5 cost less but misread stress marks: capitals reach them unchanged."
+        "desc": "The words the actor says; required unless segments supplies the spoken text. Segments and text-anchored inserts require long-form qualification on the server. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters; eleven_v4: 5000 characters; gemini-3.8-flash-tts: 5000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. Break tags are cut from the text sent to eleven_v4 and gemini-3.8-flash-tts and are not counted there. There is no word-count limit. Duration and price are estimates until measured. Russian stress: write the stressed vowel as a capital inside a lowercase word (\"потОм\", \"зАмок\") and eleven_v4 and gemini-3.8-flash-tts receive it as the stress mark U+0301 (\"пото́м\"); a mark typed directly is kept. A capital at the start of a word stays a capital, and a word with a second capital or a capital consonant inside (all caps, \"ВУЗы\") is left as it is. A single capital vowel inside a word is always read as stress, so write \"Яндекс Еда\", not \"ЯндексЕда\". Tell users writing in Russian that they can mark stress this way. eleven_flash_v2_5 and eleven_turbo_v2_5 cost less but misread stress marks: capitals reach them unchanged."
       },
       {
         "name": "segments",
@@ -586,9 +682,14 @@
         "desc": "Text-anchored reframings of the presenter: split (9:16 only) or card. Windows may not overlap one another or an insert. Same requirements as inserts. A covered or blurred presenter is still delivered vendor work and is billed as face time."
       },
       {
+        "name": "framing",
+        "type": "array",
+        "desc": "Text-anchored presenter sizes: each cuts to close or medium on its words and back to the take where they end. Items may not overlap one another, an insert or a layout window. A framing drawn wholly under full-frame templates is named in warnings[]. Where a punch_in emphasis meets a framing, the framing is drawn. Requires script and long-form qualification on the server; the price does not change."
+      },
+      {
         "name": "templates",
         "type": "array",
-        "desc": "Graphic templates, each { id, kind, anchor, cover_words?, placement?, transition?, data }. On any script run. Templates never change the price: a plain run is billed per second of finished video (30/s); a run with inserts, overlays or layout_windows is billed long-form-v1, and a covered presenter there is still face time. Ids are unique across inserts, overlays, layout_windows and templates. Text is one line of Latin or the script's own letters, digits and common punctuation, with no emoji; a wide CJK glyph counts 2 toward a limit, and long text shrinks to fit the kind's width. size small|medium|large scales a kind; absent is medium. A media field takes { asset_id } of a ready asset of the kind it names. An inner quote names words inside the template's own words, after the one before it: its beat lands on their first word, and must not fall under an insert or full-frame template; a click or step without one is spread evenly. A beat spoken before its template has entered moves just after the enter, with a warning. A template that meets the caption band hides captions while it shows; one elsewhere, such as a small one at the top, leaves them. A full-frame template also hides the presenter, overlays and over-presenter templates while it shows, never meets a wipe or zoom insert, and the covered presenter is billed. At most 2 overlays and over-presenter templates show at once, on footprints that do not overlap. template_theme sets the look of them all. Kinds: tag (over): a short gradient pill over the presenter or an insert; without position it sits in the caption spot and hides captions while it shows; data text ≤ 32, position? top|center|bottom, size? small|medium|large. lower_third (over): a name and role bar low in the frame; captions are hidden while it shows; data name ≤ 28, role? ≤ 36, side left|right, size? small|medium|large. end_card (over): a site pill with an optional call to action in the caption spot; captions are hidden while it shows; data site ≤ 32, cta? ≤ 48, size? small|medium|large. title_card (full): a full-frame hook card: the title (up to two lines) on a white card beside an optional logo image, and an optional chip under it; data title ≤ 48, chip? ≤ 32, logo? {asset_id} image, size? small|medium|large. quote (full): a full-frame quote: marks, the text in up to four lines, then the author with an optional round photo, cut to a circle; data text ≤ 120, author? ≤ 32, photo? {asset_id} image (cut to fill), size? small|medium|large. stat (full|over): a number counting up from 0 to value (up to 2 decimals), with prefix and suffix around it and a label under it; full fills the frame, over sits at chest level on a card; data value number, prefix? ≤ 6, suffix? ≤ 6, label? ≤ 32, size? small|medium|large. callout (over): an arrow or ring that lands on a point of the frame and pulses, target {x,y} in % of the frame from its top left, with an optional label pill below or above it; it may point at the face, its label keeps off the face where it can; also over an insert; data target {x,y}, style arrow|ring, text? ≤ 24, size? small|medium|large. checklist (over): 2–4 rows, each an optional icon, a label and a switch or check box set on or off; a cursor clicks rows in turn (item is the row's index from 0), each click flipping it; below the face; data items 2–4 of {label ≤ 24, on true|false, icon? phone|briefcase|user|clock|chat|star}, clicks? 0–6 of {item number, quote? inner quote}, style? switch|check, size? small|medium|large. phone_call (over): an incoming call on a neutral phone at the side (right unless side left): the caller, a subtitle and a round avatar ring, then the call is answered on answer_at and its timer runs; beside the face in wide frames, under it in tall ones; data caller ≤ 24, subtitle? ≤ 32, avatar? {asset_id} image (cut to fill), answer_at inner quote, side? left|right, size? small|medium|large. compare (full): a full-frame card showing the before image, then the after image sweeps in on a diagonal on reveal_at and both stay side by side, each with an optional label pill; both images are cut to fill a 3:5 card; data before {asset_id} image (cut to fill), after {asset_id} image (cut to fill), labels? {before? ≤ 20, after? ≤ 20}, reveal_at inner quote, size? small|medium|large. notification (over): a phone notification at the top, above the face: an icon (else the app's initial), the app, a title and a body line; it drops in, holds at least 1.2 s, then leaves before its span ends; data app ≤ 20, title ≤ 32, body ≤ 80, icon? phone|briefcase|user|clock|chat|star, size? small|medium|large. progress (over): 2–5 steps in a column on a card, each completing with a check in turn, on its advance_at quote (one per step, in order) or spread evenly; below the face; data steps 2–5 of ≤ 20, advance_at? 2–5 of inner quote, size? small|medium|large. rating (over): five stars on a card filling in turn up to stars (1–5 in halves, a half star half filled), an optional label under them; at chest level; data stars number, label? ≤ 32, size? small|medium|large."
+        "desc": "Graphic templates, each { id, kind, anchor, cover_words?, placement?, transition?, data }. On any script run. Templates never change the price: every run is billed by its parts as list_prices states them, and a presenter a template covers is still presenter time. Ids are unique across inserts, overlays, layout_windows and templates. Text is one line of Latin or the script's own letters, digits and common punctuation, with no emoji; a wide CJK glyph counts 2 toward a limit, and long text shrinks to fit the kind's width. size small|medium|large scales a kind; absent is medium. A media field takes { asset_id } of a ready asset of the kind it names. An inner quote names words inside the template's own words, after the one before it: its beat lands on their first word, and must not fall under an insert or full-frame template; a click or step without one is spread evenly. A beat spoken before its template has entered moves just after the enter, with a warning. A template that meets the caption band hides captions while it shows; one elsewhere, such as a small one at the top, leaves them. A full-frame template also hides the presenter, overlays and over-presenter templates while it shows, never meets a wipe or zoom insert, and the covered presenter is billed. At most 2 overlays and over-presenter templates show at once, on footprints that do not overlap. template_theme sets the look of them all. Kinds: tag (over): a short gradient pill over the presenter or an insert; without position it sits in the caption spot and hides captions while it shows; data text ≤ 32, position? top|center|bottom, size? small|medium|large. lower_third (over): a name and role bar low in the frame; captions are hidden while it shows; data name ≤ 28, role? ≤ 36, side left|right, size? small|medium|large. end_card (over): a site pill with an optional call to action in the caption spot; captions are hidden while it shows; data site ≤ 32, cta? ≤ 48, size? small|medium|large. title_card (full): a full-frame hook card: the title (up to two lines) on a white card beside an optional logo image, and an optional chip under it; data title ≤ 48, chip? ≤ 32, logo? {asset_id} image, size? small|medium|large. quote (full): a full-frame quote: marks, the text in up to four lines, then the author with an optional round photo, cut to a circle; data text ≤ 120, author? ≤ 32, photo? {asset_id} image (cut to fill), size? small|medium|large. stat (full|over): a number counting up from 0 to value (up to 2 decimals), with prefix and suffix around it and a label under it; full fills the frame, over sits at chest level on a card; data value number, prefix? ≤ 6, suffix? ≤ 6, label? ≤ 32, size? small|medium|large. callout (over): an arrow or ring that lands on a point of the frame and pulses, target {x,y} in % of the frame from its top left, with an optional label pill below or above it; it may point at the face, its label keeps off the face where it can; also over an insert; data target {x,y}, style arrow|ring, text? ≤ 24, size? small|medium|large. checklist (over): 2–4 rows, each an optional icon, a label and a switch or check box set on or off; a cursor clicks rows in turn (item is the row's index from 0), each click flipping it; below the face; data items 2–4 of {label ≤ 24, on true|false, icon? phone|briefcase|user|clock|chat|star}, clicks? 0–6 of {item number, quote? inner quote}, style? switch|check, size? small|medium|large. phone_call (over): an incoming call on a neutral phone at the side (right unless side left): the caller, a subtitle and a round avatar ring, then the call is answered on answer_at and its timer runs (or a hold banner shows); beside the face in wide frames, under it in tall ones; data caller ≤ 24, subtitle? ≤ 32, avatar? {asset_id} image (cut to fill), answer_at inner quote, side? left|right, size? small|medium|large, banner? ≤ 32, banner_note? ≤ 48, mask_number? true|false. compare (full): a full-frame card showing the before image, then the after image sweeps in on a diagonal on reveal_at and both stay side by side, each with an optional label pill; both images are cut to fill a 3:5 card; data before {asset_id} image (cut to fill), after {asset_id} image (cut to fill), labels? {before? ≤ 20, after? ≤ 20}, reveal_at inner quote, size? small|medium|large. notification (over): a phone notification at the top, above the face: an icon (else the app's initial), the app, a title and a body line; it drops in, holds at least 1.2 s, then leaves before its span ends; data app ≤ 20, title ≤ 32, body ≤ 80, icon? phone|briefcase|user|clock|chat|star, size? small|medium|large. progress (over): 2–5 steps in a column on a card, each completing with a check in turn, on its advance_at quote (one per step, in order) or spread evenly; below the face; data steps 2–5 of ≤ 20, advance_at? 2–5 of inner quote, size? small|medium|large. rating (over): five stars on a card filling in turn up to stars (1–5 in halves, a half star half filled), an optional label under them; at chest level; data stars number, label? ≤ 32, size? small|medium|large."
       },
       {
         "name": "template_theme",
@@ -601,6 +702,16 @@
         "desc": "Template sounds: false for none, or { beat: name } over the defaults; list_template_sounds names them."
       },
       {
+        "name": "edit_sounds",
+        "type": "boolean",
+        "desc": "A low sound on every cut (insert, full-frame template, layout window, framing), its peak on the cut. Needs inserts, layout_windows or framing; template_sounds.edit picks it (list_template_sounds). Price unchanged."
+      },
+      {
+        "name": "call",
+        "type": "object",
+        "desc": "A call the presenter listens to: { after: { quote }, lines: [{ speaker: agent|caller, text }] (2–12), voices?, phone? }."
+      },
+      {
         "name": "person",
         "type": "string",
         "desc": "NOT HONORED YET: person is not honored yet: this request uses the default actor; choose actor_id from list_actors or provide image to select a different face"
@@ -609,6 +720,16 @@
         "name": "actor_id",
         "type": "string",
         "desc": "Saved Clipwright actor ID from list_actors. Choose actor_id, image, or person; do not combine them. Without voice or voice_id the voice follows the actor's gender. Do not combine with actor_gender."
+      },
+      {
+        "name": "presenter_framing",
+        "type": "string",
+        "desc": "close (default) or wide: presenter lower, room above. Needs the actor's wide view (list_actors), 9:16 only; else close plus warnings[]."
+      },
+      {
+        "name": "presenter_mic",
+        "type": "boolean",
+        "desc": "true: presenter holds a tiny mic. Needs the actor's mic view in that framing (list_actors; library ones are wide); else no mic plus warnings[]."
       },
       {
         "name": "image",
@@ -638,17 +759,22 @@
       {
         "name": "caption_style",
         "type": "string",
-        "desc": "Caption look when captions=true. hormozi: the default: condensed bold uppercase, two to four white words per cue mid-lower in the frame, one keyword per cue in orange (the emphasised words, or else the cue's longest word that is not a stop-word); Latin and Cyrillic in one font. tiktok: bold rounded uppercase, one or two words at a time; the spoken word turns yellow and grows. youtube: clean bold sans-serif, five words on a dark rounded box near the bottom; words fade in, the spoken word in red. instagram: comic uppercase with a pink outline, two words at a time; the spoken word pops in orange. minimalist: plain sans-serif, five words on a half-transparent dark band, gentle fade. neon: cyan uppercase with a magenta outline, two words at a time; the spoken word pops in white. genz: large comic uppercase, one word at a time, slamming in with a pink highlight. campfire: rounded comic uppercase, three words; spoken words light up gold and stay lit. midnight: spooky uppercase, two words, slow fade; the spoken word in red. plottwist: heavy sans-serif, three words; the spoken word turns sky blue and grows. headline: tall condensed uppercase on a solid black band, three words; the spoken word scales up in yellow. promo: heavy sans-serif on a blue pill, three words; the spoken word pops in yellow. lecture: readable sans-serif, six words on a dark rounded box; the spoken word in green. highlighter: heavy sans-serif, four words; spoken words turn lime and stay lit. studio: sans-serif, seven words typed in on a blurred dark box; the spoken word in amber. broadcast: outlined sans-serif, eight words low in the frame; the spoken word in pale yellow. arcade: blocky yellow uppercase, two words; the spoken word bounces in white. clutch: brush uppercase, one word at a time, slamming in green. bubblegum: rounded display letters with a pink outline, two words; the spoken word bounces in yellow. crayon: marker handwriting with a navy outline, two words; the spoken word pops in orange. lyrics: handwritten script, five words; spoken words light up pink and stay lit. bassdrop: outlined display uppercase, one word at a time, scaling in orange. punch: mid-frame setup and punch: a small white lead-in line over one or two large blue glowing keywords; other words small and white. Alias: minimal draws minimalist. A font that cannot draw the script's letters is replaced by a plain sans-serif."
+        "desc": "Caption look when captions=true. hormozi: the default: heavy white uppercase with a thick black outline, up to three words per cue, one keyword per cue in yellow (emphasised, else the longest non-stop-word). accent: condensed bold white uppercase, no outline, up to three words per cue, one keyword per cue in orange (emphasised, else the longest non-stop-word). tiktok: bold rounded uppercase, one or two words at a time; the spoken word turns yellow and grows. youtube: clean bold sans-serif, five words on a dark rounded box near the bottom; words fade in, the spoken word in red. instagram: comic uppercase with a pink outline, two words at a time; the spoken word pops in orange. minimalist: plain sans-serif, five words on a half-transparent dark band, gentle fade. neon: cyan uppercase with a magenta outline, two words at a time; the spoken word pops in white. genz: large comic uppercase, one word at a time, slamming in with a pink highlight. campfire: rounded comic uppercase, three words; spoken words light up gold and stay lit. midnight: spooky uppercase, two words, slow fade; the spoken word in red. plottwist: heavy sans-serif, three words; the spoken word turns sky blue and grows. headline: tall condensed uppercase on a solid black band, three words; the spoken word scales up in yellow. promo: heavy sans-serif on a blue pill, three words; the spoken word pops in yellow. lecture: readable sans-serif, six words on a dark rounded box; the spoken word in green. highlighter: heavy sans-serif, four words; spoken words turn lime and stay lit. studio: sans-serif, seven words typed in on a blurred dark box; the spoken word in amber. broadcast: outlined sans-serif, eight words low in the frame; the spoken word in pale yellow. arcade: blocky yellow uppercase, two words; the spoken word bounces in white. clutch: brush uppercase, one word at a time, slamming in green. bubblegum: rounded display letters with a pink outline, two words; the spoken word bounces in yellow. crayon: marker handwriting with a navy outline, two words; the spoken word pops in orange. lyrics: handwritten script, five words; spoken words light up pink and stay lit. bassdrop: outlined display uppercase, one word at a time, scaling in orange. punch: mid-frame setup and punch: a small white lead-in line over one or two large blue glowing keywords; other words small and white. Alias: minimal draws minimalist. A font that cannot draw the script's letters is replaced by a plain sans-serif. Previews: https://clipwright.io/captions"
       },
       {
         "name": "caption_emphasis",
         "type": "array",
-        "desc": "Key words or short phrases to emphasise, each quoted from script and matched as an insert quote is (case and punctuation ignored). An item is the quote, or { quote, look }: look punch shows a small lead-in line from the same sentence over the quote as a large glowing keyword, look pill shows the quote alone in a rounded pill, look color shows it in the accent colour at the same size. Without a look, punch draws punch, hormozi draws color, and other presets draw the quote larger in their highlight colour. Every occurrence is emphasised. Requires captions=true and script; a quote absent from script is refused before any charge."
+        "desc": "Key words or short phrases to emphasise, each quoted from script and matched as an insert quote is (case and punctuation ignored). An item is the quote, or { quote, look }: look punch shows a small lead-in line from the same sentence over the quote as a large glowing keyword, look pill shows the quote alone in a rounded pill, look color shows it in the accent colour at the same size. Without a look, punch draws punch, hormozi and accent draw color, and other presets draw the quote larger in their highlight colour. Every occurrence is emphasised. Requires captions=true and script; a quote absent from script is refused before any charge."
       },
       {
         "name": "caption_mode",
         "type": "string",
         "desc": "full (default when omitted): every spoken word is captioned. highlights: captions appear only around caption_emphasis quotes (lead-in, quote, short tail) and nowhere else; requires caption_emphasis. In both modes captions are hidden while a full-frame insert is on screen or a template meets their band."
+      },
+      {
+        "name": "caption_position",
+        "type": "string",
+        "desc": "Where captions sit: top, middle, lower or bottom (80% of the height). Omitted means the caption_style's own place. Requires captions=true."
       },
       {
         "name": "look",
@@ -678,7 +804,17 @@
       {
         "name": "tts_model",
         "type": "string",
-        "desc": "Speech model: eleven_v3 | eleven_flash_v2_5 | eleven_turbo_v2_5 | eleven_v4 | gemini-3.8-flash-tts. Omitted means the model of the chosen voice (list_voices shows it): eleven_v4 for the Russian presets and for catalog voices named ru_*, gemini-3.8-flash-tts for its own voices, eleven_v3 for every other preset and catalog voice. A raw voice_id speaks eleven_v4 when the script is mostly Cyrillic and eleven_v3 otherwise. An explicit tts_model always wins. eleven_v4, eleven_v3 and gemini-3.8-flash-tts read stress marks (a capital vowel inside a Russian word, \"потОм\", becomes one; see script); eleven_flash_v2_5 and eleven_turbo_v2_5 are cheaper alternatives for languages other than Russian. gemini-3.8-flash-tts speaks only its own voices (list_voices with model=gemini-3.8-flash-tts; without voice, kore for a female actor and charon otherwise) and returns no word timings: a preset or catalog voice, voice_id, captions=true, segments and inserts are refused with it before any charge. Audio tags in square brackets are an eleven_v3 and eleven_v4 convention and are not measured on it. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters; eleven_v4: 5000 characters; gemini-3.8-flash-tts: 5000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. Break tags are cut from the text sent to eleven_v4 and gemini-3.8-flash-tts and are not counted there. There is no word-count limit. Duration and price are estimates until measured."
+        "desc": "Speech model: eleven_v3 | eleven_flash_v2_5 | eleven_turbo_v2_5 | eleven_v4 | gemini-3.8-flash-tts. Omitted means the model of the chosen voice (list_voices shows it): gemini-3.8-flash-tts for its own voices, eleven_v4 for every preset, catalog voice and raw voice_id. An explicit tts_model wins, except eleven_v3: it is no longer spoken, and a run naming it speaks eleven_v4 with a warning. eleven_v4 and gemini-3.8-flash-tts read stress marks (a capital vowel inside a Russian word, \"потОм\", becomes one; see script); eleven_flash_v2_5 and eleven_turbo_v2_5 are cheaper alternatives for languages other than Russian. gemini-3.8-flash-tts speaks only its own voices (list_voices with model=gemini-3.8-flash-tts; without voice, kore for a female actor and charon otherwise) and returns no word timings: a preset or catalog voice, voice_id, captions=true, segments and inserts are refused with it before any charge. Audio tags in square brackets are a convention of the other speech models and are not measured on it. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters; eleven_v4: 5000 characters; gemini-3.8-flash-tts: 5000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. Break tags are cut from the text sent to eleven_v4 and gemini-3.8-flash-tts and are not counted there. There is no word-count limit. Duration and price are estimates until measured."
+      },
+      {
+        "name": "voice_pace",
+        "type": "number",
+        "desc": "Narration speed; 1 is the voice's own. gemini-3.8-flash-tts gets a style hint instead; eleven_v4 has no speed, so pick a voice by list_voices words_per_second; both named in warnings[]."
+      },
+      {
+        "name": "pause_trim",
+        "type": "object",
+        "desc": "Shorten narration pauses longer than these seconds, cutting silence only."
       },
       {
         "name": "visible_ai_label",
@@ -747,7 +883,7 @@
   },
   {
     "name": "create_asset",
-    "description": "Save a picture or a clip as an asset of this account, kept until you delete it: a character, location, style, prop or other, with a name. source is {run_id} of a succeeded generate_image or generate_video run of this account, {upload_id} of an upload from upload_image or create_upload, a public https {url} the server downloads (add kind: \"video\" for an MP4), {base64, media_type} of a PNG or JPEG up to 700000 bytes, or {put: {media_type, bytes, sha256}} to PUT a local file yourself: the answer carries upload.put_url and put_headers; run `curl -X PUT -H 'content-type: <media_type>' --data-binary @<file> '<put_url>'` within 15 minutes, then call get_asset. On a server running on your machine also {path} of a local PNG, JPEG or MP4. A clip is an MP4 in h264 or hevc, up to 120 seconds and 100 MB; a url clip or a PUT is checked in the background, so the answer says state: \"processing\" (or \"awaiting_upload\") and get_asset says ready or failed within minutes. For your own material (upload_id, url, base64, put, path) pass rights_confirmed: true, which states once that you may use the people and works in it. Use a picture's asset_id as {asset_id} in references, first_frame or last_frame of quote_image, generate_image, quote_video and generate_video; clips are kept for assembly and are no generation reference yet. Assets are free: creating, storing and using one spends no credits. An account keeps up to 2000 assets and 20 GB, and makes up to 100 new ones per day.",
+    "description": "Save a picture or a clip as an asset of this account, kept until you delete it: a character, location, style, prop or other, with a name. source is {run_id} of a succeeded generate_image or generate_video run of this account, {upload_id} of an upload from upload_image or create_upload, a public https {url} the server downloads (add kind: \"video\" for an MP4), {base64, media_type} of a PNG or JPEG up to 700000 bytes, or {put: {media_type, bytes, sha256}} to PUT a local file yourself: the answer carries upload.put_url and put_headers; run `curl -X PUT -H 'content-type: <media_type>' --data-binary @<file> '<put_url>'` within 15 minutes, then call get_asset. On a server running on your machine also {path} of a local PNG, JPEG or MP4. A clip is an MP4 in h264 or hevc, up to 120 seconds and 100 MB; a url clip or a PUT is checked in the background, so the answer says state: \"processing\" (or \"awaiting_upload\") and get_asset says ready or failed within minutes. For your own material (upload_id, url, base64, put, path) pass rights_confirmed: true, which states once that you may use the people and works in it. A reference you only want analysed, such as someone else's ad for analyze_reference, takes analysis_only: true instead: no rights claim, and no render or generation ever takes it. Use a picture's asset_id as {asset_id} in references, first_frame or last_frame of quote_image, generate_image, quote_video and generate_video; clips are kept for assembly and are no generation reference yet. Assets are free: creating, storing and using one spends no credits. An account keeps up to 2000 assets and 20 GB, and makes up to 100 new ones per day.",
     "arguments": [
       {
         "name": "source",
@@ -768,6 +904,11 @@
         "name": "rights_confirmed",
         "type": "boolean",
         "desc": ""
+      },
+      {
+        "name": "analysis_only",
+        "type": "boolean",
+        "desc": "Keep it for analyze_reference only, without rights_confirmed: it never reaches a render or a generation."
       }
     ]
   },
@@ -841,8 +982,41 @@
     ]
   },
   {
+    "name": "quote_analysis",
+    "description": "Price analyze_reference for an asset before starting it: credits_estimate is what a start holds and charges once it succeeds, 0 when the asset already has an analysis that a start would answer (replays_analysis_id). Free; starts nothing.",
+    "arguments": [
+      {
+        "name": "asset_id",
+        "type": "string",
+        "desc": "asset_id of an MP4 asset of this account, at most 120 s and 100 MiB"
+      }
+    ]
+  },
+  {
+    "name": "analyze_reference",
+    "description": "Read a reference ad into a reference_profile: its beats (role, timing as shares of the clip, whether the presenter speaks, listens or is off screen), the graphics in our template vocabulary, captions, pacing, palette and music. What we cannot draw is in unmapped with a substitute and in warnings. Pass asset_id of an MP4 asset (create_asset with kind: \"video\"), at most 120 s and 100 MiB; there is no url input. 70 credits are held at the start and charged once it succeeds; a failed analysis costs nothing. 10 new analyses per hour per account. Answers at once with state queued; call get_reference_analysis every 10 seconds until succeeded (about a minute) or failed. The same asset returns the same analysis, free, unless it failed. The asset is not changed. The profile names techniques; it copies no face, voice, music or brand of the reference. Price: 70 credits per call. Quote first with quote_analysis; list_prices names every price.",
+    "arguments": [
+      {
+        "name": "asset_id",
+        "type": "string",
+        "desc": "asset_id of an MP4 asset of this account, at most 120 s and 100 MiB"
+      }
+    ]
+  },
+  {
+    "name": "get_reference_analysis",
+    "description": "Read an analysis started by analyze_reference: state queued or analyzing, succeeded with reference_profile and warnings, or failed with error.code and error.message (timed_out, analysis_failed, asset_gone, enqueue_failed); credits_charged is the price once succeeded, 0 once failed. Free.",
+    "arguments": [
+      {
+        "name": "analysis_id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
     "name": "list_voices",
-    "description": "List the voices for the `voice` field of make_ugc, or of make_faceless with skill=make_faceless. Without `skill` the list holds the make_ugc voices only. Each voice names the one skill that speaks it in `skill`, and the other skill refuses it before any charge. skill=make_faceless lists the 17 narration voices of make_faceless (kind faceless_voice, each with a language and a gender; without voice it speaks narrator_en_wise_lady; it takes no voice_id). The rest of this text is about the make_ugc voices: the presets first, then the 30 voices of gemini-3.8-flash-tts (kind model_voice), then catalog voices in 31 languages. Filter by `language` (the voice's native language; any voice speaks any supported language), `gender`, `age`, `use_case` and `model`; an unknown filter value is refused with the allowed values. Pick a voice by `name` (e.g. voice=\"george\"); a name always means the same voice. A model_voice voice is spoken only by its `model`: naming it selects that model, it has no language of its own and matches the languages measured on the model, and its gender is listed only where it is known. `voice_id` is an escape hatch for a raw vendor voice id that is not listed, such as a cloned voice. Without voice or voice_id the default voice follows the actor's gender: sarah for a woman, george for a man, taken from actor_id or from actor_gender next to image. With image and no actor_gender the voice is george and a warning says so: pass the gender of the person in the photo as actor_gender (ask the user only when you cannot tell), or pick a voice here. Keep any voice the user chose. A voice with `preview_url` has a short-lived audio sample spoken by that voice with that model; play it to the user before a paid render instead of judging a voice by its description. A model_voice sample is in English, or in the language you filter by. It expires at `preview_expires_at`: call this tool again for a fresh link, never store it. A voice without `preview_url` has no sample yet. Free. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters; eleven_v4: 5000 characters; gemini-3.8-flash-tts: 5000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. Break tags are cut from the text sent to eleven_v4 and gemini-3.8-flash-tts and are not counted there. There is no word-count limit. Duration and price are estimates until measured.",
+    "description": "List the voices for the `voice` field of make_ugc, or of make_faceless with skill=make_faceless. Without `skill` the list holds the make_ugc voices only. Each voice names the one skill that speaks it in `skill`, and the other skill refuses it before any charge. skill=make_faceless lists the 17 narration voices of make_faceless (kind faceless_voice, each with a language and a gender; without voice it speaks narrator_en_wise_lady; it takes no voice_id). The rest of this text is about the make_ugc voices: the presets first, then the 30 voices of gemini-3.8-flash-tts (kind model_voice), then catalog voices in 31 languages. Filter by `language` (the voice's native language; any voice speaks any supported language), `gender`, `age`, `use_case` and `model`; an unknown filter value is refused with the allowed values. Pick a voice by `name` (e.g. voice=\"george\"); a name always means the same voice. A model_voice voice is spoken only by its `model`: naming it selects that model, it has no language of its own and matches the languages measured on the model, and its gender is listed only where it is known. `voice_id` is an escape hatch for a raw vendor voice id that is not listed, such as a cloned voice. Without voice or voice_id the default voice follows the actor's gender: sarah for a woman, george for a man, taken from actor_id or from actor_gender next to image. With image and no actor_gender the voice is george and a warning says so: pass the gender of the person in the photo as actor_gender (ask the user only when you cannot tell), or pick a voice here. Keep any voice the user chose. A voice with `preview_url` has a short-lived audio sample spoken by that voice with that model; play it to the user before a paid render instead of judging a voice by its description. A model_voice sample is in English, or in the language you filter by. It expires at `preview_expires_at`: call this tool again for a fresh link, never store it. A voice without `preview_url` has no sample yet. `words_per_second` is an English voice's measured pace; eleven_v4 has no speed setting, so to match a reference presenter pick the voice nearest its pace. Free. Script limits by speech model: eleven_v3: 5000 characters; eleven_flash_v2_5: 10000 characters; eleven_turbo_v2_5: 10000 characters; eleven_v4: 5000 characters; gemini-3.8-flash-tts: 5000 characters. Count includes spaces, audio tags and stress marks; emoji may count as two characters. Break tags are cut from the text sent to eleven_v4 and gemini-3.8-flash-tts and are not counted there. There is no word-count limit. Duration and price are estimates until measured.",
     "arguments": [
       {
         "name": "language",
@@ -878,7 +1052,7 @@
   },
   {
     "name": "list_template_sounds",
-    "description": "List the sounds make_ugc templates play, by beat: where each beat plays, its default and every name it takes. A run plays the defaults; template_sounds { beat: name } swaps a beat's sound, and template_sounds=false plays none. Sounds never change the price. Free.",
+    "description": "List the sounds make_ugc templates play, by beat: where each beat plays, its default and every name it takes. A run plays the defaults; template_sounds { beat: name } swaps a beat's sound, and template_sounds=false plays none. The edit beat plays on every cut only with make_ugc edit_sounds=true. Sounds never change the price. Free.",
     "arguments": []
   },
   {
@@ -915,22 +1089,22 @@
   },
   {
     "name": "create_actor",
-    "description": "Create a personal actor for this account from words describing a fictional adult: a 9:16 portrait with exactly one face, plus the other requested formats edited from it. Returns a run_id immediately; poll get_run until 'succeeded' (created_actor.actor_id, then pass it as actor_id to make_ugc) or 'failed'. Each published image is charged at the price quote shows; refused descriptions and unusable portraits cost nothing. When generation is switched off the call fails with actor_generation_disabled.",
+    "description": "Create a personal actor for this account from words describing a fictional adult: a 9:16 portrait with exactly one face, plus the other requested formats edited from it. Returns a run_id immediately; poll get_run until 'succeeded' (created_actor.actor_id, then pass it as actor_id to make_ugc) or 'failed'. Each published image is charged at the price quote shows; refused descriptions and unusable portraits cost nothing. When generation is switched off the call fails with actor_generation_disabled. With from_actor_id it derives a new personal actor from a library or own actor: the same face (checked; a mismatch costs nothing), with framing wide, objects in holding or a new setting. A held object's picture is an image asset (upload, URL import or a found picture, rights_confirmed). Price: medium portrait: 4 credits per image; medium other format: 8 credits per image; high portrait: 12 credits per image; high other format: 18 credits per image. Quote first with quote_actor; list_prices names every price.",
     "arguments": [
       {
         "name": "description",
         "type": "string",
-        "desc": "Words describing a fictional adult: appearance, clothing, setting. Naming a real person or a likeness to one is refused before any charge (actor_prompt_refused)."
+        "desc": "Words describing a fictional adult: appearance, clothing, setting. Naming a real person or a likeness to one is refused before any charge (actor_prompt_refused). Required unless from_actor_id is given."
       },
       {
         "name": "gender",
         "type": "string",
-        "desc": "female | male. Fixes the actor's gender and the default voice of videos with this actor."
+        "desc": "female | male. Fixes the actor's gender and the default voice of videos with this actor. Required unless from_actor_id is given."
       },
       {
         "name": "approximate_age",
         "type": "integer",
-        "desc": "Approximate age in years, 18 to 90: actors are adults."
+        "desc": "Approximate age in years, 18 to 90: actors are adults. Required unless from_actor_id is given."
       },
       {
         "name": "name",
@@ -941,6 +1115,26 @@
         "name": "aspect_ratios",
         "type": "array",
         "desc": "Formats to create: 9:16 | 1:1 | 16:9, always including 9:16. Omitted means all three. Formats that fail the identity check are not charged and are named in warnings."
+      },
+      {
+        "name": "from_actor_id",
+        "type": "string",
+        "desc": "Derive a new personal actor from this one (a library actor or your own): the same face, gender and age, with the view changed by framing, holding or setting. Omit description, gender and approximate_age."
+      },
+      {
+        "name": "framing",
+        "type": "string",
+        "desc": "wide: the camera further back, the head lower with room above; make_ugc then renders it as a wide view."
+      },
+      {
+        "name": "holding",
+        "type": "array",
+        "desc": "Up to 2 objects the presenter holds, one per hand."
+      },
+      {
+        "name": "setting",
+        "type": "string",
+        "desc": "The room or background to put the presenter in, in words."
       },
       {
         "name": "quality",
@@ -961,17 +1155,17 @@
       {
         "name": "description",
         "type": "string",
-        "desc": "Words describing a fictional adult: appearance, clothing, setting. Naming a real person or a likeness to one is refused before any charge (actor_prompt_refused)."
+        "desc": "Words describing a fictional adult: appearance, clothing, setting. Naming a real person or a likeness to one is refused before any charge (actor_prompt_refused). Required unless from_actor_id is given."
       },
       {
         "name": "gender",
         "type": "string",
-        "desc": "female | male. Fixes the actor's gender and the default voice of videos with this actor."
+        "desc": "female | male. Fixes the actor's gender and the default voice of videos with this actor. Required unless from_actor_id is given."
       },
       {
         "name": "approximate_age",
         "type": "integer",
-        "desc": "Approximate age in years, 18 to 90: actors are adults."
+        "desc": "Approximate age in years, 18 to 90: actors are adults. Required unless from_actor_id is given."
       },
       {
         "name": "name",
@@ -984,6 +1178,26 @@
         "desc": "Formats to create: 9:16 | 1:1 | 16:9, always including 9:16. Omitted means all three. Formats that fail the identity check are not charged and are named in warnings."
       },
       {
+        "name": "from_actor_id",
+        "type": "string",
+        "desc": "Derive a new personal actor from this one (a library actor or your own): the same face, gender and age, with the view changed by framing, holding or setting. Omit description, gender and approximate_age."
+      },
+      {
+        "name": "framing",
+        "type": "string",
+        "desc": "wide: the camera further back, the head lower with room above; make_ugc then renders it as a wide view."
+      },
+      {
+        "name": "holding",
+        "type": "array",
+        "desc": "Up to 2 objects the presenter holds, one per hand."
+      },
+      {
+        "name": "setting",
+        "type": "string",
+        "desc": "The room or background to put the presenter in, in words."
+      },
+      {
         "name": "quality",
         "type": "string",
         "desc": "Image quality: medium | high. Omitted means medium. The price per image depends on it; quote shows it before any charge."
@@ -992,7 +1206,7 @@
   },
   {
     "name": "make_faceless",
-    "description": "Start a paid finished faceless video from a script or brief. You select 30–90 seconds; the video ends with its narration, runs at least 25 seconds and at most a quarter past the selection, never beyond 90. The video has an opening animated clip and image scenes. Captions are on by default and can be turned off. Call quote_faceless first and show the user the price. This does NOT wait for the video: it starts the run and returns a run_id IMMEDIATELY. Then poll get_run with that run_id until the state is 'succeeded' (video_url) or 'failed'. Pass attempt=2,3,… to deliberately start a NEW run for the same input.",
+    "description": "Start a paid finished faceless video from a script or brief. You select 30–90 seconds; the video ends with its narration, runs at least 25 seconds and at most a quarter past the selection, never beyond 90. The video has an opening animated clip and image scenes. Captions are on by default and can be turned off. Call quote_faceless first and show the user the price. This does NOT wait for the video: it starts the run and returns a run_id IMMEDIATELY. Then poll get_run with that run_id until the state is 'succeeded' (video_url) or 'failed'. Pass attempt=2,3,… to deliberately start a NEW run for the same input. Price: generated picture 7 credits per image plus opening clip 49 credits per clip plus production (story, voice and render) 1 credits per second of video, at least 50. Quote first with quote_faceless; list_prices names every price.",
     "arguments": [
       {
         "name": "input_mode",
@@ -1121,6 +1335,11 @@
   {
     "name": "get_account",
     "description": "Read this account's credits. Free, spends nothing. debt_credits above zero means make_ugc is refused with debt_outstanding whatever the balance, until the account buys credits; with no debt, balance_credits is what a new run can spend. holds_credits are reserved for runs still in progress and settle when they finish. grants lists unexpired credit grants. quote_ugc already warns when make_ugc would be refused; this tool gives the numbers behind it.",
+    "arguments": []
+  },
+  {
+    "name": "list_prices",
+    "description": "List what every Clipwright tool costs in credits. Free, spends nothing. Each entry names the tool, its REST route and its price: lines of credits per unit (call, second of video, second the presenter is in the video, image, clip, second of clip), added up, with minimum_credits when there is one; or, where the price depends on the input, a formula. Free tools cost 0. For the exact number of a paid call, use the quote tool the entry names.",
     "arguments": []
   }
 ]
