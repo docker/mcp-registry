@@ -1,0 +1,72 @@
+[
+  {
+    "name": "search_cards",
+    "description": "Use this when the user names a card, set, or collector number and wants to find matching printings or get card IDs for further lookup. Searches CARDZ public graded Pokémon or One Piece cards. Returns candidate printings with names, sets, languages, market ranks, PSA 10 prices, populations, market caps, and canonical card links. Multiple candidates may match; call get_card with the exact id for full metrics. An empty result means no published match.",
+    "arguments": [
+      {
+        "name": "q",
+        "type": "string",
+        "desc": "Card name or collector number. Examples: 'Charizard', '199/165', 'OP05-119', 'Van Gogh Pikachu'. At least one meaningful keyword."
+      },
+      {
+        "name": "lang",
+        "type": "string",
+        "desc": "Language for display labels in the response. Does not filter by card language; use tcg to narrow by game. Printing language is always returned in the result.",
+        "optional": true
+      },
+      {
+        "name": "tcg",
+        "type": "string",
+        "desc": "Optional: 'pokemon' or 'one-piece'. Omit to search both games.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "get_card",
+    "description": "Use this when the user wants detailed metrics for a specific card: PSA 10 reference price, population, market cap, price changes, daily history, and canonical URL. Requires an exact card ID from search_cards. Prices are daily published observations in USD, not live or executable quotes. Null values mean data is unavailable for that field — do not substitute zero.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Exact CARDZ card ID returned by search_cards, e.g. cmc_fc229f7ae1b256b2119fa79b. Do not guess or construct IDs; always obtain from search_cards first."
+      },
+      {
+        "name": "lang",
+        "type": "string",
+        "desc": "Language for display labels in the response. Does not filter by card language; use tcg to narrow by game. Printing language is always returned in the result.",
+        "optional": true
+      },
+      {
+        "name": "historyDays",
+        "type": "integer",
+        "desc": "Days of price history to include, counting back from the most recent published point. Default 90; max 365. Omit for standard 90-day view.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "get_market",
+    "description": "Use this when the user asks about the top-ranked cards by market cap, wants to know which cards are most valuable by the CARDZ index, or requests a leaderboard for Pokémon or One Piece graded cards. Returns the published ranking with PSA 10 prices, populations, market caps, and the effective date of the data. Market cap = PSA 10 reference price × verified PSA 10 population. This index does not represent the full trading-card market.",
+    "arguments": [
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": "'pokemon', 'one-piece', or 'all' (combined index). Default: all.",
+        "optional": true
+      },
+      {
+        "name": "lang",
+        "type": "string",
+        "desc": "Language for display labels in the response. Does not filter by card language; use tcg to narrow by game. Printing language is always returned in the result.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many top-ranked cards to return. Default 10, max 20.",
+        "optional": true
+      }
+    ]
+  }
+]
