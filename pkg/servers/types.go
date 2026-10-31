@@ -165,6 +165,8 @@ type Container struct {
 type Meta struct {
 	Category string   `yaml:"category,omitempty" json:"category,omitempty"`
 	Tags     []string `yaml:"tags,omitempty" json:"tags,omitempty"`
+	Owner    string   `yaml:"owner,omitempty" json:"owner,omitempty"`
+	License  string   `yaml:"license,omitempty" json:"license,omitempty"`
 }
 
 type OAuthProvider struct {

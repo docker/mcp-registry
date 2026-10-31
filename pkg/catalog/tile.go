@@ -43,6 +43,16 @@ func ToTile(ctx context.Context, server servers.Server) (Tile, error) {
 	owner := "docker"
 	license := "Apache License 2.0"
 	githubStars := 0
+	// Hosted services may have a different publisher and license from this
+	// registry. Keep legacy defaults when an entry does not declare them.
+	if server.Type == "remote" || server.Remote.URL != "" {
+		if value := strings.TrimSpace(server.Meta.Owner); value != "" {
+			owner = value
+		}
+		if value := strings.TrimSpace(server.Meta.License); value != "" {
+			license = value
+		}
+	}
 
 	if server.Type == "server" && server.Remote.URL == "" {
 		client := github.NewFromServer(server)
