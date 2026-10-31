@@ -1,0 +1,40 @@
+name: reelsaw
+image: ghcr.io/osbytes/reelsaw
+type: server
+meta:
+  category: media
+  tags:
+    - video
+    - clips
+    - shorts
+    - captions
+    - self-hosted
+about:
+  title: Reelsaw
+  description: Drive a self-hosted Reelsaw from an agent. Turn long videos into vertical 9:16 clips (transcribe, pick moments with an LLM, face-tracked reframing, word-highlight captions), then edit, re-render and export them. Every project, clip, library and admin operation is a tool.
+  icon: https://raw.githubusercontent.com/osbytes/reelsaw/main/website/public/icon-512.png
+source:
+  project: https://github.com/osbytes/reelsaw
+  commit: 30f6539428d2af7d4f46828ffcdc93329a93a5fb
+run:
+  command:
+    - reelsaw
+    - mcp
+config:
+  description: Point the bridge at your Reelsaw instance and give it an API key from Settings → API keys and MCP.
+  secrets:
+    - name: reelsaw.api_key
+      env: REELSAW_API_KEY
+      example: rs_xxxxxxxxxxxxxxxxxxxxxxxx
+  env:
+    - name: REELSAW_URL
+      example: https://reelsaw.example.com
+      value: "{{reelsaw.url}}"
+  parameters:
+    type: object
+    properties:
+      url:
+        type: string
+        description: Base URL of your Reelsaw instance (the bridge calls /api/mcp on it)
+    required:
+      - url
