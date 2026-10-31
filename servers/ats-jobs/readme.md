@@ -1,21 +1,23 @@
-# ATS Jobs MCP Server
+# Company Facts (ATS Jobs) MCP Server
 
-Open job postings, read first-hand from the applicant-tracking system behind a company's careers page: Greenhouse, Ashby and Lever.
+Company data read from the official or original source, each record with a link to where it came from.
 
-Those vendors publish open job board APIs, but each is useless unless you already know the company's board name. This server carries a directory of 7,479 company boards, each confirmed against the vendor's own API.
+## Company tools
 
-## Tools
+- `new_businesses`: newly formed businesses from the official NY, CO, OR, CT and PA Secretary of State registers, in one record format. Feed by formation date, search by name, or look up by entity number. A website is attached only when the site's own pages show the exact legal name and the register's city, state or ZIP.
+- `company_search`: filter the companies we track by state, city, technology on their site, published contacts and hiring.
+- `company_lookup`: one company from its domain: registrar, DNS and email provider, tech stack, hiring, register entry or SEC figures.
+- `search_company_registry`, `validate_vat`, `sec_financials`, `domain_lookup`, `detect_tech_stack`, `federal_contracts`.
 
-- `find_company_board`: which system a company's job board runs on
-- `list_open_jobs`: every open job at one company, with salaries parsed into numbers where unambiguous
-- `compare_companies`: open roles across several companies side by side
+## Job tools
+
+- `find_company_board`, `list_open_jobs`, `compare_companies`, `job_changes`, `hiring_summary`: open jobs read first-hand from Greenhouse, Ashby, Lever and Workable boards, from a directory of 8,532 boards, with salaries parsed into numbers only where unambiguous.
 
 ## Notes
 
-- No key needed for the free tier. A paid key raises the per-call cap.
-- No personal data: recruiter names are never returned.
-- Every posting carries the employer's own URL, so any answer can be checked at the source.
+- No key needed for the free tier (10 calls a day). Past that, pay per call with x402 or use a prepaid key.
+- All tools are read-only. Register records never carry officers, agents, emails, phones or street addresses; recruiter names are never returned.
 
 ## More Information
 
-See the [project repository](https://github.com/groundtruthtools/ats-jobs-mcp) and [llms.txt](https://ats-jobs-api.groundtruthtools.workers.dev/llms.txt).
+See the [project repository](https://github.com/groundtruthtools/ats-jobs-mcp) and [llms.txt](https://companyfacts.dev/llms.txt).
