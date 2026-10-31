@@ -1,0 +1,1 @@
+https://speechyou.com/mcp
