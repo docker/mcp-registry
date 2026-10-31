@@ -308,6 +308,23 @@ remote:
 
 **Note:** Remote servers without OAuth don't need the `oauth` field or `dynamic.tools` field in their configuration.
 
+#### Remote service ownership and licensing
+
+Remote entries can declare `meta.owner` and `meta.license` to describe the
+publisher and licence of the hosted service. For example:
+
+```yaml
+meta:
+  owner: Example Company
+  license: LicenseRef-Proprietary
+  category: productivity
+```
+
+These fields affect the catalogue metadata for remote endpoints only; they do
+not change a local implementation repository's licence or bypass catalogue
+review. If omitted, existing catalogue defaults are preserved for compatibility.
+Include the service's applicable terms in `readme.md` so reviewers can assess it.
+
 #### 5️⃣ Test your remote server locally
 
 You can test your remote server configuration by importing it into Docker Desktop:
