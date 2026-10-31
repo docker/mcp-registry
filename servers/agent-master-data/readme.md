@@ -1,4 +1,4 @@
-# Trusted Master Data MCP
+# Agent Master Data MCP
 
 [Documentation](https://api.agentmasterdata.com/docs) · [Website](https://agentmasterdata.com)
 
