@@ -1,0 +1,181 @@
+[
+  {
+    "name": "search_traces",
+    "description": "Search for OpenTelemetry traces with optional filters (service, operation, duration, LLM provider/model, errors, tags, or generic field filters).",
+    "arguments": [
+      { "name": "service_name", "type": "string", "desc": "Filter by service name." },
+      { "name": "operation_name", "type": "string", "desc": "Filter by operation/span name." },
+      { "name": "start_time", "type": "string", "desc": "Start time in ISO 8601 format." },
+      { "name": "end_time", "type": "string", "desc": "End time in ISO 8601 format." },
+      { "name": "min_duration_ms", "type": "integer", "desc": "Minimum trace duration in milliseconds." },
+      { "name": "max_duration_ms", "type": "integer", "desc": "Maximum trace duration in milliseconds." },
+      { "name": "gen_ai_system", "type": "string", "desc": "Filter by LLM provider (openai, anthropic, etc.)." },
+      { "name": "gen_ai_request_model", "type": "string", "desc": "Filter by requested model name." },
+      { "name": "gen_ai_response_model", "type": "string", "desc": "Filter by actual model used." },
+      { "name": "has_error", "type": "boolean", "desc": "Filter traces with errors." },
+      { "name": "tags", "type": "object", "desc": "Additional tag filters as key-value pairs." },
+      { "name": "filters", "type": "array", "desc": "Generic filter conditions (field/operator/value objects)." },
+      { "name": "limit", "type": "integer", "desc": "Maximum number of traces to return (1-1000)." }
+    ]
+  },
+  {
+    "name": "get_trace",
+    "description": "Get complete trace details by trace ID, including all spans and LLM-specific attributes.",
+    "arguments": [
+      { "name": "trace_id", "type": "string", "desc": "Trace identifier." }
+    ]
+  },
+  {
+    "name": "get_llm_usage",
+    "description": "Get aggregated LLM usage metrics (request/token counts) for a time period, broken down by model and service.",
+    "arguments": [
+      { "name": "start_time", "type": "string", "desc": "Start time in ISO 8601 format." },
+      { "name": "end_time", "type": "string", "desc": "End time in ISO 8601 format." },
+      { "name": "service_name", "type": "string", "desc": "Filter by service name." },
+      { "name": "gen_ai_system", "type": "string", "desc": "Filter by LLM provider." },
+      { "name": "gen_ai_request_model", "type": "string", "desc": "Filter by requested model name." },
+      { "name": "gen_ai_response_model", "type": "string", "desc": "Filter by actual model used." },
+      { "name": "limit", "type": "integer", "desc": "Maximum number of traces to analyze." }
+    ]
+  },
+  {
+    "name": "list_services",
+    "description": "List all available services in the backend.",
+    "arguments": []
+  },
+  {
+    "name": "find_errors",
+    "description": "Find traces with errors, including extracted error messages, types, and stack traces.",
+    "arguments": [
+      { "name": "start_time", "type": "string", "desc": "Start time in ISO 8601 format." },
+      { "name": "end_time", "type": "string", "desc": "End time in ISO 8601 format." },
+      { "name": "service_name", "type": "string", "desc": "Filter by service name." },
+      { "name": "limit", "type": "integer", "desc": "Maximum number of error traces to return." }
+    ]
+  },
+  {
+    "name": "list_llm_models",
+    "description": "List all LLM models being used with usage statistics - useful for discovering shadow AI usage.",
+    "arguments": [
+      { "name": "start_time", "type": "string", "desc": "Start time in ISO 8601 format." },
+      { "name": "end_time", "type": "string", "desc": "End time in ISO 8601 format." },
+      { "name": "service_name", "type": "string", "desc": "Filter by service name." },
+      { "name": "gen_ai_system", "type": "string", "desc": "Filter by LLM provider." },
+      { "name": "limit", "type": "integer", "desc": "Maximum number of traces to analyze." }
+    ]
+  },
+  {
+    "name": "get_llm_model_stats",
+    "description": "Get detailed performance statistics for a specific LLM model: latency percentiles, token usage, error rates, and finish reasons.",
+    "arguments": [
+      { "name": "model_name", "type": "string", "desc": "Model name to analyze (e.g. gpt-4, claude-3-opus)." },
+      { "name": "start_time", "type": "string", "desc": "Start time in ISO 8601 format." },
+      { "name": "end_time", "type": "string", "desc": "End time in ISO 8601 format." },
+      { "name": "service_name", "type": "string", "desc": "Filter by service name." }
+    ]
+  },
+  {
+    "name": "list_sessions",
+    "description": "List conversations/sessions grouped by the gen_ai.conversation.id attribute, with per-conversation span counts and token usage.",
+    "arguments": [
+      { "name": "start_time", "type": "string", "desc": "Start time in ISO 8601 format." },
+      { "name": "end_time", "type": "string", "desc": "End time in ISO 8601 format." },
+      { "name": "service_name", "type": "string", "desc": "Filter by service name." },
+      { "name": "gen_ai_system", "type": "string", "desc": "Filter by LLM provider." },
+      { "name": "limit", "type": "integer", "desc": "Maximum spans to analyze." }
+    ]
+  },
+  {
+    "name": "get_session_stats",
+    "description": "Get detailed statistics for a single conversation/session: span/service counts, LLM request/success/error counts, latency and token percentiles.",
+    "arguments": [
+      { "name": "conversation_id", "type": "string", "desc": "The gen_ai.conversation.id to analyze." },
+      { "name": "start_time", "type": "string", "desc": "Start time in ISO 8601 format." },
+      { "name": "end_time", "type": "string", "desc": "End time in ISO 8601 format." },
+      { "name": "service_name", "type": "string", "desc": "Filter by service name." },
+      { "name": "limit", "type": "integer", "desc": "Maximum spans to analyze." }
+    ]
+  },
+  {
+    "name": "compare_time_windows",
+    "description": "Compare aggregated LLM usage metrics between two time windows (e.g. this week vs last week), returning the delta per metric.",
+    "arguments": [
+      { "name": "range_a_start", "type": "string", "desc": "Range A start time in ISO 8601 format." },
+      { "name": "range_a_end", "type": "string", "desc": "Range A end time in ISO 8601 format." },
+      { "name": "range_b_start", "type": "string", "desc": "Range B start time in ISO 8601 format." },
+      { "name": "range_b_end", "type": "string", "desc": "Range B end time in ISO 8601 format." },
+      { "name": "service_name", "type": "string", "desc": "Filter by service name (applied to both ranges)." },
+      { "name": "gen_ai_system", "type": "string", "desc": "Filter by LLM provider (applied to both ranges)." },
+      { "name": "gen_ai_request_model", "type": "string", "desc": "Filter by requested model name (applied to both ranges)." },
+      { "name": "gen_ai_response_model", "type": "string", "desc": "Filter by actual model used (applied to both ranges)." },
+      { "name": "limit", "type": "integer", "desc": "Maximum number of traces to analyze per range." }
+    ]
+  },
+  {
+    "name": "get_prompt_version_stats",
+    "description": "Get aggregated performance stats grouped by prompt name and version (gen_ai.prompt.name/gen_ai.prompt.version).",
+    "arguments": [
+      { "name": "start_time", "type": "string", "desc": "Start time in ISO 8601 format." },
+      { "name": "end_time", "type": "string", "desc": "End time in ISO 8601 format." },
+      { "name": "service_name", "type": "string", "desc": "Filter by service name." },
+      { "name": "gen_ai_system", "type": "string", "desc": "Filter by LLM provider." },
+      { "name": "limit", "type": "integer", "desc": "Maximum spans to analyze." }
+    ]
+  },
+  {
+    "name": "get_llm_expensive_traces",
+    "description": "Find traces with highest token usage, for cost optimization.",
+    "arguments": [
+      { "name": "limit", "type": "integer", "desc": "Number of traces to return." },
+      { "name": "start_time", "type": "string", "desc": "Start time in ISO 8601 format." },
+      { "name": "end_time", "type": "string", "desc": "End time in ISO 8601 format." },
+      { "name": "min_tokens", "type": "integer", "desc": "Minimum token count threshold." },
+      { "name": "service_name", "type": "string", "desc": "Filter by service name." },
+      { "name": "gen_ai_request_model", "type": "string", "desc": "Filter by requested model name." },
+      { "name": "gen_ai_response_model", "type": "string", "desc": "Filter by actual model used." }
+    ]
+  },
+  {
+    "name": "get_llm_slow_traces",
+    "description": "Find slowest LLM traces by duration, for latency debugging.",
+    "arguments": [
+      { "name": "limit", "type": "integer", "desc": "Number of traces to return." },
+      { "name": "start_time", "type": "string", "desc": "Start time in ISO 8601 format." },
+      { "name": "end_time", "type": "string", "desc": "End time in ISO 8601 format." },
+      { "name": "min_duration_ms", "type": "integer", "desc": "Minimum duration threshold in milliseconds." },
+      { "name": "service_name", "type": "string", "desc": "Filter by service name." },
+      { "name": "gen_ai_request_model", "type": "string", "desc": "Filter by requested model name." },
+      { "name": "gen_ai_response_model", "type": "string", "desc": "Filter by actual model used." }
+    ]
+  },
+  {
+    "name": "search_spans_tool",
+    "description": "Search for individual OpenTelemetry spans (not grouped by trace) with optional filters - useful for analyzing specific operations like LLM tool calls.",
+    "arguments": [
+      { "name": "service_name", "type": "string", "desc": "Filter by service name." },
+      { "name": "operation_name", "type": "string", "desc": "Filter by operation/span name." },
+      { "name": "start_time", "type": "string", "desc": "Start time in ISO 8601 format." },
+      { "name": "end_time", "type": "string", "desc": "End time in ISO 8601 format." },
+      { "name": "min_duration_ms", "type": "integer", "desc": "Minimum span duration in milliseconds." },
+      { "name": "max_duration_ms", "type": "integer", "desc": "Maximum span duration in milliseconds." },
+      { "name": "gen_ai_system", "type": "string", "desc": "Filter by LLM provider." },
+      { "name": "gen_ai_request_model", "type": "string", "desc": "Filter by requested model name." },
+      { "name": "gen_ai_response_model", "type": "string", "desc": "Filter by actual model used." },
+      { "name": "has_error", "type": "boolean", "desc": "Filter spans with errors." },
+      { "name": "tags", "type": "object", "desc": "Additional tag filters as key-value pairs." },
+      { "name": "filters", "type": "array", "desc": "Generic filter conditions (field/operator/value objects)." },
+      { "name": "limit", "type": "integer", "desc": "Maximum number of spans to return (1-1000)." }
+    ]
+  },
+  {
+    "name": "list_llm_tools_tool",
+    "description": "Discover which tools/functions LLM applications are calling, by identifying traceloop.span.kind == tool spans, grouped by tool name with usage statistics.",
+    "arguments": [
+      { "name": "start_time", "type": "string", "desc": "Start time in ISO 8601 format." },
+      { "name": "end_time", "type": "string", "desc": "End time in ISO 8601 format." },
+      { "name": "service_name", "type": "string", "desc": "Filter by service name." },
+      { "name": "gen_ai_system", "type": "string", "desc": "Filter by LLM provider." },
+      { "name": "limit", "type": "integer", "desc": "Maximum spans to analyze." }
+    ]
+  }
+]
