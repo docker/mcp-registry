@@ -1,0 +1,40 @@
+name: quady3d
+image: mcp/quady3d
+type: server
+meta:
+  category: games
+  tags:
+    - 3d-assets
+    - game-development
+about:
+  title: Quady3D
+  description: Create 3D assets from text or one image, quote credit costs, recover original tasks and save model files. Requires a Quady3D account, generation credits and model download access. Setup at https://quady3d.com/integrations/mcp.
+  icon: https://avatars.githubusercontent.com/u/349440939?s=400&v=4
+source:
+  project: https://github.com/quady3dai/quady3d-tools
+  commit: 6a27e6b2825c707ed54049bcc23e4d1174593780
+run:
+  command:
+    - --root
+    - /project
+  volumes:
+    - "{{quady3d.project_path}}:/project"
+    - "{{quady3d.state_path}}:/home/node/.local/state/quady3d"
+config:
+  description: Configure a limited key, an existing writable project directory and a separate private recovery directory. See https://quady3d.com/integrations/mcp.
+  secrets:
+    - name: quady3d.api_key
+      env: QUADY3D_API_KEY
+      example: YOUR_LIMITED_QUADY3D_API_KEY
+  parameters:
+    type: object
+    properties:
+      project_path:
+        type: string
+        description: Existing absolute host project directory writable by container UID 1000.
+      state_path:
+        type: string
+        description: Existing private absolute host recovery directory outside project_path, writable by container UID 1000. Keep it across container restarts.
+    required:
+      - project_path
+      - state_path
