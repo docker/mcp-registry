@@ -58,7 +58,7 @@
       {
         "name": "voice",
         "type": "string",
-        "desc": "Voice name from list_voices. Curated presets: owner_ru_clone | sarah | george | eric | daria_ru_female (owner_ru_clone is the Russian cloned voice). The API refuses a name list_voices does not return, before any charge. Omitted means the default voice for the actor's gender: the gender of actor_id, actor_gender with image, or george for the default actor and for image without actor_gender. gemini-3.8-flash-tts speaks only its own voices (kind model_voice in list_voices, such as kore): naming one selects that model, and a voice is refused with a tts_model that does not speak it, before any charge. Mutually exclusive with voice_id."
+        "desc": "Voice name from list_voices. Curated presets: sarah | george | eric | daria_ru_female. The API refuses a name list_voices does not return, before any charge. Omitted means the default voice for the actor's gender: the gender of actor_id, actor_gender with image, or george for the default actor and for image without actor_gender. gemini-3.8-flash-tts speaks only its own voices (kind model_voice in list_voices, such as kore): naming one selects that model, and a voice is refused with a tts_model that does not speak it, before any charge. Mutually exclusive with voice_id."
       },
       {
         "name": "voice_id",
@@ -173,7 +173,7 @@
   },
   {
     "name": "make_ugc",
-    "description": "Start generation of a lip-synced UGC video. Give a script within the selected speech model's text limit; the actor comes from actor_id (a saved actor from list_actors) or image, otherwise the default actor is used. Format and resolution follow the request and the source, defaulting to 1080x1920. Captions are OPT-IN: ask the user first. Fields the renderer does not honor yet carry a NOT HONORED YET note in their own description — read it instead of guessing. Call quote_ugc before generating and show the cost. This does NOT wait for the video: it starts the run and returns a run_id IMMEDIATELY. You MUST then poll get_run with that run_id until the state is 'succeeded' (video_url) or 'failed'. A 'failed' run whose paid vendor job we still hold can go back to 'queued' and reach 'succeeded' later; whenever that happens it is named in warnings[]. Pass attempt=2,3,… to deliberately start a NEW run for the same input (retry after a failure). Price: HeyGen presenter: presenter, HeyGen Avatar IV 12 credits per second the presenter is in the video, covered or not plus production (voice and render) 1 credits per second of video plus live avatar on a call 400 credits per call still in the video, at least 50; OmniHuman presenter: presenter, OmniHuman 2.0 22 credits per second the presenter is in the video, covered or not plus production (voice and render) 1 credits per second of video plus live avatar on a call 400 credits per call still in the video, at least 50. Quote first with quote_ugc; list_prices names every price.",
+    "description": "Start generation of a lip-synced UGC video. Give a script within the selected speech model's text limit; the actor comes from actor_id (a saved actor from list_actors) or image, otherwise the default actor is used. Format and resolution follow the request and the source, defaulting to 1080x1920. Captions are OPT-IN: ask the user first. Fields the renderer does not honor yet carry a NOT HONORED YET note in their own description — read it instead of guessing. Call quote_ugc before generating and show the cost. This does NOT wait for the video: it starts the run and returns a run_id IMMEDIATELY. You MUST then poll get_run with that run_id until the state is 'succeeded' (video_url) or 'failed'. A 'failed' run whose video is still being made can go back to 'queued' and reach 'succeeded' later; whenever that happens it is named in warnings[]. Pass attempt=2,3,… to deliberately start a NEW run for the same input (retry after a failure). Price: HeyGen presenter: presenter, HeyGen Avatar IV 9 credits per second the presenter is in the video, covered or not plus production (voice and render) 1 credits per second of video plus live avatar on a call 400 credits per call still in the video, at least 50; OmniHuman presenter: presenter, OmniHuman 2.0 22 credits per second the presenter is in the video, covered or not plus production (voice and render) 1 credits per second of video plus live avatar on a call 400 credits per call still in the video, at least 50. Quote first with quote_ugc; list_prices names every price.",
     "arguments": [
       {
         "name": "script",
@@ -303,7 +303,7 @@
       {
         "name": "aspect_ratio",
         "type": "string",
-        "desc": "Output format: 9:16 | 1:1 | 16:9. Omitted means 9:16, and a source of another shape is snapped to 9:16 with a warning — pass it explicitly whenever you pass image. A mismatch above 15% between the request and the source is refused (aspect_conflict) before any charge."
+        "desc": "Output format: 9:16 | 1:1 | 16:9. Omitted means 9:16 without an image; with an image, the supported format nearest the image's shape, even a landscape one — pass it explicitly whenever you pass image. A mismatch above 15% between the request and the source is refused (aspect_conflict) before any charge."
       },
       {
         "name": "resolution",
@@ -313,7 +313,7 @@
       {
         "name": "voice",
         "type": "string",
-        "desc": "Voice name from list_voices. Curated presets: owner_ru_clone | sarah | george | eric | daria_ru_female (owner_ru_clone is the Russian cloned voice). The API refuses a name list_voices does not return, before any charge. Omitted means the default voice for the actor's gender: the gender of actor_id, actor_gender with image, or george for the default actor and for image without actor_gender. gemini-3.8-flash-tts speaks only its own voices (kind model_voice in list_voices, such as kore): naming one selects that model, and a voice is refused with a tts_model that does not speak it, before any charge. Mutually exclusive with voice_id."
+        "desc": "Voice name from list_voices. Curated presets: sarah | george | eric | daria_ru_female. The API refuses a name list_voices does not return, before any charge. Omitted means the default voice for the actor's gender: the gender of actor_id, actor_gender with image, or george for the default actor and for image without actor_gender. gemini-3.8-flash-tts speaks only its own voices (kind model_voice in list_voices, such as kore): naming one selects that model, and a voice is refused with a tts_model that does not speak it, before any charge. Mutually exclusive with voice_id."
       },
       {
         "name": "voice_id",
@@ -376,7 +376,7 @@
   },
   {
     "name": "quote_revision",
-    "description": "Price a revision of a run WITHOUT spending credits: what it would change (summary) and what it costs (billing.total_credits). Pass run_id and exactly one of changes or document, the same as revise_run. Always call this first and show the user the price before revise_run. A revision that delivers is charged its quoted total; one that fails is charged nothing, even when its paid work was already done. While paid edits are closed it answers editing_disabled and charges nothing.",
+    "description": "Price a revision of a run WITHOUT spending credits: what it would change (summary) and what it costs (billing.total_credits). Pass run_id and exactly one of changes or document, the same as revise_run. Always call this first and show the user the price before revise_run. A revision that delivers is charged its quoted total; one that fails is charged nothing. While paid edits are closed it answers editing_disabled and charges nothing.",
     "arguments": [
       {
         "name": "run_id",
@@ -397,7 +397,7 @@
   },
   {
     "name": "revise_run",
-    "description": "Start a revision of a run made by make_faceless (paid): a NEW run that renders the video again with the shots you change, by changes (a shot and what to generate for it) or by document (the whole edited document); pass exactly one. Call quote_revision first and show the user the price. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to start a second revision with the same request on purpose, pass attempt 2. A revision that delivers is charged its quoted total; one that fails is charged nothing, even when its paid work was already done. An original has a limit on revisions running at once and on revisions failed or unfinished, and paid edits of it close some days after it finished; a refusal names which. While paid edits are closed it answers editing_disabled and charges nothing. The result is a new run: poll it with get_run; once it succeeded it is editable under its own run_id. Price: each shot generated anew: picture 7, clip 49, clip with a new picture 56; plus 13 to render. A revision that generates nothing: 13. A kept candidate adds nothing. Quote first with quote_revision; list_prices names every price.",
+    "description": "Start a revision of a run made by make_faceless (paid): a NEW run that renders the video again with the shots you change, by changes (a shot and what to generate for it) or by document (the whole edited document); pass exactly one. Call quote_revision first and show the user the price. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to start a second revision with the same request on purpose, pass attempt 2. A revision that delivers is charged its quoted total; one that fails is charged nothing. An original has a limit on revisions running at once and on revisions failed or unfinished, and paid edits of it close some days after it finished; a refusal names which. While paid edits are closed it answers editing_disabled and charges nothing. The result is a new run: poll it with get_run; once it succeeded it is editable under its own run_id. Price: each shot generated anew: picture 7, clip 49, clip with a new picture 56; plus 13 to render. A revision that generates nothing: 13. A kept candidate adds nothing. Quote first with quote_revision; list_prices names every price.",
     "arguments": [
       {
         "name": "run_id",
@@ -423,7 +423,7 @@
   },
   {
     "name": "quote_candidate",
-    "description": "Price one shot candidate of a run WITHOUT spending credits: one picture or clip made for one shot, to keep or discard in a revision. Pass run_id, shot_id and operation, the same as create_candidate; the answer names the unit, its credits and usable_until, the last moment the candidate can enter a revision. Always call this first and show the user the price before create_candidate. A delivered candidate is charged its one unit whether it is kept or discarded; one that fails is charged nothing, even when its paid work was already done. While shot candidates are closed it answers editing_disabled and charges nothing.",
+    "description": "Price one shot candidate of a run WITHOUT spending credits: one picture or clip made for one shot, to keep or discard in a revision. Pass run_id, shot_id and operation, the same as create_candidate; the answer names the unit, its credits and usable_until, the last moment the candidate can enter a revision. Always call this first and show the user the price before create_candidate. A delivered candidate is charged its one unit whether it is kept or discarded; one that fails is charged nothing. While shot candidates are closed it answers editing_disabled and charges nothing.",
     "arguments": [
       {
         "name": "run_id",
@@ -449,7 +449,7 @@
   },
   {
     "name": "create_candidate",
-    "description": "Make a shot candidate of a run made by make_faceless (paid): a NEW run of skill edit_shot that generates one picture or clip for one shot, to keep or discard in a later revision. Call quote_candidate first and show the user the price. A delivered candidate is charged its one unit whether it is kept or discarded; one that fails is charged nothing, even when its paid work was already done. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another candidate with the same request on purpose, pass take 2. An original has a limit on candidates running at once and on candidates failed or unfinished, apart from its revisions; a refusal names which. While shot candidates are closed it answers editing_disabled and charges nothing. The result is a new run: poll it with get_run; once it succeeded, its candidate.preview_url shows what was made. Price: picture: 7 credits per image; clip: 49 credits per clip; clip with a new picture: 56 credits per clip. Quote first with quote_candidate; list_prices names every price.",
+    "description": "Make a shot candidate of a run made by make_faceless (paid): a NEW run of skill edit_shot that generates one picture or clip for one shot, to keep or discard in a later revision. Call quote_candidate first and show the user the price. A delivered candidate is charged its one unit whether it is kept or discarded; one that fails is charged nothing. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another candidate with the same request on purpose, pass take 2. An original has a limit on candidates running at once and on candidates failed or unfinished, apart from its revisions; a refusal names which. While shot candidates are closed it answers editing_disabled and charges nothing. The result is a new run: poll it with get_run; once it succeeded, its candidate.preview_url shows what was made. Price: picture: 7 credits per image; clip: 49 credits per clip; clip with a new picture: 56 credits per clip. Quote first with quote_candidate; list_prices names every price.",
     "arguments": [
       {
         "name": "run_id",
@@ -480,7 +480,7 @@
   },
   {
     "name": "quote_image",
-    "description": "Price one generate_image call WITHOUT spending credits: its credits (one image at its model's unit_credits), its width and height, and warnings. Always call this first and show the user the price before generate_image. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image or create_upload (rights_confirmed states you may use the people and works in it), {run_id} of a succeeded generate_image run of this account until its reusable_until, or {asset_id} of a picture asset from create_asset, whose rights were confirmed when it was made. A generation that fails is charged nothing, even when the vendor was already paid. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing.",
+    "description": "Price one generate_image call WITHOUT spending credits: its credits (one image at its model's unit_credits), its width and height, and warnings. Always call this first and show the user the price before generate_image. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image or create_upload (rights_confirmed states you may use the people and works in it), {run_id} of a succeeded generate_image run of this account until its reusable_until, or {asset_id} of a picture asset from create_asset, whose rights were confirmed when it was made. A generation that fails is charged nothing. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing.",
     "arguments": [
       {
         "name": "prompt",
@@ -506,7 +506,7 @@
   },
   {
     "name": "generate_image",
-    "description": "Generate one image from a prompt (paid): a NEW run of skill generate_image, charged the quoted credits per image once it is delivered. Call quote_image first and show the user the price. Poll the run with get_run; once it succeeded, generation.url is the image and its run_id can be a reference of a later generation. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image or create_upload (rights_confirmed states you may use the people and works in it), {run_id} of a succeeded generate_image run of this account until its reusable_until, or {asset_id} of a picture asset from create_asset, whose rights were confirmed when it was made. A generation that fails is charged nothing, even when the vendor was already paid. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing. Price: seedream-5.0-flash: 6 credits per image; flare: 8 credits per image. Quote first with quote_image; list_prices names every price.",
+    "description": "Generate one image from a prompt (paid): a NEW run of skill generate_image, charged the quoted credits per image once it is delivered. Call quote_image first and show the user the price. Poll the run with get_run; once it succeeded, generation.url is the image and its run_id can be a reference of a later generation. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image or create_upload (rights_confirmed states you may use the people and works in it), {run_id} of a succeeded generate_image run of this account until its reusable_until, or {asset_id} of a picture asset from create_asset, whose rights were confirmed when it was made. A generation that fails is charged nothing. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing. Price: seedream-5.0-flash: 3 credits per image; flare: 4 credits per image. Quote first with quote_image; list_prices names every price.",
     "arguments": [
       {
         "name": "prompt",
@@ -537,7 +537,7 @@
   },
   {
     "name": "quote_video",
-    "description": "Price one generate_video call WITHOUT spending credits: its credits (unit_credits per second of duration_s), its width and height, and warnings. Always call this first and show the user the price before generate_video. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image or create_upload (rights_confirmed states you may use the people and works in it), {run_id} of a succeeded generate_image run of this account until its reusable_until, or {asset_id} of a picture asset from create_asset, whose rights were confirmed when it was made. A generation that fails is charged nothing, even when the vendor was already paid. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing.",
+    "description": "Price one generate_video call WITHOUT spending credits: its credits (unit_credits per second of duration_s), its width and height, and warnings. Always call this first and show the user the price before generate_video. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image or create_upload (rights_confirmed states you may use the people and works in it), {run_id} of a succeeded generate_image run of this account until its reusable_until, or {asset_id} of a picture asset from create_asset, whose rights were confirmed when it was made. A generation that fails is charged nothing. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing.",
     "arguments": [
       {
         "name": "prompt",
@@ -593,7 +593,7 @@
   },
   {
     "name": "generate_video",
-    "description": "Generate one silent clip (paid): a NEW run of skill generate_video, charged unit_credits per second of duration_s once it is delivered. Modes: text; first_frame (first_frame, optional last_frame, of the requested aspect ratio within 2%); reference (1 to 4 references). Call quote_video first and show the user the price. Poll the run with get_run; once it succeeded, generation.url is the clip. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image or create_upload (rights_confirmed states you may use the people and works in it), {run_id} of a succeeded generate_image run of this account until its reusable_until, or {asset_id} of a picture asset from create_asset, whose rights were confirmed when it was made. A generation that fails is charged nothing, even when the vendor was already paid. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing. Price: 6 to 173 credits per second of clip, by model and size. Quote first with quote_video; list_prices names every price.",
+    "description": "Generate one silent clip (paid): a NEW run of skill generate_video, charged unit_credits per second of duration_s once it is delivered. Modes: text; first_frame (first_frame, optional last_frame, of the requested aspect ratio within 2%); reference (1 to 4 references). Call quote_video first and show the user the price. Poll the run with get_run; once it succeeded, generation.url is the clip. A reference is {upload_id, rights_confirmed: true} for a picture from upload_image or create_upload (rights_confirmed states you may use the people and works in it), {run_id} of a succeeded generate_image run of this account until its reusable_until, or {asset_id} of a picture asset from create_asset, whose rights were confirmed when it was made. A generation that fails is charged nothing. An identical request returns the same run it started before, so a call repeated after a lost answer starts nothing new; to make another one with the same request on purpose, pass attempt 2. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing. Price: 3 to 90 credits per second of clip, by model and size. Quote first with quote_video; list_prices names every price.",
     "arguments": [
       {
         "name": "prompt",
@@ -784,7 +784,7 @@
       {
         "name": "aspect_ratio",
         "type": "string",
-        "desc": "Output format: 9:16 | 1:1 | 16:9. Omitted means 9:16, and a source of another shape is snapped to 9:16 with a warning — pass it explicitly whenever you pass image. A mismatch above 15% between the request and the source is refused (aspect_conflict) before any charge."
+        "desc": "Output format: 9:16 | 1:1 | 16:9. Omitted means 9:16 without an image; with an image, the supported format nearest the image's shape, even a landscape one — pass it explicitly whenever you pass image. A mismatch above 15% between the request and the source is refused (aspect_conflict) before any charge."
       },
       {
         "name": "resolution",
@@ -794,7 +794,7 @@
       {
         "name": "voice",
         "type": "string",
-        "desc": "Voice name from list_voices. Curated presets: owner_ru_clone | sarah | george | eric | daria_ru_female (owner_ru_clone is the Russian cloned voice). The API refuses a name list_voices does not return, before any charge. Omitted means the default voice for the actor's gender: the gender of actor_id, actor_gender with image, or george for the default actor and for image without actor_gender. gemini-3.8-flash-tts speaks only its own voices (kind model_voice in list_voices, such as kore): naming one selects that model, and a voice is refused with a tts_model that does not speak it, before any charge. Mutually exclusive with voice_id."
+        "desc": "Voice name from list_voices. Curated presets: sarah | george | eric | daria_ru_female. The API refuses a name list_voices does not return, before any charge. Omitted means the default voice for the actor's gender: the gender of actor_id, actor_gender with image, or george for the default actor and for image without actor_gender. gemini-3.8-flash-tts speaks only its own voices (kind model_voice in list_voices, such as kore): naming one selects that model, and a voice is refused with a tts_model that does not speak it, before any charge. Mutually exclusive with voice_id."
       },
       {
         "name": "voice_id",
@@ -983,29 +983,49 @@
   },
   {
     "name": "quote_analysis",
-    "description": "Price analyze_reference for an asset before starting it: credits_estimate is what a start holds and charges once it succeeds, 0 when the asset already has an analysis that a start would answer (replays_analysis_id). Free; starts nothing.",
+    "description": "Price analyze_reference for an asset_id or a source_url and a mode before starting it: credits_estimate is what a start holds and charges once it succeeds (70 full, 10 data), 0 when the asset or the reel already has an analysis in that mode that a start would answer (replays_analysis_id). A YouTube or unknown link is refused here too. Free; starts nothing.",
     "arguments": [
       {
         "name": "asset_id",
         "type": "string",
         "desc": "asset_id of an MP4 asset of this account, at most 120 s and 100 MiB"
+      },
+      {
+        "name": "source_url",
+        "type": "string",
+        "desc": "instead of asset_id: an Instagram reel or post link (instagram.com/reel/<code>, /reels/<code>, /p/<code>) or a TikTok video link (tiktok.com/@<user>/video/<id>, vm.tiktok.com/<code>); YouTube is refused"
+      },
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": "full (default, 70 credits): the reference_profile. data (10 credits): duration, size, timed transcript, hook and a 3×3 frame sheet, without the vision pass"
       }
     ]
   },
   {
     "name": "analyze_reference",
-    "description": "Read a reference ad into a reference_profile: its beats (role, timing as shares of the clip, whether the presenter speaks, listens or is off screen), the graphics in our template vocabulary, captions, pacing, palette and music. What we cannot draw is in unmapped with a substitute and in warnings. Pass asset_id of an MP4 asset (create_asset with kind: \"video\"), at most 120 s and 100 MiB; there is no url input. 70 credits are held at the start and charged once it succeeds; a failed analysis costs nothing. 10 new analyses per hour per account. Answers at once with state queued; call get_reference_analysis every 10 seconds until succeeded (about a minute) or failed. The same asset returns the same analysis, free, unless it failed. The asset is not changed. The profile names techniques; it copies no face, voice, music or brand of the reference. Price: 70 credits per call. Quote first with quote_analysis; list_prices names every price.",
+    "description": "Read a reference ad into a reference_profile: its beats (role, timing as shares of the clip, whether the presenter speaks, listens or is off screen), the graphics in our template vocabulary, captions, pacing, palette and music. It keeps the reference's words: transcript (timed words), hook (the words of its first 3 s, through the end of that sentence), each beat's spoken_summary and each graphic's label_hint. What we cannot draw is in unmapped with a substitute and in warnings. Pass asset_id of an MP4 asset (create_asset with kind: \"video\"), at most 120 s and 100 MiB, or source_url: an Instagram reel or post link (instagram.com/reel/<code>, /reels/<code>, /p/<code>) or a TikTok video link (tiktok.com/@<user>/video/<id>, vm.tiktok.com/<code>). A link becomes an analysis-only asset of this account (asset_id in the answer) and the answer's source carries the post's views, likes, comments, views per hour, the author's median views around it and over their 12 latest reels, each with the ratio, the top comments and the code words commenters repeat; a number the platform did not give is null and named in warnings. A YouTube link is refused: upload its MP4 with create_asset. mode: \"data\" skips the vision pass and answers data instead of a profile: duration, size and fps, the timed transcript, the hook and a 3×3 frame sheet (a signed JPEG link), with source for a link as above; a reel with no speech gives an empty transcript and a warning. 70 credits for full, 10 for data, held at the start and charged once it succeeds; a failed analysis costs nothing. 10 new full and 60 new data analyses per hour per account. Answers at once with state queued; call get_reference_analysis every 10 seconds until succeeded (about a minute) or failed. The same asset, or the same reel by its full link, in the same mode returns the same analysis, free, unless it failed; a short vm.tiktok.com link always starts a new one. The asset is not changed. The profile names techniques; it copies no face, voice, music or brand of the reference. Price: 70 credits per call; data mode: 10 credits per call. Quote first with quote_analysis; list_prices names every price.",
     "arguments": [
       {
         "name": "asset_id",
         "type": "string",
         "desc": "asset_id of an MP4 asset of this account, at most 120 s and 100 MiB"
+      },
+      {
+        "name": "source_url",
+        "type": "string",
+        "desc": "instead of asset_id: an Instagram reel or post link (instagram.com/reel/<code>, /reels/<code>, /p/<code>) or a TikTok video link (tiktok.com/@<user>/video/<id>, vm.tiktok.com/<code>); YouTube is refused"
+      },
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": "full (default, 70 credits): the reference_profile. data (10 credits): duration, size, timed transcript, hook and a 3×3 frame sheet, without the vision pass"
       }
     ]
   },
   {
     "name": "get_reference_analysis",
-    "description": "Read an analysis started by analyze_reference: state queued or analyzing, succeeded with reference_profile and warnings, or failed with error.code and error.message (timed_out, analysis_failed, asset_gone, enqueue_failed); credits_charged is the price once succeeded, 0 once failed. Free.",
+    "description": "Read an analysis started by analyze_reference: state queued or analyzing, succeeded with reference_profile (mode full) or data (mode data) and warnings, or failed with error.code and error.message (timed_out, analysis_failed, asset_gone, enqueue_failed); source holds the post's metrics for an analysis started by source_url. credits_charged is the price once succeeded, 0 once failed. Free.",
     "arguments": [
       {
         "name": "analysis_id",
@@ -1226,7 +1246,7 @@
       {
         "name": "duration_seconds",
         "type": "number",
-        "desc": "Selected length, 30 to 90 seconds, on a 1/25 s frame boundary. The video ends with its narration, runs at least 25 seconds and may exceed the selection by up to a quarter, never beyond 90 seconds; a video more than 5 seconds longer says so in warnings[]. The charge never exceeds the quote. A script is accepted when its estimated length is 21 seconds to the selection plus 5, at most 90."
+        "desc": "Selected length, 30 to 90 seconds, on a 1/25 s frame boundary. The video ends with its narration and runs at least 25 seconds, usually at most a quarter past the selection and 90 seconds; when the narration takes longer, the video runs to its end. A video more than 5 seconds longer than the selection says so in warnings[]. The charge never exceeds the quote. A script is accepted when its estimated length is 21 seconds to the selection plus 5, at most 90."
       },
       {
         "name": "style_reference",
@@ -1287,7 +1307,7 @@
       {
         "name": "duration_seconds",
         "type": "number",
-        "desc": "Selected length, 30 to 90 seconds, on a 1/25 s frame boundary. The video ends with its narration, runs at least 25 seconds and may exceed the selection by up to a quarter, never beyond 90 seconds; a video more than 5 seconds longer says so in warnings[]. The charge never exceeds the quote. A script is accepted when its estimated length is 21 seconds to the selection plus 5, at most 90."
+        "desc": "Selected length, 30 to 90 seconds, on a 1/25 s frame boundary. The video ends with its narration and runs at least 25 seconds, usually at most a quarter past the selection and 90 seconds; when the narration takes longer, the video runs to its end. A video more than 5 seconds longer than the selection says so in warnings[]. The charge never exceeds the quote. A script is accepted when its estimated length is 21 seconds to the selection plus 5, at most 90."
       },
       {
         "name": "style_reference",
@@ -1341,5 +1361,26 @@
     "name": "list_prices",
     "description": "List what every Clipwright tool costs in credits. Free, spends nothing. Each entry names the tool, its REST route and its price: lines of credits per unit (call, second of video, second the presenter is in the video, image, clip, second of clip), added up, with minimum_credits when there is one; or, where the price depends on the input, a formula. Free tools cost 0. For the exact number of a paid call, use the quote tool the entry names.",
     "arguments": []
+  },
+  {
+    "name": "send_feedback",
+    "description": "Tell Clipwright what is missing or wrong. Call it when no tool does what the user asked (kind missing_capability), or when an answer was confusing (confusing), wrong (wrong_result) or far too slow (slow), instead of rephrasing the request and giving up. Say what the user wanted, what you tried and what came back; pass run_id when it is about a run. We read every one. Free, spends nothing. Sending the same kind, text and run again within 24 hours answers the same feedback_id. 20 per hour per account.",
+    "arguments": [
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "missing_capability: no tool does what the user asked; confusing: an answer or description was unclear; wrong_result: a result is not what was asked; slow: something took far longer than it said."
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "What the user wanted, what you tried and what came back, in plain words."
+      },
+      {
+        "name": "run_id",
+        "type": "string",
+        "desc": "The run it is about, if any."
+      }
+    ]
   }
 ]
