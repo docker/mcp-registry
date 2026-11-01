@@ -11,11 +11,11 @@ meta:
     - devops
 about:
   title: emperor-folder
-  description: List, read, search and stat files inside one folder, never outside it. Every operation goes through a capability directory handle, so absolute paths, `..` and symlinks that leave the folder are refused. Read-only.
+  description: List, read, search and stat files inside one folder, never outside it. Every operation goes through a capability directory handle, so absolute paths, `..` and symlinks that leave the folder are refused. Read-only unless Allow writing is set, which adds write, edit and move.
   icon: https://avatars.githubusercontent.com/u/666125?s=200&v=4
 source:
   project: https://github.com/yarenty/emperor-folder
-  commit: e9f7e360c30f0c00988ac02825381061a91acfd3
+  commit: a43ace933ba35c79e275e4e0996d0fe27c5f01ab
 run:
   command:
     - --root
@@ -25,13 +25,22 @@ run:
   disableNetwork: true
 config:
   description: The MCP server is confined to this folder (mounted at /data)
+  env:
+    - name: FOLDER_WRITABLE
+      example: "false"
+      value: "{{emperor-folder.writable}}"
   parameters:
     type: object
     properties:
       path:
         type: string
         title: Folder
-        description: Host folder the server may read; nothing outside it is reachable.
+        description: Host folder the server may read (and change, with Allow writing); nothing outside it is reachable.
         default: /Users/local-test
+      writable:
+        type: boolean
+        title: Allow writing
+        description: Also offer the write, edit and move tools. If false, the server is read-only.
+        default: false
     required:
       - path
