@@ -1,0 +1,82 @@
+name: emperor-mail
+image: mcp/emperor-mail
+type: server
+meta:
+  category: communication
+  tags:
+    - email
+    - imap
+    - smtp
+    - communication
+    - secrets
+about:
+  title: emperor-mail
+  description: Your mailbox over IMAP and SMTP as six tools - list folders, search, read messages and attachments (PDF, Word, spreadsheets), and save drafts for you to review and send. Sending is off in this image; the send tool refuses and points to draft. Reading never marks mail as read; message bodies are framed as untrusted content. Use an app password or an OAuth 2.0 access token (Gmail, Microsoft 365).
+  icon: https://avatars.githubusercontent.com/u/666125?v=4
+source:
+  project: https://github.com/yarenty/emperor-mail
+  commit: 092968ac64f600999064ea33f3a6dbfcb654b413
+config:
+  description: Configure one mailbox. Set the password (or app password), or an OAuth 2.0 access token instead; IMAP and SMTP use implicit TLS on ports 993 and 465 unless you set the ports or security.
+  secrets:
+    - name: emperor-mail.password
+      env: MAIL_PASSWORD
+      example: <your-app-password>
+    - name: emperor-mail.oauth_token
+      env: MAIL_OAUTH_TOKEN
+      example: <optional-oauth-access-token>
+  env:
+    - name: MAIL_USER
+      example: you@example.com
+      value: "{{emperor-mail.user}}"
+    - name: MAIL_FROM
+      example: you@example.com
+      value: "{{emperor-mail.from}}"
+    - name: IMAP_HOST
+      example: imap.example.com
+      value: "{{emperor-mail.imap_host}}"
+    - name: IMAP_PORT
+      example: "993"
+      value: "{{emperor-mail.imap_port}}"
+    - name: IMAP_SECURITY
+      example: tls
+      value: "{{emperor-mail.imap_security}}"
+    - name: SMTP_HOST
+      example: smtp.example.com
+      value: "{{emperor-mail.smtp_host}}"
+    - name: SMTP_PORT
+      example: "465"
+      value: "{{emperor-mail.smtp_port}}"
+    - name: SMTP_SECURITY
+      example: tls
+      value: "{{emperor-mail.smtp_security}}"
+  parameters:
+    type: object
+    properties:
+      user:
+        type: string
+        description: Login name, usually your email address
+      from:
+        type: string
+        description: From address when the login name is not an address (optional)
+      imap_host:
+        type: string
+        description: IMAP server host name
+      imap_port:
+        type: string
+        description: IMAP port (optional; 993, or 143 with starttls)
+      imap_security:
+        type: string
+        description: tls or starttls (optional; follows the port)
+      smtp_host:
+        type: string
+        description: SMTP server host name (needed only for send)
+      smtp_port:
+        type: string
+        description: SMTP port (optional; 465, or 587 with starttls)
+      smtp_security:
+        type: string
+        description: tls or starttls (optional; follows the port)
+    required:
+      - user
+      - imap_host
