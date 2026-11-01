@@ -11,11 +11,11 @@ meta:
     - productivity
 about:
   title: Vikunja
-  description: List, read, create and update tasks, comment on them and list projects in a Vikunja instance. Task text reaches the model framed as messages for the user; a --read-only mode serves only the read tools.
+  description: List, read, create and update tasks, comment on them and list projects in a Vikunja instance. Task text reaches the model framed as messages for the user; the Read-only setting (VIKUNJA_READ_ONLY) serves only the read tools, with the write tools removed.
   icon: https://avatars.githubusercontent.com/u/666125?v=4
 source:
   project: https://github.com/yarenty/emperor-vikunja
-  commit: 0f8dd423204c883095e1972081275c2b63b76b40
+  commit: 79c0a37e14385270846ae045e8f3b94a2a5c6289
 config:
   description: Configure the connection to your Vikunja instance
   secrets:
@@ -27,10 +27,18 @@ config:
     - name: VIKUNJA_URL
       example: https://vikunja.example.com
       value: "{{emperor-vikunja.url}}"
+    - name: VIKUNJA_READ_ONLY
+      example: "false"
+      value: "{{emperor-vikunja.read_only}}"
   parameters:
     type: object
     properties:
       url:
         type: string
+      read_only:
+        type: boolean
+        title: Read-only
+        description: Serve only list_tasks, get_task and list_projects; the write tools are removed.
+        default: false
     required:
       - url
