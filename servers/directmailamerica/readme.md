@@ -1,4 +1,4 @@
-Docs: https://directmailamerica.com/docs/mcp
+Docs: https://directmailamerica.com/docs/mcp?utm_source=docker&utm_medium=referral&utm_campaign=mcp_directories
 
 Publisher: DirectMailAmerica. The hosted service is proprietary and subject to
 https://directmailamerica.com/terms. The registry entry is contributed under this
@@ -15,3 +15,5 @@ authorization and token exchange. Gateway v0.34.0 bundled with Docker Desktop
 v0.44.3 supports it with `DOCKER_MCP_USE_CE=true`. An old cached DCR registration
 may need to be revoked and recreated after upgrading so discovery uses the Narrow
 endpoint. The endpoint is `https://directmailamerica.com/api/mcp-narrow`.
+
+Website: https://directmailamerica.com/?utm_source=docker&utm_medium=referral&utm_campaign=mcp_directories
