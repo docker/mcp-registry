@@ -1,4 +1,4 @@
-Docs: https://systemsculpt.com/obsidian-ai-plugin-docs/agents
+Docs: https://systemsculpt.com/obsidian-ai-plugin-docs/agents?utm_source=mcp-directory&utm_medium=referral&utm_campaign=evergreen&utm_content=docker
 
 Manage your SystemSculpt account, credits, billing and server-side captures over OAuth. The server reads and changes data on SystemSculpt's servers only, never your Obsidian vault.
 
