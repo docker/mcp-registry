@@ -15,4 +15,6 @@ responses require operator-group admission. Public read-only access does not
 grant voting or private-task access. Response shares are not market prices or
 calibrated event probabilities.
 
-This entry describes a hosted service. It does not distribute its implementation.
+This entry describes a hosted service with a private, proprietary implementation.
+The catalog contribution contains only public connection metadata, documentation,
+and the service logo. It does not distribute or license the implementation.
