@@ -1,6 +1,6 @@
-# BestPrice Shopping
+# BestPrice
 
-BestPrice Shopping is the public, read-only MCP surface for BestPrice.gr.
+BestPrice is the public, read-only MCP surface for BestPrice.gr.
 
 - Endpoint: https://mcp.bestprice.gr/mcp
 - Authentication: none
