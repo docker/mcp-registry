@@ -1,1 +1,1 @@
-Docs: https://kissmypost.com/mcp
+Docs: https://github.com/krutytskyi/kissmypost-mcp
