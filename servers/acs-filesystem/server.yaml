@@ -1,0 +1,136 @@
+name: acs-filesystem
+image: mcp/acs-filesystem
+type: server
+meta:
+  category: devops
+  tags:
+    - filesystem
+    - file-operations
+    - batch-operations
+    - directory-watching
+    - file-search
+    - security
+    - devops
+    - ai-capabilities
+about:
+  title: ACS Filesystem
+  description: |
+    Advanced filesystem operations for AI agents with strict security boundaries.
+
+    Features:
+    - Batch Operations: Execute multiple file operations atomically with rollback
+    - Directory Watching: Monitor filesystem changes in real-time with event filtering
+    - File Search & Indexing: Fast full-text search with metadata filtering
+    - Checksum Operations: Compute and verify file integrity (MD5, SHA-1, SHA-256, SHA-512)
+    - Symlink Management: Create and manage symbolic links within workspace
+    - Disk Usage Analysis: Analyze directory sizes and identify large files
+    - Directory Operations: Recursive copy, sync, and atomic file replacement
+
+    Security Features:
+    - 10-layer path validation
+    - Workspace boundary enforcement
+    - System path blocking (hardcoded, cannot be disabled)
+    - Sensitive file pattern blocking (hardcoded, cannot be disabled)
+    - Rate limiting
+    - Audit logging
+
+    ⚠️ SECURITY WARNING: This server provides powerful filesystem operations.
+    Always configure strict security boundaries and review the SECURITY.md documentation.
+  icon: https://www.google.com/s2/favicons?domain=digitaldefiance.org&sz=64
+source:
+  project: https://github.com/Digital-Defiance/mcp-filesystem
+  branch: main
+  commit: 29e0fac10ce64449a70c8189b619afb7b443d0e0
+run:
+  command:
+    - "{{filesystem.workspaceRoot|volume-target|into}}"
+  volumes:
+    - "{{filesystem.workspaceRoot|volume|into}}"
+    - "{{filesystem.configPath|volume|into}}"
+  disableNetwork: true
+config:
+  description: |
+    Configure the MCP ACS Filesystem server with security boundaries and operational limits.
+
+    REQUIRED: workspaceRoot - All operations are confined to this directory
+
+    Security Configuration:
+    - allowedSubdirectories: Further restrict operations to specific subdirectories
+    - blockedPaths: Additional paths to block (relative to workspace)
+    - blockedPatterns: Regex patterns to block
+
+    Resource Limits:
+    - maxFileSize: Maximum file size in bytes (default: 100MB)
+    - maxBatchSize: Maximum total size for batch operations (default: 1GB)
+    - maxOperationsPerMinute: Rate limit per agent (default: 100)
+
+    Operational Settings:
+    - enableAuditLog: Enable operation logging (default: true)
+    - requireConfirmation: Require confirmation for destructive operations (default: true)
+    - readOnly: Enable read-only mode (default: false)
+
+    See SECURITY.md for complete security documentation.
+  parameters:
+    type: object
+    properties:
+      workspaceRoot:
+        type: string
+        description: Absolute path to workspace directory (REQUIRED) - all operations confined to this directory
+        default: /app/workspace
+      configPath:
+        type: string
+        description: Path to configuration file
+        default: /app/config/mcp-filesystem-config.json
+      allowedSubdirectories:
+        type: array
+        items:
+          type: string
+        description: Optional subdirectories within workspace to restrict operations to
+        default: []
+      blockedPaths:
+        type: array
+        items:
+          type: string
+        description: Additional paths to block (relative to workspace)
+        default:
+          - .git
+          - .env
+          - node_modules
+          - .ssh
+      blockedPatterns:
+        type: array
+        items:
+          type: string
+        description: Regex patterns to block
+        default:
+          - "*.key"
+          - "*.pem"
+          - "*.env"
+          - "*secret*"
+          - "*password*"
+      maxFileSize:
+        type: integer
+        description: Maximum file size in bytes
+        default: 104857600
+      maxBatchSize:
+        type: integer
+        description: Maximum total size for batch operations in bytes
+        default: 1073741824
+      maxOperationsPerMinute:
+        type: integer
+        description: Rate limit per agent
+        default: 100
+      enableAuditLog:
+        type: boolean
+        description: Enable operation logging
+        default: true
+      requireConfirmation:
+        type: boolean
+        description: Require confirmation for destructive operations
+        default: true
+      readOnly:
+        type: boolean
+        description: Enable read-only mode
+        default: false
+    required:
+      - workspaceRoot
