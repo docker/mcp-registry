@@ -1,0 +1,85 @@
+name: dbt-mcp
+image: mcp/dbt-mcp
+type: server
+meta:
+  category: analytics
+  tags:
+    - dbt
+    - data
+    - analytics
+    - semantic-layer
+    - data-warehouse
+about:
+  title: dbt
+  description: |
+    Connect AI assistants to the dbt platform for data exploration, metrics querying,
+    and project management. Access the Semantic Layer to query metrics, explore
+    model lineage, run jobs, and execute SQL against your data warehouse.
+  icon: https://avatars.githubusercontent.com/u/15813678?s=200&v=4
+source:
+  project: https://github.com/dbt-labs/dbt-mcp
+  branch: main
+  commit: f29178e9cef5184c7a4ffdc02825926362963058
+config:
+  description: Configure connection to the dbt platform
+  secrets:
+    - name: dbt-mcp.token
+      env: DBT_TOKEN
+      example: dbtc_xxxxxxxxxxxxxxxxxxxx
+  env:
+    - name: DBT_HOST
+      example: cloud.getdbt.com
+      value: "{{dbt-mcp.host}}"
+    - name: DBT_PROD_ENV_ID
+      example: "123456"
+      value: "{{dbt-mcp.prod_env_id}}"
+    - name: DBT_DEV_ENV_ID
+      example: "789012"
+      value: "{{dbt-mcp.dev_env_id}}"
+    - name: DBT_USER_ID
+      example: "12345"
+      value: "{{dbt-mcp.user_id}}"
+    # Enable toolsets - users opt-in to the features they need
+    - name: DBT_MCP_ENABLE_SEMANTIC_LAYER
+      value: "{{dbt-mcp.enable_semantic_layer}}"
+    - name: DBT_MCP_ENABLE_DISCOVERY
+      value: "{{dbt-mcp.enable_discovery}}"
+    - name: DBT_MCP_ENABLE_ADMIN_API
+      value: "{{dbt-mcp.enable_admin_api}}"
+    - name: DBT_MCP_ENABLE_SQL
+      value: "{{dbt-mcp.enable_sql}}"
+  parameters:
+    type: object
+    properties:
+      host:
+        type: string
+        description: dbt host (e.g., cloud.getdbt.com)
+        default: cloud.getdbt.com
+      prod_env_id:
+        type: string
+        description: Production environment ID from dbt
+      dev_env_id:
+        type: string
+        description: Development environment ID (required for execute_sql)
+      user_id:
+        type: string
+        description: Your dbt user ID (required for execute_sql)
+      enable_semantic_layer:
+        type: boolean
+        description: Enable Semantic Layer tools (query_metrics, list_metrics, etc.)
+        default: true
+      enable_discovery:
+        type: boolean
+        description: Enable Discovery tools (get_model_details, get_lineage, etc.)
+        default: true
+      enable_admin_api:
+        type: boolean
+        description: Enable Admin API tools (list_jobs, trigger_job_run, etc.)
+        default: true
+      enable_sql:
+        type: boolean
+        description: Enable SQL tools (text_to_sql, execute_sql)
+        default: false
+    required:
+      - host
+      - prod_env_id
