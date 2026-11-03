@@ -1,0 +1,45 @@
+name: smstunnel
+image: mcp/smstunnel
+type: server
+meta:
+  category: communication
+  tags:
+    - smstunnel
+    - sms
+    - text-messages
+    - android
+    - communication
+about:
+  title: SMSTunnel
+  description: Send texts (SMS) and sign-in codes from your own Android phone and your own number, check whether they went out, and read replies.
+  icon: https://smstunnel.io/android-chrome-512x512.png
+source:
+  project: https://github.com/narcisbodea/smstunnel-mcp
+  commit: 3f8e2a57fefe9f170d7bbd4669a684baf134f729
+run:
+  allowHosts:
+    - smstunnel.io:443
+config:
+  description: Install the SMSTunnel app from Google Play on your Android phone and sign in, then create a key in the SMSTunnel dashboard under Apps → Add an app.
+  secrets:
+    - name: smstunnel.api_key
+      env: SMSTUNNEL_API_KEY
+      example: sk_live_your_key
+      description: Your SMSTunnel API key, from https://dashboard.smstunnel.io/apps (Apps → Add an app)
+      required: true
+  env:
+    - name: SMSTUNNEL_DEVICE_ID
+      example: 0123456789abcdef01234567
+      value: "{{smstunnel.device_id}}"
+    - name: SMSTUNNEL_DEFAULT_COUNTRY_CODE
+      example: "+40"
+      value: "{{smstunnel.default_country_code}}"
+  parameters:
+    type: object
+    properties:
+      device_id:
+        type: string
+        description: Optional. The phone that sends when the assistant doesn't name one (its ID under Phones in the SMSTunnel dashboard).
+      default_country_code:
+        type: string
+        description: Optional. Country calling code that completes numbers written without + or 00, for example +40.
