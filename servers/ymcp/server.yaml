@@ -1,0 +1,51 @@
+name: ymcp
+image: mcp/ymcp
+type: server
+meta:
+  category: productivity
+  tags:
+    - youtrack
+    - jetbrains
+    - issue-tracker
+    - project-management
+about:
+  title: YouTrack (ymcp)
+  description: YouTrack with your own login and password, no admin token needed. The tools of YouTrack's built-in MCP server under the same names, plus deletes, sprints, saved searches, history, time reports and a raw REST API call.
+  icon: https://raw.githubusercontent.com/xlsft/ymcp/main/docs/logo.png
+source:
+  project: https://github.com/xlsft/ymcp
+  commit: 538a96e733c6be693fd9c6360ca5536180ba9f1f
+run:
+  command:
+    - serve
+config:
+  description: Connect to your YouTrack instance with an account's login and password
+  secrets:
+    - name: ymcp.password
+      env: YOUTRACK_PASSWORD
+      example: <YOUTRACK_PASSWORD>
+  env:
+    - name: YOUTRACK_URL
+      example: https://youtrack.example.com
+      value: "{{ymcp.url}}"
+    - name: YOUTRACK_LOGIN
+      example: jane.doe
+      value: "{{ymcp.login}}"
+    - name: YMCP_TOOLS
+      example: issues,articles
+      value: "{{ymcp.tools}}"
+  parameters:
+    type: object
+    properties:
+      url:
+        type: string
+        description: Instance root, without /api
+      login:
+        type: string
+        description: YouTrack or Hub account, LDAP included
+      tools:
+        type: string
+        description: Tool groups to serve, e.g. issues,articles or -api,-agile; empty for all
+    required:
+      - url
+      - login
