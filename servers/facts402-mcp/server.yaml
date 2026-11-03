@@ -1,0 +1,46 @@
+name: facts402-mcp
+image: mcp/facts402-mcp
+type: server
+meta:
+  category: finance
+  tags:
+    - finance
+    - compliance
+    - x402
+    - payments
+about:
+  title: facts402
+  description: >-
+    Finds the right paid x402 API for a task and runs fact checks: IBAN, EU VAT
+    (VIES), OFAC sanctions, LEI and FX rates. Free tools work with no config;
+    paid tools settle per call in USDC on Base over x402
+    (facts402 checks cost $0.01), capped per call and per session.
+  icon: https://api.facts402.com/icon.png
+source:
+  project: https://github.com/veselin9931/facts402-mcp
+  commit: b0042a7c5513872d94639fd193010ae429b6c615
+  directory: facts402-mcp
+config:
+  description: Optional Base mainnet wallet with a little USDC for the paid tools. Free tools work with an empty config.
+  secrets:
+    - name: facts402-mcp.x402_private_key
+      env: X402_PRIVATE_KEY
+      example: "0xYOUR_DEDICATED_LOW_BALANCE_KEY"
+  env:
+    - name: X402_MAX_PER_CALL_USD
+      example: "0.30"
+      value: "{{facts402-mcp.max_per_call_usd}}"
+    - name: X402_SESSION_BUDGET_USD
+      example: "2.00"
+      value: "{{facts402-mcp.session_budget_usd}}"
+  parameters:
+    type: object
+    properties:
+      max_per_call_usd:
+        title: Most a single tool call may pay, in USD
+        type: string
+        default: "0.30"
+      session_budget_usd:
+        title: Most the server may spend until it restarts, in USD
+        type: string
+        default: "2.00"
