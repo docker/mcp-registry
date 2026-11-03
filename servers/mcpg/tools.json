@@ -21,6 +21,104 @@
     ]
   },
   {
+    "name": "add_continuous_aggregate_policy",
+    "description": "Schedule automatic refresh of a continuous aggregate. start_offset / end_offset are intervals back from now (e.g. '3 days', '1 hour'; null = unbounded on that side); schedule_interval is how often it runs. Requires unrestricted mode + MCPG_ALLOW_DDL.",
+    "arguments": [
+      {
+        "name": "end_offset",
+        "type": "string",
+        "desc": "End Offset"
+      },
+      {
+        "name": "if_not_exists",
+        "type": "boolean",
+        "desc": "If Not Exists"
+      },
+      {
+        "name": "schedule_interval",
+        "type": "string",
+        "desc": "Schedule Interval"
+      },
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Schema"
+      },
+      {
+        "name": "start_offset",
+        "type": "string",
+        "desc": "Start Offset"
+      },
+      {
+        "name": "view",
+        "type": "string",
+        "desc": "View"
+      }
+    ]
+  },
+  {
+    "name": "add_dimension",
+    "description": "Add a dimension to a TimescaleDB hypertable: pass number_partitions for a hash (space) dimension, or chunk_time_interval (e.g. '1 day') for an additional range dimension - exactly one. Requires unrestricted mode + MCPG_ALLOW_DDL.",
+    "arguments": [
+      {
+        "name": "chunk_time_interval",
+        "type": "string",
+        "desc": "Chunk Time Interval"
+      },
+      {
+        "name": "column",
+        "type": "string",
+        "desc": "Column"
+      },
+      {
+        "name": "if_not_exists",
+        "type": "boolean",
+        "desc": "If Not Exists"
+      },
+      {
+        "name": "number_partitions",
+        "type": "integer",
+        "desc": "Number Partitions"
+      },
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Schema"
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "desc": "Table"
+      }
+    ]
+  },
+  {
+    "name": "add_reorder_policy",
+    "description": "Schedule background reordering of a hypertable's chunks along an existing index. Requires unrestricted mode + MCPG_ALLOW_DDL.",
+    "arguments": [
+      {
+        "name": "if_not_exists",
+        "type": "boolean",
+        "desc": "If Not Exists"
+      },
+      {
+        "name": "index_name",
+        "type": "string",
+        "desc": "Index Name"
+      },
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Schema"
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "desc": "Table"
+      }
+    ]
+  },
+  {
     "name": "add_retention_policy",
     "description": "Schedule a TimescaleDB retention policy that drops hypertable chunks older than `drop_after` (e.g. '30 days'). Requires unrestricted mode + MCPG_ALLOW_DDL.",
     "arguments": [
@@ -38,6 +136,119 @@
         "name": "table",
         "type": "string",
         "desc": "Table"
+      }
+    ]
+  },
+  {
+    "name": "alter_job",
+    "description": "Change a TimescaleDB user/policy job's schedule_interval, max_runtime, max_retries, retry_period or scheduled flag (at least one). The job's config and procedure cannot be changed. Destructive/heavy: call with dry_run=true first (returns the plan, affected objects and a confirmation_token); show the warning to the user; then call with confirm=true and that exact confirmation_token to execute. Requires unrestricted mode + MCPG_ALLOW_DDL + MCPG_ALLOW_TIMESCALEDB_ADMIN.",
+    "arguments": [
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Confirm"
+      },
+      {
+        "name": "confirmation_token",
+        "type": "string",
+        "desc": "Confirmation Token"
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Dry Run"
+      },
+      {
+        "name": "job_id",
+        "type": "integer",
+        "desc": "Job Id"
+      },
+      {
+        "name": "max_retries",
+        "type": "integer",
+        "desc": "Max Retries"
+      },
+      {
+        "name": "max_runtime",
+        "type": "string",
+        "desc": "Max Runtime"
+      },
+      {
+        "name": "retry_period",
+        "type": "string",
+        "desc": "Retry Period"
+      },
+      {
+        "name": "schedule_interval",
+        "type": "string",
+        "desc": "Schedule Interval"
+      },
+      {
+        "name": "scheduled",
+        "type": "boolean",
+        "desc": "Scheduled"
+      }
+    ]
+  },
+  {
+    "name": "alter_system",
+    "description": "Persist a PostgreSQL setting with ALTER SYSTEM (writes postgresql.auto.conf). NOT transactional \u2014 cannot ROLLBACK. Structured args only (no free-form SQL): name is the GUC, value is the new setting or null to RESET that name. reload is none|if_needed|always (default if_needed). dry_run=true validates and returns a plan without writing. Without confirm=true the tool returns status=confirmation_required with a warning and a confirmation_token \u2014 show the warning to the user, then call again with confirm=true and that exact confirmation_token (bound to this statement) to apply. Postmaster-context GUCs need a restart; sighup-class GUCs can use pg_reload_conf(). A built-in denylist blocks connectivity/preload foot-guns. Requires MCPG_ACCESS_MODE=unrestricted and MCPG_ALLOW_ALTER_SYSTEM=true. Does not extend run_ddl. The DB connection user must be a superuser (or otherwise allowed to ALTER SYSTEM).",
+    "arguments": [
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Confirm"
+      },
+      {
+        "name": "confirmation_token",
+        "type": "string",
+        "desc": "Confirmation Token"
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Dry Run"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name"
+      },
+      {
+        "name": "reload",
+        "type": "string",
+        "desc": "Reload"
+      },
+      {
+        "name": "value",
+        "type": "string",
+        "desc": "Value"
+      }
+    ]
+  },
+  {
+    "name": "alter_system_reset_all",
+    "description": "ALTER SYSTEM RESET ALL \u2014 clears every setting previously written via ALTER SYSTEM (postgresql.auto.conf), not postgresql.conf and not session SET. Instance-wide and NOT transactional. Without confirm=true returns confirmation_required + a warning and a confirmation_token (covers the current override set); call again with confirm=true and that token to apply. The allow/deny policy is enforced against every current override. reload defaults to if_needed. Requires unrestricted mode and MCPG_ALLOW_ALTER_SYSTEM. The DB connection user must be a superuser.",
+    "arguments": [
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Confirm"
+      },
+      {
+        "name": "confirmation_token",
+        "type": "string",
+        "desc": "Confirmation Token"
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Dry Run"
+      },
+      {
+        "name": "reload",
+        "type": "string",
+        "desc": "Reload"
       }
     ]
   },
@@ -622,6 +833,37 @@
     ]
   },
   {
+    "name": "compress_chunk",
+    "description": "Compress one chunk now (chunk_schema is usually _timescaledb_internal; find names with list_chunks). Rewrites the chunk and locks it. Destructive/heavy: call with dry_run=true first (returns the plan, affected objects and a confirmation_token); show the warning to the user; then call with confirm=true and that exact confirmation_token to execute. Requires unrestricted mode + MCPG_ALLOW_DDL + MCPG_ALLOW_TIMESCALEDB_ADMIN.",
+    "arguments": [
+      {
+        "name": "chunk_name",
+        "type": "string",
+        "desc": "Chunk Name"
+      },
+      {
+        "name": "chunk_schema",
+        "type": "string",
+        "desc": "Chunk Schema"
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Confirm"
+      },
+      {
+        "name": "confirmation_token",
+        "type": "string",
+        "desc": "Confirmation Token"
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Dry Run"
+      }
+    ]
+  },
+  {
     "name": "copy_table_between_databases",
     "description": "Copy a single table from one database to another by piping pg_dump (source) into pg_restore (destination). The source URL is the caller-supplied source_url; the destination is the configured database URL. Specify at least one of include_schema / include_data. Credentials pass through libpq env vars on each leg, never on the command line. If the captured pg_dump archive would exceed MCPG_SHELL_MAX_OUTPUT_BYTES, the tool errors BEFORE pg_restore runs (a truncated custom-format archive cannot be safely restored). Performs subprocess execution \u2014 requires unrestricted mode + MCPG_ALLOW_SHELL.",
     "arguments": [
@@ -1094,6 +1336,63 @@
     ]
   },
   {
+    "name": "decompress_chunk",
+    "description": "Decompress one chunk (needs free disk for the uncompressed data; locks the chunk). Destructive/heavy: call with dry_run=true first (returns the plan, affected objects and a confirmation_token); show the warning to the user; then call with confirm=true and that exact confirmation_token to execute. Requires unrestricted mode + MCPG_ALLOW_DDL + MCPG_ALLOW_TIMESCALEDB_ADMIN.",
+    "arguments": [
+      {
+        "name": "chunk_name",
+        "type": "string",
+        "desc": "Chunk Name"
+      },
+      {
+        "name": "chunk_schema",
+        "type": "string",
+        "desc": "Chunk Schema"
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Confirm"
+      },
+      {
+        "name": "confirmation_token",
+        "type": "string",
+        "desc": "Confirmation Token"
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Dry Run"
+      }
+    ]
+  },
+  {
+    "name": "delete_job",
+    "description": "Delete a TimescaleDB user/policy job (job ids >= 1000). For policy jobs prefer the matching remove_*_policy tool. Destructive/heavy: call with dry_run=true first (returns the plan, affected objects and a confirmation_token); show the warning to the user; then call with confirm=true and that exact confirmation_token to execute. Requires unrestricted mode + MCPG_ALLOW_DDL + MCPG_ALLOW_TIMESCALEDB_ADMIN.",
+    "arguments": [
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Confirm"
+      },
+      {
+        "name": "confirmation_token",
+        "type": "string",
+        "desc": "Confirmation Token"
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Dry Run"
+      },
+      {
+        "name": "job_id",
+        "type": "integer",
+        "desc": "Job Id"
+      }
+    ]
+  },
+  {
     "name": "describe_ao_table",
     "description": "Describe append-optimized (AO) / append-optimized columnar (AO/CO) storage metadata for one table: row vs column orientation, `compression_type`, `compression_level`, `block_size`, `checksum`. Reads `pg_appendonly`. Returns `is_ao=false` cleanly when the table is a regular heap. Read-only. On vanilla PG returns `available=false`.\n\nExample: `describe_ao_table(schema='public', table='events_ao')`",
     "arguments": [
@@ -1312,6 +1611,57 @@
     "arguments": []
   },
   {
+    "name": "drop_chunks",
+    "description": "Permanently delete whole chunks of a hypertable by age: older_than / newer_than (intervals such as '30 days', relative to now) or created_before / created_after (chunk creation time; cannot be combined with the others). At least one bound is required. dry_run lists the chunks that would be dropped. DATA LOSS. Destructive/heavy: call with dry_run=true first (returns the plan, affected objects and a confirmation_token); show the warning to the user; then call with confirm=true and that exact confirmation_token to execute. Requires unrestricted mode + MCPG_ALLOW_DDL + MCPG_ALLOW_TIMESCALEDB_ADMIN.",
+    "arguments": [
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Confirm"
+      },
+      {
+        "name": "confirmation_token",
+        "type": "string",
+        "desc": "Confirmation Token"
+      },
+      {
+        "name": "created_after",
+        "type": "string",
+        "desc": "Created After"
+      },
+      {
+        "name": "created_before",
+        "type": "string",
+        "desc": "Created Before"
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Dry Run"
+      },
+      {
+        "name": "newer_than",
+        "type": "string",
+        "desc": "Newer Than"
+      },
+      {
+        "name": "older_than",
+        "type": "string",
+        "desc": "Older Than"
+      },
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Schema"
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "desc": "Table"
+      }
+    ]
+  },
+  {
     "name": "drop_graph",
     "description": "Delete an Apache AGE property graph space, dropping all its nodes, edges, and backing tables. Performs DDL \u2014 requires DDL permission enabled. Returns an object with `graph_name` and `dropped` (bool).",
     "arguments": [
@@ -1447,6 +1797,17 @@
     "name": "enable_redis_fdw",
     "description": "Install the ``redis_fdw`` extension. Thin wrapper over ``enable_extension('redis_fdw')`` \u2014 convenient for agents that have located the cache-and-foreign-data bucket but haven't found the generic extension installer. redis_fdw runs in-process inside Postgres; operators should be aware of that operational implication before installing. Requires DDL mode. Returns an object with `name='redis_fdw'` and `enabled=true`.\n\nExample: `enable_redis_fdw()`",
     "arguments": []
+  },
+  {
+    "name": "enable_session_intent",
+    "description": "Grow this session's visible tool surface by enabling an additional session-intent preset or raw capability-bucket id. Additive and idempotent -- sessions only grow, there's no disable. Call `list_session_intents()` first to see the available names. Not an authorization change: a tool that isn't yet visible via `tools/list` may still exist server-side if a caller already knows its name.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name"
+      }
+    ]
   },
   {
     "name": "explain_query",
@@ -1679,7 +2040,7 @@
   },
   {
     "name": "generate_diesel_schema",
-    "description": "Read a PostgreSQL schema and emit a Diesel ORM (Rust) schema.rs. One `table!` macro per table with column SQL types, `Nullable<T>` for nullable columns, plus `joinable!` declarations for single-column intra-schema FKs and an `allow_tables_to_appear_in_same_query!` macro so multi-table joins type-check. Enum types are emitted as Text-backed wrapper enums in a `pg_enum` module so the output works without `diesel_derive_enum`. Composite FKs are a documented v1 gap.",
+    "description": "Read a PostgreSQL schema and emit a Diesel ORM (Rust) schema.rs. One `table!` macro per table with column SQL types, `Nullable<T>` for nullable columns, plus `joinable!` declarations for single-column intra-schema FKs and an `allow_tables_to_appear_in_same_query!` macro so multi-table joins type-check. Enum types are emitted as Text-backed wrapper enums in a `pg_enum` module so the output works without `diesel_derive_enum`. Composite FKs are a documented v1 gap. Schema/table/column names must be plain identifiers (`[A-Za-z_][A-Za-z0-9_]*`); delimited names (hyphens, spaces, mixed-case-only) are not supported here because they become source identifiers in generated code \u2014 use SQL tools (`export_table`, `dump_database`) for those objects. See docs/identifier-policy.md.",
     "arguments": [
       {
         "name": "database",
@@ -1695,7 +2056,7 @@
   },
   {
     "name": "generate_drizzle_schema",
-    "description": "Read a PostgreSQL schema and emit a Drizzle ORM TypeScript schema string (drizzle-orm/pg-core). Covers tables, columns with PG-native types, primary/foreign keys, unique constraints, indexes, defaults, and enums. Single-column FKs emit column-level .references(); composite FKs are a documented v1 gap. Views, foreign tables, partitions, triggers, and functions are out of scope. Returns the rendered TypeScript `schema.ts` source as a single string.",
+    "description": "Read a PostgreSQL schema and emit a Drizzle ORM TypeScript schema string (drizzle-orm/pg-core). Covers tables, columns with PG-native types, primary/foreign keys, unique constraints, indexes, defaults, and enums. Single-column FKs emit column-level .references(); composite FKs are a documented v1 gap. Views, foreign tables, partitions, triggers, and functions are out of scope. Returns the rendered TypeScript `schema.ts` source as a single string. Schema/table/column names must be plain identifiers (`[A-Za-z_][A-Za-z0-9_]*`); delimited names (hyphens, spaces, mixed-case-only) are not supported here because they become source identifiers in generated code \u2014 use SQL tools (`export_table`, `dump_database`) for those objects. See docs/identifier-policy.md.",
     "arguments": [
       {
         "name": "database",
@@ -1711,7 +2072,7 @@
   },
   {
     "name": "generate_ecto_schemas",
-    "description": "Read a PostgreSQL schema and emit Ecto (Elixir) schema modules \u2014 one .ex file per table, named after the singularised table. Each module uses Ecto.Schema with field declarations, belongs_to for single-column intra-schema FKs, and timestamps() when both inserted_at and updated_at exist. The Elixir top-level module is configurable via app_module (default MyApp). Returns a JSON object {filename: source} so the agent can write each file.",
+    "description": "Read a PostgreSQL schema and emit Ecto (Elixir) schema modules \u2014 one .ex file per table, named after the singularised table. Each module uses Ecto.Schema with field declarations, belongs_to for single-column intra-schema FKs, and timestamps() when both inserted_at and updated_at exist. The Elixir top-level module is configurable via app_module (default MyApp). Returns a JSON object {filename: source} so the agent can write each file. Schema/table/column names must be plain identifiers (`[A-Za-z_][A-Za-z0-9_]*`); delimited names (hyphens, spaces, mixed-case-only) are not supported here because they become source identifiers in generated code \u2014 use SQL tools (`export_table`, `dump_database`) for those objects. See docs/identifier-policy.md.",
     "arguments": [
       {
         "name": "app_module",
@@ -1732,7 +2093,7 @@
   },
   {
     "name": "generate_ent_schemas",
-    "description": "Read a PostgreSQL schema and emit Ent (Go) Schema struct files \u2014 one .go file per table. Each file exports a struct that lists field.X(...) calls for every column, edge.To(...) for single-column intra-schema FKs, and field.Enum().Values() for enum-typed columns. Composite FKs are a documented v1 gap. Returns a JSON object {filename: source} so the agent can write each file.",
+    "description": "Read a PostgreSQL schema and emit Ent (Go) Schema struct files \u2014 one .go file per table. Each file exports a struct that lists field.X(...) calls for every column, edge.To(...) for single-column intra-schema FKs, and field.Enum().Values() for enum-typed columns. Composite FKs are a documented v1 gap. Returns a JSON object {filename: source} so the agent can write each file. Schema/table/column names must be plain identifiers (`[A-Za-z_][A-Za-z0-9_]*`); delimited names (hyphens, spaces, mixed-case-only) are not supported here because they become source identifiers in generated code \u2014 use SQL tools (`export_table`, `dump_database`) for those objects. See docs/identifier-policy.md.",
     "arguments": [
       {
         "name": "database",
@@ -1816,7 +2177,7 @@
   },
   {
     "name": "generate_jooq_config",
-    "description": "Read a PostgreSQL schema and emit a jooq-codegen configuration XML pointing at it. Unlike the other exporters, jOOQ generates Java code itself from a live database \u2014 the artefact here is the configuration file the user feeds to mvn jooq-codegen:generate (or the Gradle task). The XML lists every base table explicitly via an <includes> regex, excludes MCPg's bookkeeping tables, and emits a <forcedType> for every json / jsonb column so they map to org.jooq.JSON / org.jooq.JSONB out of the box. Default Java package is com.example.jooq; override via the target_package arg.",
+    "description": "Read a PostgreSQL schema and emit a jooq-codegen configuration XML pointing at it. Unlike the other exporters, jOOQ generates Java code itself from a live database \u2014 the artefact here is the configuration file the user feeds to mvn jooq-codegen:generate (or the Gradle task). The XML lists every base table explicitly via an <includes> regex, excludes MCPg's bookkeeping tables, and emits a <forcedType> for every json / jsonb column so they map to org.jooq.JSON / org.jooq.JSONB out of the box. Default Java package is com.example.jooq; override via the target_package arg. Schema/table/column names must be plain identifiers (`[A-Za-z_][A-Za-z0-9_]*`); delimited names (hyphens, spaces, mixed-case-only) are not supported here because they become source identifiers in generated code \u2014 use SQL tools (`export_table`, `dump_database`) for those objects. See docs/identifier-policy.md.",
     "arguments": [
       {
         "name": "database",
@@ -1842,7 +2203,7 @@
   },
   {
     "name": "generate_prisma_schema",
-    "description": "Read a PostgreSQL schema and emit a valid Prisma `.prisma` schema string (mirrors `prisma db pull`). Covers tables, columns, primary/foreign keys, unique constraints, indexes, and enums. Views, foreign tables, partitions, triggers, functions, and policies are out of scope; unmappable types fall back to `Unsupported(\"...\")`. Returns the rendered `schema.prisma` source as a single string.",
+    "description": "Read a PostgreSQL schema and emit a valid Prisma `.prisma` schema string (mirrors `prisma db pull`). Covers tables, columns, primary/foreign keys, unique constraints, indexes, and enums. Views, foreign tables, partitions, triggers, functions, and policies are out of scope; unmappable types fall back to `Unsupported(\"...\")`. Returns the rendered `schema.prisma` source as a single string. Schema/table/column names must be plain identifiers (`[A-Za-z_][A-Za-z0-9_]*`); delimited names (hyphens, spaces, mixed-case-only) are not supported here because they become source identifiers in generated code \u2014 use SQL tools (`export_table`, `dump_database`) for those objects. See docs/identifier-policy.md.",
     "arguments": [
       {
         "name": "database",
@@ -1900,7 +2261,7 @@
   },
   {
     "name": "generate_sqlalchemy_models",
-    "description": "Read a PostgreSQL schema and emit a SQLAlchemy 2.0 declarative models file (DeclarativeBase + Mapped[T] + mapped_column). Covers tables, columns with PG-native types (incl. jsonb via sqlalchemy.dialects.postgresql.JSONB), primary keys, single-column FKs via ForeignKey(), unique constraints (column-level + composite via __table_args__), defaults, and enums (emitted as Python enum.Enum classes). Composite FKs are a documented v1 gap. Returns the rendered Python `models.py` source as a single string.",
+    "description": "Read a PostgreSQL schema and emit a SQLAlchemy 2.0 declarative models file (DeclarativeBase + Mapped[T] + mapped_column). Covers tables, columns with PG-native types (incl. jsonb via sqlalchemy.dialects.postgresql.JSONB), primary keys, single-column FKs via ForeignKey(), unique constraints (column-level + composite via __table_args__), defaults, and enums (emitted as Python enum.Enum classes). Composite FKs are a documented v1 gap. Returns the rendered Python `models.py` source as a single string. Schema/table/column names must be plain identifiers (`[A-Za-z_][A-Za-z0-9_]*`); delimited names (hyphens, spaces, mixed-case-only) are not supported here because they become source identifiers in generated code \u2014 use SQL tools (`export_table`, `dump_database`) for those objects. See docs/identifier-policy.md.",
     "arguments": [
       {
         "name": "database",
@@ -1916,7 +2277,7 @@
   },
   {
     "name": "generate_sqlc_schema",
-    "description": "Read a PostgreSQL schema and emit a sqlc-friendly schema.sql (plain DDL). Order: CREATE SCHEMA, CREATE TYPE for each enum, CREATE TABLE statements (columns only), ALTER TABLE ADD CONSTRAINT (PK / unique / check / foreign key in that order), then CREATE INDEX for non-constraint indexes. The file replays cleanly against an empty database so FKs land after all referenced tables exist. In-process \u2014 no MCPG_ALLOW_SHELL needed. Returns the rendered `schema.sql` text as a single string.",
+    "description": "Read a PostgreSQL schema and emit a sqlc-friendly schema.sql (plain DDL). Order: CREATE SCHEMA, CREATE TYPE for each enum, CREATE TABLE statements (columns only), ALTER TABLE ADD CONSTRAINT (PK / unique / check / foreign key in that order), then CREATE INDEX for non-constraint indexes. The file replays cleanly against an empty database so FKs land after all referenced tables exist. In-process \u2014 no MCPG_ALLOW_SHELL needed. Returns the rendered `schema.sql` text as a single string. Schema/table/column names must be plain identifiers (`[A-Za-z_][A-Za-z0-9_]*`); delimited names (hyphens, spaces, mixed-case-only) are not supported here because they become source identifiers in generated code \u2014 use SQL tools (`export_table`, `dump_database`) for those objects. See docs/identifier-policy.md.",
     "arguments": [
       {
         "name": "database",
@@ -2104,6 +2465,27 @@
     ]
   },
   {
+    "name": "get_hypertable_stats",
+    "description": "Size and compression statistics for one TimescaleDB hypertable: total/compressed chunk counts, approximate row count, table/index/toast/total bytes, and bytes before/after compression. Errors if the table is not a hypertable; available=false when the timescaledb extension is not installed.",
+    "arguments": [
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Optional: target a configured secondary (read-only) database by name; omit for the primary. Call list_databases to see the configured ids."
+      },
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Schema"
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "desc": "Table"
+      }
+    ]
+  },
+  {
     "name": "get_logical_replication_status",
     "description": "Report whether PG 19's on-demand wal_level flip is usable, plus the configured `wal_level`, the new PG 19 `effective_wal_level` preset GUC, and `max_replication_slots`. When configured and effective diverge the agent can tell that an `ALTER SYSTEM` has been done but a reload is still pending. Never raises. Returns an object with `available` (bool), `server_version_num`, `server_version`, `wal_level`, `effective_wal_level`, `max_replication_slots`, and `detail`.\n\nExample: `get_logical_replication_status()`",
     "arguments": [
@@ -2267,6 +2649,17 @@
         "name": "tablespace_name",
         "type": "string",
         "desc": "Tablespace Name"
+      }
+    ]
+  },
+  {
+    "name": "get_timescaledb_telemetry_report",
+    "description": "Return the usage report TimescaleDB builds about this database (get_telemetry_report()): versions, relation counts and sizes, feature usage. It is generated locally from catalog data and nothing is sent by this call (the periodic upload is a separate background job governed by timescaledb.telemetry_level). Contains instance metadata such as the database UUID, so treat it as sensitive.",
+    "arguments": [
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Optional: target a configured secondary (read-only) database by name; omit for the primary. Call list_databases to see the configured ids."
       }
     ]
   },
@@ -2592,6 +2985,17 @@
     ]
   },
   {
+    "name": "inspect_guc",
+    "description": "Inspect one PostgreSQL GUC via pg_settings: live value, unit, context (postmaster/sighup/user/\u2026), pending_restart, vartype, and whether ALTER SYSTEM can change it. Use this before alter_system to see whether a reload or restart is required. Read-only.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name"
+      }
+    ]
+  },
+  {
     "name": "lint_naming_conventions",
     "description": "Lint table / column / index naming in a schema. Detects the majority case style (snake_case / camelCase / PascalCase / SCREAMING_SNAKE) per schema and per table, then flags outliers. Also flags indexes whose names do not start with a conventional prefix (idx_, ix_, pk_, uq_, fk_ by default). Findings carry the offender's style and the detected majority \u2014 agents can use the style field to filter for renames vs accept-as-is. Pure read. Returns an object with `schema_style` (detected majority), `findings` (list of style outliers), and `index_prefix_findings` (indexes with non-conventional prefixes).",
     "arguments": [
@@ -2721,6 +3125,17 @@
         "name": "table",
         "type": "string",
         "desc": "Table"
+      }
+    ]
+  },
+  {
+    "name": "list_continuous_aggregates",
+    "description": "List TimescaleDB continuous aggregates with their source hypertable, materialized_only flag and compression flag.",
+    "arguments": [
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Optional: target a configured secondary (read-only) database by name; omit for the primary. Call list_databases to see the configured ids."
       }
     ]
   },
@@ -3156,6 +3571,11 @@
     ]
   },
   {
+    "name": "list_session_intents",
+    "description": "List every session-intent preset (bucket-based presets like `lookup`/`migration`/`vector_rag`/`monitor`/`admin`, plus the finer headline-based `core` preset), each one's resolved tool count against the currently registered surface, and whether it's enabled for this session. A raw capability-bucket id is also accepted by `enable_session_intent` for coverage a preset doesn't offer. Call this before `enable_session_intent` to see what's available; the session starts at `core` (or whatever MCPG_SESSION_INTENT was configured with) until you enable more.",
+    "arguments": []
+  },
+  {
     "name": "list_subscriptions",
     "description": "List logical-replication subscriptions; requires superuser to see any rows.",
     "arguments": [
@@ -3179,6 +3599,17 @@
         "name": "schema",
         "type": "string",
         "desc": "Schema"
+      }
+    ]
+  },
+  {
+    "name": "list_timescale_jobs",
+    "description": "List TimescaleDB background jobs (retention / compression / refresh / reorder policies and user jobs) with schedule, next start, last run status and run/failure counts. Job ids below 1000 are TimescaleDB system jobs.",
+    "arguments": [
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Optional: target a configured secondary (read-only) database by name; omit for the primary. Call list_databases to see the configured ids."
       }
     ]
   },
@@ -3341,6 +3772,42 @@
         "name": "schema",
         "type": "string",
         "desc": "Schema"
+      }
+    ]
+  },
+  {
+    "name": "merge_chunks",
+    "description": "Merge two or more adjacent, uncompressed chunks (all in chunk_schema) into one. concurrently=true uses merge_chunks_concurrently (lighter locks; runs on an autocommit connection and is unavailable when MCPG_DEFAULT_ROLE / MCPG_ALLOWED_ROLES is set). Destructive/heavy: call with dry_run=true first (returns the plan, affected objects and a confirmation_token); show the warning to the user; then call with confirm=true and that exact confirmation_token to execute. Requires unrestricted mode + MCPG_ALLOW_DDL + MCPG_ALLOW_TIMESCALEDB_ADMIN.",
+    "arguments": [
+      {
+        "name": "chunk_names",
+        "type": "array",
+        "desc": "Chunk Names"
+      },
+      {
+        "name": "chunk_schema",
+        "type": "string",
+        "desc": "Chunk Schema"
+      },
+      {
+        "name": "concurrently",
+        "type": "boolean",
+        "desc": "Concurrently"
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Confirm"
+      },
+      {
+        "name": "confirmation_token",
+        "type": "string",
+        "desc": "Confirmation Token"
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Dry Run"
       }
     ]
   },
@@ -4566,6 +5033,52 @@
     ]
   },
   {
+    "name": "refresh_continuous_aggregate",
+    "description": "Refresh a continuous aggregate now over [window_start, window_end) (ISO timestamps; null = unbounded). force=true recomputes buckets even if already refreshed. Cannot run in a transaction, so it runs on an autocommit connection in batches (a failure can leave the window partly refreshed) and is unavailable when MCPG_DEFAULT_ROLE / MCPG_ALLOWED_ROLES is set. Destructive/heavy: call with dry_run=true first (returns the plan, affected objects and a confirmation_token); show the warning to the user; then call with confirm=true and that exact confirmation_token to execute. Requires unrestricted mode + MCPG_ALLOW_DDL + MCPG_ALLOW_TIMESCALEDB_ADMIN.",
+    "arguments": [
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Confirm"
+      },
+      {
+        "name": "confirmation_token",
+        "type": "string",
+        "desc": "Confirmation Token"
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Dry Run"
+      },
+      {
+        "name": "force",
+        "type": "boolean",
+        "desc": "Force"
+      },
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Schema"
+      },
+      {
+        "name": "view",
+        "type": "string",
+        "desc": "View"
+      },
+      {
+        "name": "window_end",
+        "type": "string",
+        "desc": "Window End"
+      },
+      {
+        "name": "window_start",
+        "type": "string",
+        "desc": "Window Start"
+      }
+    ]
+  },
+  {
     "name": "reindex_pg_search_index",
     "description": "REINDEX a pg_search BM25 index. Pre-flight confirms the named index actually uses the bm25 access method (catalog lookup on pg_am) before running. ``concurrently=True`` is the default and runs on autocommit since REINDEX CONCURRENTLY can't run inside a transaction. Performs DDL \u2014 requires unrestricted mode + MCPG_ALLOW_DDL; pg_search installed. Returns an object with `schema`, `index`, `concurrently` (bool), and `reindex_sql` (the rendered REINDEX statement that ran).",
     "arguments": [
@@ -4604,6 +5117,116 @@
         "name": "schema",
         "type": "string",
         "desc": "Schema"
+      }
+    ]
+  },
+  {
+    "name": "reload_config",
+    "description": "Call pg_reload_conf() so sighup-class settings written with ALTER SYSTEM (or edit of config files) take effect without a full restart. Returns whether reload succeeded and any settings still marked pending_restart. Requires unrestricted mode and MCPG_ALLOW_ALTER_SYSTEM.",
+    "arguments": []
+  },
+  {
+    "name": "remove_compression_policy",
+    "description": "Remove a hypertable's compression policy (no-op if none). Already-compressed chunks stay compressed. Requires unrestricted mode + MCPG_ALLOW_DDL.",
+    "arguments": [
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Schema"
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "desc": "Table"
+      }
+    ]
+  },
+  {
+    "name": "remove_continuous_aggregate_policy",
+    "description": "Remove a continuous aggregate's refresh policy (no-op if none). Requires unrestricted mode + MCPG_ALLOW_DDL.",
+    "arguments": [
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Schema"
+      },
+      {
+        "name": "view",
+        "type": "string",
+        "desc": "View"
+      }
+    ]
+  },
+  {
+    "name": "remove_reorder_policy",
+    "description": "Remove a hypertable's reorder policy (no-op if none). Requires unrestricted mode + MCPG_ALLOW_DDL.",
+    "arguments": [
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Schema"
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "desc": "Table"
+      }
+    ]
+  },
+  {
+    "name": "remove_retention_policy",
+    "description": "Remove a hypertable's retention policy (no-op if none). Requires unrestricted mode + MCPG_ALLOW_DDL.",
+    "arguments": [
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Schema"
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "desc": "Table"
+      }
+    ]
+  },
+  {
+    "name": "reorder_chunk",
+    "description": "Physically reorder one chunk along an index. Cannot run in a transaction, so it runs on an autocommit connection (not rolled back on failure) and is unavailable when MCPG_DEFAULT_ROLE / MCPG_ALLOWED_ROLES is set. Destructive/heavy: call with dry_run=true first (returns the plan, affected objects and a confirmation_token); show the warning to the user; then call with confirm=true and that exact confirmation_token to execute. Requires unrestricted mode + MCPG_ALLOW_DDL + MCPG_ALLOW_TIMESCALEDB_ADMIN.",
+    "arguments": [
+      {
+        "name": "chunk_name",
+        "type": "string",
+        "desc": "Chunk Name"
+      },
+      {
+        "name": "chunk_schema",
+        "type": "string",
+        "desc": "Chunk Schema"
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Confirm"
+      },
+      {
+        "name": "confirmation_token",
+        "type": "string",
+        "desc": "Confirmation Token"
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Dry Run"
+      },
+      {
+        "name": "index_name",
+        "type": "string",
+        "desc": "Index Name"
+      },
+      {
+        "name": "index_schema",
+        "type": "string",
+        "desc": "Index Schema"
       }
     ]
   },
@@ -4776,6 +5399,32 @@
         "name": "table",
         "type": "string",
         "desc": "Table"
+      }
+    ]
+  },
+  {
+    "name": "run_job",
+    "description": "Run a TimescaleDB user/policy job immediately (job ids >= 1000; system jobs are refused). A retention policy job drops chunks right away. Destructive/heavy: call with dry_run=true first (returns the plan, affected objects and a confirmation_token); show the warning to the user; then call with confirm=true and that exact confirmation_token to execute. Requires unrestricted mode + MCPG_ALLOW_DDL + MCPG_ALLOW_TIMESCALEDB_ADMIN.",
+    "arguments": [
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Confirm"
+      },
+      {
+        "name": "confirmation_token",
+        "type": "string",
+        "desc": "Confirmation Token"
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Dry Run"
+      },
+      {
+        "name": "job_id",
+        "type": "integer",
+        "desc": "Job Id"
       }
     ]
   },
@@ -5045,6 +5694,27 @@
     ]
   },
   {
+    "name": "set_chunk_time_interval",
+    "description": "Change a hypertable's chunk interval (e.g. '1 day'). Applies only to chunks created from now on; existing chunks are unchanged. Requires unrestricted mode + MCPG_ALLOW_DDL.",
+    "arguments": [
+      {
+        "name": "chunk_time_interval",
+        "type": "string",
+        "desc": "Chunk Time Interval"
+      },
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Schema"
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "desc": "Table"
+      }
+    ]
+  },
+  {
     "name": "setup_efficiency_observations",
     "description": "Create the ``mcpg_rag.efficiency_observations`` table + two indexes (``observed_at``, composite ``(backend, metric, k, observed_at)``). Idempotent \u2014 safe to re-run; returns ``{schema_created, table_created, indexes_created}``. Required before any ``record_efficiency_observation`` call or before ``recommend_efficiency_thresholds`` can return corpus-derived values. Performs DDL \u2014 requires unrestricted mode + MCPG_ALLOW_DDL.",
     "arguments": []
@@ -5082,7 +5752,7 @@
   },
   {
     "name": "subscribe_channel",
-    "description": "Open a PostgreSQL LISTEN on `channel` and return a subscription id. Notifications buffer in process memory; poll for them via poll_notifications. Channel name must match [A-Za-z_][A-Za-z0-9_]*. Subscriptions are lost on server restart. Requires unrestricted mode + MCPG_ALLOW_LISTEN.",
+    "description": "Open a PostgreSQL LISTEN on `channel` and return a subscription id. Notifications buffer in process memory; poll for them via poll_notifications. Channel names needing delimited quoting are accepted. Subscriptions are lost on server restart. Requires unrestricted mode + MCPG_ALLOW_LISTEN.",
     "arguments": [
       {
         "name": "channel",
