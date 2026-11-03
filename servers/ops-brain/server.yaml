@@ -1,0 +1,44 @@
+name: ops-brain
+image: mcp/ops-brain
+type: server
+meta:
+  category: productivity
+  tags:
+    - productivity
+    - ai-agents
+    - coordination
+    - handoffs
+    - postgresql
+about:
+  title: Ops Brain
+  description: A small team bus for AI agents. Lets agents across machines and vendors hand work to each other, reply in thread, and share a small set of cross-agent gotchas, backed by your own PostgreSQL with pgvector.
+  icon: https://avatars.githubusercontent.com/u/252354070?s=200&v=4
+source:
+  project: https://github.com/TheK3nsai/ops-brain
+  commit: 9db8d832aa7e4129d662106762ae811f6f9a172d
+config:
+  description: Connect ops-brain to your own PostgreSQL database with the pgvector extension. Migrations run on startup. Embeddings are optional and off unless an embedding URL is set; full-text search works without them. Over stdio it runs as a single trusted operator; multi-machine teams should use the HTTP setup with per-agent tokens (see the repo docs).
+  secrets:
+    - name: ops-brain.database_url
+      env: DATABASE_URL
+      example: postgres://ops_brain:password@host.docker.internal:5432/ops_brain
+    - name: ops-brain.embedding_api_key
+      env: OPS_BRAIN_EMBEDDING_API_KEY
+      example: <OPS_BRAIN_EMBEDDING_API_KEY>
+      required: false
+  env:
+    - name: OPS_BRAIN_EMBEDDING_URL
+      example: http://host.docker.internal:11434/v1/embeddings
+      value: "{{ops-brain.embedding_url}}"
+    - name: OPS_BRAIN_EMBEDDING_MODEL
+      example: nomic-embed-text
+      value: "{{ops-brain.embedding_model}}"
+  parameters:
+    type: object
+    properties:
+      embedding_url:
+        type: string
+        description: Optional OpenAI-compatible embeddings endpoint, such as Ollama serving nomic-embed-text. Leave empty to keep embeddings off.
+      embedding_model:
+        type: string
+        description: Embedding model name. It must produce 768-dimension vectors. Empty uses nomic-embed-text.
