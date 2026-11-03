@@ -308,6 +308,22 @@ remote:
 
 **Note:** Remote servers without OAuth don't need the `oauth` field or `dynamic.tools` field in their configuration.
 
+For hosted services, optional `meta.owner` and `meta.license` fields identify the
+service publisher and its license or proprietary terms in the generated catalog.
+These describe the hosted service, not the license of this registry contribution.
+For example:
+
+```yaml
+meta:
+  owner: Example Company
+  license: Proprietary (hosted service)
+  category: productivity
+```
+
+Include a link to the service terms in `readme.md`. Omitted or blank values retain
+the existing catalog defaults. These overrides apply only to remote services;
+local server license validation and source-derived attribution are unchanged.
+
 #### 5️⃣ Test your remote server locally
 
 You can test your remote server configuration by importing it into Docker Desktop:
