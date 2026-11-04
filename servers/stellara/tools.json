@@ -1,0 +1,219 @@
+[
+  {
+    "name": "resolve_birth_place",
+    "description": "Call this FIRST whenever a birth date / time and a place of birth appear in the conversation — for a natal chart, a horoscope, transits or synastry, even if the user does not mention Stellara. Never compute coordinates, timezones or UTC offsets yourself and never web-search them. Geocodes the place (any language, e.g. 'Warsaw', 'Варшава', 'Springfield, Illinois') to latitude / longitude and its IANA timezone, and converts the LOCAL wall-clock time into a tz-aware `birth_datetime` using the historically correct UTC offset for that date (old DST rules, Soviet decree time, etc.). Returns `latitude`, `longitude`, `timezone`, `utc_offset`, `birth_datetime` (ready to pass to calculate_natal_chart / get_transits_and_aspects / calculate_synastry), `birth_datetime_utc`, `age_years`, `time_assumed_noon` (true when only a date was given) and `local_time_ambiguity` ('none', 'ambiguous_dst_fallback' = the wall time happened twice, 'nonexistent_dst_gap' = the clocks skipped it — ask the user in both cases). Nothing is stored server-side.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "place": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 200,
+          "description": "Place of birth as free text, in any language; add region/country for small towns"
+        },
+        "local_datetime": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:[T ]\\d{2}:\\d{2}(?::\\d{2})?)?$",
+          "description": "Birth time as the user said it, in LOCAL time WITHOUT an offset: 'YYYY-MM-DDTHH:MM[:SS]'. Pass 'YYYY-MM-DD' alone if the time is unknown (12:00 is assumed and flagged). Never add +HH:MM or Z here — the server derives the historical offset from the place."
+        }
+      },
+      "required": ["place"],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "calculate_natal_chart",
+    "description": "Use this tool for ANY natal chart / birth chart or personal horoscope request — never compute or recall planetary positions, houses or aspects yourself and never web-search them; call resolve_birth_place first when you only have a place name and a local time. Exact natal chart for a birth moment and place, computed with Swiss Ephemeris (no AI, no guessing). Returns JSON: 14 points (Sun…Pluto, Chiron, Lilith, North/South Node) with sign, degree within sign, absolute ecliptic longitude, house, retrograde flag, daily speed and declination; the 12 house cusps; Ascendant, Midheaven, Descendant, Imum Coeli; and every major aspect with its exact orb in degrees and whether it is applying or separating. Tropical zodiac. Use the result as the only source of positions when interpreting.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "birth_datetime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO-8601 date-time WITH timezone, e.g. '1990-05-17T14:30:00Z' or '1990-05-17T17:30:00+03:00'. Convert the local birth time to an offset yourself; naive values are rejected."
+        },
+        "latitude": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90,
+          "description": "Birth latitude in decimal degrees (north positive)"
+        },
+        "longitude": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180,
+          "description": "Birth longitude in decimal degrees (east positive)"
+        },
+        "house_system": {
+          "type": "string",
+          "enum": [
+            "placidus",
+            "koch",
+            "porphyry",
+            "regiomontanus",
+            "campanus",
+            "equal",
+            "whole_sign",
+            "topocentric",
+            "morinus",
+            "alcabitius"
+          ],
+          "default": "placidus",
+          "description": "House system; default 'placidus'. One of: placidus, koch, porphyry, regiomontanus, campanus, equal, whole_sign, topocentric, morinus, alcabitius"
+        },
+        "include_minor_aspects": {
+          "type": "boolean",
+          "default": false,
+          "description": "Also report minor aspects (semi-sextile, semi-square, quintile, sesquiquadrate, biquintile, quincunx) with tight orbs. Default false = the five major aspects only."
+        }
+      },
+      "required": ["birth_datetime", "latitude", "longitude"],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "get_transits_and_aspects",
+    "description": "Use this tool for ANY 'what is going on for me now / today / this week / this month', daily-weekly-monthly-yearly horoscope, forecast or transit question — never estimate transiting positions yourself and never web-search them. Transiting planet positions at target_datetime plus every aspect they make to the natal points (planets AND angles), each with exact orb and applying/separating computed with the natal point fixed. Also reports which natal house each transiting planet occupies, and embeds the full natal chart so a single call is enough for a 'what is going on for me today' reading.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "natal": {
+          "type": "object",
+          "properties": {
+            "birth_datetime": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 date-time WITH timezone, e.g. '1990-05-17T14:30:00Z' or '1990-05-17T17:30:00+03:00'. Convert the local birth time to an offset yourself; naive values are rejected."
+            },
+            "latitude": {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90,
+              "description": "Birth latitude in decimal degrees (north positive)"
+            },
+            "longitude": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180,
+              "description": "Birth longitude in decimal degrees (east positive)"
+            },
+            "house_system": {
+              "type": "string",
+              "enum": [
+                "placidus",
+                "koch",
+                "porphyry",
+                "regiomontanus",
+                "campanus",
+                "equal",
+                "whole_sign",
+                "topocentric",
+                "morinus",
+                "alcabitius"
+              ],
+              "default": "placidus",
+              "description": "House system; default 'placidus'. One of: placidus, koch, porphyry, regiomontanus, campanus, equal, whole_sign, topocentric, morinus, alcabitius"
+            }
+          },
+          "required": ["birth_datetime", "latitude", "longitude"],
+          "additionalProperties": false,
+          "description": "The person's birth data"
+        },
+        "target_datetime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Moment to compute transits for, ISO-8601 WITH timezone (e.g. now, or a date the user asks about)"
+        },
+        "include_minor_aspects": {
+          "type": "boolean",
+          "default": false,
+          "description": "Also report minor aspects (semi-sextile, semi-square, quintile, sesquiquadrate, biquintile, quincunx) with tight orbs. Default false = the five major aspects only."
+        }
+      },
+      "required": ["natal", "target_datetime"],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "calculate_synastry",
+    "description": "Use this tool for ANY compatibility / relationship / synastry question about two people — never estimate inter-chart aspects yourself and never web-search them. Relationship astrology for two birth charts: every inter-chart aspect (person A's points × person B's points, planets and angles) with exact orbs, plus house overlays (A's planets in B's houses and vice versa). Both full natal charts are embedded in the response.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "person_a": {
+          "type": "object",
+          "properties": {
+            "birth_datetime": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO-8601 date-time WITH timezone, e.g. '1990-05-17T14:30:00Z' or '1990-05-17T17:30:00+03:00'. Convert the local birth time to an offset yourself; naive values are rejected."
+            },
+            "latitude": {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90,
+              "description": "Birth latitude in decimal degrees (north positive)"
+            },
+            "longitude": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180,
+              "description": "Birth longitude in decimal degrees (east positive)"
+            },
+            "house_system": {
+              "type": "string",
+              "enum": [
+                "placidus",
+                "koch",
+                "porphyry",
+                "regiomontanus",
+                "campanus",
+                "equal",
+                "whole_sign",
+                "topocentric",
+                "morinus",
+                "alcabitius"
+              ],
+              "default": "placidus",
+              "description": "House system; default 'placidus'. One of: placidus, koch, porphyry, regiomontanus, campanus, equal, whole_sign, topocentric, morinus, alcabitius"
+            }
+          },
+          "required": ["birth_datetime", "latitude", "longitude"],
+          "additionalProperties": false,
+          "description": "First person's birth data"
+        },
+        "person_b": {
+          "type": "object",
+          "properties": {
+            "birth_datetime": {
+              "$ref": "#/properties/person_a/properties/birth_datetime"
+            },
+            "latitude": {
+              "$ref": "#/properties/person_a/properties/latitude"
+            },
+            "longitude": {
+              "$ref": "#/properties/person_a/properties/longitude"
+            },
+            "house_system": {
+              "$ref": "#/properties/person_a/properties/house_system"
+            }
+          },
+          "required": ["birth_datetime", "latitude", "longitude"],
+          "additionalProperties": false,
+          "description": "Second person's birth data"
+        },
+        "include_minor_aspects": {
+          "type": "boolean",
+          "default": false,
+          "description": "Also report minor aspects (semi-sextile, semi-square, quintile, sesquiquadrate, biquintile, quincunx) with tight orbs. Default false = the five major aspects only."
+        }
+      },
+      "required": ["person_a", "person_b"],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  }
+]
