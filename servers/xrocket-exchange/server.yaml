@@ -1,0 +1,63 @@
+name: xrocket-exchange
+image: mcp/xrocket-exchange
+type: server
+meta:
+  category: finance
+  tags:
+    - finance
+    - trading
+    - cryptocurrency
+    - exchange
+    - xrocket
+about:
+  title: XRocket Exchange
+  description: Unofficial xRocket integration for live spot-market data and autonomous order placement or cancellation inside one operator-set daily value limit. Internal transfers and withdrawals stay disabled.
+  icon: https://raw.githubusercontent.com/nakazanie-ton/myrocket/b17fd02f93909311bbf402851bcaf3db559a3f74/plugins/xrocket-exchange/assets/icon.svg
+source:
+  project: https://github.com/nakazanie-ton/myrocket
+  branch: main
+  commit: b17fd02f93909311bbf402851bcaf3db559a3f74
+  dockerfile: Dockerfile
+  buildTarget: stdio
+config:
+  description: Add your xRocket API token, choose testnet or mainnet, and set one daily value limit such as 100 USD.
+  secrets:
+    - name: xrocket-exchange.api_token
+      env: XROCKET_API_TOKEN
+      example: <XROCKET_API_TOKEN>
+      description: Create the token in xRocket under Menu, Settings, Exchange settings, API token. Store it only as a local Docker secret.
+      required: true
+  env:
+    - name: XROCKET_PROFILE
+      example: full
+      value: full
+    - name: XROCKET_ENVIRONMENT
+      example: testnet
+      value: "{{xrocket-exchange.environment}}"
+    - name: XROCKET_ENABLE_TRADING
+      example: "true"
+      value: "true"
+    - name: XROCKET_TRADING_LIMIT
+      example: 100 USD
+      value: "{{xrocket-exchange.daily_limit}}"
+    - name: XROCKET_ENABLE_TRANSFERS
+      example: "false"
+      value: "false"
+    - name: XROCKET_ENABLE_WITHDRAWALS
+      example: "false"
+      value: "false"
+    - name: XROCKET_ALLOW_MAINNET_WRITES
+      example: "true"
+      value: "true"
+  parameters:
+    type: object
+    properties:
+      environment:
+        type: string
+        description: Use testnet first. Enter mainnet only when the strategy is ready for live trading.
+      daily_limit:
+        type: string
+        description: One daily trading value limit as an amount and asset, for example 100 USD or 25 TONCOIN.
+    required:
+      - environment
+      - daily_limit
