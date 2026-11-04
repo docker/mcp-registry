@@ -1,0 +1,48 @@
+name: Check source repository status
+
+on:
+  schedule:
+    - cron: "23 6 * * 1" # Weekly, Monday 06:23 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-repositories
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+      - name: Install Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: go.mod
+      - name: Check repository metadata
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: go run ./cmd/ci check-repositories --timeout 20m
+      - name: Publish run summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -f repository-status.md ]; then
+            cat repository-status.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: repository-status
+          path: |
+            repository-status.json
+            repository-status.md
+          if-no-files-found: warn
+          retention-days: 30
