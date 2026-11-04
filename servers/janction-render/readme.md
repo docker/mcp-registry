@@ -1,0 +1,1 @@
+Docs: https://render.janction.jp/llms.txt (agents) and https://github.com/JasmyLab-JANCTION/janction-render (code, MIT). Auth: OAuth 2.1 with dynamic client registration, or an API key as Authorization: Bearer. A free key is issued with POST https://render.janction.jp/v1/keys. Operated by JasmyLab Inc.
