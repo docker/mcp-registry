@@ -1,6 +1,6 @@
 # Beancount.io
 
-Connect to the hosted Beancount.io service over Streamable HTTP with OAuth.
+Connect to the hosted [Beancount.io](https://beancount.io/) service over Streamable HTTP with OAuth.
 
 After enabling the remote entry in your Docker MCP catalog/profile, request the
 ledger permissions needed for queries and previews:
