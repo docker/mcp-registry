@@ -1,0 +1,50 @@
+name: cost-guard-mcp
+image: mcp/cost-guard-mcp
+type: server
+meta:
+  category: database
+  tags:
+    - ai-agents
+    - bigquery
+    - cost-optimization
+    - data-warehouse
+    - finops
+    - model-context-protocol
+    - python
+    - snowflake
+    - sql
+about:
+  title: Cost Guard
+  description: Pre-flight query cost and result-size guardrails for AI agents across BigQuery and Snowflake. Every cost estimate discloses a machine-readable accuracy tier (PRECISE, UPPER_BOUND, or HEURISTIC), and the run_query_bounded tool refuses to execute a query whose estimate would exceed a caller-supplied cost, byte, or row cap - before the query ever runs.
+  icon: https://avatars.githubusercontent.com/u/328360906?v=4
+source:
+  project: https://github.com/mcpsmiths/cost-guard-mcp
+  commit: 56e6a7e3243e112c55706d90c42aad795d0bf906
+config:
+  description: Configure BigQuery and/or Snowflake credentials - set only the engine(s) you plan to use.
+  secrets:
+    - name: cost-guard-mcp.snowflake_account
+      env: SNOWFLAKE_ACCOUNT
+      example: myorg-myaccount
+    - name: cost-guard-mcp.snowflake_user
+      env: SNOWFLAKE_USER
+      example: COST_GUARD_SVC_USER
+    - name: cost-guard-mcp.snowflake_role
+      env: SNOWFLAKE_ROLE
+      example: COST_GUARD_READER
+    - name: cost-guard-mcp.snowflake_password
+      env: SNOWFLAKE_PASSWORD
+      example: hunter2
+  env:
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: "/app/.gcp/service-account.json"
+      example: "/app/.gcp/service-account.json"
+  parameters:
+    type: object
+    properties:
+      google_application_credentials_path:
+        type: string
+        description: Path on your machine to a GCP service-account JSON key file (only needed for BigQuery).
+run:
+  volumes:
+    - "{{cost-guard-mcp.google_application_credentials_path}}:/app/.gcp/service-account.json"
