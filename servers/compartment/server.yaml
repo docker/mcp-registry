@@ -1,0 +1,52 @@
+name: compartment
+image: mcp/compartment
+type: server
+meta:
+  category: ai
+  tags:
+    - ai
+    - memory
+    - agent-memory
+    - encryption
+    - offline
+    - local-first
+    - vector-search
+    - privacy
+about:
+  title: Compartment
+  description: |
+    Durable memory for AI agents that is encrypted at rest and never leaves the machine.
+
+    Everything stored at rest is AEAD-encrypted, including the embedding vectors, so the vault file gives up nothing to anyone who copies it. Search is exact and RAM-resident rather than approximate, deletion is a per-record crypto-shred, and every mutation is written to a hash-chained audit log.
+
+    Features:
+    • Encrypted at rest, vectors included, with optional keyfile two-factor unlock
+    • Fully offline: the embedding model ships inside the package, so no API key, no account and no outbound connection
+    • stdio transport only, so the container publishes no port and opens no listener
+    • Exact vector search plus keyword search, held in RAM for the life of the process
+    • Per-record crypto-shred deletion and a hash-chained, tamper-evident audit log
+    • Namespaces, tags, importance and typed relations between memories
+
+    The vault is created on the host with `compartment init`, which prompts for a passphrase. That passphrase is the only key to the vault and cannot be recovered, so it is supplied to the container as a secret rather than baked into the image.
+  icon: https://raw.githubusercontent.com/MaxFreedomPollard/Compartment/main/docs/images/logo-400.png
+source:
+  project: https://github.com/MaxFreedomPollard/Compartment
+  commit: 344970c13cb5856144f1c5605594ea9b5bff7431
+run:
+  volumes:
+    - "{{compartment.vault_path}}:/data"
+config:
+  description: Point Compartment at the vault directory on this machine and give it the passphrase that unlocks it
+  secrets:
+    - name: compartment.passphrase
+      env: COMPARTMENT_PASSPHRASE
+      example: <the passphrase you chose when running compartment init>
+  parameters:
+    type: object
+    properties:
+      vault_path:
+        type: string
+        description: Directory on the host holding memory.vault, created by running `compartment init` there first
+        default: /Users/local-test/.compartment
+    required:
+      - vault_path
