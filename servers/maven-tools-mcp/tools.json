@@ -1,0 +1,222 @@
+[
+  {
+    "name": "analyze_dependency_age",
+    "description": "Single dependency. Returns days since last release and freshness (fresh/current/aging/stale), with actionable insights. Use when asked about 'how old' or 'last release' of a library.",
+    "arguments": [
+      {
+        "name": "dependency",
+        "type": "string",
+        "desc": "Maven dependency coordinate in format 'groupId:artifactId' (NO version). Example: 'org.springframework:spring-core'"
+      },
+      {
+        "name": "maxAgeInDays",
+        "type": "integer",
+        "desc": "Optional maximum acceptable age threshold in days. If specified and dependency exceeds this age, additional recommendations are provided. No limit if not specified",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "analyze_pom_dependencies",
+    "description": "POM-aware dependency analysis. Takes raw pom.xml content and returns per-dependency effective versions classified as EXPLICIT (declared in this POM), MANAGED (inherited from a parent or BOM), or EXPLICIT_OVERRIDE (declared here AND managed elsewhere). Resolves parent POMs, ${name}/${project.version} placeholders, dependencyManagement, and \u003cscope\u003eimport\u003c/scope\u003e BOM imports against Maven Central. Optional sideloadedPoms accepts a bundle of additional POMs (monorepo siblings, unreleased parents) used before falling back to Maven Central. Use when asked: 'analyze my pom.xml', 'what versions does this POM actually resolve to?', or for multi-module monorepos. Returns the parent chain, resolved dependencies, directly editable root dependency-management and build/plugin dependency declarations, and warnings for unresolved bits.",
+    "arguments": [
+      {
+        "name": "pomXml",
+        "type": "string",
+        "desc": "Raw \u003cproject\u003e...\u003c/project\u003e XML content of the POM to analyze."
+      },
+      {
+        "name": "sideloadedPoms",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Optional bundle of additional POM XML strings (sibling modules, unreleased parents). Each is indexed by its self-declared groupId:artifactId:version and tried before Maven Central. Pass null or an empty array for single-POM analysis.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "analyze_project_health",
+    "description": "Bulk project view (PREFERRED for full audits). Summarizes health across many dependencies using age and maintenance patterns. Includes CVE vulnerability scanning and license compliance. Use this instead of check_multiple_dependencies when you need security/license info or overall project health assessment.",
+    "arguments": [
+      {
+        "name": "dependencies",
+        "type": "string",
+        "desc": "Comma or newline separated list of Maven dependency coordinates in format 'groupId:artifactId' (NO versions). Example: 'org.springframework:spring-core,junit:junit'"
+      },
+      {
+        "name": "includeLicenseScan",
+        "type": "boolean",
+        "desc": "Whether to check license information for dependencies. Default: true",
+        "optional": true
+      },
+      {
+        "name": "includeSecurityScan",
+        "type": "boolean",
+        "desc": "Whether to scan dependencies for known vulnerabilities using OSV.dev. Default: true",
+        "optional": true
+      },
+      {
+        "name": "maxAgeInDays",
+        "type": "integer",
+        "desc": "Optional maximum acceptable age threshold in days for health scoring. Dependencies exceeding this age receive lower health scores. No age penalty if not specified",
+        "optional": true
+      },
+      {
+        "name": "stabilityFilter",
+        "type": "string",
+        "desc": "Stability filter: ALL (any version), STABLE_ONLY (production-ready only), or PREFER_STABLE (prioritize stable). Default: PREFER_STABLE",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "analyze_release_patterns",
+    "description": "Single dependency. Analyzes historical releases to infer cadence, consistency, and likely next-release timeframe. Useful for maintenance and planning.",
+    "arguments": [
+      {
+        "name": "dependency",
+        "type": "string",
+        "desc": "Maven dependency coordinate in format 'groupId:artifactId' (NO version). Example: 'com.fasterxml.jackson.core:jackson-core'"
+      },
+      {
+        "name": "monthsToAnalyze",
+        "type": "integer",
+        "desc": "Number of months of historical release data to analyze for patterns and predictions. Default is 24 months if not specified",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "check_multiple_dependencies",
+    "description": "Bulk lookup (NO versions in input). Returns latest versions by type for each dependency. Use when you have a list of dependencies without versions and need to find what versions are available. For upgrade checks, use compare_dependency_versions instead.",
+    "arguments": [
+      {
+        "name": "dependencies",
+        "type": "string",
+        "desc": "Comma or newline separated list of Maven dependency coordinates in format 'groupId:artifactId' (NO versions). Example: 'org.springframework:spring-core,junit:junit'"
+      },
+      {
+        "name": "stabilityFilter",
+        "type": "string",
+        "desc": "Stability filter: ALL (all versions), STABLE_ONLY (production-ready only), or PREFER_STABLE (prioritize stable). Default: ALL",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "check_version_exists",
+    "description": "Single dependency + version. Validates existence on Maven Central and classifies its stability (stable/rc/beta/alpha/milestone/snapshot). Use when asked: 'does X:Y exist?' or 'is version V stable?'",
+    "arguments": [
+      {
+        "name": "dependency",
+        "type": "string",
+        "desc": "Maven dependency coordinate in format 'groupId:artifactId' (NO version). Example: 'org.springframework:spring-core'"
+      },
+      {
+        "name": "version",
+        "type": "string",
+        "desc": "Specific version string to check for existence. Example: '6.1.4' or '2.7.18-SNAPSHOT'"
+      }
+    ]
+  },
+  {
+    "name": "compare_dependency_versions",
+    "description": "Bulk upgrade check (versions REQUIRED in input). Compares current versions to latest and suggests upgrades (major/minor/patch). Includes CVE vulnerability scanning. Use when user provides their current dependency versions and wants upgrade advice.",
+    "arguments": [
+      {
+        "name": "currentDependencies",
+        "type": "string",
+        "desc": "Comma or newline separated list of dependency coordinates WITH versions in format 'groupId:artifactId:version'. Example: 'org.springframework:spring-core:6.0.0,junit:junit:4.12'"
+      },
+      {
+        "name": "includeSecurityScan",
+        "type": "boolean",
+        "desc": "Whether to scan dependencies for known vulnerabilities using OSV.dev. Default: true",
+        "optional": true
+      },
+      {
+        "name": "stabilityFilter",
+        "type": "string",
+        "desc": "Stability filter: ALL (any version), STABLE_ONLY (production-ready only), or PREFER_STABLE (prioritize stable). Default: ALL",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "get_latest_version",
+    "description": "Single dependency. Returns newest versions by type (stable/rc/beta/alpha/milestone). Set stabilityFilter to ALL (default), STABLE_ONLY, or PREFER_STABLE. Use when asked: 'what's the latest version of X?' Works with all JVM build tools.",
+    "arguments": [
+      {
+        "name": "dependency",
+        "type": "string",
+        "desc": "Maven dependency coordinate in format 'groupId:artifactId' (NO version). Example: 'org.springframework:spring-core'"
+      },
+      {
+        "name": "stabilityFilter",
+        "type": "string",
+        "desc": "Stability filter: ALL (all versions), STABLE_ONLY (production-ready only), or PREFER_STABLE (prioritize stable, show others too). Default: PREFER_STABLE",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "query_docs",
+    "description": "Retrieves and queries up-to-date documentation and code examples from Context7 for any programming library or framework.\n\nYou must call 'Resolve Context7 Library ID' tool first to obtain the exact Context7-compatible library ID required to use this tool, UNLESS the user explicitly provides a library ID in the format '/org/project' or '/org/project/version' in their query.\n\nDo not call this tool more than 3 times per question.",
+    "arguments": [
+      {
+        "name": "libraryId",
+        "type": "string",
+        "desc": "Exact Context7-compatible library ID (e.g., '/mongodb/docs', '/vercel/next.js', '/supabase/supabase', '/vercel/next.js/v14.3.0-canary.87') retrieved from 'resolve-library-id' or directly from user query in the format '/org/project' or '/org/project/version'."
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "What to look up in the library's documentation, scoped to a single concept. Be specific and include relevant details, but keep each query to one topic — if the user's question spans multiple distinct concepts, make a separate call per concept instead of combining them, unless the question is about how the concepts interact. Good: 'How to set up authentication with JWT in Express.js' or 'React useEffect cleanup function examples'. Bad (too vague): 'auth' or 'hooks'. Bad (too broad): 'routing and auth and caching in Next.js'. The query is sent to the Context7 API for processing. Do not include any sensitive or confidential information such as API keys, passwords, credentials, personal data, or proprietary code in your query."
+      }
+    ]
+  },
+  {
+    "name": "recommend_pom_upgrades",
+    "description": "POM-aware upgrade recommender. Takes raw pom.xml content and returns two lists: (1) deterministic_actions — mechanical version/property edits a non-LLM agent can apply directly (explicit_bump for declared deps, bom_bump for user-editable BOMs, managed_decl_bump for direct root dependency-management entries, plugin_dep_bump for direct build/plugin dependencies); (2) needs_attention — major upgrades, multi-BOM conflicts, and explicit overrides that need human or LLM review, each carrying the Maven Central latest so the model has full context in one round-trip. Default mode MINOR_PATCH routes majors to needs_attention; mode ALL treats majors as deterministic (rarely what you want). Use when asked: 'recommend upgrades for my pom.xml', 'what can I safely bump?', or to drive an automated dependency-update workflow.",
+    "arguments": [
+      {
+        "name": "pomXml",
+        "type": "string",
+        "desc": "Raw \u003cproject\u003e...\u003c/project\u003e XML content of the POM to analyze."
+      },
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": "Upgrade mode: MINOR_PATCH (default — only same-major minor / patch upgrades are deterministic; majors go to needs_attention) or ALL (majors count as deterministic too).",
+        "optional": true
+      },
+      {
+        "name": "sideloadedPoms",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Optional bundle of additional POM XML strings (sibling modules, unreleased parents). Each is indexed by its self-declared groupId:artifactId:version and tried before Maven Central.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "resolve_library_id",
+    "description": "Resolves a package/product name to a Context7-compatible library ID and returns matching libraries.\n\nYou MUST call this function before 'Query Documentation' tool to obtain a valid Context7-compatible library ID UNLESS the user explicitly provides a library ID in the format '/org/project' or '/org/project/version' in their query.\n\nEach result includes:\n- Library ID: Context7-compatible identifier (format: /org/project)\n- Name: Library or package name\n- Description: Short summary\n- Code Snippets: Number of available code examples\n- Source Reputation: Authority indicator (High, Medium, Low, or Unknown)\n- Benchmark Score: Quality indicator (100 is the highest score)\n- Versions: List of versions if available. Use one of those versions if the user provides a version in their query. The format of the version is /org/project/version.\n\nFor best results, select libraries based on name match, source reputation, snippet coverage, benchmark score, and relevance to your use case.\n\nSelection Process:\n1. Analyze the query to understand what library/package the user is looking for\n2. Return the most relevant match based on:\n- Name similarity to the query (exact matches prioritized)\n- Description relevance to the query's intent\n- Documentation coverage (prioritize libraries with higher Code Snippet counts)\n- Source reputation (consider libraries with High or Medium reputation more authoritative)\n- Benchmark Score: Quality indicator (100 is the highest score)\n\nResponse Format:\n- Return the selected library ID in a clearly marked section\n- Provide a brief explanation for why this library was chosen\n- If multiple good matches exist, acknowledge this but proceed with the most relevant one\n- If no good matches exist, clearly state this and suggest query refinements\n\nFor ambiguous queries, request clarification before proceeding with a best-guess match.\n\nIMPORTANT: Do not call this tool more than 3 times per question. If you cannot find what you need after 3 calls, use the best result you have.",
+    "arguments": [
+      {
+        "name": "libraryName",
+        "type": "string",
+        "desc": "Library name to search for and retrieve a Context7-compatible library ID. Use the official library name with proper punctuation — e.g., 'Next.js' instead of 'nextjs', 'Customer.io' instead of 'customerio', 'Three.js' instead of 'threejs'."
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "What to look up in the library's documentation. This is used to rank library results by relevance to what the user is trying to accomplish. The query is sent to the Context7 API for processing. Do not include any sensitive or confidential information such as API keys, passwords, credentials, personal data, or proprietary code in your query."
+      }
+    ]
+  }
+]
