@@ -1,0 +1,44 @@
+name: openmem
+image: mcp/openmem
+type: server
+meta:
+  category: ai
+  tags:
+    - memory
+    - coding-agents
+about:
+  title: OpenMem
+  description: Shared memory tools for coding agents across Claude Code, Codex, Cursor, and OpenCode, backed by Hindsight, mem0, or Cognee.
+  icon: https://github.com/bcmyguest.png
+source:
+  project: https://github.com/bcmyguest/openmem
+  commit: 2bda51aa3d9f65ffc210aa684f5d498bf652c937
+config:
+  description: Connect OpenMem to an existing memory provider. Use a URL reachable from the container.
+  env:
+    - name: MEMORY_PROVIDER
+      example: hindsight
+      value: "{{openmem.provider}}"
+    - name: HINDSIGHT_URL
+      example: http://host.docker.internal:8888
+      value: "{{openmem.hindsight_url}}"
+    - name: MEM0_API_URL
+      example: http://host.docker.internal:8080
+      value: "{{openmem.mem0_api_url}}"
+    - name: COGNEE_API_URL
+      example: http://host.docker.internal:8000
+      value: "{{openmem.cognee_api_url}}"
+  parameters:
+    type: object
+    properties:
+      provider:
+        type: string
+        enum: [hindsight, mem0, cognee]
+      hindsight_url:
+        type: string
+      mem0_api_url:
+        type: string
+      cognee_api_url:
+        type: string
+    required:
+      - provider
