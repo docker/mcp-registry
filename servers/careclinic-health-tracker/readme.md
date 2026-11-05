@@ -1,0 +1,1 @@
+Docs: https://cdn.careclinic.io/mcp/help/index.html
