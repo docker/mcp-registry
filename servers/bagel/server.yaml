@@ -1,0 +1,47 @@
+name: bagel
+image: ghcr.io/extelligence-ai/bagel/ros2-kilted:2.4.1
+type: server
+meta:
+  category: data-science
+  tags:
+    - robotics
+    - ros2
+    - mcap
+    - data-analysis
+about:
+  title: Bagel
+  description: Analyze robot logs with SQL, investigate events, visualize data, and preview data-reduction pipelines locally. Includes ROS 2 Kilted support and bundled sample data; no account or API key is required.
+  icon: https://avatars.githubusercontent.com/Extelligence-ai?s=200&v=4
+source:
+  project: https://github.com/Extelligence-ai/bagel
+  commit: e61d55288496453440a323695c1316efb47abcf7
+  dockerfile: docker/Dockerfile.ros2
+run:
+  command:
+    - .venv/bin/python
+    - server.py
+  env:
+    MCP_TRANSPORT: stdio
+    PYTHONDONTWRITEBYTECODE: "1"
+    CONTAINER_MODE: "true"
+    CACHE_DIRECTORY: /tmp/bagel-cache
+    ARTIFACT_DIRECTORY: /home/ubuntu/.bagel/artifacts
+    PIPELINES_DIRECTORY: /home/ubuntu/.bagel/pipelines
+    USER_CAPABILITIES_DIRECTORY: /home/ubuntu/.bagel/capabilities
+  volumes:
+    - "{{bagel.data_directory}}:/data/input:ro"
+    - "{{bagel.workspace_directory}}:/home/ubuntu/.bagel"
+config:
+  description: Choose an existing log directory for read-only access and a writable directory for Bagel artifacts, saved pipelines, and capabilities.
+  parameters:
+    type: object
+    properties:
+      data_directory:
+        type: string
+        description: Absolute host path containing robot logs. Available read-only at /data/input in Bagel.
+      workspace_directory:
+        type: string
+        description: Absolute host path to a writable Bagel workspace. Outputs persist here between sessions.
+    required:
+      - data_directory
+      - workspace_directory
