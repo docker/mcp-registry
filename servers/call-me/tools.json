@@ -1,112 +1,238 @@
 [
   {
     "name": "setup",
-    "description": "Return first-setup instructions and the App Store link for the /call-me iPhone app"
+    "description": "Return first-setup instructions and clickable App Store and Google Play download links, for when you do not have the human's Call Me number yet"
   },
   {
     "name": "call",
-    "description": "Ring the human's iPhone, read the text aloud and return their spoken answer",
+    "description": "Ring the human's phone (iPhone or Android), read `question` aloud word for word, and return what they say back as text",
     "arguments": [
       {
         "name": "question",
         "type": "string",
-        "desc": "Text to read aloud",
+        "desc": "What to say, read aloud word for word, up to 2000 characters (about two minutes)",
         "required": true
       },
       {
         "name": "to",
         "type": "string",
-        "desc": "10-digit /call-me number",
+        "desc": "The human's 10-digit Call Me number, from My Number in the app (not a regular phone number)",
         "required": false
       },
       {
         "name": "from_label",
         "type": "string",
-        "desc": "Caller name shown on the phone",
+        "desc": "Who is calling, shown on their phone and spoken: e.g",
+        "required": false
+      },
+      {
+        "name": "session_token",
+        "type": "string",
+        "desc": "A session_token from an earlier result, to stay in that thread",
+        "required": false
+      },
+      {
+        "name": "keep_open",
+        "type": "boolean",
+        "desc": "Keep the line up after their answer so you can reply with `say` (default on)",
+        "required": false
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "The language you are speaking, e.g",
         "required": false
       }
     ]
   },
   {
     "name": "poll_result",
-    "description": "Check on a call that was still ringing or in progress and return its transcript",
+    "description": "Check on a call that came back \"ringing\", \"in_call\" or \"playing\"",
     "arguments": [
       {
         "name": "call_id",
         "type": "integer",
-        "desc": "Call id returned by call",
+        "desc": "The call_id from the call or play_audio result",
         "required": true
       },
       {
         "name": "session_token",
         "type": "string",
-        "desc": "Session token returned by call",
+        "desc": "The session_token from an earlier result",
         "required": true
       }
     ]
   },
   {
-    "name": "text",
-    "description": "Send a one-way text to the human's phone",
+    "name": "play_audio",
+    "description": "Bigger and longer audio goes here",
     "arguments": [
       {
-        "name": "body",
+        "name": "source",
         "type": "string",
-        "desc": "Message text",
+        "desc": "A link (YouTube, SoundCloud, a podcast page, or a direct .mp3/.m4a/.wav/.ogg/.flac link) or the audio_id of an uploaded file",
         "required": true
       },
       {
         "name": "to",
         "type": "string",
-        "desc": "10-digit /call-me number",
+        "desc": "The human's 10-digit Call Me number, from My Number in the app (not a regular phone number)",
+        "required": false
+      },
+      {
+        "name": "intro",
+        "type": "string",
+        "desc": "Spoken before the offer, up to 500 characters: what this is and why they might want it",
+        "required": false
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "The recording's title",
         "required": false
       },
       {
         "name": "from_label",
         "type": "string",
-        "desc": "Sender name shown on the phone",
+        "desc": "Who is calling, shown on their phone and spoken: e.g",
+        "required": false
+      },
+      {
+        "name": "session_token",
+        "type": "string",
+        "desc": "A session_token from an earlier result, to stay in that thread",
+        "required": false
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "The language you are speaking, e.g",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "say",
+    "description": "In a call whose result came back \"open\": true, speak `text` to the human and return what they answer, in the same shape as `call`",
+    "arguments": [
+      {
+        "name": "call_id",
+        "type": "integer",
+        "desc": "The call_id from the call or play_audio result",
+        "required": true
+      },
+      {
+        "name": "session_token",
+        "type": "string",
+        "desc": "The session_token from an earlier result",
+        "required": true
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "Your next line, read aloud word for word",
+        "required": true
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "The language you are speaking, e.g",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "hang_up",
+    "description": "End a call you placed",
+    "arguments": [
+      {
+        "name": "call_id",
+        "type": "integer",
+        "desc": "The call_id from the call or play_audio result",
+        "required": true
+      },
+      {
+        "name": "session_token",
+        "type": "string",
+        "desc": "The session_token from an earlier result",
+        "required": true
+      },
+      {
+        "name": "goodbye",
+        "type": "string",
+        "desc": "Spoken before the line drops in an open conversation, e.g",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "text",
+    "description": "Send a one-way text to the human's phone (a push notification, no ring)",
+    "arguments": [
+      {
+        "name": "body",
+        "type": "string",
+        "desc": "The message, up to 2000 characters",
+        "required": true
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "The human's 10-digit Call Me number, from My Number in the app (not a regular phone number)",
+        "required": false
+      },
+      {
+        "name": "from_label",
+        "type": "string",
+        "desc": "Who is calling, shown on their phone and spoken: e.g",
+        "required": false
+      },
+      {
+        "name": "session_token",
+        "type": "string",
+        "desc": "A session_token from an earlier result, to stay in that thread",
         "required": false
       }
     ]
   },
   {
     "name": "wait_for_reply",
-    "description": "Wait for the human to text back or leave a voicemail",
+    "description": "Wait for the human to send something back to this session: texts and voicemail transcripts arrive here",
     "arguments": [
       {
         "name": "session_token",
         "type": "string",
-        "desc": "Session token",
+        "desc": "The session_token from an earlier result",
         "required": true
       },
       {
         "name": "cursor",
         "type": "integer",
-        "desc": "Event cursor",
+        "desc": "The cursor from the previous result; 0 the first time",
         "required": false
       },
       {
         "name": "wait_s",
         "type": "integer",
-        "desc": "Seconds to wait, max 30",
+        "desc": "How long to wait for something to arrive, 0 to 30 seconds",
         "required": false
       }
     ]
   },
   {
     "name": "set_thread_title",
-    "description": "Name this session's conversation thread on the phone",
+    "description": "Name this session's conversation thread on the human's phone (e.g",
     "arguments": [
       {
         "name": "session_token",
         "type": "string",
-        "desc": "Session token",
+        "desc": "The session_token from an earlier result",
         "required": true
       },
       {
         "name": "title",
         "type": "string",
-        "desc": "Thread title",
+        "desc": "A short name, 3 to 5 words, e.g",
         "required": true
       }
     ]
