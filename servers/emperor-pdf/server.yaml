@@ -1,0 +1,44 @@
+name: emperor-pdf
+image: mcp/emperor-pdf
+type: server
+meta:
+  category: productivity
+  tags:
+    - productivity
+    - pdf
+    - documents
+    - search
+    - pdfium
+    - typst
+about:
+  title: emperor-pdf
+  description: Read, search and render the PDFs in one folder (or base64 / https URL), with hidden-text warnings; PDFium included. Read-only by default; switch on writable to merge, extract and create PDFs from Markdown inside the folder.
+  icon: https://avatars.githubusercontent.com/u/666125?v=4
+source:
+  project: https://github.com/yarenty/emperor-pdf
+  commit: e97b77995dbb271206f6b60d16b30e396d810e5f
+run:
+  command:
+    - --root
+    - /data
+  volumes:
+    - '{{emperor-pdf.path}}:/data'
+config:
+  description: The folder with your PDFs, mounted at /data; the server reads only inside it, and writes there only when writable is on
+  env:
+    - name: PDF_WRITABLE
+      example: "false"
+      value: '{{emperor-pdf.writable}}'
+  parameters:
+    type: object
+    properties:
+      path:
+        type: string
+        default: /Users/local-test/Documents
+      writable:
+        type: boolean
+        title: Writable
+        description: Offer pdf_pages and pdf_create and allow saving rendered pages inside the folder. Off keeps the server read-only.
+        default: false
+    required:
+      - path
