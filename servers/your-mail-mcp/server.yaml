@@ -1,0 +1,36 @@
+name: your-mail-mcp
+image: ghcr.io/wildsurfer/your-mail-mcp
+type: server
+longLived: true
+meta:
+  category: communication
+  tags:
+    - email
+    - imap
+    - gmail
+    - icloud
+    - notmuch
+    - read-only
+    - communication
+about:
+  title: Your Mail
+  description: Read-only access to your IMAP mailboxes, several accounts at once, from Gmail, iCloud or any other provider. Mail is mirrored one way into a local maildir by mbsync and indexed by notmuch, so search runs locally and the process cannot send, delete, move or tag mail. Junk and trash are excluded from search by default. Eleven read tools cover search, threads, counts, folders, attachments and sync status.
+  icon: https://avatars.githubusercontent.com/u/1456389?s=200&v=4
+source:
+  project: https://github.com/wildsurfer/your-mail-mcp
+  commit: 099289e6786a71910ad4884e5f5f8963f9e6b8d2
+run:
+  volumes:
+    - "{{your-mail-mcp.accounts}}:/config/accounts.json:ro"
+    - your-mail-mcp-mail:/mail
+    - your-mail-mcp-index:/index
+config:
+  description: Path on this machine to an accounts.json that lists the IMAP accounts (name, host, user, password) in the format from the README. Write the passwords into the file as plain values and keep it readable by you alone. The mirror and the index live in the your-mail-mcp-mail and your-mail-mcp-index volumes.
+  parameters:
+    type: object
+    properties:
+      accounts:
+        type: string
+        description: Path to accounts.json on this machine
+    required:
+      - accounts
