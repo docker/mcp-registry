@@ -1,0 +1,48 @@
+name: kiln
+image: mcp/kiln
+type: server
+meta:
+  category: devops
+  tags:
+    - 3d-printing
+    - manufacturing
+    - hardware
+about:
+  title: Kiln
+  description: Kiln lets AI agents design, check, slice and print on your own 3D printers, including Bambu Lab, Creality, Prusa, Elegoo, Klipper, OctoPrint and USB.
+  icon: https://www.google.com/s2/favicons?domain=kiln3d.com&sz=64
+source:
+  project: https://github.com/codeofaxel/Kiln
+  commit: 6afb1094eb90240a3c26dd667152a2b8827650df
+config:
+  description: Optionally connect Kiln to a printer on your local network. Not required to start: printers can also be registered dynamically from inside the chat.
+  secrets:
+    - name: kiln.printer_api_key
+      env: KILN_PRINTER_API_KEY
+      example: <PRINTER_API_KEY>
+  env:
+    - name: KILN_PRINTER_HOST
+      example: 192.168.1.50
+      value: '{{kiln.printer_host}}'
+    - name: KILN_PRINTER_TYPE
+      example: octoprint
+      value: '{{kiln.printer_type}}'
+  parameters:
+    type: object
+    properties:
+      printer_host:
+        type: string
+        description: URL or IP of your 3D printer (OctoPrint, Moonraker, Creality, or Prusa Link)
+      printer_type:
+        type: string
+        description: Printer connection type
+        enum:
+          - octoprint
+          - moonraker
+          - creality
+          - bambu
+          - prusalink
+          - elegoo
+          - duet
+          - usb
+    required: []
