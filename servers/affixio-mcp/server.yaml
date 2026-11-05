@@ -1,0 +1,69 @@
+name: affixio-mcp
+image: mcp/affixio-mcp
+type: server
+meta:
+  category: security
+  tags:
+    - security
+    - attestation
+    - agent-trust
+    - tool-gate
+    - local-first
+about:
+  title: AffixIO Action Attestation
+  description: Local stdio MCP for host-side signed ACTION yes/no attestations. Tools attest_action, verify_action, and gate_tool_call. PII stays on the host. Not person/age/KYC.
+  icon: https://www.google.com/s2/favicons?domain=affix-io.com&sz=64
+source:
+  project: https://github.com/AffixIO/affixio-mcp
+  branch: master
+  commit: db325130056d505dc8a330e2d63a43bdc5485317
+config:
+  description: Optional AffixIO licence and local policy for host-side ACTION attestation
+  secrets:
+    - name: affixio-mcp.api_key
+      env: AFFIX_API_KEY
+      example: local_operator
+  parameters:
+    type: object
+    properties:
+      mcp_home:
+        type: string
+        description: State directory for AffixIO MCP (defaults to /data/.affix-mcp in the container)
+        example: /data/.affix-mcp
+      agent_id:
+        type: string
+        description: Default agent id for attestations
+        example: local-agent
+      allowed_tools:
+        type: string
+        description: Comma-separated tool allowlist for gate_tool_call (empty means any)
+        example: ""
+      max_amount:
+        type: string
+        description: Optional numeric amount cap for gate_tool_call
+        example: ""
+      currency:
+        type: string
+        description: Currency code for amount checks
+        example: GBP
+  env:
+    - name: AFFIX_MCP_HOME
+      example: /data/.affix-mcp
+      value: "{{affixio-mcp.mcp_home}}"
+    - name: AFFIX_MCP_AGENT_ID
+      example: local-agent
+      value: "{{affixio-mcp.agent_id}}"
+    - name: AFFIX_MCP_ALLOWED_TOOLS
+      example: ""
+      value: "{{affixio-mcp.allowed_tools}}"
+    - name: AFFIX_MCP_MAX_AMOUNT
+      example: ""
+      value: "{{affixio-mcp.max_amount}}"
+    - name: AFFIX_MCP_CURRENCY
+      example: GBP
+      value: "{{affixio-mcp.currency}}"
+    - name: NODE_ENV
+      value: "production"
+run:
+  volumes:
+    - affixio-mcp-data:/data
