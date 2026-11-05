@@ -1,0 +1,250 @@
+[
+  {
+    "name": "get_spend_policy",
+    "description": "Forbidden rails and tier rules. Read-only.",
+    "arguments": []
+  },
+  {
+    "name": "register_agent",
+    "description": "Register Ed25519 identity. Stdio only. No USDT.",
+    "arguments": [
+      {
+        "name": "public_key",
+        "type": "string",
+        "desc": "Ed25519 public key, PEM or base64."
+      },
+      {
+        "name": "tos_hash",
+        "type": "string",
+        "desc": "Optional terms hash.",
+        "optional": true
+      },
+      {
+        "name": "callback_url",
+        "type": "string",
+        "desc": "Optional HTTPS webhook URL.",
+        "optional": true
+      },
+      {
+        "name": "jwe_public_key",
+        "type": "string",
+        "desc": "Optional X25519 public key for card JWE.",
+        "optional": true
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "Optional mailbox for 3-D Secure OTP. Not SMS.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "get_deposit_address",
+    "description": "USDT TRC-20 deposit address for the authenticated agent. Always re-fetch.",
+    "arguments": []
+  },
+  {
+    "name": "get_balance",
+    "description": "Ledger 2401 USDT balance.",
+    "arguments": []
+  },
+  {
+    "name": "list_cards",
+    "description": "List cards for the authenticated agent.",
+    "arguments": []
+  },
+  {
+    "name": "list_card_products",
+    "description": "List Visa prepaid products. Use id as imba_product_id for create_card.",
+    "arguments": []
+  },
+  {
+    "name": "list_gift_offers",
+    "description": "Live gift catalog. Then purchase_gift with offer_id and ext_id.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Optional search string.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "list_esim_plans",
+    "description": "Travel eSIM plans. Use plan id with purchase_esim.",
+    "arguments": [
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Optional ISO2 country.",
+        "optional": true
+      },
+      {
+        "name": "esim_provider",
+        "type": "string",
+        "desc": "Optional provider. Default yesim.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "create_card",
+    "description": "Buy a Visa prepaid from this agent 2401. ext_id required. Never Stars.",
+    "arguments": [
+      {
+        "name": "imba_product_id",
+        "type": "number",
+        "desc": "core.card_product.id from list_card_products."
+      },
+      {
+        "name": "ext_id",
+        "type": "string",
+        "desc": "Idempotency key."
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "Optional cardholder KYC email.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "topup_card",
+    "description": "Top up a card this agent owns. ext_id required.",
+    "arguments": [
+      {
+        "name": "card_id",
+        "type": "string",
+        "desc": "Card id owned by this agent."
+      },
+      {
+        "name": "amount",
+        "type": "number",
+        "desc": "Top-up amount in USDT."
+      },
+      {
+        "name": "ext_id",
+        "type": "string",
+        "desc": "Idempotency key."
+      }
+    ]
+  },
+  {
+    "name": "purchase_gift",
+    "description": "Buy a brand gift code. ext_id required. Never Stars.",
+    "arguments": [
+      {
+        "name": "offer_id",
+        "type": "string",
+        "desc": "Offer id from list_gift_offers."
+      },
+      {
+        "name": "ext_id",
+        "type": "string",
+        "desc": "Idempotency key."
+      }
+    ]
+  },
+  {
+    "name": "purchase_esim",
+    "description": "Buy a travel eSIM. ext_id required. Never Stars.",
+    "arguments": [
+      {
+        "name": "plan_id",
+        "type": "string",
+        "desc": "Plan id from list_esim_plans."
+      },
+      {
+        "name": "ext_id",
+        "type": "string",
+        "desc": "Idempotency key."
+      },
+      {
+        "name": "iccid",
+        "type": "string",
+        "desc": "Optional existing ICCID owned by this agent.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "get_card_details",
+    "description": "Card credentials for a card this agent owns. PAN as JWE when registered.",
+    "arguments": [
+      {
+        "name": "card_id",
+        "type": "string",
+        "desc": "Card id owned by this agent."
+      }
+    ]
+  },
+  {
+    "name": "list_notifications",
+    "description": "Inbox and 3-D Secure OTP. Never SMS.",
+    "arguments": [
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Optional category. Default codes.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "set_webhook",
+    "description": "PATCH agent webhook URL, optional JWE key, optional OTP email.",
+    "arguments": [
+      {
+        "name": "callback_url",
+        "type": "string",
+        "desc": "HTTPS callback URL.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "rotate_hmac",
+    "description": "Rotate webhook HMAC. Requires callback_url first.",
+    "arguments": []
+  },
+  {
+    "name": "kyt_quote",
+    "description": "KYT price. Client schema, not partner.",
+    "arguments": []
+  },
+  {
+    "name": "kyt_check",
+    "description": "Paid KYT check. network + address only.",
+    "arguments": [
+      {
+        "name": "network",
+        "type": "string",
+        "desc": "Network name."
+      },
+      {
+        "name": "address",
+        "type": "string",
+        "desc": "Counterparty address to check."
+      }
+    ]
+  },
+  {
+    "name": "kyt_check_get",
+    "description": "KYT check by id. Own check only.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "number",
+        "desc": "Check id."
+      }
+    ]
+  },
+  {
+    "name": "kyt_checks",
+    "description": "KYT history for this agent.",
+    "arguments": []
+  }
+]

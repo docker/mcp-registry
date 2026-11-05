@@ -1,0 +1,34 @@
+name: imba-agent-spend
+image: mcp/imba-agent-spend
+type: server
+meta:
+  category: ecommerce
+  tags:
+    - ecommerce
+    - finance
+    - payments
+about:
+  title: IMBA Agent Spend
+  description: Deposit USDT TRC-20 and buy Visa prepaid, eSIM, and gift cards with your Ed25519 key. No withdraw. IMBA does not store a shared spend key.
+  icon: https://www.google.com/s2/favicons?domain=imbawallet.com&sz=64
+source:
+  project: https://github.com/IMBAwallet/agent-mcp
+  commit: 29a55ee88ffeb0a275be6d0e69f4d4ca0ad91916
+  dockerfile: Dockerfile.spend
+config:
+  description: Your agent client_id and Ed25519 private key. Never a Wallet JWT or a shared IMBA key.
+  secrets:
+    - name: imba-agent-spend.imba_agent_private_key
+      env: IMBA_AGENT_PRIVATE_KEY
+      example: YOUR_PKCS8_PEM_OR_BASE64URL
+  env:
+    - name: IMBA_AGENT_CLIENT_ID
+      example: YOUR_CLIENT_ID
+      value: "{{imba-agent-spend.imba_agent_client_id}}"
+  parameters:
+    type: object
+    properties:
+      imba_agent_client_id:
+        type: string
+    required:
+      - imba_agent_client_id
