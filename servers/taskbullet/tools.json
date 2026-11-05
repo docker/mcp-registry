@@ -1,0 +1,625 @@
+[
+  {
+    "name": "get_balance",
+    "description": "Return remaining VA hours, capRoom, and whether a new cap can be filed. Also returns the calls wallet: balance_cents is spendable after open holds, wallet_cents is that amount plus holds_cents, and holds_cents is the sum of unsettled holds. addFundsUrl is POST /api/v1/billing/add-funds and this read does not create a Stripe session. canDelegate is false when hours are unavailable, when spendable hours are not above zero, or when open caps leave no room. canDelegate false while hoursRemaining is above zero means lower maxHours to capRoom or wait. It is not a buy-hours signal. Call this before proposing spend. Does not create a task.",
+    "arguments": []
+  },
+  {
+    "name": "delegate_task",
+    "description": "Call get_balance first, then confirm with the user before sending (real hours) unless they already said to send it. Delegate a task to a real human virtual assistant when the AI cannot complete it autonomously. Use this for phone calls, owner-authorized login or captcha steps (never send passwords or OTP), physical-world actions, subjective QA, manual data entry, or anything else outside the model's reach. Returns a taskId for tracking. The job is NOT started until the customer clicks Start on Work. The receipt status is awaiting_customer_start.",
+    "arguments": [
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Concise directive (max 5000 chars)."
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Detailed context, instructions, and constraints (max 8000 chars). Never include passwords, OTP codes, recovery keys, cookies, or API keys.",
+        "optional": true
+      },
+      {
+        "name": "priority",
+        "type": "string",
+        "desc": "priority",
+        "optional": true
+      },
+      {
+        "name": "dueDate",
+        "type": "string",
+        "desc": "Optional human-readable due date (e.g. EOD Friday).",
+        "optional": true
+      },
+      {
+        "name": "sourceAgent",
+        "type": "string",
+        "desc": "Optional calling-agent label for the audit trail (e.g. grok-bot).",
+        "optional": true
+      },
+      {
+        "name": "webhookUrl",
+        "type": "string",
+        "desc": "Optional public HTTPS callback URL.",
+        "optional": true
+      },
+      {
+        "name": "maxHours",
+        "type": "number",
+        "desc": "Spend cap in hours (default 0.5). VA/AM stop and ask before exceeding. Actual tracked time is billed, not this cap. Max 8.",
+        "optional": true
+      },
+      {
+        "name": "idempotencyKey",
+        "type": "string",
+        "desc": "Same value as the REST Idempotency-Key header. Required. A repeat returns the original task."
+      }
+    ]
+  },
+  {
+    "name": "list_tasks",
+    "description": "List recently delegated tasks for this account (id, title, status, short result). awaitingCustomerConfirm true means the delivery is done and the human must confirm, cancel, or reopen. amNote is the delivery note and deliverableLinks are https links from that note. pending and in_progress omit customer-cancelled jobs. cancelled is terminal.",
+    "arguments": [
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "status",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "get_task",
+    "description": "Get the current status, title, completion timestamp, and full result notes for a specific delegated task. awaitingCustomerConfirm true means ask the human, then confirm_task, cancel_task, or reopen_task. amNote is the AM or VA note. deliverableLinks lists https links. Stop when status is completed, failed, or cancelled. Customer cancel is cancelled, not pending or in_progress, and it does not send the completion webhook.",
+    "arguments": [
+      {
+        "name": "taskId",
+        "type": "string",
+        "desc": "The taskId returned by delegate_task."
+      }
+    ]
+  },
+  {
+    "name": "confirm_task",
+    "description": "Accept a delivery that is awaitingCustomerConfirm. Settles tracked hours, releases the board and ledger hold, and marks the task completed. If the human does not respond, the job confirms itself after 3 days. Ask the human first. Idempotency-Key is required. A repeat of the same key returns the same result.",
+    "arguments": [
+      {
+        "name": "taskId",
+        "type": "string",
+        "desc": "The taskId returned by delegate_task."
+      },
+      {
+        "name": "idempotencyKey",
+        "type": "string",
+        "desc": "Same value as the REST Idempotency-Key header. Required."
+      }
+    ]
+  },
+  {
+    "name": "cancel_task",
+    "description": "Customer never mind. Releases the hold and bills only tracked time. Does not send the completion webhook. Ask the human first. Idempotency-Key is required.",
+    "arguments": [
+      {
+        "name": "taskId",
+        "type": "string",
+        "desc": "The taskId returned by delegate_task."
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional note. Do not include secrets.",
+        "optional": true
+      },
+      {
+        "name": "idempotencyKey",
+        "type": "string",
+        "desc": "Same value as the REST Idempotency-Key header. Required."
+      }
+    ]
+  },
+  {
+    "name": "reopen_task",
+    "description": "Send a delivery that is awaitingCustomerConfirm back to the account manager with a reason. Does not settle hours. Ask the human first. Idempotency-Key is required.",
+    "arguments": [
+      {
+        "name": "taskId",
+        "type": "string",
+        "desc": "The taskId returned by delegate_task."
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "What should happen next. Required. Do not include secrets."
+      },
+      {
+        "name": "idempotencyKey",
+        "type": "string",
+        "desc": "Same value as the REST Idempotency-Key header. Required."
+      }
+    ]
+  },
+  {
+    "name": "place_call",
+    "description": "Place one human phone call. The hold is the full call: $2.50 for the first minute, then $1 for each additional minute. Default max_minutes is 5, so a tier 1 US or Canada call holds $6.50. An unused hold is a full refund. Raise max_minutes on that call to hold more. record_call must be false or omitted. Only US and CA are live. A question is {\"id\",\"ask\",\"type\"?}: id up to 80 characters, ask up to 1000 characters, at most 20 questions. goal is at most 4000 characters. Idempotency key is required. Poll get_call, or pass callback_url. validate_call checks the body and places no hold.",
+    "arguments": [
+      {
+        "name": "phone",
+        "type": "string",
+        "desc": "US or Canada number. 801-414-4664, (801) 414-4664, and +1 801 414 4664 are accepted and stored as E.164."
+      },
+      {
+        "name": "extension",
+        "type": "string",
+        "desc": "Optional digits. Passed into the VA instructions. Not billed.",
+        "optional": true
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "en, fil, tl, war, or ceb. Default en.",
+        "optional": true
+      },
+      {
+        "name": "business_name",
+        "type": "string",
+        "desc": "business_name"
+      },
+      {
+        "name": "purpose",
+        "type": "string",
+        "desc": "purpose"
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "goal"
+      },
+      {
+        "name": "record_call",
+        "type": "boolean",
+        "desc": "False or omit. True is rejected: call recording is not available. get_transcript is the VA wrap-up summary, not a recording. A recorded transcript may be a separate paid feature later.",
+        "optional": true
+      },
+      {
+        "name": "script_mode",
+        "type": "string",
+        "desc": "script_mode",
+        "optional": true
+      },
+      {
+        "name": "script",
+        "type": "string",
+        "desc": "script",
+        "optional": true
+      },
+      {
+        "name": "instructions",
+        "type": "string",
+        "desc": "Outranks script wording. The extension is appended for the VA.",
+        "optional": true
+      },
+      {
+        "name": "questions",
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "desc": "One to 20 questions. Each item is {id, ask, type?}."
+      },
+      {
+        "name": "allowed_disclosures",
+        "type": "string",
+        "desc": "allowed_disclosures",
+        "optional": true
+      },
+      {
+        "name": "on_behalf_of",
+        "type": "string",
+        "desc": "on_behalf_of"
+      },
+      {
+        "name": "shareable_contact",
+        "type": "string",
+        "desc": "shareable_contact",
+        "optional": true
+      },
+      {
+        "name": "deadline",
+        "type": "string",
+        "desc": "ISO-8601. Needs 60 minutes of weekday 09:00–17:00 recipient-local, unless allow_outside_business_hours is true."
+      },
+      {
+        "name": "time_window",
+        "type": "string",
+        "desc": "Optional 24-hour HH:MM-HH:MM in the recipient time zone. Example: 09:00-17:00. End must be after start.",
+        "optional": true
+      },
+      {
+        "name": "recipient_timezone",
+        "type": "string",
+        "desc": "IANA zone. Omit it and TaskBullet infers a US or Canada area code. An uninferable number needs this field.",
+        "optional": true
+      },
+      {
+        "name": "retry_preference",
+        "type": "string",
+        "desc": "retry_preference",
+        "optional": true
+      },
+      {
+        "name": "allow_outside_business_hours",
+        "type": "boolean",
+        "desc": "Set true only after the customer confirms the call may happen outside weekday 09:00–17:00 in the recipient time zone. The deadline then needs 60 minutes of clock time. Omit or false keeps the weekday business-hour rule.",
+        "optional": true
+      },
+      {
+        "name": "consent_attestation",
+        "type": "boolean",
+        "desc": "Must be true."
+      },
+      {
+        "name": "max_attempts",
+        "type": "integer",
+        "desc": "Default 3. Maximum 5.",
+        "optional": true
+      },
+      {
+        "name": "max_minutes",
+        "type": "integer",
+        "desc": "Default 5. Maximum 60. The hold covers this many minutes.",
+        "optional": true
+      },
+      {
+        "name": "callback_url",
+        "type": "string",
+        "desc": "callback_url",
+        "optional": true
+      },
+      {
+        "name": "idempotencyKey",
+        "type": "string",
+        "desc": "Same value as the REST Idempotency-Key header."
+      }
+    ]
+  },
+  {
+    "name": "validate_call",
+    "description": "Check a phone-call body without creating a call or placing a hold. Same fields as place_call, without idempotencyKey. A ready body includes hold_cents for the full call (tier 1 default $6.50 at 5 minutes: $2.50 for the first minute and $1 for each additional minute; an unused hold is a full refund) and whether recipient_timezone was inferred. valid stays true when spendable balance is below the hold. warnings then includes insufficient_balance with needed_cents and addFundsUrl.",
+    "arguments": [
+      {
+        "name": "phone",
+        "type": "string",
+        "desc": "phone",
+        "optional": true
+      },
+      {
+        "name": "extension",
+        "type": "string",
+        "desc": "extension",
+        "optional": true
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "language",
+        "optional": true
+      },
+      {
+        "name": "business_name",
+        "type": "string",
+        "desc": "business_name",
+        "optional": true
+      },
+      {
+        "name": "purpose",
+        "type": "string",
+        "desc": "purpose",
+        "optional": true
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "goal",
+        "optional": true
+      },
+      {
+        "name": "record_call",
+        "type": "boolean",
+        "desc": "False or omit.",
+        "optional": true
+      },
+      {
+        "name": "script_mode",
+        "type": "string",
+        "desc": "script_mode",
+        "optional": true
+      },
+      {
+        "name": "script",
+        "type": "string",
+        "desc": "script",
+        "optional": true
+      },
+      {
+        "name": "instructions",
+        "type": "string",
+        "desc": "instructions",
+        "optional": true
+      },
+      {
+        "name": "questions",
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "desc": "questions",
+        "optional": true
+      },
+      {
+        "name": "allowed_disclosures",
+        "type": "string",
+        "desc": "allowed_disclosures",
+        "optional": true
+      },
+      {
+        "name": "on_behalf_of",
+        "type": "string",
+        "desc": "on_behalf_of",
+        "optional": true
+      },
+      {
+        "name": "shareable_contact",
+        "type": "string",
+        "desc": "shareable_contact",
+        "optional": true
+      },
+      {
+        "name": "deadline",
+        "type": "string",
+        "desc": "deadline",
+        "optional": true
+      },
+      {
+        "name": "time_window",
+        "type": "string",
+        "desc": "HH:MM-HH:MM, 24-hour, end after start.",
+        "optional": true
+      },
+      {
+        "name": "recipient_timezone",
+        "type": "string",
+        "desc": "recipient_timezone",
+        "optional": true
+      },
+      {
+        "name": "retry_preference",
+        "type": "string",
+        "desc": "retry_preference",
+        "optional": true
+      },
+      {
+        "name": "allow_outside_business_hours",
+        "type": "boolean",
+        "desc": "allow_outside_business_hours",
+        "optional": true
+      },
+      {
+        "name": "consent_attestation",
+        "type": "boolean",
+        "desc": "consent_attestation",
+        "optional": true
+      },
+      {
+        "name": "max_attempts",
+        "type": "integer",
+        "desc": "max_attempts",
+        "optional": true
+      },
+      {
+        "name": "max_minutes",
+        "type": "integer",
+        "desc": "max_minutes",
+        "optional": true
+      },
+      {
+        "name": "callback_url",
+        "type": "string",
+        "desc": "callback_url",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "get_call",
+    "description": "Read one human phone call, including needs_info missing_fields, wrap_up, cancel_pending, refunded, or the final result.",
+    "arguments": [
+      {
+        "name": "call_id",
+        "type": "string",
+        "desc": "call_id"
+      }
+    ]
+  },
+  {
+    "name": "get_call_events",
+    "description": "Read the durable per-step event log for one call, oldest first. Each row has seq, kind, status, outcome, release_reason, and summary. summary is the VA wrap-up notes, or an auto-generated factual recap when ops sent none. A queued place_call appends call.placed (status queued) and then call.handoff_sent or call.handoff_failed. Replaying the same Idempotency-Key does not append those rows again.",
+    "arguments": [
+      {
+        "name": "call_id",
+        "type": "string",
+        "desc": "call_id"
+      }
+    ]
+  },
+  {
+    "name": "update_call",
+    "description": "Fill missing_fields on a call in needs_info. Same result shapes as place_call.",
+    "arguments": [
+      {
+        "name": "call_id",
+        "type": "string",
+        "desc": "call_id"
+      },
+      {
+        "name": "phone",
+        "type": "string",
+        "desc": "phone",
+        "optional": true
+      },
+      {
+        "name": "extension",
+        "type": "string",
+        "desc": "Optional digits. Passed into the VA instructions.",
+        "optional": true
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "language",
+        "optional": true
+      },
+      {
+        "name": "business_name",
+        "type": "string",
+        "desc": "business_name",
+        "optional": true
+      },
+      {
+        "name": "purpose",
+        "type": "string",
+        "desc": "purpose",
+        "optional": true
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "goal",
+        "optional": true
+      },
+      {
+        "name": "record_call",
+        "type": "boolean",
+        "desc": "record_call",
+        "optional": true
+      },
+      {
+        "name": "script_mode",
+        "type": "string",
+        "desc": "script_mode",
+        "optional": true
+      },
+      {
+        "name": "script",
+        "type": "string",
+        "desc": "script",
+        "optional": true
+      },
+      {
+        "name": "instructions",
+        "type": "string",
+        "desc": "instructions",
+        "optional": true
+      },
+      {
+        "name": "questions",
+        "type": "array",
+        "desc": "questions",
+        "optional": true
+      },
+      {
+        "name": "allowed_disclosures",
+        "type": "string",
+        "desc": "allowed_disclosures",
+        "optional": true
+      },
+      {
+        "name": "on_behalf_of",
+        "type": "string",
+        "desc": "on_behalf_of",
+        "optional": true
+      },
+      {
+        "name": "shareable_contact",
+        "type": "string",
+        "desc": "shareable_contact",
+        "optional": true
+      },
+      {
+        "name": "deadline",
+        "type": "string",
+        "desc": "deadline",
+        "optional": true
+      },
+      {
+        "name": "time_window",
+        "type": "string",
+        "desc": "time_window",
+        "optional": true
+      },
+      {
+        "name": "recipient_timezone",
+        "type": "string",
+        "desc": "recipient_timezone",
+        "optional": true
+      },
+      {
+        "name": "retry_preference",
+        "type": "string",
+        "desc": "retry_preference",
+        "optional": true
+      },
+      {
+        "name": "allow_outside_business_hours",
+        "type": "boolean",
+        "desc": "Set true only after the customer confirms the call may happen outside weekday 09:00–17:00 in the recipient time zone. The deadline then needs 60 minutes of clock time. Omit or false keeps the weekday business-hour rule.",
+        "optional": true
+      },
+      {
+        "name": "consent_attestation",
+        "type": "boolean",
+        "desc": "consent_attestation",
+        "optional": true
+      },
+      {
+        "name": "max_attempts",
+        "type": "integer",
+        "desc": "max_attempts",
+        "optional": true
+      },
+      {
+        "name": "max_minutes",
+        "type": "integer",
+        "desc": "max_minutes",
+        "optional": true
+      },
+      {
+        "name": "callback_url",
+        "type": "string",
+        "desc": "callback_url",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "cancel_call",
+    "description": "Cancel a call. Status stays cancel_pending until ops confirms. A confirm before any dial refunds the hold and the status becomes cancelled. If the dial already started, the error is cancel_too_late and the call bills normally. A dial after a confirmed cancel is a full refund and the VA is unpaid.",
+    "arguments": [
+      {
+        "name": "call_id",
+        "type": "string",
+        "desc": "call_id"
+      }
+    ]
+  },
+  {
+    "name": "get_transcript",
+    "description": "Read the VA wrap-up summary for one call. This is not a recording. Once the call is wrap_up or completed, the result is that summary plus any question answers, with source wrap_up_summary and recorded false. Before a wrap-up summary exists, the result is transcript_not_ready. A call that ended without a dial (system failure or refund) is \"no transcript: call not placed\". A cancel after the dial started is call_cancelled. A recorded transcript may be a separate paid feature later and is not returned.",
+    "arguments": [
+      {
+        "name": "call_id",
+        "type": "string",
+        "desc": "call_id"
+      }
+    ]
+  }
+]
