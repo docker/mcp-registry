@@ -1,0 +1,51 @@
+name: soulsketch
+image: mcp/soulsketch
+type: server
+meta:
+  category: ai
+  tags:
+    - memory
+    - identity
+    - continuity
+    - ai
+    - portable
+    - privacy
+about:
+  title: SoulSketch
+  description: |
+    SoulSketch gives AI assistants portable, user-owned memory. Your assistant's
+    identity lives in a "memory pack": five plain Markdown/JSONL files (persona,
+    relationships, technical domains, voice, runtime observations) kept in a
+    private Git repo you control - your Soul-Sanctum - instead of a vendor
+    database.
+
+    Tools:
+    • soulsketch_read_pack - load an identity so the assistant "comes home"
+    • soulsketch_observe - append one observation line (the only write; append-only)
+    • soulsketch_validate_pack - health-check a 5-file memory pack
+    • soulsketch_fingerprint_pack - deterministic SHA-256 seal of the pack state
+    • soulsketch_diff_packs - which identity dimension changed between two packs
+    • soulsketch_continuity_record - fingerprint + provenance labels for audit
+
+    Five of the six tools are read-only; the sixth can only append. The server
+    is local-first with no network calls or telemetry, and only sees the
+    directory you mount.
+  icon: https://avatars.githubusercontent.com/u/100811071?v=4
+source:
+  project: https://github.com/bytewizard42i/soulSketch
+  commit: 3d6272fc88e8788f1e9d1f19dd4f53c5ae1b5875
+  dockerfile: packages/mcp-server/Dockerfile
+run:
+  volumes:
+    - "{{soulsketch.sanctum_path}}:/memories"
+  disableNetwork: true
+config:
+  description: Mount your Soul-Sanctum (the folder or repo holding your memory packs)
+  parameters:
+    type: object
+    properties:
+      sanctum_path:
+        type: string
+        default: /Users/local-test/soul-sanctum
+    required:
+      - sanctum_path
