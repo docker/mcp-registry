@@ -163,6 +163,9 @@ type Container struct {
 }
 
 type Meta struct {
+	// Owner and License describe a hosted remote service when supplied.
+	Owner    string   `yaml:"owner,omitempty" json:"owner,omitempty"`
+	License  string   `yaml:"license,omitempty" json:"license,omitempty"`
 	Category string   `yaml:"category,omitempty" json:"category,omitempty"`
 	Tags     []string `yaml:"tags,omitempty" json:"tags,omitempty"`
 }
