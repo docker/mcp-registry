@@ -1603,5 +1603,386 @@
         "optional": true
       }
     ]
+  },
+  {
+    "name": "website_change_monitor",
+    "description": "Use this to watch competitor pricing, terms, product and careers pages for changes: each run shows added and removed text, change percent, price changes and keyword alerts versus the last run. Schedule it; webhook optional. Excel.\n\nRuns the Apify Actor pandadad0214/website-change-monitor (https://apify.com/pandadad0214/website-change-monitor) on your own Apify account. Price: $0.0015 per page checked. Runs that find nothing are not charged per result. Spending is capped per call by run_max_charge_usd.",
+    "arguments": [
+      {
+        "name": "urls",
+        "type": "array",
+        "desc": "Pages to watch. One URL per line. Optional label after ' | ' (e.g. https://acme.com/pricing | Acme pricing). Leave empty for a 2-page demo.",
+        "optional": true
+      },
+      {
+        "name": "monitorName",
+        "type": "string",
+        "desc": "Monitor name. Snapshots are saved in your account under this name (key-value store panda-change-monitor-). Use different names for separate watch lists; each run compares with the last run of the same name.",
+        "optional": true
+      },
+      {
+        "name": "watchKeywords",
+        "type": "array",
+        "desc": "Alert keywords. Optional. Reports when any of these words appear on or disappear from a page.",
+        "optional": true
+      },
+      {
+        "name": "cssSelector",
+        "type": "string",
+        "desc": "Only watch this part (CSS selector). Optional. Compare only the matching elements, e.g. main or #pricing. Ignores headers, footers and banners.",
+        "optional": true
+      },
+      {
+        "name": "ignorePatterns",
+        "type": "array",
+        "desc": "Ignore text matching (regex). Optional regular expressions removed before comparing (counters, timestamps, rotating promos).",
+        "optional": true
+      },
+      {
+        "name": "ignoreNumbersAndDates",
+        "type": "boolean",
+        "desc": "Ignore dates and times. Strip dates and clock times before comparing, to avoid noise from 'updated today' widgets.",
+        "optional": true
+      },
+      {
+        "name": "minChangePercent",
+        "type": "number",
+        "desc": "Minimum change to report (%). Changes smaller than this are reported as 'unchanged (below threshold)' and the old snapshot is kept, so small edits add up.",
+        "optional": true
+      },
+      {
+        "name": "onlyReportChanges",
+        "type": "boolean",
+        "desc": "Dataset: changed pages only. Skip unchanged pages in the dataset (handy for alerts and integrations). Every page checked is still billed; failed pages never are.",
+        "optional": true
+      },
+      {
+        "name": "webhookUrl",
+        "type": "string",
+        "desc": "Webhook URL for changes (optional). Optional https URL (Slack/Zapier/Make/n8n webhook). Gets a JSON POST listing changed pages, only when something changed.",
+        "optional": true
+      },
+      {
+        "name": "maxPages",
+        "type": "integer",
+        "desc": "Maximum pages. You pay per page checked, so this also caps the cost.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sbir_sttr_topic_radar",
+    "description": "Use this to find open SBIR and STTR topics from every agency (DoD branches, NIH, NASA, NSF, DOE, USDA, DHS...) by keyword, with full topic text, close dates, days left, topic numbers, official links and DoD Q&A status plus technical points of contact. Excel and CSV.\n\nRuns the Apify Actor pandadad0214/sbir-sttr-topic-radar (https://apify.com/pandadad0214/sbir-sttr-topic-radar) on your own Apify account. Price: $0.003 per topic found. Runs that find nothing are not charged per result. Spending is capped per call by run_max_charge_usd.",
+    "arguments": [
+      {
+        "name": "keywords",
+        "type": "string",
+        "desc": "Keywords. Words to find in topic titles and text, e.g. autonomy, battery, machine learning, wound care. Leave empty to list every topic with the chosen status.",
+        "optional": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Topic status. Open = topics you can still propose to. Closed = past topics, useful to see what an agency keeps asking for. Choices: open = Open (accepting proposals); closed = Closed (past topics, for research).",
+        "optional": true
+      },
+      {
+        "name": "agencies",
+        "type": "array",
+        "desc": "Agencies. Optional agency or branch codes: DOD (all DoD/DoW), USAF, ARMY, NAVY, DARPA, DHA, DTRA, MDA, SOCOM, SDA, OSD, CBD, HHS, NIH, FDA, CDC, NASA, NSF, DOE, USDA, NIFA, DHS, DOT, ED, EPA, DOC, NIST, NOAA, DOI, NRC. Empty = all agencies.",
+        "optional": true
+      },
+      {
+        "name": "program",
+        "type": "string",
+        "desc": "Program. Topics tagged for both programs are kept either way. Choices: any = SBIR or STTR; SBIR = SBIR only; STTR = STTR only (needs a research-institution partner).",
+        "optional": true
+      },
+      {
+        "name": "closeDateFrom",
+        "type": "string",
+        "desc": "Closes on or after. Optional, e.g. 2026-12 or 2026-12-15.",
+        "optional": true
+      },
+      {
+        "name": "closeDateTo",
+        "type": "string",
+        "desc": "Closes on or before. Optional, e.g. 2027-03-31.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum topics. You pay per topic returned, so this also caps the cost. 1 to 1,000; default 50.",
+        "optional": true
+      },
+      {
+        "name": "includeDetails",
+        "type": "boolean",
+        "desc": "Read full topic pages. Adds topic number, solicitation number, branch, due dates, full description and the official solicitation link (one extra page per topic, no extra charge).",
+        "optional": true
+      },
+      {
+        "name": "includeDodQa",
+        "type": "boolean",
+        "desc": "Add DoD Q&A status and point of contact. For DoD/DoW topics, looks the topic up on the DoD SBIR/STTR Innovation Portal (DSIP) and adds Q&A status, Q&A end date, published-question count and the technical point of contact when published. Needs 'Read full topic pages'.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sec_financials_excel",
+    "description": "Use this to get standardized annual income statement, balance sheet and cash-flow lines for US-listed companies from SEC EDGAR XBRL, with EBITDA, FCF, net debt, margins and a comps sheet that computes EV/EBITDA and P/E once you add share prices. Every number cites its filing. Excel.\n\nRuns the Apify Actor pandadad0214/sec-financials-excel (https://apify.com/pandadad0214/sec-financials-excel) on your own Apify account. Price: $0.002 per company-year of financials. Runs that find nothing are not charged per result. Spending is capped per call by run_max_charge_usd.",
+    "arguments": [
+      {
+        "name": "companies",
+        "type": "array",
+        "desc": "Companies (tickers or CIKs). US-listed companies that file 10-Ks with the SEC, e.g. AAPL, MSFT, BRK-B or a CIK like 320193. Up to 200 per run."
+      },
+      {
+        "name": "contactEmail",
+        "type": "string",
+        "desc": "Your contact email (required by SEC). SEC requires every automated request to declare a contact in its User-Agent header. It is sent to SEC only and is never stored in the output."
+      },
+      {
+        "name": "years",
+        "type": "integer",
+        "desc": "Fiscal years per company. Most recent annual (10-K) periods to return. You pay per company-year row, so this also caps the cost.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "hidden_ai_instructions_scanner",
+    "description": "Free. Use this to check web pages for text hidden from people but read by AI agents (display:none, off-screen, tiny or same-color text, comments, alt/meta, zero-width and Unicode tag characters) and flag prompt injection: policy notice, manipulation or harmful, with location and excerpt.\n\nRuns the Apify Actor pandadad0214/hidden-ai-instructions-scanner (https://apify.com/pandadad0214/hidden-ai-instructions-scanner) on your own Apify account. Price: free (no per-result charge). Runs that find nothing are not charged per result. Spending is capped per call by run_max_charge_usd.",
+    "arguments": [
+      {
+        "name": "urls",
+        "type": "array",
+        "desc": "Page URLs. Pages to scan, one per line. Each URL is scanned once; links are not followed."
+      },
+      {
+        "name": "renderJs",
+        "type": "boolean",
+        "desc": "Render JavaScript (browser). Off: fast HTTP fetch, reads inline styles, rules, comments, meta, data-* and other attributes, JSON-LD/script data blocks, iframe srcdoc and Unicode tricks. On: loads each page in headless Chromium, waits for network idle plus the settle time (catches delayed injections)",
+        "optional": true
+      },
+      {
+        "name": "agentUaDiff",
+        "type": "boolean",
+        "desc": "Check AI-agent cloaking. Also fetch each page as GPTBot, ClaudeBot and ChatGPT-User and flag AI-addressed text served to those agents but not to a normal browser.",
+        "optional": true
+      },
+      {
+        "name": "crawlDepth",
+        "type": "integer",
+        "desc": "Crawl depth. 0 = only the URLs you give. 1+ = also follow same-site links that many clicks deep (signed-out pages only). Max pages still caps the run.",
+        "optional": true
+      },
+      {
+        "name": "settleSecs",
+        "type": "integer",
+        "desc": "Wait after load (render mode). Extra wait after network idle so text injected on a timer is caught.",
+        "optional": true
+      },
+      {
+        "name": "maxPages",
+        "type": "integer",
+        "desc": "Max pages. Hard cap on pages scanned in one run.",
+        "optional": true
+      },
+      {
+        "name": "minSeverity",
+        "type": "string",
+        "desc": "Minimum severity. Drop findings below this severity. Choices: low = Low (include policy notices); medium = Medium; high = High only.",
+        "optional": true
+      },
+      {
+        "name": "timeoutSecs",
+        "type": "integer",
+        "desc": "Page timeout. Per-page load timeout.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "clinical_trial_leads",
+    "description": "Find clinical trials by condition, drug, sponsor, phase, status and location from the official ClinicalTrials.gov API: sponsor, phase, enrollment, dates, central contacts, investigators and every study site with contacts. Excel and CSV.\n\nRuns the Apify Actor pandadad0214/clinical-trial-leads (https://apify.com/pandadad0214/clinical-trial-leads) on your own Apify account. Price: $0.002 per trial returned. Runs that find nothing are not charged per result. Spending is capped per call by run_max_charge_usd.",
+    "arguments": [
+      {
+        "name": "condition",
+        "type": "string",
+        "desc": "Condition or disease. e.g. obesity, breast cancer, Alzheimer. Uses ClinicalTrials.gov synonyms.",
+        "optional": true
+      },
+      {
+        "name": "intervention",
+        "type": "string",
+        "desc": "Drug or intervention. e.g. semaglutide, CAR-T, device name. Optional.",
+        "optional": true
+      },
+      {
+        "name": "sponsor",
+        "type": "string",
+        "desc": "Sponsor or collaborator. e.g. Pfizer, Mayo Clinic. Optional.",
+        "optional": true
+      },
+      {
+        "name": "keywords",
+        "type": "string",
+        "desc": "Other keywords. Free-text search across the whole record. Optional.",
+        "optional": true
+      },
+      {
+        "name": "statuses",
+        "type": "array",
+        "desc": "Recruitment status. Default: recruiting + not yet recruiting.",
+        "optional": true
+      },
+      {
+        "name": "phases",
+        "type": "array",
+        "desc": "Phases. Empty = any phase.",
+        "optional": true
+      },
+      {
+        "name": "sponsorType",
+        "type": "string",
+        "desc": "Lead sponsor type. Industry = pharma/biotech/device companies. Choices: any = Any; INDUSTRY = Industry; NIH = NIH; FED = Other federal; OTHER_GOV = Other government; OTHER = Academic / hospital / other; NETWORK = Network.",
+        "optional": true
+      },
+      {
+        "name": "studyType",
+        "type": "string",
+        "desc": "Study type. Interventional = treatment trials.",
+        "optional": true
+      },
+      {
+        "name": "countries",
+        "type": "array",
+        "desc": "Site countries. Keep trials with at least one site here, e.g. United States, Canada.",
+        "optional": true
+      },
+      {
+        "name": "states",
+        "type": "array",
+        "desc": "Site states / regions. Full names as on ClinicalTrials.gov, e.g. Arizona, California, Ontario.",
+        "optional": true
+      },
+      {
+        "name": "city",
+        "type": "string",
+        "desc": "Site city. e.g. Phoenix.",
+        "optional": true
+      },
+      {
+        "name": "updatedWithinDays",
+        "type": "integer",
+        "desc": "Updated in the last N days. Only trials whose record changed recently (good for weekly schedules).",
+        "optional": true
+      },
+      {
+        "name": "requireContact",
+        "type": "boolean",
+        "desc": "Only trials with a contact. Skip trials without a published central or site contact.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum results. You pay per trial returned, so this also caps the cost. Default 100.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
   }
 ]
