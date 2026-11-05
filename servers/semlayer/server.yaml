@@ -1,0 +1,36 @@
+name: semlayer
+image: mcp/semlayer
+type: server
+meta:
+  category: database
+  tags:
+    - database
+    - data-warehouse
+    - sql
+    - analytics
+about:
+  title: semlayer
+  description: Infers a semantic layer from a data warehouse and serves it to agents over MCP. It profiles every column, discovers the foreign keys nobody declared, decodes cryptic status codes and finds the filters that must always be applied -- then answers questions against Snowflake, BigQuery, Postgres or DuckDB with that context, and lints the SQL an agent writes against the layer before it runs. Every inference carries a confidence score and provenance, and low-confidence claims can be reviewed and corrected.
+  icon: https://semlayer.dev/logo-400.png
+source:
+  project: https://github.com/semlayer-dev/semlayer
+  branch: main
+  commit: 5caa09f228e27f20d2c920287fecbb8749504717
+run:
+  volumes:
+    - semlayer-home:/home/semlayer/.semlayer
+config:
+  description: All settings are optional. Without a model key the server still works, inferring from statistics alone. Warehouse credentials are read from the environment, and only for the warehouse you actually use.
+  secrets:
+    - name: semlayer.anthropic_api_key
+      env: ANTHROPIC_API_KEY
+      description: Optional. Enriches inference with descriptions and LLM-validated joins. Without it, inference runs on statistics alone and still produces a valid layer.
+      required: false
+    - name: semlayer.pg_dsn
+      env: PG_DSN
+      description: Optional. Postgres connection string, if you want the server to reach a Postgres warehouse.
+      required: false
+    - name: semlayer.snowflake_private_key_passphrase
+      env: SNOWFLAKE_PRIVATE_KEY_PASSPHRASE
+      description: Optional. Passphrase for an encrypted Snowflake private key.
+      required: false
