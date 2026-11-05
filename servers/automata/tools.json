@@ -1,0 +1,658 @@
+[
+    {
+      "name": "describe-table",
+      "description": "[PostgreSQL] Show one table's columns — name, type, nullability, default, identity, and `enumValues` where the type is an enum — plus its primary key, unique and CHECK constraints, indexes, comments, and BOTH directions of its foreign keys: `foreignKeys` is where this table points, `referencedBy` is what points at it. Those two are the join graph — read them before inventing a join condition. `enumValues` and the CHECK constraints are a column's permitted values: a filter on a value outside them returns no rows and reads like an empty result rather than a mistake. For a view, `viewDefinition` is the SQL it is defined as, which names its base tables and join keys. Use the exact `schema` and `name` that list-tables returned; identifiers are case-sensitive. Read this before writing SQL against a table you have not already described in this conversation: guessing a column name costs a round trip, and guessing a type produces a query that runs and quietly returns the wrong thing. A foreign key whose `reachable` is false points at a table this token cannot describe or query, and `referencedByOutOfScope` counts inbound keys from tables it cannot name — in both cases tell the user, since only the account owner can widen the allowlist. If the table itself is not reachable the answer is a refusal, not an empty description — call list-tables to see what is reachable.",
+      "arguments": [
+        {
+          "name": "schema",
+          "type": "string",
+          "desc": "Schema exactly as list-tables reported it",
+          "optional": true
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "desc": "Table name exactly as list-tables reported it, including capitalisation"
+        }
+      ],
+      "annotations": {
+        "title": "Describe a database table",
+        "readOnlyHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "get-connection-status",
+      "description": "[WhatsApp] Report whether the connected WhatsApp account is currently online, along with the profile it is signed in as and how many messages, chats and contacts have been recorded. Call this before sending anything: only an account in the `open` state can send or receive.",
+      "annotations": {
+        "title": "Check WhatsApp connection",
+        "readOnlyHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "get-database-info",
+      "description": "[PostgreSQL] Report whether this connector can reach its database, which server version and database it is, which role it connects as, and what this token is scoped to. Call this first when a query fails in a way that might be the connection rather than the SQL. `tablesInScope` lists the tables this token may reach when it is scoped to an allowlist; when it is not, every table the role can read is reachable and list-tables is the way to see them.",
+      "annotations": {
+        "title": "Check the database connection",
+        "readOnlyHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "get-email-attachment",
+      "description": "[Email] Fetch one attachment of an email: an `emailId` from list-emails, search-emails or read-email, and a `part` from that email's attachment list. Images (PNG, JPEG, GIF, WebP) come back as images, text files (plain text, CSV, JSON, XML, HTML, calendar invites) as text, and anything else — PDFs, Office documents, archives — as an embedded file with its type. Attachments larger than the limit are refused with their size. Fetch only what the task needs: each call downloads the file from the mail server.",
+      "arguments": [
+        {
+          "name": "emailId",
+          "type": "string",
+          "desc": "The emailId the attachment belongs to"
+        },
+        {
+          "name": "part",
+          "type": "string",
+          "desc": "The attachment's `part`, from the email's attachment list"
+        }
+      ],
+      "annotations": {
+        "title": "Get email attachment",
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "get-mailbox-status",
+      "description": "[Email] Report which mailbox this connector reads, whether its sync is working, when it last synced, and how much of each folder has been synced. Headers are synced every few minutes; `lastSyncedAt` says how fresh listings are, and mail that arrived after it is not listed yet. `error` explains a failing sync — a refused password can only be fixed by the account owner in the web app. `foldersStillSyncing` and `foldersStoppedAtLimit` say which folders hold older mail that has not been synced.",
+      "annotations": {
+        "title": "Check mailbox sync",
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "get-telegram-status",
+      "description": "[Telegram] Report whether the connected Telegram account is online, which account it is signed in as, how many chats and messages have been synced, and whether older history is still being fetched. Call this before sending: only an account in the `open` state can send. `sessionLost` means the account is still linked and its connection dropped; `revoked` means the session was ended from Telegram, and the account has to be linked again by scanning a QR code in the web app.",
+      "annotations": {
+        "title": "Check Telegram connection",
+        "readOnlyHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "list-chats",
+      "description": "[WhatsApp] List recent WhatsApp conversations, most recently active first, with the `jid` needed by read-messages. Includes conversations imported from the phone when the account was paired, not only ones active since. If this connector is scoped to specific chats, only those are listed. This answers with one page, most recently active first: when `hasMore` is true there are older conversations it did not include, so do not report the list as complete or conclude that a chat does not exist — search-messages finds a conversation by what was said in it.",
+      "annotations": {
+        "title": "List WhatsApp chats",
+        "readOnlyHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "list-emails",
+      "description": "[Email] List one page of emails, newest first: sender, recipients, subject, date, read state and attachment names — no body. Pass `folder` (a path from list-mail-folders) to list one folder; without it every synced folder this token may read is listed, and an email filed in several folders appears once with each folder in `folders`. Filter with `since`/`until`, `unread`, `flagged` and `hasAttachments`. A response is one page: when `hasMore` is true call again with `nextPage` and otherwise the same arguments (including `window`) until `hasMore` is false before summarising. `covered` is the span this page actually covers; `totalMatching` counts the emails in the request. Pass an `emailId` to read-email for the text. To find emails by sender, subject or words, use search-emails instead of paging.",
+      "arguments": [
+        {
+          "name": "folder",
+          "type": "string",
+          "desc": "Folder path from list-mail-folders, e.g. \"INBOX\". Omit for every synced folder.",
+          "optional": true
+        },
+        {
+          "name": "since",
+          "type": "string",
+          "desc": "Only emails received at or after this date, e.g. 2024-03-01 or 2024-03-01T12:00:00Z",
+          "optional": true
+        },
+        {
+          "name": "until",
+          "type": "string",
+          "desc": "Only emails received at or before this date. Pass back `window.until` from a previous page when paging a range.",
+          "optional": true
+        },
+        {
+          "name": "unread",
+          "type": "boolean",
+          "desc": "true for unread emails only, false for read ones only",
+          "optional": true
+        },
+        {
+          "name": "flagged",
+          "type": "boolean",
+          "desc": "true for flagged (starred) emails only",
+          "optional": true
+        },
+        {
+          "name": "hasAttachments",
+          "type": "boolean",
+          "desc": "true for emails with attachments only",
+          "optional": true
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "desc": "How many emails to return in this page",
+          "optional": true
+        },
+        {
+          "name": "page",
+          "type": "integer",
+          "desc": "1-based page, counting back from the newest. Walk this up while `hasMore` is true.",
+          "optional": true
+        }
+      ],
+      "annotations": {
+        "title": "List emails",
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list-mail-folders",
+      "description": "[Email] List the folders of the connected mailbox that this token may read, INBOX first, with how many emails are synced and unread in each. Folder `path` is what list-emails and search-emails take as `folder`. `synced: false` folders (All Mail, Junk, Trash, and folders that cannot hold mail) exist on the server but are not synced, so nothing in them can be listed or searched. `serverMessages` is what the server reported the folder holds; when `history.complete` is false, older mail in that folder has not been synced (`history.stopped` says if a limit stopped it).",
+      "annotations": {
+        "title": "List mail folders",
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "list-tables",
+      "description": "[PostgreSQL] List the tables, views and materialized views this connector can reach, with their schema, kind, estimated row count and comment. Start here: the `schema` and `name` returned are exactly the identifiers describe-table and your SQL must use, **including capitalisation** — a table created as \"Message\" is a different table from message. If this connector is scoped to an allowlist, only allowlisted tables are listed and `scopedToAllowlist` says so; a table missing from this list cannot be reached by any tool here, so do not guess at names. `estimatedRows` is a planner statistic, not a count — never report it as one. This answers with ONE PAGE: when `hasMore` is true there are more tables you have not seen, and you must page with `nextPage` before concluding that a table does not exist.",
+      "arguments": [
+        {
+          "name": "schema",
+          "type": "string",
+          "desc": "Restrict to one schema, e.g. public",
+          "optional": true
+        },
+        {
+          "name": "search",
+          "type": "string",
+          "desc": "Case-insensitive substring match on the table name",
+          "optional": true
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "desc": "How many tables to return in this page",
+          "optional": true
+        },
+        {
+          "name": "page",
+          "type": "integer",
+          "desc": "1-based page of `limit` tables. Walk this up while hasMore is true.",
+          "optional": true
+        }
+      ],
+      "annotations": {
+        "title": "List database tables",
+        "readOnlyHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "list-telegram-chats",
+      "description": "[Telegram] List synced Telegram chats — private chats, groups, supergroups and channels — most recently active first, with the `chatId` needed by the other Telegram tools. A `chatId` is a string of digits (negative for groups and channels); always pass it back as a string. If this connector is scoped to specific chats, only those are listed. This answers one page: when `hasMore` is true there are more chats, so walk `nextPage` before concluding a chat does not exist. Each chat carries `history`: when `history.complete` is false, older messages in that chat were not synced. A chat with `migratedTo` is a group that was upgraded; its newer messages are in the chat that names.",
+      "arguments": [
+        {
+          "name": "limit",
+          "type": "integer",
+          "desc": "How many chats to return in this page",
+          "optional": true
+        },
+        {
+          "name": "page",
+          "type": "integer",
+          "desc": "1-based page, most recently active first. Walk this up while `hasMore` is true.",
+          "optional": true
+        }
+      ],
+      "annotations": {
+        "title": "List Telegram chats",
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "read-email",
+      "description": "[Email] Read one email: its headers, its body as plain text (HTML is converted), and its attachment list. Takes an `emailId` from list-emails or search-emails, unchanged. Long bodies come back in pieces: when `truncated` is true call again with `offset: nextOffset` for the rest. Attachments are listed by `part`; fetch one with get-email-attachment only when its content is needed. `messageId`, `inReplyTo` and `references` identify the email in its thread — search-emails by subject finds the rest of a conversation.",
+      "arguments": [
+        {
+          "name": "emailId",
+          "type": "string",
+          "desc": "An emailId from list-emails or search-emails"
+        },
+        {
+          "name": "offset",
+          "type": "integer",
+          "desc": "Character offset into the body, for continuing a truncated one",
+          "optional": true
+        },
+        {
+          "name": "maxChars",
+          "type": "integer",
+          "desc": "Most body characters to return",
+          "optional": true
+        }
+      ],
+      "annotations": {
+        "title": "Read email",
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "read-messages",
+      "description": "[WhatsApp] Read one page of messages from one WhatsApp conversation, newest first. Takes the `jid` returned by list-chats. Covers the history imported when the account was paired as well as everything since, so older conversations are reachable — use `since`/`until` to target a date range. A response is one page, not the whole range: when `hasMore` is true there are older messages you have not seen, so call again with `nextPage` and the same `jid`, `limit` and `window` bounds, and keep going until `hasMore` is false before treating the range as fully read. `covered` reports the span this page actually covers, which for a truncated range is narrower than the one you asked for, and `totalMatching`/`totalPages` say how much the range holds in full — a count of distinct messages, safe to quote. A message you sent is marked `fromMe` and carries no `author`; on one you received, `author` is the sender's name where the account knows it, and absent where it does not. Reaction messages are left out unless `includeReactions` is set. @-mentions in the text are shown as names where the account knows them, and left as raw numeric ids where it does not — an id is not a name to guess at. An edited message arrives as its own record carrying the new text, with `editOf` naming the message it replaces; that earlier record is still in the history with the text it had before, so read the pair as one message that changed rather than as two. WhatsApp's own control records — deletions, disappearing-message timer changes, key exchanges — carry nothing to read and are left out, counted by `protocolMessagesExcluded` when any were, and still included in `totalMatching`. An edit that WhatsApp encrypted for the chat's participants comes back with no text and `unreadable: 'encrypted-edit'`: the current wording of that message is unknown here, so report it as unknown rather than treating the earlier version as final. To find a message by what it says, prefer search-messages when this connector offers it.",
+      "arguments": [
+        {
+          "name": "jid",
+          "type": "string",
+          "desc": "Chat identifier from list-chats, e.g. 5511999999999@s.whatsapp.net"
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "desc": "How many messages to return in this page",
+          "optional": true
+        },
+        {
+          "name": "page",
+          "type": "integer",
+          "desc": "1-based page of `limit` messages, counting back from the newest. Walk this up while `hasMore` is true.",
+          "optional": true
+        },
+        {
+          "name": "since",
+          "type": "string",
+          "desc": "Only messages at or after this date, e.g. 2024-03-01 or 2024-03-01T12:00:00Z",
+          "optional": true
+        },
+        {
+          "name": "until",
+          "type": "string",
+          "desc": "Only messages at or before this date. Pass back the `window.until` from a previous page when paging a range.",
+          "optional": true
+        },
+        {
+          "name": "includeReactions",
+          "type": "boolean",
+          "desc": "Include reaction messages. Each reaction is its own record — an id, an author, a timestamp and an emoji — so in an active group they are a large share of a page while rarely mattering for reconstructing the conversation. Off by default for that reason; turn it on when who reacted is the question.",
+          "optional": true
+        }
+      ],
+      "annotations": {
+        "title": "Read WhatsApp messages",
+        "readOnlyHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "read-telegram-messages",
+      "description": "[Telegram] Read one page of synced messages from one Telegram chat, newest first. Takes the `chatId` from list-telegram-chats, as a string. Use `since`/`until` to target a date range and `topicId` for one topic of a forum supergroup. A response is one page: when `hasMore` is true there are older messages you have not seen, so call again with `nextPage` and the same `chatId`, `limit` and `window`, and keep going until `hasMore` is false before treating the range as read. `covered` is the span this page actually covers; `totalMatching` counts the messages in the range. When `history.complete` is false, the chat has older messages that were never synced: reaching `hasMore: false` then means you reached the oldest *synced* message, not the start of the conversation, and `note` says why. `history.gapSince` means edits or deletions around that time may be missing. Telegram edits messages in place: `text` is the current wording, `editedAt` says it changed, and the earlier wording is not available. Deleted messages are left out and counted in `deletedExcluded`; their text is not kept. Service messages (joins, pins, title changes) are left out unless `includeService` is set, counted in `serviceMessagesExcluded`. Reactions are counts on a message (`reactions`), never separate messages. A message you sent is marked `fromMe` and carries no `author`. To find a message by what it says, use search-telegram-messages instead of paging.",
+      "arguments": [
+        {
+          "name": "chatId",
+          "type": "string",
+          "desc": "Chat id from list-telegram-chats, as a string, e.g. \"-1001234567890\""
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "desc": "How many messages to return in this page",
+          "optional": true
+        },
+        {
+          "name": "page",
+          "type": "integer",
+          "desc": "1-based page of `limit` messages, counting back from the newest. Walk this up while `hasMore` is true.",
+          "optional": true
+        },
+        {
+          "name": "since",
+          "type": "string",
+          "desc": "Only messages at or after this date, e.g. 2024-03-01 or 2024-03-01T12:00:00Z",
+          "optional": true
+        },
+        {
+          "name": "until",
+          "type": "string",
+          "desc": "Only messages at or before this date. Pass back `window.until` from a previous page when paging a range.",
+          "optional": true
+        },
+        {
+          "name": "topicId",
+          "type": "integer",
+          "desc": "In a forum supergroup, only messages in this topic",
+          "optional": true
+        },
+        {
+          "name": "includeDeleted",
+          "type": "boolean",
+          "desc": "Include deleted messages as placeholders with no text. Off by default.",
+          "optional": true
+        },
+        {
+          "name": "includeService",
+          "type": "boolean",
+          "desc": "Include service messages: joins, leaves, pins, title and photo changes. Off by default.",
+          "optional": true
+        }
+      ],
+      "annotations": {
+        "title": "Read Telegram messages",
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "run-query",
+      "description": "[PostgreSQL] Run one read-only SQL statement and return its rows. Exactly one statement — a second one after a semicolon is rejected by the database, not silently run. It executes inside a read-only transaction with a statement timeout, so nothing it does can change data, and every table it touches must be inside this connector's allowlist: the planner is asked which relations the query resolves to, through views and CTEs included, before a single row is read, and a query that reaches outside is refused with the offending table named. Functions this connector cannot see inside — anything outside pg_catalog — are refused too, so a query calling a helper function must be rewritten against the tables directly. Prefer describe-table over SELECT * on a wide table. The result is ONE PAGE of at most `maxRows` rows: when `hasMore` is true you have NOT seen the whole result — call again with `page: nextPage`. Each page re-runs the query, so pages only line up when it has an ORDER BY on a unique column; add one before paging. For very deep results a keyset predicate (WHERE id > <last id>) is cheaper than a high page number. Long cells are clipped at 2000 characters unless you pass `fullValues: true`. Never summarise a `hasMore: true` result as if it were the full answer.",
+      "arguments": [
+        {
+          "name": "sql",
+          "type": "string",
+          "desc": "One SQL query: SELECT, WITH … SELECT, VALUES or TABLE. Not a write."
+        },
+        {
+          "name": "maxRows",
+          "type": "integer",
+          "desc": "Rows per page, at most 1000. For more rows, keep this and walk `page` with nextPage — add an ORDER BY on a unique column first so the pages line up. The query is stopped at this many rather than truncated afterwards.",
+          "optional": true
+        },
+        {
+          "name": "page",
+          "type": "integer",
+          "desc": "1-based page of `maxRows` rows. Walk it up with nextPage while hasMore is true; pages are consistent only under an ORDER BY on a unique column.",
+          "optional": true
+        },
+        {
+          "name": "timeoutMs",
+          "type": "integer",
+          "desc": "Server-side statement timeout, in milliseconds",
+          "optional": true
+        },
+        {
+          "name": "fullValues",
+          "type": "boolean",
+          "desc": "Return every cell whole instead of clipping each at 2000 characters. Set it only when you need a long text or JSON value in full: a page of large cells can make a very large response.",
+          "optional": true
+        }
+      ],
+      "annotations": {
+        "title": "Run a read-only SQL query",
+        "readOnlyHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "run-statement",
+      "description": "[PostgreSQL] Run one INSERT, UPDATE, DELETE or MERGE and report how many rows it changed. Exactly one statement; DDL, TRUNCATE, COPY and CREATE TABLE AS are refused. Every table it reads or writes must be inside this connector's allowlist. It runs inside a transaction with a row cap: if the statement turns out to affect more rows than `maxRows`, the whole transaction is rolled back and NOTHING changes — so set `maxRows` to what you actually intend to change, and read a cap error as \"my WHERE clause was wider than I thought\" rather than as a limit to raise blindly. An UPDATE or DELETE with no WHERE clause is refused unless you pass `allowWholeTable: true`, which is deliberately a separate decision from the SQL. Add RETURNING when you need to see what changed; returned cells are clipped at 2000 characters unless you pass `fullValues: true`. This tool cannot see inside triggers: a write to an allowed table may cascade to tables outside the allowlist, and the allowlist cannot stop that. Confirm destructive changes with the user before calling this.",
+      "arguments": [
+        {
+          "name": "sql",
+          "type": "string",
+          "desc": "One INSERT, UPDATE, DELETE or MERGE statement"
+        },
+        {
+          "name": "maxRows",
+          "type": "integer",
+          "desc": "Roll the whole statement back if it would affect more rows than this",
+          "optional": true
+        },
+        {
+          "name": "timeoutMs",
+          "type": "integer",
+          "desc": "Server-side statement timeout, in milliseconds",
+          "optional": true
+        },
+        {
+          "name": "allowWholeTable",
+          "type": "boolean",
+          "desc": "Permit an UPDATE or DELETE with no WHERE clause. Off by default: a missing WHERE is far more often a mistake than an intention. `maxRows` still applies.",
+          "optional": true
+        },
+        {
+          "name": "fullValues",
+          "type": "boolean",
+          "desc": "Return every cell whole instead of clipping each at 2000 characters. Set it only when you need a long text or JSON value in full: a page of large cells can make a very large response.",
+          "optional": true
+        }
+      ],
+      "annotations": {
+        "title": "Run a data-modifying SQL statement",
+        "destructiveHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "search-emails",
+      "description": "[Email] Find emails by `from` (part of a sender's name or address), `to` (part of a To or Cc recipient), `subject` (words or part of the subject) and `text` (words in the body), combined with AND, optionally inside one `folder` and a `since`/`until` range. At least one of from, to, subject or text is required. Answers one page, newest first, in the same shape as list-emails: page with `nextPage` while `hasMore` is true. `from`, `to` and `subject` match synced headers. `text` is passed to the mail server's own search, whose matching varies by provider (Gmail matches whole words, most servers substrings) and which only covers the folders listed in `bodySearch.searched` — finding nothing is not proof an email does not exist.",
+      "arguments": [
+        {
+          "name": "from",
+          "type": "string",
+          "desc": "Part of a sender's name or address, e.g. \"acme.com\" or \"Maria\"",
+          "optional": true
+        },
+        {
+          "name": "to",
+          "type": "string",
+          "desc": "Part of a To or Cc recipient's name or address",
+          "optional": true
+        },
+        {
+          "name": "subject",
+          "type": "string",
+          "desc": "Words in the subject, or part of it",
+          "optional": true
+        },
+        {
+          "name": "text",
+          "type": "string",
+          "desc": "Words in the email body, searched by the mail server",
+          "optional": true
+        },
+        {
+          "name": "folder",
+          "type": "string",
+          "desc": "Folder path from list-mail-folders. Omit to search every synced folder.",
+          "optional": true
+        },
+        {
+          "name": "since",
+          "type": "string",
+          "desc": "Only emails received at or after this date",
+          "optional": true
+        },
+        {
+          "name": "until",
+          "type": "string",
+          "desc": "Only emails received at or before this date. Pass back `window.until` when paging.",
+          "optional": true
+        },
+        {
+          "name": "unread",
+          "type": "boolean",
+          "desc": "true for unread emails only",
+          "optional": true
+        },
+        {
+          "name": "hasAttachments",
+          "type": "boolean",
+          "desc": "true for emails with attachments only",
+          "optional": true
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "desc": "How many emails to return in this page",
+          "optional": true
+        },
+        {
+          "name": "page",
+          "type": "integer",
+          "desc": "1-based page, newest first",
+          "optional": true
+        }
+      ],
+      "annotations": {
+        "title": "Search emails",
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "search-messages",
+      "description": "[WhatsApp] Find WhatsApp messages containing given words, newest first, across every chat unless a `jid` narrows it to one. Matching is case-insensitive and every word must appear in the same message. Covers the history imported when the account was paired as well as everything since. Reaction messages are not searched unless `includeReactions` is set, which also makes a bare emoji findable. A match you sent is marked `fromMe` and carries no `author`; on one you received, `author` is the sender's name where the account knows it, and absent where it does not. @-mentions in the text are shown as names where the account knows them, and left as raw numeric ids where it does not — an id is not a name to guess at. An edited message is matched on its new text and comes back with `editOf`, the id of the message it replaces — which may be a separate hit here still carrying its old wording, so prefer the edit when the two disagree. A hit's `type` names the record as WhatsApp stored it, so an edit reads as `protocolMessage` and an album item as `associatedChildMessage`; the `text` is the real content either way. An edit WhatsApp encrypted for the chat's participants is not searchable at all: its text is unknown to this connector, so a search finding nothing is not proof a message does not exist. Use this instead of paging read-messages when you are looking for something by what it says.",
+      "arguments": [
+        {
+          "name": "query",
+          "type": "string",
+          "desc": "Words to look for. All of them must appear in the message."
+        },
+        {
+          "name": "jid",
+          "type": "string",
+          "desc": "Restrict to one chat, using a `jid` from list-chats. Omit to search every chat.",
+          "optional": true
+        },
+        {
+          "name": "since",
+          "type": "string",
+          "desc": "Only messages at or after this date, e.g. 2024-03-01 or 2024-03-01T12:00:00Z",
+          "optional": true
+        },
+        {
+          "name": "until",
+          "type": "string",
+          "desc": "Only messages at or before this date",
+          "optional": true
+        },
+        {
+          "name": "fromMe",
+          "type": "boolean",
+          "desc": "true for only messages you sent, false for only messages you received",
+          "optional": true
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "desc": "How many matches to return",
+          "optional": true
+        },
+        {
+          "name": "includeReactions",
+          "type": "boolean",
+          "desc": "Search reaction messages too, matching against the emoji itself. Off by default: a reaction carries an id, an author and a timestamp to say one character, and it rarely answers a question about what was said.",
+          "optional": true
+        }
+      ],
+      "annotations": {
+        "title": "Search WhatsApp messages",
+        "readOnlyHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "search-telegram-messages",
+      "description": "[Telegram] Find synced Telegram messages containing given words, newest first, across every chat unless `chatId` narrows it to one. Matching is case-insensitive and every word must appear in the same message. Matches message text and media captions only, against the current wording of edited messages; deleted messages are not searchable. Only synced history is searched, so finding nothing is not proof a message does not exist — list-telegram-chats shows which chats have incomplete history. A match you sent is marked `fromMe` and carries no `author`. When `truncated` is true there were more matches than returned: narrow the search rather than reporting these as all of them.",
+      "arguments": [
+        {
+          "name": "query",
+          "type": "string",
+          "desc": "Words to look for. All of them must appear in the message."
+        },
+        {
+          "name": "chatId",
+          "type": "string",
+          "desc": "Restrict to one chat, using a `chatId` from list-telegram-chats. Omit to search every chat.",
+          "optional": true
+        },
+        {
+          "name": "since",
+          "type": "string",
+          "desc": "Only messages at or after this date, e.g. 2024-03-01 or 2024-03-01T12:00:00Z",
+          "optional": true
+        },
+        {
+          "name": "until",
+          "type": "string",
+          "desc": "Only messages at or before this date",
+          "optional": true
+        },
+        {
+          "name": "fromMe",
+          "type": "boolean",
+          "desc": "true for only messages you sent, false for only messages you received",
+          "optional": true
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "desc": "How many matches to return",
+          "optional": true
+        }
+      ],
+      "annotations": {
+        "title": "Search Telegram messages",
+        "readOnlyHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "send-telegram-message",
+      "description": "[Telegram] Send a plain-text Telegram message from the connected account, to a `chatId` from list-telegram-chats or to a `username` (a public @username or t.me link; a phone number works only where that person's privacy settings allow it). Pass exactly one of the two. The text is sent exactly as written — formatting marks such as ** are not interpreted. The account must be in the `open` state; check with get-telegram-status first. Messages cannot be unsent from here. The account owner may have set a disclaimer line that is appended to every message automatically (and counts toward the 4096-character limit); when one was, the response names it in `disclaimerAppended`. Do not add a sign-off of your own.",
+      "arguments": [
+        {
+          "name": "chatId",
+          "type": "string",
+          "desc": "Chat id from list-telegram-chats, as a string",
+          "optional": true
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "desc": "Instead of chatId: a public @username, a t.me link, or a phone number",
+          "optional": true
+        },
+        {
+          "name": "text",
+          "type": "string",
+          "desc": "Message text, sent exactly as written (Telegram's limit is 4096 characters)"
+        }
+      ],
+      "annotations": {
+        "title": "Send Telegram message",
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "send-text-message",
+      "description": "[WhatsApp] Send a plain-text WhatsApp message from the connected account. The account must be in the `open` state — check with get-connection-status first. Messages cannot be unsent once delivered. The account owner may have set a disclaimer line that is appended to every message automatically; when one was, the response names it in `disclaimerAppended`. Do not add a sign-off of your own.",
+      "arguments": [
+        {
+          "name": "number",
+          "type": "string",
+          "desc": "Recipient in international format without \"+\", e.g. 5511999999999"
+        },
+        {
+          "name": "text",
+          "type": "string",
+          "desc": "Message body"
+        }
+      ],
+      "annotations": {
+        "title": "Send WhatsApp message",
+        "openWorldHint": true
+      }
+    }
+  ]
