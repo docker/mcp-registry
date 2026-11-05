@@ -1,0 +1,42 @@
+name: harbor-mcp
+image: ghcr.io/oreondev/harbor-mcp:0.1.1
+type: server
+meta:
+  category: devops
+  tags:
+    - harbor
+    - container-registry
+    - kubernetes
+    - devops
+    - security
+about:
+  title: Harbor
+  description: "Read-only access to a Harbor container registry: projects and quotas, repositories and artifacts, vulnerability scan results, robot accounts, replication and garbage collection."
+  icon: https://raw.githubusercontent.com/oreondev/harbor-mcp/main/docs/images/oreon-avatar-256.png
+source:
+  project: https://github.com/oreondev/harbor-mcp
+  branch: main
+  commit: d4b969fdaa154871dd580f2c2e6d792cf5e67474
+config:
+  description: Configure the connection to Harbor. Use a read-only robot account (see docs/read-only-robot.json in the repository).
+  secrets:
+    - name: harbor-mcp.password
+      env: HARBOR_PASSWORD
+      example: <robot secret or password>
+  env:
+    - name: HARBOR_URL
+      example: https://harbor.example.com
+      value: "{{harbor-mcp.url}}"
+    - name: HARBOR_USERNAME
+      example: robot$harbor-mcp
+      value: "{{harbor-mcp.username}}"
+  parameters:
+    type: object
+    properties:
+      url:
+        type: string
+      username:
+        type: string
+    required:
+      - url
+      - username
