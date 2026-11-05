@@ -1,0 +1,472 @@
+[
+  {
+    "name": "get_account",
+    "description": "Checks whether the configured MnogoReels API key works and shows this server's settings. Read-only and free; works without a key.\n\nUse it first when other tools fail with an authentication error, or when the user asks which account or mode is active. It does not change anything.\n\nReturns authenticated (true or false), a masked key hint (last 4 characters only), the API URL, the server version and transport, the active profile, enabled toolsets, whether read-only mode is on, the per-call credit cap if one is set, and links for managing keys and credits. The credit balance itself is not available through the API; the user can see it on mnogo-reels.ru.",
+    "arguments": []
+  },
+  {
+    "name": "get_options_guide",
+    "description": "Explains the option values accepted by create_clip_job and recut_clip_job: video modes, clip lengths, caption styles, hook styles, story arc styles, outros, framing and languages, plus the pricing rules and the 30-minute limit per job. Read-only and free; works without an API key and makes no network calls.\n\nUse it when the user asks what a style looks like, which mode fits their video, or how much processing costs. topic selects one section; all returns everything.",
+    "arguments": [{ "name": "topic", "type": "string", "desc": "Which section to return." }]
+  },
+  {
+    "name": "check_video_source",
+    "description": "Checks whether MnogoReels can download a video link and returns its title, length and platform. Free: spends no credits and creates no job.\n\nUse it to answer \"is this link usable?\" or \"how long is this video?\" without pricing anything (private, removed, region-locked, audio-only or very large sources fail). To price a job call quote_clip_job directly: it runs the same check. Do not use it for existing jobs; use get_clip_job instead.\n\nSupports YouTube, VK Video, RuTube, Dzen, Twitch, Yandex Disk and Google Drive file links, and direct links to .mp4, .mov, .mkv or .webm files. Local files are not supported: the user must upload the file somewhere public first.\n\nReturns downloadable (true or false), reason when not downloadable (audio_only, too_large, unavailable), duration_sec (null when the platform does not report it, which is typical for direct file links), title, thumbnail_url and platform. Usually takes 2 to 15 seconds, occasionally up to 45.",
+    "arguments": [
+      {
+        "name": "source_url",
+        "type": "string",
+        "desc": "Public link to the video: YouTube, VK Video, RuTube, Dzen, Twitch, Yandex Disk file, Google Drive file, or a direct .mp4/.mov/.mkv/.webm link. Local files are not supported."
+      }
+    ]
+  },
+  {
+    "name": "quote_clip_job",
+    "description": "Calculates the credit cost of create_clip_job or recut_clip_job without spending anything, and checks that MnogoReels can download the video. Free and read-only.\n\nPrice: 1 credit per started minute of the processed range (end_sec minus start_sec), minimum 1. Options such as caption style, hooks, B-roll or music do not change the price. One job processes at most 30 minutes; for longer videos quote several ranges with start_sec and end_sec. Without start_sec and end_sec the whole video is priced, so its length must be known; this tool looks it up.\n\nPass source_url to price a new video, or job_id to price a recut of an existing clip job. A recut without start_sec and end_sec reuses the original job's range, which the API does not reveal; the quote is then an upper bound (the whole source video) and credits_exact is false. Show the credits to the user and get their agreement before calling create_clip_job or recut_clip_job with max_credits of at least this amount.\n\nReturns credits, credits_exact, billed_seconds, the resolved start_sec and end_sec, the platform, whether the video can be downloaded, the source title and length, and a note about failed jobs. If the length cannot be determined (typical for direct file links), the error explains how to pass end_sec yourself.",
+    "arguments": [
+      {
+        "name": "source_url",
+        "type": "string",
+        "desc": "Public link to the video: YouTube, VK Video, RuTube, Dzen, Twitch, Yandex Disk file, Google Drive file, or a direct .mp4/.mov/.mkv/.webm link. Local files are not supported."
+      },
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "Existing clip job to price a recut for. Give either source_url or job_id."
+      },
+      {
+        "name": "start_sec",
+        "type": "number",
+        "desc": "Start of the part to process, in seconds from the beginning. Default 0."
+      },
+      {
+        "name": "end_sec",
+        "type": "number",
+        "desc": "End of the part to process, in seconds. Default: the end of the video (its length is looked up automatically when the platform reports it). At most 30 minutes after start_sec."
+      }
+    ]
+  },
+  {
+    "name": "create_clip_job",
+    "description": "Starts AI clipping of a long video into vertical 9:16 short clips with burned-in captions and a hook title, plus optional cold-open hooks, music and B-roll. Spends credits: 1 per started minute of the processed range (minimum 1), charged when the job is created. One job processes at most 30 minutes of video; split longer videos with start_sec and end_sec. Jobs cannot be cancelled.\n\nBefore calling, run quote_clip_job, show the price to the user and get explicit agreement. max_credits is required; the call is refused without charging if the price is higher. Some clients also ask the user to confirm. If the same request was already submitted with this API key in the last 10 minutes, that job is returned instead of charging again.\n\nUse for turning a podcast, stream, interview, lecture or vlog into Shorts, Reels or TikTok clips. Not for: transcripts only (create_transcription), changing the look of an existing job (recut_clip_job), or re-running a failed job for free (retry_clip_job).\n\nKey parameters: source_url (public link; local files are not supported), start_sec and end_sec to process only part of the video, video_mode (podcast for talking heads), clip_length, caption_style, language (omit to auto-detect) and prompt to steer which moments are picked. Call get_options_guide to explain option values.\n\nReturns job_id right away with status queued and the credits charged. Processing takes a few minutes for short videos and up to tens of minutes for a full 30-minute range; clips appear one by one. Next, call get_clip_job with wait_sec=50 until the status is completed or failed. If processing fails, credits are not returned automatically: retry_clip_job re-runs the job for free, or the user can contact support@mnogo-reels.ru with the job_id. On the free plan clip files are kept for 30 days.",
+    "arguments": [
+      {
+        "name": "source_url",
+        "type": "string",
+        "desc": "Public link to the video: YouTube, VK Video, RuTube, Dzen, Twitch, Yandex Disk file, Google Drive file, or a direct .mp4/.mov/.mkv/.webm link. Local files are not supported."
+      },
+      {
+        "name": "start_sec",
+        "type": "number",
+        "desc": "Start of the part to process, in seconds from the beginning. Default 0."
+      },
+      {
+        "name": "end_sec",
+        "type": "number",
+        "desc": "End of the part to process, in seconds. Default: the end of the video (its length is looked up automatically when the platform reports it). At most 30 minutes after start_sec."
+      },
+      {
+        "name": "max_credits",
+        "type": "integer",
+        "desc": "Spending limit for this call in credits. Required. Use the credits value from quote_clip_job after the user agreed; the call is refused without charging if the price (or its upper bound) is higher."
+      },
+      {
+        "name": "video_mode",
+        "type": "string",
+        "desc": "How the video was filmed: general, podcast (talking heads), general-beta (SmartCut: removes pauses and filler words), stream (screen + webcam), vlog, fitness."
+      },
+      {
+        "name": "clip_length",
+        "type": "string",
+        "desc": "Target length of each clip. auto lets the AI decide; 30_60s suits Shorts, Reels and TikTok."
+      },
+      {
+        "name": "caption_style",
+        "type": "string",
+        "desc": "Burned-in caption style; empty means no captions. Call get_options_guide to see what each style looks like."
+      },
+      {
+        "name": "hook_style",
+        "type": "string",
+        "desc": "Style of the hook title shown at the start of each clip; none hides it."
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "Two-letter language code of the speech, e.g. en or ru. Omit to auto-detect. Never pass 'auto'."
+      },
+      {
+        "name": "prompt",
+        "type": "string",
+        "desc": "What kind of moments to pick, in plain words, e.g. 'funny moments about money'."
+      },
+      {
+        "name": "cold_open",
+        "type": "boolean",
+        "desc": "Start each clip with its strongest moment as a teaser, and also produce standalone hook clips and a looped teaser."
+      },
+      {
+        "name": "story_arc_style",
+        "type": "string",
+        "desc": "Build each clip as a story (cold open, main part, payoff). Any value except none also turns on cold_open."
+      },
+      { "name": "add_music", "type": "boolean", "desc": "Add quiet background music from the MnogoReels library." },
+      { "name": "emojis", "type": "boolean", "desc": "Add emojis to captions where they fit." },
+      {
+        "name": "smart_cut",
+        "type": "boolean",
+        "desc": "Remove pauses and filler words inside clips. Works only with video_mode podcast (general-beta always does it); ignored for other modes."
+      },
+      { "name": "b_roll_stock_video", "type": "boolean", "desc": "Insert relevant stock video B-roll." },
+      { "name": "b_roll_ai_images", "type": "boolean", "desc": "Insert AI-generated illustrative images as B-roll." },
+      {
+        "name": "b_roll_motion_graphics",
+        "type": "boolean",
+        "desc": "Insert AI motion-graphics B-roll (animated titles, charts, diagrams)."
+      },
+      {
+        "name": "outro",
+        "type": "string",
+        "desc": "Ending added to every clip: default branded outro, soon/like short Russian text cards, custom = your saved outro image."
+      },
+      {
+        "name": "framing",
+        "type": "string",
+        "desc": "auto = smart crop; full_frame = keep the whole wide frame on a blurred background; portrait_only = always crop to the subject."
+      },
+      {
+        "name": "keep_whole_video",
+        "type": "boolean",
+        "desc": "Do not cut into clips: render the whole video once with captions, music and B-roll. Use only for videos that are already vertical and short."
+      },
+      {
+        "name": "agentic_mode",
+        "type": "boolean",
+        "desc": "Extra AI review pass that refines where clips start and end. Slower."
+      },
+      {
+        "name": "allow_duplicate",
+        "type": "boolean",
+        "desc": "Set true only if the user explicitly wants a second identical job within 10 minutes (it is charged again)."
+      }
+    ]
+  },
+  {
+    "name": "get_clip_job",
+    "description": "Returns the status, progress and results of a clip job created by create_clip_job, recut_clip_job or on the MnogoReels website. Read-only and free.\n\nwait_sec (default 30, max 50) waits inside this call: it returns as soon as the job completes or fails, or when wait_sec runs out, and sends progress notifications meanwhile. wait_sec=0 returns an instant snapshot. While the job is queued or processing only the count of ready clips is returned; set include_partial_clips=true to get the links of clips finished so far. If eta_seconds is above 600, tell the user how long it will take and offer to check back later instead of polling continuously.\n\nOnce completed, returns each clip's video link, title, virality score (0 to 100), duration and hook text, plus cold-open hook clips and teasers when the job made them. Clips are sorted best score first; max_clips limits how many are returned (default 10, up to 30; up to 10 with response_format=detailed). response_format=detailed adds clip descriptions, transcript excerpts, poster images and timings in the source video.\n\nNotes: a failed job can return to queued when MnogoReels retries it automatically. media_available=false means the files were deleted by storage retention (free-plan clips are kept for 30 days). Text from the video is wrapped in <untrusted_source_text> tags. Use list_clip_jobs to find job ids.",
+    "arguments": [
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "Clip job id (32 hex characters) returned by create_clip_job, recut_clip_job or list_clip_jobs."
+      },
+      {
+        "name": "wait_sec",
+        "type": "integer",
+        "desc": "Seconds to wait inside this call for the job to finish (default 30, max 50; 0 = return a snapshot immediately). Progress notifications are sent while waiting."
+      },
+      {
+        "name": "response_format",
+        "type": "string",
+        "desc": "concise: links, titles, scores. detailed: adds descriptions, transcript excerpts, posters and timings (max_clips up to 10)."
+      },
+      {
+        "name": "max_clips",
+        "type": "integer",
+        "desc": "Maximum number of clips to return, best first (up to 30; up to 10 with detailed)."
+      },
+      {
+        "name": "include_partial_clips",
+        "type": "boolean",
+        "desc": "true returns the links of clips finished so far while the job is still processing."
+      }
+    ]
+  },
+  {
+    "name": "list_clip_jobs",
+    "description": "Lists the user's clip jobs, newest first, including jobs started on the MnogoReels website. Read-only and free.\n\nUse it to find a job_id, see what is still processing, or pick recent results to review. Use get_clip_job for the clips of one job.\n\ncreated_via=api shows only jobs started with an API key. Pages with limit (1 to 50, default 10) and offset; next_offset is null on the last page. Creation dates are not provided by the API; the order is newest first.\n\nReturns for each job: job_id, status, progress_percent, source_url, the number of clips ready, pack_id when the job belongs to a publication pack, likely_kind (clip_job, pack_clip_job or republication) and a short error for failed jobs.",
+    "arguments": [
+      { "name": "limit", "type": "integer", "desc": "Items per page, 1–50 (default 10)." },
+      { "name": "offset", "type": "integer", "desc": "Items to skip; pass next_offset from the previous page." },
+      {
+        "name": "created_via",
+        "type": "string",
+        "desc": "api = only jobs created with an API key (this server or scripts); any = also jobs from the website."
+      }
+    ]
+  },
+  {
+    "name": "recut_clip_job",
+    "description": "Creates a new clip job from the same source video as an existing job, with different settings such as caption style, hook style, clip length, language, framing, music, B-roll or prompt. Spends credits like create_clip_job (1 per started minute of the billed range, minimum 1, at most 30 minutes per job) and returns a new job_id; the original job and its clips stay unchanged.\n\nBefore calling, run quote_clip_job with job_id, show the price, get the user's agreement and pass max_credits. Identical requests within 10 minutes return the existing recut instead of charging again.\n\nWithout start_sec and end_sec the recut reuses the original job's range and is billed for it; the API does not reveal that range, so the quote is an upper bound (the whole source video, which must then be at most 30 minutes long). By default the same moments are re-rendered with the new look, which is faster because the source is cached; this works only when the range equals the original job's range. Set new_moments=true to let the AI pick different moments. Only the settings you pass change; everything else (including the original outro and whole-video mode) is inherited from the original job.\n\nWorks for completed and failed clip jobs, not for jobs that are still running. To re-run a failed job with the same settings for free, use retry_clip_job. Next, call get_clip_job with the new job_id and wait_sec=50.",
+    "arguments": [
+      { "name": "job_id", "type": "string", "desc": "Clip job to recut." },
+      {
+        "name": "max_credits",
+        "type": "integer",
+        "desc": "Spending limit for this call in credits. Required. Use the credits value from quote_clip_job after the user agreed; the call is refused without charging if the price (or its upper bound) is higher."
+      },
+      {
+        "name": "start_sec",
+        "type": "number",
+        "desc": "Start of the part to process, in seconds from the beginning. Default 0."
+      },
+      {
+        "name": "end_sec",
+        "type": "number",
+        "desc": "End of the part to process, in seconds. Default: the end of the video (its length is looked up automatically when the platform reports it). At most 30 minutes after start_sec."
+      },
+      {
+        "name": "new_moments",
+        "type": "boolean",
+        "desc": "true = the AI picks different moments; false = same moments with the new look."
+      },
+      {
+        "name": "allow_duplicate",
+        "type": "boolean",
+        "desc": "Set true only if the user explicitly wants a second identical job within 10 minutes (it is charged again)."
+      },
+      {
+        "name": "video_mode",
+        "type": "string",
+        "desc": "How the video was filmed: general, podcast (talking heads), general-beta (SmartCut: removes pauses and filler words), stream (screen + webcam), vlog, fitness."
+      },
+      {
+        "name": "clip_length",
+        "type": "string",
+        "desc": "Target length of each clip. auto lets the AI decide; 30_60s suits Shorts, Reels and TikTok."
+      },
+      {
+        "name": "caption_style",
+        "type": "string",
+        "desc": "Burned-in caption style; empty means no captions. Call get_options_guide to see what each style looks like."
+      },
+      {
+        "name": "hook_style",
+        "type": "string",
+        "desc": "Style of the hook title shown at the start of each clip; none hides it."
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "Two-letter language code of the speech, e.g. en or ru. Omit to auto-detect. Never pass 'auto'."
+      },
+      {
+        "name": "prompt",
+        "type": "string",
+        "desc": "What kind of moments to pick, in plain words, e.g. 'funny moments about money'."
+      },
+      {
+        "name": "cold_open",
+        "type": "boolean",
+        "desc": "Start each clip with its strongest moment as a teaser, and also produce standalone hook clips and a looped teaser."
+      },
+      {
+        "name": "story_arc_style",
+        "type": "string",
+        "desc": "Build each clip as a story (cold open, main part, payoff). Any value except none also turns on cold_open."
+      },
+      { "name": "add_music", "type": "boolean", "desc": "Add quiet background music from the MnogoReels library." },
+      { "name": "emojis", "type": "boolean", "desc": "Add emojis to captions where they fit." },
+      {
+        "name": "smart_cut",
+        "type": "boolean",
+        "desc": "Remove pauses and filler words inside clips. Works only with video_mode podcast (general-beta always does it); ignored for other modes."
+      },
+      { "name": "b_roll_stock_video", "type": "boolean", "desc": "Insert relevant stock video B-roll." },
+      { "name": "b_roll_ai_images", "type": "boolean", "desc": "Insert AI-generated illustrative images as B-roll." },
+      {
+        "name": "b_roll_motion_graphics",
+        "type": "boolean",
+        "desc": "Insert AI motion-graphics B-roll (animated titles, charts, diagrams)."
+      },
+      {
+        "name": "outro",
+        "type": "string",
+        "desc": "Ending added to every clip: default branded outro, soon/like short Russian text cards. Omit to keep the original job's outro (including a custom one)."
+      },
+      {
+        "name": "framing",
+        "type": "string",
+        "desc": "auto = smart crop; full_frame = keep the whole wide frame on a blurred background; portrait_only = always crop to the subject."
+      },
+      {
+        "name": "agentic_mode",
+        "type": "boolean",
+        "desc": "Extra AI review pass that refines where clips start and end. Slower."
+      }
+    ]
+  },
+  {
+    "name": "retry_clip_job",
+    "description": "Re-runs a failed clip job with the same settings, free of charge, keeping the same job_id. Use it when get_clip_job shows status failed, for example after a temporary download or rendering error.\n\nIt refuses jobs that are queued or processing (wait for them) and completed jobs (re-running would replace their clips; use recut_clip_job for a new variant instead). If the same source keeps failing, it probably cannot be processed: check it with check_video_source or try another link.\n\nReturns the job with status queued. Next, call get_clip_job with wait_sec=50.",
+    "arguments": [
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "Clip job id (32 hex characters) returned by create_clip_job, recut_clip_job or list_clip_jobs."
+      }
+    ]
+  },
+  {
+    "name": "create_transcription",
+    "description": "Starts a timed speech-to-text transcription of a video or audio link. Free: spends no credits. Supports the same links as create_clip_job (YouTube, VK Video, RuTube, Dzen, Twitch, Yandex Disk, Google Drive and direct media links); local files are not supported.\n\nUse it when the user needs the text, subtitles (SRT) or timestamps of a video without making clips. For a video that already has a completed clip job, create_article returns the full timed transcript together with an article.\n\nlanguage is a two-letter code such as en or ru; omit it to auto-detect (one language for the whole recording).\n\nReturns transcription_id right away. It usually finishes in 1 to 5 minutes; long recordings take longer. Next, call get_transcription with wait_sec=50.",
+    "arguments": [
+      { "name": "source_url", "type": "string", "desc": "Public link to the video or audio." },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "Two-letter language code of the speech, e.g. en or ru. Omit to auto-detect. Never pass 'auto'."
+      }
+    ]
+  },
+  {
+    "name": "get_transcription",
+    "description": "Returns the status and text of a transcription started with create_transcription. Read-only and free.\n\nwait_sec (default 30, max 50) waits for completion inside this call; progress notifications are sent meanwhile. format selects the output: text (plain text, default), srt (subtitles with timecodes) or segments (one timed phrase per line). Long transcripts come in pages of up to max_chars characters; when truncated is true, call again with offset set to next_offset.\n\nReturns status (queued, processing, completed, failed), progress_percent, the detected language, total_chars and the requested page. The transcript comes from the video and is wrapped in <untrusted_source_text> tags.",
+    "arguments": [
+      { "name": "transcription_id", "type": "string", "desc": "Id returned by create_transcription." },
+      {
+        "name": "wait_sec",
+        "type": "integer",
+        "desc": "Seconds to wait inside this call for the job to finish (default 30, max 50; 0 = return a snapshot immediately). Progress notifications are sent while waiting."
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "text = plain text; srt = subtitles with timecodes; segments = one timed phrase per line."
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Character offset of the page to return; pass next_offset from the previous call."
+      },
+      { "name": "max_chars", "type": "integer", "desc": "Maximum characters per page (1000–24000)." }
+    ]
+  },
+  {
+    "name": "create_article",
+    "description": "Turns the source video of a completed clip job into a long-form article: title, SEO title and description, summary, sections, key takeaways, chapters with timestamps, up to 4 frames from the video as illustrations, and the full timed transcript. Free: spends no credits.\n\nUse it for blog posts, show notes, chapter lists or the full transcript of a video that has already been clipped. It needs a clip job with status completed (create one with create_clip_job first). There is one article per source video per account: calling it again with any clip job of the same video returns the existing article instead of creating a new one; an article that failed cannot be regenerated through the API.\n\nReturns article_id, status and the clip job the article was made from. Writing usually takes 1 to 3 minutes. Next, call get_article with wait_sec=50.",
+    "arguments": [
+      {
+        "name": "clip_job_id",
+        "type": "string",
+        "desc": "Completed clip job whose source video the article is about (32 hex characters)."
+      }
+    ]
+  },
+  {
+    "name": "get_article",
+    "description": "Returns an article created with create_article as Markdown, with its status. Read-only and free.\n\nwait_sec (default 30, max 50) waits inside this call until the text is ready. The Markdown contains the title, summary, sections, key takeaways and chapter timestamps; set include_transcript=true to append the full timed transcript. Long content is paged: when truncated is true, call again with offset set to next_offset.\n\nReturns status (queued, processing, completed, failed), progress_percent, the Markdown page as soon as the text exists (images_pending=true means illustrations are still being prepared; the text will not change), the SEO title and description, image links with captions and source video details. Images that failed cannot be retried through this server. The article is generated from the video and wrapped in <untrusted_source_text> tags.",
+    "arguments": [
+      { "name": "article_id", "type": "string", "desc": "article_id returned by create_article." },
+      {
+        "name": "wait_sec",
+        "type": "integer",
+        "desc": "Seconds to wait inside this call for the job to finish (default 30, max 50; 0 = return a snapshot immediately). Progress notifications are sent while waiting."
+      },
+      { "name": "include_transcript", "type": "boolean", "desc": "true appends the full timed transcript (paged)." },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Character offset of the page to return; pass next_offset from the previous call."
+      },
+      { "name": "max_chars", "type": "integer", "desc": "Maximum characters per page (1000–24000)." }
+    ]
+  },
+  {
+    "name": "search_broll",
+    "description": "Searches B-roll videos and images. catalog=mine searches the user's own library (stock clips, AI images and motion graphics created for their past clip jobs) and returns temporary download links. catalog=shared searches the public MnogoReels stock catalog of about 5,000 reviewed items and returns titles, tags, previews and a website link; shared items are downloaded on the website. Read-only and free.\n\nquery matches whole words in titles, descriptions and tags (no stemming); omit it to list the newest items. kind filters image, video or motion. Pages with limit (1 to 50, default 10) and cursor from next_cursor.\n\nMedia links expire after 15 minutes; call get_broll_asset for fresh ones. Titles, descriptions, tags and attribution come from videos and stock providers and are wrapped in <untrusted_source_text> tags.",
+    "arguments": [
+      { "name": "catalog", "type": "string", "desc": "mine = your own B-roll; shared = public stock catalog." },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Whole words matched in titles, descriptions and tags (no stemming); omit to list the newest items."
+      },
+      { "name": "kind", "type": "string", "desc": "image, video or motion (motion graphics); omit for all." },
+      { "name": "limit", "type": "integer", "desc": "Items per page, 1–50 (default 10)." },
+      { "name": "cursor", "type": "string", "desc": "next_cursor from the previous page." }
+    ]
+  },
+  {
+    "name": "get_broll_asset",
+    "description": "Returns one B-roll item by asset_id with fresh links. Read-only and free; needs an API key. Use it right before downloading an item found with search_broll, because catalog=mine download links expire after 15 minutes; to find items use search_broll instead. catalog must be the catalog the asset_id came from.\n\nFor catalog=mine it returns media_url and poster_url, valid for links_expire_in_sec seconds. For catalog=shared it returns title, tags, a preview poster (videos only), attribution and web_url, because shared items are downloaded on the MnogoReels website. Text from videos and stock providers is wrapped in <untrusted_source_text> tags.",
+    "arguments": [
+      {
+        "name": "catalog",
+        "type": "string",
+        "desc": "The catalog the asset_id came from in search_broll: mine or shared."
+      },
+      { "name": "asset_id", "type": "string", "desc": "asset_id from search_broll (64 hex characters)." }
+    ]
+  },
+  {
+    "name": "list_packs",
+    "description": "Lists the user's publication packs, newest first. A pack is made on the MnogoReels website from one video link and bundles clips, a transcript, suggested titles, descriptions and hashtags, YouTube thumbnails, an article and teasers. Read-only and free; packs cannot be created through the API.\n\nPages with limit (1 to 50, default 10) and offset. Returns pack_id, status, progress, source_url, created_at, the status of each part and clip_job_id (use it with get_clip_job). Next, call get_pack for titles, hashtags, thumbnails and teasers.",
+    "arguments": [
+      { "name": "limit", "type": "integer", "desc": "Items per page, 1–50 (default 10)." },
+      { "name": "offset", "type": "integer", "desc": "Items to skip; pass next_offset from the previous page." }
+    ]
+  },
+  {
+    "name": "get_pack",
+    "description": "Returns one publication pack: suggested titles, descriptions, cover texts and hashtags, thumbnail images, teaser videos, the article id and the clip job id. Read-only and free.\n\nSet include_transcript=true to add the transcript, paged with offset and next_offset. Use get_clip_job with clip_job_id for the clips and get_article with article_id for the article. Text generated from the video is wrapped in <untrusted_source_text> tags.",
+    "arguments": [
+      { "name": "pack_id", "type": "string", "desc": "pack_id from list_packs (32 hex characters)." },
+      {
+        "name": "include_transcript",
+        "type": "boolean",
+        "desc": "true adds the transcript (paged with offset and max_chars)."
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Character offset of the page to return; pass next_offset from the previous call."
+      },
+      { "name": "max_chars", "type": "integer", "desc": "Maximum characters per page (1000–20000)." }
+    ]
+  },
+  {
+    "name": "create_youtube_thumbnails",
+    "description": "Generates 1 to 4 AI YouTube thumbnail images (1280×720 JPEG) for a video, using frames from the video plus an optional title and art direction. Free: spends no credits, but every variant is a separate AI image generation, so ask for more than one only when the user wants options.\n\nParameters: source_url (link to the video), language of the text on the thumbnail (required; match the title or the video), title (text to place on the thumbnail, up to 120 characters), prompt (art direction, up to 1000 characters), style (auto, bold, cinematic, minimal, news, gaming) and variants (1 to 4, default 1).\n\nReturns thumbnail_job_id right away. It usually finishes in 1 to 2 minutes. Next, call get_youtube_thumbnails with wait_sec=50.",
+    "arguments": [
+      {
+        "name": "source_url",
+        "type": "string",
+        "desc": "Public link to the video: YouTube, VK Video, RuTube, Dzen, Twitch, Yandex Disk file, Google Drive file, or a direct .mp4/.mov/.mkv/.webm link. Local files are not supported."
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "Two-letter language of the text on the thumbnail, e.g. en; match the title or the video."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Text printed on the thumbnail, ≤120 characters; omit to let the AI write it."
+      },
+      {
+        "name": "prompt",
+        "type": "string",
+        "desc": "Art direction, e.g. \"surprised face, red arrow, dark background\"."
+      },
+      { "name": "style", "type": "string", "desc": "auto, bold, cinematic, minimal, news or gaming." },
+      { "name": "variants", "type": "integer", "desc": "Number of images, 1–4 (each is a separate AI generation)." }
+    ]
+  },
+  {
+    "name": "get_youtube_thumbnails",
+    "description": "Returns the status and images of a thumbnail job started with create_youtube_thumbnails. Read-only and free; needs an API key. Jobs cannot be listed, so keep the thumbnail_job_id from create_youtube_thumbnails.\n\nwait_sec (default 30, max 50) waits inside this call until the job completes or fails, with progress notifications; wait_sec=0 returns a snapshot. Returns status (queued, processing, completed, failed), stage, progress_percent and the finished variants (1280×720 JPEG image link, width, height). If some variants failed, the rest are still returned.",
+    "arguments": [
+      {
+        "name": "thumbnail_job_id",
+        "type": "string",
+        "desc": "thumbnail_job_id returned by create_youtube_thumbnails."
+      },
+      {
+        "name": "wait_sec",
+        "type": "integer",
+        "desc": "Seconds to wait inside this call for the job to finish (default 30, max 50; 0 = return a snapshot immediately). Progress notifications are sent while waiting."
+      }
+    ]
+  }
+]
