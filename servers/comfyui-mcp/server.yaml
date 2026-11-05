@@ -1,0 +1,66 @@
+name: comfyui-mcp
+image: mcp/comfyui-mcp
+type: server
+meta:
+  category: ai-tools
+  tags:
+    - comfyui
+    - image-generation
+    - video-generation
+    - audio-generation
+    - stable-diffusion
+    - flux
+    - ai-agent
+    - workflow-automation
+about:
+  title: ComfyUI MCP
+  description: Local-first, agent-native control plane for ComfyUI. Generate images, video, and audio. Author and run workflows. Manage models and custom nodes. Edit your live ComfyUI graph in natural language using any LLM. Includes autonomous sidebar agent (ComfyUI Agent Panel) for direct canvas manipulation.
+  icon: https://avatars.githubusercontent.com/u/84418307?s=200&v=4
+source:
+  project: https://github.com/artokun/comfyui-mcp
+  branch: main
+  dockerfile: Dockerfile
+  related:
+    - title: ComfyUI Agent Panel
+      url: https://github.com/artokun/comfyui-mcp-panel
+      description: Autonomous AI agent sidebar that drives your live ComfyUI graph
+config:
+  description: Configure the connection to your ComfyUI instance
+  env:
+    - name: COMFYUI_URL
+      example: http://localhost:8188
+      value: "{{comfyui_url}}"
+    - name: COMFYUI_PATH
+      example: ~/Documents/ComfyUI
+      value: "{{comfyui_path}}"
+    - name: LOG_LEVEL
+      example: info
+      value: "{{log_level}}"
+  secrets:
+    - name: comfyui-mcp.civitai_api_token
+      env: CIVITAI_API_TOKEN
+      example: your-civitai-api-token
+    - name: comfyui-mcp.huggingface_token
+      env: HUGGINGFACE_TOKEN
+      example: hf_your-huggingface-token
+    - name: comfyui-mcp.github_token
+      env: GITHUB_TOKEN
+      example: ghp_your-github-token
+  parameters:
+    type: object
+    properties:
+      comfyui_url:
+        type: string
+        description: URL to your ComfyUI instance (auto-detected if not set)
+      comfyui_path:
+        type: string
+        description: Path to ComfyUI data directory (auto-detected if not set)
+      log_level:
+        type: string
+        enum:
+          - debug
+          - info
+          - warn
+          - error
+        description: Logging verbosity
+    required: []
