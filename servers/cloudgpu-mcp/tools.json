@@ -1,0 +1,307 @@
+[
+  {
+    "name": "get_account",
+    "description": "Account balance, how many instances this account may run at once, and how many are running now.",
+    "annotations": {
+      "title": "CloudGPU account",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "list_gpus",
+    "description": "GPU models you can rent, with VRAM per card.",
+    "arguments": [
+      {
+        "name": "min_vram_gb",
+        "type": "number",
+        "desc": "Only GPUs with at least this much VRAM per card",
+        "optional": true
+      },
+      {
+        "name": "gpu_model",
+        "type": "string",
+        "desc": "Filter by model name",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List GPUs",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "list_templates",
+    "description": "Ready-made instance images (for example JupyterLab, Ollama, ComfyUI, LLaMA-Factory) and the GPU each recommends. Templates with has_api_endpoint get a public HTTPS api_url.",
+    "annotations": {
+      "title": "List templates",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "estimate_cost",
+    "description": "Quote a GPU rental for a model and a number of hours. Returns a quote_id that create_instance needs. Show the quote to the user and get an explicit yes before renting.",
+    "arguments": [
+      {
+        "name": "gpu_model",
+        "type": "string",
+        "desc": "GPU model exactly as list_gpus returns it"
+      },
+      {
+        "name": "gpu_count",
+        "type": "number",
+        "desc": "Number of GPUs, from 1 to 8. Defaults to 1",
+        "optional": true
+      },
+      {
+        "name": "hours",
+        "type": "number",
+        "desc": "Expected run time in hours"
+      },
+      {
+        "name": "template",
+        "type": "string",
+        "desc": "Template id from list_templates. Omit for a plain GPU with Python and CUDA",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Quote a rental",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "list_models",
+    "description": "Models on CloudGPU's OpenAI-compatible API, using the same key. Use this when you only need inference and do not need to rent a GPU.",
+    "annotations": {
+      "title": "List hosted models",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "get_status",
+    "description": "Status (creating, running, stopped, or failed), minutes run, whether SSH is ready, the public api_url if the template has one, and the auto-shutdown limits.",
+    "arguments": [
+      {
+        "name": "instance_id",
+        "type": "string",
+        "desc": "Id of the instance"
+      }
+    ],
+    "annotations": {
+      "title": "Instance status",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "list_instances",
+    "description": "Instances on this account: running, starting, and those stopped in the last 7 days.",
+    "annotations": {
+      "title": "List instances",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "create_instance",
+    "description": "Rents the GPU from a quote. Requires a quote_id from estimate_cost that the user has approved. max_spend_usd and max_hours are enforced by CloudGPU: the instance is destroyed when either is reached, even if this assistant has disconnected. idle_minutes destroys it after the GPU sits idle that long (installing packages and downloading data count as idle, so allow for setup).",
+    "arguments": [
+      {
+        "name": "quote_id",
+        "type": "string",
+        "desc": "quote_id returned by estimate_cost"
+      },
+      {
+        "name": "user_confirmed",
+        "type": "boolean",
+        "desc": "True only if the user explicitly approved this quote in the conversation"
+      },
+      {
+        "name": "max_spend_usd",
+        "type": "number",
+        "desc": "Spend ceiling for this instance, at most the CLOUDGPU_MAX_SPEND_USD cap"
+      },
+      {
+        "name": "max_hours",
+        "type": "number",
+        "desc": "Hard time limit in hours, at most the CLOUDGPU_MAX_HOURS cap"
+      },
+      {
+        "name": "idle_minutes",
+        "type": "number",
+        "desc": "Destroy after the GPU has been idle this long. 0 turns the idle limit off; otherwise at least 10. Defaults to 60",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Rent a GPU",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "run_command",
+    "description": "Runs a bash command on the instance as root, in an interactive-style shell so conda and venv setup from ~/.bashrc are active. Foreground returns the exit code and the last 20k characters of output. For anything longer than a few minutes, such as training or large downloads, use background=true, then tail_logs.",
+    "arguments": [
+      {
+        "name": "instance_id",
+        "type": "string",
+        "desc": "Id of the instance"
+      },
+      {
+        "name": "command",
+        "type": "string",
+        "desc": "Bash command or script"
+      },
+      {
+        "name": "background",
+        "type": "boolean",
+        "desc": "Run in the background. Defaults to false",
+        "optional": true
+      },
+      {
+        "name": "timeout_sec",
+        "type": "number",
+        "desc": "Foreground timeout in seconds, from 5 to 3600. Defaults to 600",
+        "optional": true
+      },
+      {
+        "name": "workdir",
+        "type": "string",
+        "desc": "Directory to run in. Defaults to ~",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Run a command on the instance",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "upload",
+    "description": "Copies a local file or directory (this computer) to the instance over SFTP. node_modules, .git, and __pycache__ are skipped. Credential files (.ssh, .env, keys) are refused unless allow_sensitive is true and the user asked for it.",
+    "arguments": [
+      {
+        "name": "instance_id",
+        "type": "string",
+        "desc": "Id of the instance"
+      },
+      {
+        "name": "local_path",
+        "type": "string",
+        "desc": "Local file or directory on this computer"
+      },
+      {
+        "name": "remote_path",
+        "type": "string",
+        "desc": "Destination on the instance, for example /root/project or /root/data/"
+      },
+      {
+        "name": "allow_sensitive",
+        "type": "boolean",
+        "desc": "Allow credential files such as .ssh, .env, or keys. Defaults to false. Only when the user asked for it",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Upload to the instance",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "download",
+    "description": "Copies a file or directory from the instance to this computer. Do this for every result before stop_instance: destroying an instance erases its disk.",
+    "arguments": [
+      {
+        "name": "instance_id",
+        "type": "string",
+        "desc": "Id of the instance"
+      },
+      {
+        "name": "remote_path",
+        "type": "string",
+        "desc": "File or directory on the instance"
+      },
+      {
+        "name": "local_path",
+        "type": "string",
+        "desc": "Local destination file or directory, for example ./outputs/"
+      }
+    ],
+    "annotations": {
+      "title": "Download from the instance",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "tail_logs",
+    "description": "Last lines of a background job's log (job_id) or any log file (path), whether the job is still running and its exit code, plus current GPU utilisation and memory.",
+    "arguments": [
+      {
+        "name": "instance_id",
+        "type": "string",
+        "desc": "Id of the instance"
+      },
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "Job id from run_command with background=true",
+        "optional": true
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Log file path on the instance",
+        "optional": true
+      },
+      {
+        "name": "lines",
+        "type": "number",
+        "desc": "Number of log lines, from 1 to 2000. Defaults to 100",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Job logs and GPU use",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "stop_instance",
+    "description": "Destroys the instance and ends the rental. Its disk is erased. If commands were run on it in this session and nothing was downloaded, this refuses unless force=true, and only after the user confirms the results are not needed.",
+    "arguments": [
+      {
+        "name": "instance_id",
+        "type": "string",
+        "desc": "Id of the instance"
+      },
+      {
+        "name": "force",
+        "type": "boolean",
+        "desc": "Destroy even if results have not been downloaded. Defaults to false",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Destroy an instance",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  }
+]
