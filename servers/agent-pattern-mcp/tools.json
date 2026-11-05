@@ -1,0 +1,183 @@
+[
+  {
+    "name": "design_agent_system",
+    "description": "Default tool for creating an agent system design. Runs the full pipeline (analyze → generate → evaluate → refine, up to 3 attempts) and returns the complete design, evaluation, and quality scores in a single response. Takes 5-10 minutes; emits progress notifications every 30 s so clients stay connected. Use this whenever the user wants an agent system design, including when they explicitly request design_agent_system. Do NOT use submit_agent_design_job for ordinary design requests — that tool is only for clients with short request timeouts (Cursor, Claude Desktop) and returns only a job_id.",
+    "arguments": [
+      {
+        "name": "requirements",
+        "type": "string",
+        "desc": "Agent system requirements description (1-100000 chars, must contain visible text)"
+      },
+      {
+        "name": "domain",
+        "type": "string",
+        "desc": "Target agent domain (1-200 chars, must contain visible text)"
+      },
+      {
+        "name": "override_topology",
+        "type": "string",
+        "desc": "Override the derived agent topology",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "analyze_agent_system",
+    "description": "Analyze requirements and derive agent system recommendations using pattern matching and domain similarity.",
+    "arguments": [
+      {
+        "name": "requirements",
+        "type": "string",
+        "desc": "Agent system requirements description (1-100000 chars, must contain visible text)"
+      },
+      {
+        "name": "domain",
+        "type": "string",
+        "desc": "Target agent domain (1-200 chars, must contain visible text)"
+      }
+    ]
+  },
+  {
+    "name": "generate_agent_system",
+    "description": "Generate an agent system design from requirements, topology, domain, and selected patterns.",
+    "arguments": [
+      {
+        "name": "requirements",
+        "type": "string",
+        "desc": "Agent system requirements description (1-100000 chars, must contain visible text)"
+      },
+      {
+        "name": "topology",
+        "type": "string",
+        "desc": "Agent topology to use (1-100000 chars, must contain visible text)"
+      },
+      {
+        "name": "domain",
+        "type": "string",
+        "desc": "Target agent domain (1-200 chars, must contain visible text)"
+      },
+      {
+        "name": "selected_patterns",
+        "type": "string",
+        "desc": "Pattern names to incorporate in the agent system",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "evaluate_agent_system",
+    "description": "Evaluate an agent system design against specified criteria and domain using pattern benchmarking.",
+    "arguments": [
+      {
+        "name": "agent_system",
+        "type": "object",
+        "desc": "Agent system design as dictionary"
+      },
+      {
+        "name": "criteria",
+        "type": "string",
+        "desc": "Evaluation criteria description (1-100000 chars, must contain visible text)"
+      },
+      {
+        "name": "domain",
+        "type": "string",
+        "desc": "Target agent domain (1-200 chars, must contain visible text)"
+      }
+    ]
+  },
+  {
+    "name": "list_agent_patterns",
+    "description": "List all available agent patterns known to the server. Returns a minimal view with 'name' and 'description' for each pattern. Optional filters: 'category' (one of: reasoning, tool_use, planning, reflection, research_synthesis, multi_agent, memory, retrieval, safety_control, observability) and 'domain' (matches against pattern.suitable_domains).",
+    "arguments": [
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Optional category filter. Valid values: reasoning, tool_use, planning, reflection, research_synthesis, multi_agent, memory, retrieval, safety_control, observability. Unknown values return an empty list.",
+        "optional": true
+      },
+      {
+        "name": "domain",
+        "type": "string",
+        "desc": "Optional domain filter. Matches against pattern.suitable_domains.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "get_agent_pattern",
+    "description": "Get the full JSON of a single agent pattern by its name (e.g. 'react', 'supervisor-worker', 'self-rag'). Returns the complete pattern object including context, benefits, tradeoffs, quality_attributes, suitable_domains, component_types, technology_stack, best_practices, and references. Raises an error if not found.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Pattern name, e.g. 'react', 'supervisor-worker', 'self-rag'"
+      }
+    ]
+  },
+  {
+    "name": "submit_agent_design_job",
+    "description": "Start a background agent system design job and return a job_id immediately (returns in <100 ms; the job itself takes minutes). ONLY use this when the calling client cannot wait for a long response — e.g. Cursor, Claude Desktop, or any client with a 60-120 s request timeout. Do NOT use when the user wants the design itself or explicitly names a design tool — the blocking design_agent_system tool returns the full design directly. After starting, poll get_agent_design_status(job_id) every 10-30 s until status is 'completed', 'failed', or 'cancelled'.",
+    "arguments": [
+      {
+        "name": "requirements",
+        "type": "string",
+        "desc": "Agent system requirements description (1-100000 chars, must contain visible text)"
+      },
+      {
+        "name": "domain",
+        "type": "string",
+        "desc": "Target agent domain (1-200 chars, must contain visible text)"
+      },
+      {
+        "name": "override_topology",
+        "type": "string",
+        "desc": "Override the derived agent topology",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "get_agent_design_status",
+    "description": "Poll the status of a submit_agent_design_job background job. Call repeatedly (every 10-30 s) until status is 'completed', 'failed', or 'cancelled'; when completed, the result field contains the full design output. Only use this with a job_id previously returned by submit_agent_design_job — do not use it to request a new design.",
+    "arguments": [
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "Job ID returned by submit_agent_design_job"
+      }
+    ]
+  },
+  {
+    "name": "cancel_agent_design",
+    "description": "Cancel a running background agent system design job started via submit_agent_design_job. The background task checks the cancellation flag between pipeline stages and exits at the next stage boundary. Cancellation is best-effort and may take up to one LLM call to take effect. Only use with a job_id from submit_agent_design_job; jobs already completed, failed, or cancelled cannot be cancelled again.",
+    "arguments": [
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "Job ID returned by submit_agent_design_job"
+      }
+    ]
+  },
+  {
+    "name": "list_prompts",
+    "description": "List all available prompts.\n\nReturns JSON with prompt metadata including name, description,\nand optional arguments.",
+    "arguments": []
+  },
+  {
+    "name": "get_prompt",
+    "description": "Get a prompt by name with optional arguments.\n\nReturns the rendered prompt as JSON with a messages array.\nArguments should be provided as a dict mapping argument names\nto values.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "The name of the prompt to get"
+      },
+      {
+        "name": "arguments",
+        "type": "string",
+        "desc": "Optional arguments for the prompt",
+        "optional": true
+      }
+    ]
+  }
+]
