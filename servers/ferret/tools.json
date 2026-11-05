@@ -1,0 +1,1117 @@
+[
+  {
+    "name": "search_inventory",
+    "description": "Finds items by words (names, brands, serial numbers, text read from receipts and manuals) and by meaning (\"something to make holes\" finds a drill), best matches first, each with where it's kept; a box's 6-character QR label code finds the box. Start here whenever the person mentions a thing — to answer \"where is…\", and before create_item so you don't add a duplicate. For questions answered from documents (\"what filter does the furnace take?\") use ask_inventory; to browse a room, category or tag use list_items. Leaves out things that are gone or only wanted. Returns items, each with its id, fields, location path and what matched.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "What to look for, in the person's words: \"drill\", \"something to make holes\", a serial number or a box's label code"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many matches at most (optional)"
+      }
+    ]
+  },
+  {
+    "name": "ask_inventory",
+    "description": "Answers a question in words from the household's own items and documents (receipts, manuals, warranty cards), citing the items it used — for \"when does the dishwasher warranty end?\" or \"what filter does the furnace take?\". Use search_inventory instead when the person wants to find a thing rather than learn a fact. Needs the server's AI to be switched on, counts as one AI action, and can take several seconds.",
+    "arguments": [
+      {
+        "name": "question",
+        "type": "string",
+        "desc": "The question, as the person asked it"
+      }
+    ]
+  },
+  {
+    "name": "get_item",
+    "description": "Everything about one item: all its fields, where it's kept (and which box), warranties and claims, its photos and documents with what the vision model read in them, and any suggested fields waiting for the person to confirm. Use it after search_inventory or list_items has found the item, when you need the details; for what happened to it over time use item_history, and for a quick look at many items list_items is enough.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "The item's id, from search_inventory or list_items"
+      }
+    ]
+  },
+  {
+    "name": "list_items",
+    "description": "Lists items, most recently changed first, 50 at a time (offset for more), with where each is kept. Use it to browse rather than search: with locationId, everything in that place and the places inside it (\"what's in the garage?\"); containerItemId, what's directly in a box; categoryId, a category and its subcategories; tag, a tag's items (a tag can be a collection, e.g. \"Christmas decorations\"); origin, how they were added (\"claude\": what you added, to check your own work); collectionId (list_collections), a collection's things — wanted \"include\" adds its want list, \"only\" just that. To find a particular thing by name, use search_inventory.",
+    "arguments": [
+      {
+        "name": "locationId",
+        "type": "string",
+        "desc": "Only what's in this place and the places inside it, from list_locations (optional)"
+      },
+      {
+        "name": "containerItemId",
+        "type": "string",
+        "desc": "Only what's directly inside this box (an item with isContainer) (optional)"
+      },
+      {
+        "name": "categoryId",
+        "type": "string",
+        "desc": "Only this category and its subcategories, from list_categories (optional)"
+      },
+      {
+        "name": "tag",
+        "type": "string",
+        "desc": "Only items with this tag name (list_categories lists tags) (optional)"
+      },
+      {
+        "name": "origin",
+        "type": "string",
+        "desc": "Only things added this way: app, photos, walkthrough, roomscan, scan, label, spreadsheet, homeassistant, claude, api (optional)"
+      },
+      {
+        "name": "collectionId",
+        "type": "string",
+        "desc": "Only this collection's things, from list_collections (optional)"
+      },
+      {
+        "name": "wanted",
+        "type": "string",
+        "desc": "The want list (things not owned yet): left out unless asked for (optional)"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many items in this page (optional)"
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "How many to skip, for the next page (total says how many there are) (optional)"
+      }
+    ]
+  },
+  {
+    "name": "list_locations",
+    "description": "Every property (home, cabin, storage unit…) with its locations as a tree (rooms › closets › shelves), their ids and how many items each holds. Call it to get a locationId or propertyId before create_item, move_item, list_items or create_location, and to check a place exists before adding it again. Read-only; the whole tree in one call.",
+    "arguments": []
+  },
+  {
+    "name": "what_needs_attention",
+    "description": "What to act on now, urgent first: maintenance overdue or due within a week, warranties ending within 30 days, warranty claims with no news for two weeks, things running low, borrowed things due back, recalls that may affect something owned, insurance limits that fall short, and items or room scans from photos still to finish. Returns entries with kind, severity (urgent or soon), title, detail, the itemId to open (if any) and a date. Use it for \"anything I should deal with?\" or a daily check-in; for the full maintenance schedule use list_maintenance, for all warranties list_warranties, for what to buy shopping_list. Empty when nothing needs doing.",
+    "arguments": []
+  },
+  {
+    "name": "shopping_list",
+    "description": "What to buy, run-out first: tracked consumables that have run out or are at or below their minimum (minQuantity, \"keep at least\"), with how many are left and a suggested amount to buy. Use it for \"what do we need?\" or before a shop; after buying, adjust_stock with a positive delta takes things off the list. Read-only.",
+    "arguments": []
+  },
+  {
+    "name": "item_history",
+    "description": "What happened to one item, newest first: when it was added, each edit in words (moved from where to where, value, name…), photos and documents added, warranties and claims, maintenance done, stock used or restocked, loans. Use it for \"when did we move the ladder?\" or \"when was the furnace last serviced?\"; for the item as it is now use get_item. Get the id from search_inventory first. Returns entries with when (at), what happened in words, who, and how (the app, Claude, a script); more is true when there are older ones.",
+    "arguments": [
+      {
+        "name": "itemId",
+        "type": "string",
+        "desc": "The item's id, from search_inventory or list_items"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "How many entries at most, newest first (optional)"
+      }
+    ]
+  },
+  {
+    "name": "coverage_check",
+    "description": "Checks the household's insurance limits against the inventory: each limit set in the app (contents cover, or a special limit on one category or tag such as jewelry or firearms) next to what those things are worth, how much short it is, and how many have no value recorded. Use it for \"are we insured enough?\"; for what everything is worth by room or property, use inventory_report. Limits are set in the app; amounts are in cents. Empty when no limits are set.",
+    "arguments": []
+  },
+  {
+    "name": "list_loans",
+    "description": "Things lent out (who has them, since when, when they're due back) and things borrowed from others, still out, overdue ones marked, each with its loanId. Use it for \"who has the ladder?\" or \"what have I lent out?\", and to get the loanId for loan_returned. Only open loans; returned ones are in each item's item_history.",
+    "arguments": []
+  },
+  {
+    "name": "list_categories",
+    "description": "The household's categories as a tree (ids, paths, item counts and any extra fields their items have — e.g. a TV's screen size), its tags with how many items carry each, and its item templates (kinds of thing with their own fields: a coin's year, mint mark and grade). Call it before create_item or update_item to pick a categoryId, existing tag names (to avoid near-duplicates) or a templateId — then put the template's or category's field values in customFields by their keys.",
+    "arguments": []
+  },
+  {
+    "name": "list_collections",
+    "description": "The household's collections (coins, dolls, cards…): for each, how many things are owned (pieces counts duplicates), how many are on its want list, what the owned ones are worth and cost (cents), and its templateId (the fields its things have: list_categories). Use it for \"how's the coin collection?\" and to get a collectionId; the things themselves are list_items with collectionId.",
+    "arguments": []
+  },
+  {
+    "name": "list_warranties",
+    "description": "Warranties on file across all items, soonest to end first. Returns each with its id, item, provider, start and end dates and status. Use it for \"what's still under warranty?\" or \"what's about to run out?\" (status expiring); for one item's warranties and claims use get_item, and for the urgent ones alongside everything else what_needs_attention.",
+    "arguments": [
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "active: still covered (including expiring); expiring: ends within 60 days; expired. Left out: all (optional)"
+      }
+    ]
+  },
+  {
+    "name": "inventory_report",
+    "description": "What everything is worth, for insurance: totals by property and by room, the most valuable items, and how many have no value recorded. An item counts at its value, else its purchase price, times its quantity; amounts in cents; gone and wanted things are left out. Use it for \"what's all our stuff worth?\"; to compare against insurance limits use coverage_check.",
+    "arguments": []
+  },
+  {
+    "name": "list_maintenance",
+    "description": "Maintenance tasks (replace filters, service the boiler, clean gutters…), soonest due first, each with its id, the item or place and who usually does it. Use it to see the schedule, to get a task's id for complete_maintenance, and before add_maintenance so you don't add one twice; for just what's urgent across everything, what_needs_attention.",
+    "arguments": [
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "open: everything not finished; overdue; due: within 14 days; upcoming: later; done: finished one-offs; all (optional)"
+      },
+      {
+        "name": "itemId",
+        "type": "string",
+        "desc": "Only this item's tasks, from search_inventory (optional)"
+      }
+    ]
+  },
+  {
+    "name": "lookup_barcode",
+    "description": "Says what product a UPC/EAN barcode is, and whether the household already has it. Use it when the person reads out or scans a barcode, before create_item; to find a thing by name use search_inventory. Looks in Ferret's own barcode book (learned from items saved on this server) first, then the online product database if it's switched on. Returns match (name, brand, model, source, photos — null when nobody knows the code) and youHave (the household's items with this code: id, name, quantity, place). When youHave isn't empty, offer adjust_stock on one of those rather than a duplicate, unless the person wants a separate item.",
+    "arguments": [
+      {
+        "name": "barcode",
+        "type": "string",
+        "desc": "The digits under the barcode (UPC-A, EAN-13 or EAN-8)"
+      }
+    ]
+  },
+  {
+    "name": "list_providers",
+    "description": "The household's service providers (plumber, HVAC company, electrician…) with contact details, how many maintenance tasks they do, how often they've come, when they last did and what's been spent with them. Use it for \"who did we use for the furnace?\", to get a providerId for add_maintenance or complete_maintenance, and before add_provider so you don't add one twice.",
+    "arguments": []
+  },
+  {
+    "name": "recently_deleted",
+    "description": "Items deleted in the last 30 days, newest first, with who deleted them and the day each goes for good. Use it when the person wants something back or asks what was removed; restore_item brings one back by its id. Only items — deleted maintenance tasks, places and the rest aren't listed.",
+    "arguments": []
+  },
+  {
+    "name": "room_scan_results",
+    "description": "Checks on a room scan from scan_room (or one taken in the app): status pending (still looking — ask again in a little while), ready (what it found: name, category, how many — tell the person and ask which to keep), failed, or done (with the items it made). Without scanId, every scan still waiting to be finished. Once the person has chosen, add_from_room_scan adds them.",
+    "arguments": [
+      {
+        "name": "scanId",
+        "type": "string",
+        "desc": "The scan's id, from scan_room; left out: every unfinished scan (optional)"
+      }
+    ]
+  },
+  {
+    "name": "lend_item",
+    "description": "Records that one of the household's items was lent to someone (direction \"lent\") or that something was borrowed from them (\"borrowed\"), optionally with a due-back date. Use it when the person says \"I lent the drill to Sam\"; get the item's id from search_inventory first. An item can have one open loan at a time; loan_returned closes it. Reminder emails to borrowers are set up in the app. Returns the loan with its id (for loan_returned) and due date.",
+    "arguments": [
+      {
+        "name": "itemId",
+        "type": "string",
+        "desc": "The item's id, from search_inventory"
+      },
+      {
+        "name": "direction",
+        "type": "string",
+        "desc": "lent: the household's thing is with someone else; borrowed: someone else's thing is here"
+      },
+      {
+        "name": "person",
+        "type": "string",
+        "desc": "Who has it (lent) or whose it is (borrowed)"
+      },
+      {
+        "name": "since",
+        "type": "string",
+        "desc": "When it went (or came), yyyy-mm-dd; today if left out (optional)"
+      },
+      {
+        "name": "dueOn",
+        "type": "string",
+        "desc": "When it's due back, yyyy-mm-dd (optional)"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "Anything worth remembering about the loan (optional)"
+      }
+    ]
+  },
+  {
+    "name": "loan_returned",
+    "description": "Closes a loan: a lent thing is back, or a borrowed one was given back. Use it when the person says so (\"Sam returned the ladder\"); the loanId comes from list_loans. The loan stays in the item's history and the borrower's reminder emails stop; nothing else about the item changes. Calling it again for the same loan is refused (it's already back).",
+    "arguments": [
+      {
+        "name": "loanId",
+        "type": "string",
+        "desc": "The loan's id, from list_loans"
+      },
+      {
+        "name": "on",
+        "type": "string",
+        "desc": "The day it came back, yyyy-mm-dd; today if left out (optional)"
+      }
+    ]
+  },
+  {
+    "name": "add_photo",
+    "description": "Attaches a photo — or a receipt, manual or warranty card as kind \"document\" — to an item that already exists. The vision model reads it in the background; about 20 seconds later get_item shows what it saw and any suggested fields: confirm them with the person before applying them with update_item. To add a new thing from its photo use add_item_from_photo instead. Counts as AI actions when the AI is on.",
+    "arguments": [
+      {
+        "name": "itemId",
+        "type": "string",
+        "desc": "The item's id, from search_inventory"
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "photo: a picture of the thing; document: a receipt, manual or warranty card (photo or PDF) (optional)"
+      },
+      {
+        "name": "data",
+        "type": "string",
+        "desc": "The image (or PDF, for a document) as base64; no data: prefix"
+      },
+      {
+        "name": "filename",
+        "type": "string",
+        "desc": "The file's name, with its extension (\"receipt.pdf\") (optional)"
+      }
+    ]
+  },
+  {
+    "name": "scan_room",
+    "description": "Finds the things worth inventorying in 1–5 photos of a room or an open box: the vision model lists each with a name, a category and how many. Use it when the person wants to add a lot at once; for one thing use add_item_from_photo. Say where with locationId (a room) or containerItemId (a box). It looks in the background: about 20–60 seconds later room_scan_results has the list. Nothing is added until add_from_room_scan, after the person has said which to keep. One AI action per photo.",
+    "arguments": [
+      {
+        "name": "photos",
+        "type": "array",
+        "desc": "1–5 photos of the room or open box, each base64"
+      },
+      {
+        "name": "locationId",
+        "type": "string",
+        "desc": "The room they show, from list_locations (optional)"
+      },
+      {
+        "name": "containerItemId",
+        "type": "string",
+        "desc": "Or the box they show (an item with isContainer) (optional)"
+      }
+    ]
+  },
+  {
+    "name": "add_from_room_scan",
+    "description": "Adds the things the person chose from a ready room scan (room_scan_results), as items in the scan's room or box — names can be corrected and a categoryId given. Only after the person has confirmed the list; the scan is then done, and each new item records that it came from a room scan. Returns the items made.",
+    "arguments": [
+      {
+        "name": "scanId",
+        "type": "string",
+        "desc": "The scan's id, from scan_room or room_scan_results"
+      },
+      {
+        "name": "items",
+        "type": "array",
+        "desc": "Only the things the person chose to keep"
+      }
+    ]
+  },
+  {
+    "name": "add_item_from_photo",
+    "description": "Creates a new item from a photo: it's saved straight away (as \"New item\" unless you give a name) with the photo attached, and the vision model reads it in the background. About 20 seconds later get_item shows its suggested name, brand, model and serial — confirm with the person, then apply with update_item. Use it when the person sends a picture of something to add; for a photo of something already in the inventory use add_photo. Put it somewhere with locationId or containerItemId.",
+    "arguments": [
+      {
+        "name": "data",
+        "type": "string",
+        "desc": "The image (or PDF, for a document) as base64; no data: prefix"
+      },
+      {
+        "name": "filename",
+        "type": "string",
+        "desc": "The file's name, with its extension (\"receipt.pdf\") (optional)"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Its name, if the person said it; otherwise it's \"New item\" until confirmed (optional)"
+      },
+      {
+        "name": "locationId",
+        "type": "string",
+        "desc": "Where it's kept, from list_locations (optional)"
+      },
+      {
+        "name": "containerItemId",
+        "type": "string",
+        "desc": "Or the box it's in (an item with isContainer) (optional)"
+      }
+    ]
+  },
+  {
+    "name": "file_warranty_claim",
+    "description": "Records a claim made under one of an item's warranties: what went wrong, the provider's claim number (reference) and its status (filed by default, today by default). Use it when the person says they've contacted the maker or seller about a fault; get the warrantyId from get_item. Follow it up later with update_warranty_claim. Claims with no news for two weeks show in what_needs_attention.",
+    "arguments": [
+      {
+        "name": "filedOn",
+        "type": "string",
+        "desc": "When the claim was made, yyyy-mm-dd; today if left out (optional)"
+      },
+      {
+        "name": "problem",
+        "type": "string",
+        "desc": "What went wrong, in the person's words"
+      },
+      {
+        "name": "reference",
+        "type": "string",
+        "desc": "The provider's claim or case number (optional)"
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Where it stands: filed, in_progress, approved, denied or resolved (optional)"
+      },
+      {
+        "name": "resolution",
+        "type": "string",
+        "desc": "How it ended: repaired, replaced, refunded… (optional)"
+      },
+      {
+        "name": "resolvedOn",
+        "type": "string",
+        "desc": "When it was closed, yyyy-mm-dd (optional)"
+      },
+      {
+        "name": "costCents",
+        "type": "integer",
+        "desc": "What the household paid out of pocket, in cents (optional)"
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "desc": "Anything else: calls made, who said what (optional)"
+      },
+      {
+        "name": "warrantyId",
+        "type": "string",
+        "desc": "The warranty's id, from get_item"
+      }
+    ]
+  },
+  {
+    "name": "update_warranty_claim",
+    "description": "Changes a warranty claim: its status (filed, in_progress, approved, denied, resolved), the resolution, what it cost (cents), the claim number. Use it when the person hears back about a claim; the claim's id is in get_item. Closing it (denied or resolved) dates it today unless resolvedOn is given. Fields left out stay as they are.",
+    "arguments": [
+      {
+        "name": "filedOn",
+        "type": "string",
+        "desc": "When the claim was made, yyyy-mm-dd; today if left out (optional)"
+      },
+      {
+        "name": "problem",
+        "type": "string",
+        "desc": "What went wrong, in the person's words (optional)"
+      },
+      {
+        "name": "reference",
+        "type": "string",
+        "desc": "The provider's claim or case number (optional)"
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Where it stands: filed, in_progress, approved, denied or resolved (optional)"
+      },
+      {
+        "name": "resolution",
+        "type": "string",
+        "desc": "How it ended: repaired, replaced, refunded… (optional)"
+      },
+      {
+        "name": "resolvedOn",
+        "type": "string",
+        "desc": "When it was closed, yyyy-mm-dd (optional)"
+      },
+      {
+        "name": "costCents",
+        "type": "integer",
+        "desc": "What the household paid out of pocket, in cents (optional)"
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "desc": "Anything else: calls made, who said what (optional)"
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "The claim's id, from get_item"
+      }
+    ]
+  },
+  {
+    "name": "add_provider",
+    "description": "Adds a service provider — a plumber, the HVAC company, an electrician — with their trade and contact details, so maintenance can name who does it. Check list_providers first so you don't add one twice; then use its id as providerId on add_maintenance or complete_maintenance. Returns the new provider with its id.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "The business or person: \"Acme Heating & Air\""
+      },
+      {
+        "name": "trade",
+        "type": "string",
+        "desc": "What they do: \"Plumber\", \"HVAC\", \"Appliance repair\" (optional)"
+      },
+      {
+        "name": "contactName",
+        "type": "string",
+        "desc": "Who to ask for (optional)"
+      },
+      {
+        "name": "phone",
+        "type": "string",
+        "desc": "Phone number, as they give it (optional)"
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "Email address (optional)"
+      },
+      {
+        "name": "website",
+        "type": "string",
+        "desc": "Their website (optional)"
+      },
+      {
+        "name": "address",
+        "type": "string",
+        "desc": "Their business address (optional)"
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "desc": "Anything worth remembering: rates, who to ask for, what they did well (optional)"
+      }
+    ]
+  },
+  {
+    "name": "create_item",
+    "description": "Adds a new item. Search first (search_inventory) so you don't add a duplicate; if it's already there, update_item or adjust_stock instead. Put it somewhere with locationId (list_locations) or in a box with containerItemId, and give it a categoryId and tags (list_categories; new tag names are created). Prices in cents. For a collection, collectionId (list_collections) starts it from the collection's template; wanted: true puts it on the want list (looked for, not owned yet), and update_item with wanted: false once it's got. From a photo, use add_item_from_photo. Returns the new item with its id.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "What it is, the way people would look for it: \"Cordless drill\""
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "A longer description: colour, size, what it's for (optional)"
+      },
+      {
+        "name": "brand",
+        "type": "string",
+        "desc": "Who made it (optional)"
+      },
+      {
+        "name": "model",
+        "type": "string",
+        "desc": "Model name or number, as on its label (optional)"
+      },
+      {
+        "name": "serialNumber",
+        "type": "string",
+        "desc": "Its serial number, for warranty claims and insurance (optional)"
+      },
+      {
+        "name": "barcode",
+        "type": "string",
+        "desc": "Its UPC/EAN barcode (also learned into the household's barcode book) (optional)"
+      },
+      {
+        "name": "quantity",
+        "type": "integer",
+        "desc": "How many there are; to count stock up or down, adjust_stock logs the change (optional)"
+      },
+      {
+        "name": "minQuantity",
+        "type": "integer",
+        "desc": "Keep at least this many: at or below it, it goes on the shopping list (optional)"
+      },
+      {
+        "name": "usageUnit",
+        "type": "string",
+        "desc": "What its counter measures, for maintenance by use (a car's miles, a mower's hours) (optional)"
+      },
+      {
+        "name": "condition",
+        "type": "string",
+        "desc": "What shape it's in (optional)"
+      },
+      {
+        "name": "purchaseDate",
+        "type": "string",
+        "desc": "When it was bought, yyyy-mm-dd (optional)"
+      },
+      {
+        "name": "purchasePriceCents",
+        "type": "integer",
+        "desc": "What was paid for one, in cents (12999 = $129.99) (optional)"
+      },
+      {
+        "name": "valueCents",
+        "type": "integer",
+        "desc": "What one is worth now, in cents — used for the insurance report (optional)"
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "desc": "Anything else worth keeping: where the spare key is, quirks, settings (optional)"
+      },
+      {
+        "name": "favorite",
+        "type": "boolean",
+        "desc": "Starred, to find quickly in the app (optional)"
+      },
+      {
+        "name": "heir",
+        "type": "string",
+        "desc": "Who should have it one day (optional)"
+      },
+      {
+        "name": "isContainer",
+        "type": "boolean",
+        "desc": "A box, bin or case that holds other items (they set containerItemId to it) (optional)"
+      },
+      {
+        "name": "locationId",
+        "type": "string",
+        "desc": "Where it's kept: a location id from list_locations (null: nowhere in particular) (optional)"
+      },
+      {
+        "name": "containerItemId",
+        "type": "string",
+        "desc": "The box it's in: an item id with isContainer; it's then wherever the box is (optional)"
+      },
+      {
+        "name": "categoryId",
+        "type": "string",
+        "desc": "A category id from list_categories (optional)"
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "desc": "Tag names; new ones are created. When updating, the full new list (optional)"
+      },
+      {
+        "name": "customFields",
+        "type": "object",
+        "desc": "Values for its category's or template's extra fields, by their keys (list_categories shows them) (optional)"
+      },
+      {
+        "name": "templateId",
+        "type": "string",
+        "desc": "The item template it's made from (list_categories), whose fields it then has (optional)"
+      },
+      {
+        "name": "collectionId",
+        "type": "string",
+        "desc": "The collection it's part of (list_collections) (optional)"
+      },
+      {
+        "name": "wanted",
+        "type": "boolean",
+        "desc": "On the want list: not owned yet — left out of totals, the report, stock and search unless asked for (optional)"
+      },
+      {
+        "name": "links",
+        "type": "array",
+        "desc": "Web links: the maker's page, the manual online… When updating, the full new list (optional)"
+      },
+      {
+        "name": "disposition",
+        "type": "string",
+        "desc": "No longer had: sold, given, discarded, lost or stolen (null: still have it). Gone items leave lists and totals (optional)"
+      },
+      {
+        "name": "disposedOn",
+        "type": "string",
+        "desc": "When it went, yyyy-mm-dd (optional)"
+      },
+      {
+        "name": "disposalCents",
+        "type": "integer",
+        "desc": "What it sold for, in cents (optional)"
+      },
+      {
+        "name": "disposalNote",
+        "type": "string",
+        "desc": "Who it went to, or what happened (for a lost or stolen claim) (optional)"
+      },
+      {
+        "name": "origin",
+        "type": "string",
+        "desc": "Which of the app's ways added it; ignored for Claude and API keys (recorded by the server) (optional)"
+      }
+    ]
+  },
+  {
+    "name": "update_item",
+    "description": "Changes some of an item's fields — name, brand, value, category, notes, the box it's in… — after the person has said what to change (or confirmed suggestions from get_item). Fields left out stay as they are; send null to clear one. `tags` and `links` replace the whole list (send the old ones you want to keep). For just moving it use move_item; for using some up or restocking use adjust_stock, which logs the change; for a counter reading use record_reading. Returns the updated item.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "What it is, the way people would look for it: \"Cordless drill\" (optional)"
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "A longer description: colour, size, what it's for (optional)"
+      },
+      {
+        "name": "brand",
+        "type": "string",
+        "desc": "Who made it (optional)"
+      },
+      {
+        "name": "model",
+        "type": "string",
+        "desc": "Model name or number, as on its label (optional)"
+      },
+      {
+        "name": "serialNumber",
+        "type": "string",
+        "desc": "Its serial number, for warranty claims and insurance (optional)"
+      },
+      {
+        "name": "barcode",
+        "type": "string",
+        "desc": "Its UPC/EAN barcode (also learned into the household's barcode book) (optional)"
+      },
+      {
+        "name": "quantity",
+        "type": "integer",
+        "desc": "How many there are; to count stock up or down, adjust_stock logs the change (optional)"
+      },
+      {
+        "name": "minQuantity",
+        "type": "integer",
+        "desc": "Keep at least this many: at or below it, it goes on the shopping list (optional)"
+      },
+      {
+        "name": "usageUnit",
+        "type": "string",
+        "desc": "What its counter measures, for maintenance by use (a car's miles, a mower's hours) (optional)"
+      },
+      {
+        "name": "condition",
+        "type": "string",
+        "desc": "What shape it's in (optional)"
+      },
+      {
+        "name": "purchaseDate",
+        "type": "string",
+        "desc": "When it was bought, yyyy-mm-dd (optional)"
+      },
+      {
+        "name": "purchasePriceCents",
+        "type": "integer",
+        "desc": "What was paid for one, in cents (12999 = $129.99) (optional)"
+      },
+      {
+        "name": "valueCents",
+        "type": "integer",
+        "desc": "What one is worth now, in cents — used for the insurance report (optional)"
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "desc": "Anything else worth keeping: where the spare key is, quirks, settings (optional)"
+      },
+      {
+        "name": "favorite",
+        "type": "boolean",
+        "desc": "Starred, to find quickly in the app (optional)"
+      },
+      {
+        "name": "heir",
+        "type": "string",
+        "desc": "Who should have it one day (optional)"
+      },
+      {
+        "name": "isContainer",
+        "type": "boolean",
+        "desc": "A box, bin or case that holds other items (they set containerItemId to it) (optional)"
+      },
+      {
+        "name": "locationId",
+        "type": "string",
+        "desc": "Where it's kept: a location id from list_locations (null: nowhere in particular) (optional)"
+      },
+      {
+        "name": "containerItemId",
+        "type": "string",
+        "desc": "The box it's in: an item id with isContainer; it's then wherever the box is (optional)"
+      },
+      {
+        "name": "categoryId",
+        "type": "string",
+        "desc": "A category id from list_categories (optional)"
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "desc": "Tag names; new ones are created. When updating, the full new list (optional)"
+      },
+      {
+        "name": "customFields",
+        "type": "object",
+        "desc": "Values for its category's or template's extra fields, by their keys (list_categories shows them) (optional)"
+      },
+      {
+        "name": "templateId",
+        "type": "string",
+        "desc": "The item template it's made from (list_categories), whose fields it then has (optional)"
+      },
+      {
+        "name": "collectionId",
+        "type": "string",
+        "desc": "The collection it's part of (list_collections) (optional)"
+      },
+      {
+        "name": "wanted",
+        "type": "boolean",
+        "desc": "On the want list: not owned yet — left out of totals, the report, stock and search unless asked for (optional)"
+      },
+      {
+        "name": "links",
+        "type": "array",
+        "desc": "Web links: the maker's page, the manual online… When updating, the full new list (optional)"
+      },
+      {
+        "name": "disposition",
+        "type": "string",
+        "desc": "No longer had: sold, given, discarded, lost or stolen (null: still have it). Gone items leave lists and totals (optional)"
+      },
+      {
+        "name": "disposedOn",
+        "type": "string",
+        "desc": "When it went, yyyy-mm-dd (optional)"
+      },
+      {
+        "name": "disposalCents",
+        "type": "integer",
+        "desc": "What it sold for, in cents (optional)"
+      },
+      {
+        "name": "disposalNote",
+        "type": "string",
+        "desc": "Who it went to, or what happened (for a lost or stolen claim) (optional)"
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "The item's id, from search_inventory or list_items"
+      }
+    ]
+  },
+  {
+    "name": "adjust_stock",
+    "description": "Counts consumables up or down — filters, batteries, bulbs: negative delta for used up (\"we used the last AA pack\" → -1), positive for bought more. Use it whenever the person uses up or buys something tracked; it never goes below 0, logs the change in the item's stock history, and moves the item on or off the shopping list. To set an exact count (after a recount), use update_item's quantity. Returns the new count.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "The item's id, from search_inventory"
+      },
+      {
+        "name": "delta",
+        "type": "integer",
+        "desc": "How many used (negative) or bought (positive); not 0"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "Why, for its stock history (\"used for the guest room\") (optional)"
+      }
+    ]
+  },
+  {
+    "name": "record_reading",
+    "description": "Records what an item's counter says now — a car's odometer, a mower's or generator's engine hours, a furnace's run hours — in the item's usageUnit (set it with update_item first: miles, km, hours or cycles). Maintenance by use on that item (\"every 5,000 miles\") is rescheduled from it. Use it when the person mentions a reading; when they've just done the maintenance, give the reading to complete_maintenance instead.",
+    "arguments": [
+      {
+        "name": "value",
+        "type": "number",
+        "desc": "What the counter says now, in the item's usageUnit"
+      },
+      {
+        "name": "readOn",
+        "type": "string",
+        "desc": "When it was read, yyyy-mm-dd; today if left out (optional)"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "Anything worth noting with the reading (optional)"
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "The item's id (one with a usageUnit), from search_inventory"
+      }
+    ]
+  },
+  {
+    "name": "move_item",
+    "description": "Records that an item now lives somewhere else: a location from list_locations, or null for nowhere in particular. Use it for \"I put the drill in the basement\"; moving a box takes what's inside it along, and moving something that was in a box takes it out of the box. To put something into a box, use update_item with containerItemId. The move shows in item_history.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "The item's id, from search_inventory"
+      },
+      {
+        "name": "locationId",
+        "type": "string",
+        "desc": "Where it is now, from list_locations; null: nowhere in particular"
+      }
+    ]
+  },
+  {
+    "name": "delete_item",
+    "description": "Removes an item from the inventory — only when it was added by mistake or the person wants it gone from the records. For something sold, given away, thrown out, lost or stolen, prefer update_item with disposition, which keeps it for insurance and history. It stays in Recently deleted for 30 days (restore_item brings it back), then goes for good with its photos and documents. Confirm with the person first.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "The item's id, from search_inventory"
+      }
+    ]
+  },
+  {
+    "name": "restore_item",
+    "description": "Brings back an item from Recently deleted (ids from recently_deleted), with its photos, documents, warranties and maintenance. Use it when the person wants a deleted thing back within 30 days. If its place or box was removed meanwhile, it comes back without one — move_item can put it somewhere. Returns the restored item's id and name.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "The deleted item's id, from recently_deleted"
+      }
+    ]
+  },
+  {
+    "name": "create_property",
+    "description": "Adds a property — a home, vacation home, rental, storage unit or vehicle — the top level of where things are kept. Only name is required (type defaults to home); the address is optional and only used for its map picture. Check list_locations first so you don't add one twice. Rooms, closets and shelves are locations inside it: add them next with create_location. Returns the new property with its id.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "What the household calls it: \"Home\", \"Lake cabin\", \"Storage unit 12\""
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "What kind of property it is (optional)"
+      },
+      {
+        "name": "street",
+        "type": "string",
+        "desc": "Street address (used for its map picture, if maps are on) (optional)"
+      },
+      {
+        "name": "city",
+        "type": "string",
+        "desc": "Town or city (optional)"
+      },
+      {
+        "name": "region",
+        "type": "string",
+        "desc": "State, province or region (optional)"
+      },
+      {
+        "name": "postalCode",
+        "type": "string",
+        "desc": "ZIP or postal code (optional)"
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Country name (optional)"
+      },
+      {
+        "name": "yearBuilt",
+        "type": "integer",
+        "desc": "The year the building was built (optional)"
+      },
+      {
+        "name": "valueCents",
+        "type": "integer",
+        "desc": "What the property itself is worth, in cents (not its contents) (optional)"
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "desc": "Anything else worth keeping about it (optional)"
+      }
+    ]
+  },
+  {
+    "name": "create_location",
+    "description": "Adds a location — a room, closet or shelf — to a property, optionally inside another location (parentId), and optionally with locations inside it in one go: \"a garage with three shelves\" is name \"Garage\", children [\"Shelf 1\", \"Shelf 2\", \"Shelf 3\"]. Check list_locations first so you don't add one twice. propertyId can be left out when there's only one property; a new property itself is create_property. Returns the new locations with their ids.",
+    "arguments": [
+      {
+        "name": "propertyId",
+        "type": "string",
+        "desc": "The property, from list_locations; can be left out when there's only one (optional)"
+      },
+      {
+        "name": "parentId",
+        "type": "string",
+        "desc": "The location it's inside (a shelf in a closet), from list_locations; null: directly in the property (optional)"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "What the household calls it: \"Garage\", \"Hall closet\", \"Top shelf\""
+      },
+      {
+        "name": "icon",
+        "type": "string",
+        "desc": "An icon name for the app (optional) (optional)"
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "desc": "Anything else worth keeping about it (optional)"
+      },
+      {
+        "name": "children",
+        "type": "array",
+        "desc": "Names of locations to make inside it in one go: [\"Shelf 1\", \"Shelf 2\"] (optional)"
+      }
+    ]
+  },
+  {
+    "name": "add_maintenance",
+    "description": "Adds upkeep to track: on an item (itemId), a place (locationId) or the whole household. Give intervalCount + intervalUnit for something that repeats (\"every 3 months\"), or neither for a one-off. dueOn defaults to one interval from today (today for a one-off). By use (\"every 5,000 miles\"): usageEvery, on an item that counts something — set the item's usageUnit (update_item) and log a reading (record_reading) first; it can have a time interval too (whichever comes first). Check list_maintenance first so you don't add it twice. Due tasks show in what_needs_attention and the household's reminders.",
+    "arguments": [
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "What to do: \"Replace furnace filter\", \"Clean gutters\""
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "desc": "How to do it: the part number, steps, what to watch for (optional)"
+      },
+      {
+        "name": "itemId",
+        "type": "string",
+        "desc": "The item it's for (search_inventory); leave out for a place or the whole household (optional)"
+      },
+      {
+        "name": "locationId",
+        "type": "string",
+        "desc": "The place it's for, e.g. \"Clean gutters\" on the roof (list_locations) (optional)"
+      },
+      {
+        "name": "intervalCount",
+        "type": "integer",
+        "desc": "Repeats every this many intervalUnits (\"every 3 months\": 3); leave both out for a one-off (optional)"
+      },
+      {
+        "name": "intervalUnit",
+        "type": "string",
+        "desc": "The unit of intervalCount (optional)"
+      },
+      {
+        "name": "dueOn",
+        "type": "string",
+        "desc": "When it's next due, yyyy-mm-dd; defaults to one interval from today (today for a one-off) (optional)"
+      },
+      {
+        "name": "attachmentId",
+        "type": "string",
+        "desc": "The manual it came from: a document's id from get_item (optional)"
+      },
+      {
+        "name": "providerId",
+        "type": "string",
+        "desc": "Who usually does it, from list_providers (optional)"
+      },
+      {
+        "name": "partItemId",
+        "type": "string",
+        "desc": "The consumable it uses (a filter item): marking it done takes partQuantity out of stock (optional)"
+      },
+      {
+        "name": "partQuantity",
+        "type": "integer",
+        "desc": "How many of the part each time (default 1) (optional)"
+      },
+      {
+        "name": "usageEvery",
+        "type": "integer",
+        "desc": "Also (or only) due every this much use, in the item's usageUnit (\"every 5,000 miles\": 5000). Needs itemId (optional)"
+      }
+    ]
+  },
+  {
+    "name": "complete_maintenance",
+    "description": "Records that a task was done (today, or doneOn), with an optional note and cost in cents — use it whenever the person says they did one (\"changed the furnace filter\"); the id comes from list_maintenance. Credited to the task's usual provider unless providerId says otherwise (null: the household did it), and its part, if it has one, comes out of stock. A repeating task is then due again one interval after that day; a one-off is finished. For maintenance by use, give reading (what the odometer or hour meter says now): the next is due usageEvery after it. Returns the task with its new due date.",
+    "arguments": [
+      {
+        "name": "doneOn",
+        "type": "string",
+        "desc": "When it was done, yyyy-mm-dd; today if left out. The next due date counts from this day (optional)"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "Anything worth remembering about this time (optional)"
+      },
+      {
+        "name": "costCents",
+        "type": "integer",
+        "desc": "What it cost this time, in cents (optional)"
+      },
+      {
+        "name": "providerId",
+        "type": "string",
+        "desc": "Who did it this time (list_providers); left out: the task's usual provider; null: the household (optional)"
+      },
+      {
+        "name": "usePart",
+        "type": "boolean",
+        "desc": "Take the task's part out of stock (default true; false when an old one was cleaned instead) (optional)"
+      },
+      {
+        "name": "reading",
+        "type": "number",
+        "desc": "Maintenance by use: what the item's counter says now; the next one is due usageEvery after it (optional)"
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "The task's id, from list_maintenance"
+      }
+    ]
+  },
+  {
+    "name": "delete_maintenance",
+    "description": "Deletes a maintenance task the household no longer needs (the item is gone, or it was added by mistake), so it stops coming due and leaves reminders. This is not for a task that was just done — use complete_maintenance, which schedules the next one. The past times it was done stay in the item's history; the task itself can't be brought back with these tools. Confirm with the person first.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "The task's id, from list_maintenance"
+      }
+    ]
+  }
+]
