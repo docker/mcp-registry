@@ -1,1 +1,1 @@
-Docs: https://docs.datacircle.dev/mcp-server
+Docs: https://datacircle.dev/docs/mcp
