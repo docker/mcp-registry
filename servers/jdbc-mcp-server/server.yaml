@@ -1,0 +1,41 @@
+name: jdbc-mcp-server
+image: mcp/jdbc-mcp-server
+type: server
+meta:
+  category: database
+  tags:
+    - database
+    - sql
+    - postgresql
+    - oracle
+    - sql-server
+    - jdbc
+    - read-only
+about:
+  title: JDBC MCP Server
+  description: |
+    Read-only access to PostgreSQL, Oracle, and Microsoft SQL Server for AI agents. 49 tools: run and
+    validate SQL, read execution plans, benchmark queries, explore schemas, tables, indexes and foreign
+    keys, and find unused or redundant indexes. All JDBC drivers are bundled. The server never writes to
+    the inspected database; one instance can serve several databases.
+  icon: https://avatars.githubusercontent.com/u/25061132?v=4
+source:
+  project: https://github.com/igorolv/jdbc-mcp-server
+  commit: 9df9e5f9a98b7920bff2926c06218cb93b6ffa7b
+run:
+  volumes:
+    - "{{jdbc-mcp-server.data_dir}}:/data"
+config:
+  description: >-
+    Point the server at a host directory containing connections.json, which names the databases to
+    serve (JDBC URL, credentials, options). The server also keeps its local catalogs and logs there.
+    See https://github.com/igorolv/jdbc-mcp-server#databases-and-credentials for the file format.
+  parameters:
+    type: object
+    properties:
+      data_dir:
+        type: string
+        description: Host directory that holds connections.json (for example /Users/me/.jdbc-mcp-server)
+        default: /Users/local-test/.jdbc-mcp-server
+    required:
+      - data_dir
