@@ -37,6 +37,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	"github.com/docker/mcp-registry/internal/dockerenv"
 	"github.com/docker/mcp-registry/internal/licenses"
 	"github.com/docker/mcp-registry/internal/mcp"
 	"github.com/docker/mcp-registry/pkg/github"
@@ -138,10 +139,10 @@ func run(ctx context.Context, buildURL, name, category, userProvidedImage string
 
 		if token != "" {
 			cmd = exec.CommandContext(ctx, "docker", "buildx", "build", "--secret", "id=GIT_AUTH_TOKEN", "-t", "check", "-t", tag, "--label", "org.opencontainers.image.revision="+sha, "--load", gitURL)
-			cmd.Env = []string{"GIT_AUTH_TOKEN=" + token, "PATH=" + os.Getenv("PATH")}
+			cmd.Env = dockerenv.Env("GIT_AUTH_TOKEN=" + token)
 		} else {
 			cmd = exec.CommandContext(ctx, "docker", "buildx", "build", "-t", "check", "-t", tag, "--label", "org.opencontainers.image.revision="+sha, "--load", gitURL)
-			cmd.Env = []string{"PATH=" + os.Getenv("PATH")}
+			cmd.Env = dockerenv.Env()
 		}
 
 		cmd.Dir = os.TempDir()
