@@ -1,0 +1,586 @@
+[
+  {
+    "name": "choose_meal",
+    "description": "Order/choose a meal. Writes: books the selected menu for the date.",
+    "arguments": [
+      {
+        "name": "date_str",
+        "type": "string",
+        "desc": "YYYY-MM-DD to order for."
+      },
+      {
+        "name": "meal_type",
+        "type": "string",
+        "desc": "'snack' | 'lunch' | 'afternoon_snack'."
+      },
+      {
+        "name": "number",
+        "type": "integer",
+        "desc": "1-based menu choice among the chooseable menus (see `get_meals`)."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School to query (defaults to the active subdomain)."
+      }
+    ]
+  },
+  {
+    "name": "clear_student_cache",
+    "description": "Force refresh of cached student data. Writes: drops the local cache so the\n    next student lookup re-fetches from EduPage. Call this after students are\n    added/removed from a school, or if `scan_students`/`find_student` seems stale.",
+    "arguments": [
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School whose cache to clear. Without it, clears ALL schools."
+      }
+    ]
+  },
+  {
+    "name": "custom_request",
+    "description": "Send a raw request to the Edupage server using the active session.\n    Can perform writes depending on the endpoint — treat as write-capable.",
+    "arguments": [
+      {
+        "name": "method",
+        "type": "string",
+        "desc": "'GET' or 'POST'."
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "Absolute URL, or a path like '/export/ajax_prevedene_meno.php' (resolved against `https://<subdomain>.edupage.org`)."
+      },
+      {
+        "name": "data",
+        "type": "string",
+        "desc": "Request body (for POST)."
+      },
+      {
+        "name": "headers",
+        "type": "string",
+        "desc": "JSON string of extra headers, e.g. '{\"Accept\": \"application/json\"}'."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School whose session to use (defaults to the active)."
+      }
+    ]
+  },
+  {
+    "name": "download_homework_file",
+    "description": "Download one homework attachment to disk. Writes: creates a local file.\n\n    Takes an `url` from `get_homework_material`, fetches it through the school's\n    logged-in session and writes it into `dest_dir` (default: a `homework`\n    folder under the OS temp dir). An existing file is never overwritten — a\n    ' (1)', ' (2)', ... suffix is appended instead.",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "Absolute attachment URL exactly as returned by `get_homework_material`; the request is authenticated with the school's session."
+      },
+      {
+        "name": "dest_dir",
+        "type": "string",
+        "desc": "Directory to save into, created when missing. Defaults to `<tempdir>/homework` (e.g. `.../AppData/Local/Temp/homework`)."
+      },
+      {
+        "name": "filename",
+        "type": "string",
+        "desc": "Save under this name instead of the server-suggested one. Directory components and characters illegal on the filesystem are stripped, so the file always lands directly inside `dest_dir`."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School whose session authenticates the request (defaults to the active subdomain)."
+      }
+    ]
+  },
+  {
+    "name": "find_student",
+    "description": "Look up a student by first/last/full name using tiered matching. Read-only.\n    Without a `subdomain`, searches ALL logged-in schools and returns one result\n    per school where the student is found.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "First, last or full student name (also 'Novák V.' short names)."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "Restrict the search to one school (default: all logged-in schools in scope)."
+      }
+    ]
+  },
+  {
+    "name": "get_day_summary",
+    "description": "One-call daily school report for a date (default today): timetable,\n    substitutions, missing teachers, grades received that day, meals, homework,\n    assignments, absences, news, events, and timeline notifications.\n\n    Composes the individual section tools so you don't need to fire 8-10 calls\n    to answer \"what happened yesterday at school\" or \"what's coming tomorrow\".\n    - If `name`/`student_id` is provided: report for that specific student\n      (found across all schools unless `subdomain` scopes it).\n    - If omitted: **discovery-first** — for a **parent** this returns a\n      lightweight per-school index of the account's children (no per-child\n      section fetching), so you can then call per child with `name`/`student_id`.\n      Set `full=True` to instead build the full report for every child.\n    - If omitted and logged in as student/teacher: report on the logged-in account.\n    Every section is isolated — a failure in one section yields {\"ok\": false, \"error\": ...}\n    without failing the report.",
+    "arguments": [
+      {
+        "name": "date_str",
+        "type": "string",
+        "desc": "YYYY-MM-DD to report on (default today)."
+      },
+      {
+        "name": "full",
+        "type": "boolean",
+        "desc": "When no `name`/`student_id` is given and the account is a parent, build the full report for every child instead of returning the lightweight per-school index. Costs one section sweep per child."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Student to report for, by first/last/full name. Ambiguous names surface every candidate instead of guessing. Ignored when `student_id` is given; see `find_student` to resolve an id first."
+      },
+      {
+        "name": "student_id",
+        "type": "string",
+        "desc": "person_id of the student (preferred, unambiguous). Found across all schools unless `subdomain` scopes the lookup."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School to report on (defaults to the active subdomain)."
+      }
+    ]
+  },
+  {
+    "name": "get_grades",
+    "description": "Get grades for the logged-in student. Read-only.",
+    "arguments": [
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School to query (defaults to the active subdomain)."
+      },
+      {
+        "name": "term",
+        "type": "string",
+        "desc": "'FIRST' or 'SECOND' to restrict the term."
+      },
+      {
+        "name": "year",
+        "type": "integer",
+        "desc": "School-year start year to filter by (e.g. 2025 for 2025/26)."
+      }
+    ]
+  },
+  {
+    "name": "get_homework_material",
+    "description": "Full body text and attachment list of one homework/assignment material.\n    Read-only.\n\n    Fetches the school's material-player page for `superid` and flattens its\n    widget tree into plain text plus absolute attachment URLs — the timeline\n    notification carries only a short summary, never the assignment body or the\n    attachment list, so this is the only way to read what the assignment says.",
+    "arguments": [
+      {
+        "name": "superid",
+        "type": "string",
+        "desc": "Material id, taken from `additional_data.superid` of a notification returned by `get_timeline(category='homework')`."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School whose session to use (defaults to the active subdomain)."
+      }
+    ]
+  },
+  {
+    "name": "get_meals",
+    "description": "Get the meal menu for a date. Read-only. Always returns all five meal\n    slots (breakfast, snack, lunch, afternoon_snack, dinner) — slots not\n    published by the school are ``None``.",
+    "arguments": [
+      {
+        "name": "date_str",
+        "type": "string",
+        "desc": "YYYY-MM-DD (default today)."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School to query (defaults to the active subdomain)."
+      }
+    ]
+  },
+  {
+    "name": "get_missing_teachers",
+    "description": "Get teachers missing on a date (default today). Read-only.",
+    "arguments": [
+      {
+        "name": "date_str",
+        "type": "string",
+        "desc": "YYYY-MM-DD (default today)."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School to query (defaults to the active subdomain)."
+      }
+    ]
+  },
+  {
+    "name": "get_my_students",
+    "description": "Get the students visible to the logged-in account. Read-only: parent\n    accounts see their linked children (parsed from the school homepage);\n    student/teacher accounts see classmates. Uses cached data.",
+    "arguments": [
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School to query (defaults to the active subdomain)."
+      }
+    ]
+  },
+  {
+    "name": "get_my_timetable",
+    "description": "Get the timetable for the logged-in user on a date. Read-only.",
+    "arguments": [
+      {
+        "name": "date_str",
+        "type": "string",
+        "desc": "YYYY-MM-DD (default today)."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School to query (defaults to the active subdomain)."
+      }
+    ]
+  },
+  {
+    "name": "get_next_ringing_time",
+    "description": "Get the type (break/lesson) and time of the next school-bell ringing. Read-only.",
+    "arguments": [
+      {
+        "name": "date_time_str",
+        "type": "string",
+        "desc": "ISO datetime to search onward from (default: now)."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School to query (defaults to the active subdomain)."
+      }
+    ]
+  },
+  {
+    "name": "get_next_week_timetable",
+    "description": "Get the Mon-Fri timetable for next week for the logged-in user,\n    grouped by weekday. Read-only.",
+    "arguments": [
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School to query (defaults to the active subdomain)."
+      }
+    ]
+  },
+  {
+    "name": "get_periods",
+    "description": "Get the bell schedule (periods with start/end times). Read-only.",
+    "arguments": [
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School to query (defaults to the active subdomain)."
+      }
+    ]
+  },
+  {
+    "name": "get_roster",
+    "description": "Get a school roster: students, teachers, classes, classrooms or subjects.\n    Read-only.",
+    "arguments": [
+      {
+        "name": "roster_type",
+        "type": "string",
+        "desc": "Which roster to return: 'students' — students in the logged-in user's class (formerly `get_students`). 'all_students' — a short list of all students in the school (formerly `get_all_students`). 'teachers' — all teachers (formerly `get_teachers`). 'classes' — all classes (formerly `get_classes`). 'classrooms' — all classrooms (formerly `get_classrooms`). 'subjects' — all subjects (formerly `get_subjects`)."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School to query (defaults to the active subdomain)."
+      }
+    ]
+  },
+  {
+    "name": "get_school_year",
+    "description": "Return the current school year (starting year). Read-only.",
+    "arguments": [
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School to query (defaults to the active subdomain)."
+      }
+    ]
+  },
+  {
+    "name": "get_student_timetable",
+    "description": "Get a student's timetable by first/last name OR person_id. Read-only.\n    Without a `subdomain`, searches every school in the discovery scope (the\n    configured `EDUPAGE_SUBDOMAINS`, or all logged-in schools when unset) and\n    returns one result per school where the student is found — so a student\n    attending multiple schools yields separate per-school timetables.",
+    "arguments": [
+      {
+        "name": "date_str",
+        "type": "string",
+        "desc": "YYYY-MM-DD (default today)."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Student's first/last/full name."
+      },
+      {
+        "name": "student_id",
+        "type": "string",
+        "desc": "person_id (preferred — unambiguous, see `find_student`)."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "Restrict to one school (default: all logged-in schools)."
+      }
+    ]
+  },
+  {
+    "name": "get_subdomains",
+    "description": "List the school subdomains available to the logged-in account and the\n    server's session status per school, plus overall login state. Read-only.",
+    "arguments": []
+  },
+  {
+    "name": "get_timeline",
+    "description": "Get EduPage timeline notifications, filtered by category. Read-only.",
+    "arguments": [
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Which event types to return: 'recent' (default) — all currently visible notifications (homework, tests, messages, grades, events...). 'history' — all notifications since `date_from` (incl. older ones). 'homework' — homework assignments (formerly `get_homework`). 'assignments' — homework, tests, exams and projects (formerly `get_assignments`). 'absences' — absence records (formerly `get_absences`). 'events' — upcoming events: trips, excursions, meetings, holidays... (formerly `get_upcoming_events`). 'news' — school news (formerly `get_news`)."
+      },
+      {
+        "name": "date_from",
+        "type": "string",
+        "desc": "YYYY-MM-DD. Only meaningful for category='history'."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School to query (defaults to the active subdomain)."
+      }
+    ]
+  },
+  {
+    "name": "get_timetable",
+    "description": "Get the timetable for a teacher, student, class or classroom on a date\n    (or a date range, see `end_date`). Read-only.",
+    "arguments": [
+      {
+        "name": "target_id",
+        "type": "string",
+        "desc": "person/class/classroom id as returned by `get_roster`."
+      },
+      {
+        "name": "target_type",
+        "type": "string",
+        "desc": "'teacher' | 'student' | 'class' | 'classroom'."
+      },
+      {
+        "name": "date_str",
+        "type": "string",
+        "desc": "Single day, YYYY-MM-DD (default today). Ignored when `end_date` is given."
+      },
+      {
+        "name": "end_date",
+        "type": "string",
+        "desc": "When set, returns the timetable for every day from `date_str` (default today) to `end_date` inclusive, keyed by date — the equivalent of the former `get_timetable_range`."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School to query (defaults to the active subdomain)."
+      }
+    ]
+  },
+  {
+    "name": "get_timetable_changes",
+    "description": "Get substitution/timetable changes for a date (default today). Read-only.",
+    "arguments": [
+      {
+        "name": "date_str",
+        "type": "string",
+        "desc": "YYYY-MM-DD (default today)."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School to query (defaults to the active subdomain)."
+      }
+    ]
+  },
+  {
+    "name": "login",
+    "description": "Log in to Edupage for a school. Writes: establishes (or replaces) the\n    server-side session for that subdomain.",
+    "arguments": [
+      {
+        "name": "method",
+        "type": "string",
+        "desc": "How to authenticate: 'credentials' (default) — username/password for a known subdomain. 'auto' — portal auto-detect of the school (formerly `login_auto`). 'session' — build a session from an existing PHPSESSID cookie (formerly `login_from_session`); pass it in `session_id`."
+      },
+      {
+        "name": "password",
+        "type": "string",
+        "desc": "Account password. Falls back to EDUPAGE_PASSWORD."
+      },
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": "PHPSESSID cookie value, required when method='session'."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School subdomain (e.g. 'school'). Falls back to the first value of EDUPAGE_SUBDOMAINS; for method='auto' it is optional and tags the detected school's session."
+      },
+      {
+        "name": "username",
+        "type": "string",
+        "desc": "EduPage account login. Falls back to EDUPAGE_USERNAME."
+      }
+    ]
+  },
+  {
+    "name": "login_all",
+    "description": "Log in to one or more schools in a single call. Writes: establishes\n    (or replaces) the server-side session for each subdomain.",
+    "arguments": [
+      {
+        "name": "passwords",
+        "type": "string",
+        "desc": "Comma-separated passwords, one per school (or a single one). Falls back to EDUPAGE_PASSWORD."
+      },
+      {
+        "name": "subdomains",
+        "type": "string",
+        "desc": "Comma-separated school subdomains, e.g. 'school1,school2'. Falls back to EDUPAGE_SUBDOMAINS."
+      },
+      {
+        "name": "usernames",
+        "type": "string",
+        "desc": "Comma-separated usernames, one per school (or a single one). Falls back to EDUPAGE_USERNAME."
+      }
+    ]
+  },
+  {
+    "name": "rate_meal",
+    "description": "Rate a meal. Writes: submits quality/quantity ratings for a date and meal type.",
+    "arguments": [
+      {
+        "name": "date_str",
+        "type": "string",
+        "desc": "YYYY-MM-DD of the meal."
+      },
+      {
+        "name": "meal_type",
+        "type": "string",
+        "desc": "'snack' | 'lunch' | 'afternoon_snack'."
+      },
+      {
+        "name": "quality",
+        "type": "integer",
+        "desc": "Taste rating, 1-5."
+      },
+      {
+        "name": "quantity",
+        "type": "integer",
+        "desc": "Portion-size rating, 1-5."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School to query (defaults to the active subdomain)."
+      }
+    ]
+  },
+  {
+    "name": "scan_students",
+    "description": "Discover all students visible to the logged-in account across the discovery\n    scope (the configured `EDUPAGE_SUBDOMAINS`, or every school when unset).\n    Read-only; uses cached data to avoid redundant API calls.",
+    "arguments": []
+  },
+  {
+    "name": "send_message",
+    "description": "Send a message to a recipient. Writes: posts a new message on the\n    recipient's timeline.",
+    "arguments": [
+      {
+        "name": "body",
+        "type": "string",
+        "desc": "Message text. Must not be empty."
+      },
+      {
+        "name": "recipient_id",
+        "type": "string",
+        "desc": "EduPage id like 'Student123' or 'Teacher456' (see `get_roster`)."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School to query (defaults to the active subdomain)."
+      }
+    ]
+  },
+  {
+    "name": "sign_off_meal",
+    "description": "Cancel an ordered meal for a date. Writes: releases the booking.",
+    "arguments": [
+      {
+        "name": "date_str",
+        "type": "string",
+        "desc": "YYYY-MM-DD to cancel."
+      },
+      {
+        "name": "meal_type",
+        "type": "string",
+        "desc": "'snack' | 'lunch' | 'afternoon_snack'."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School to query (defaults to the active subdomain)."
+      }
+    ]
+  },
+  {
+    "name": "switch_to_parent",
+    "description": "Switch the session back to the parent account (parent accounts only).\n    Writes: changes which account subsequent tools operate as.",
+    "arguments": [
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School whose session to restore (defaults to the active)."
+      }
+    ]
+  },
+  {
+    "name": "switch_to_student",
+    "description": "Switch the session to a student account (parent accounts only). Writes:\n    changes which account subsequent tools operate as.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "first/last/full name of the child, used when `student_id` is omitted."
+      },
+      {
+        "name": "student_id",
+        "type": "string",
+        "desc": "person_id of the child (from `get_my_students`)."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School to query (defaults to the active subdomain)."
+      }
+    ]
+  },
+  {
+    "name": "two_factor_finish",
+    "description": "Finish a pending 2FA login. Writes: completes the pending auth flow.\n    Only needed after a `login` that returned `two_factor_required: True`.",
+    "arguments": [
+      {
+        "name": "code",
+        "type": "string",
+        "desc": "Optional email/app verification code. When given it is used directly; otherwise the device-confirmation flow is polled."
+      },
+      {
+        "name": "poll_seconds",
+        "type": "integer",
+        "desc": "How long (seconds) to wait for approval on a device when `code` is not given. Defaults to 60; on timeout the caller can call `two_factor_finish` again later."
+      },
+      {
+        "name": "subdomain",
+        "type": "string",
+        "desc": "School subdomain whose pending login to complete (defaults to the active subdomain)."
+      }
+    ]
+  }
+]
