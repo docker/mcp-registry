@@ -1,0 +1,46 @@
+name: sonar-mcp-server
+image: mcp/sonar-mcp-server
+type: server
+meta:
+  category: devops
+  tags:
+    - sonarqube
+    - code-quality
+    - static-analysis
+    - security
+    - devops
+about:
+  title: SonarQube Community Build
+  description: |
+    Read-only access to a self-hosted SonarQube Community Build (26.4+) instance for AI coding
+    agents: list projects, issues and security hotspots, drill into a single finding, fetch the rule
+    explanation and the source-code snippet around it — everything needed for the "read Sonar
+    findings, fix the code locally" loop. 13 focused tools; the server never writes to SonarQube.
+  icon: https://www.google.com/s2/favicons?domain=sonarsource.com&sz=64
+source:
+  project: https://github.com/igorolv/sonar-mcp-server
+  commit: c7ee416921736102728450babd74ca95e1d467e4
+config:
+  description: Configure the connection to SonarQube
+  secrets:
+    - name: sonar-mcp-server.token
+      env: SONAR_TOKEN
+      example: <SONAR_TOKEN>
+  env:
+    - name: SONAR_URL
+      example: https://sonar.example.com
+      value: '{{sonar-mcp-server.url}}'
+    - name: SONAR_DEFAULT_PROJECT_KEY
+      example: my-project
+      value: '{{sonar-mcp-server.default_project_key}}'
+  parameters:
+    type: object
+    properties:
+      url:
+        type: string
+        description: Base URL of the SonarQube instance, e.g. https://sonar.example.com
+      default_project_key:
+        type: string
+        description: Project key used when a tool call does not name one (optional)
+    required:
+      - url
