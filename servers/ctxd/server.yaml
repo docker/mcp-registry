@@ -1,0 +1,33 @@
+name: ctxd
+image: mcp/ctxd
+type: server
+meta:
+  category: devops
+  tags:
+    - context
+    - filesystem
+    - developer-tools
+about:
+  title: CTXD
+  description: Synchronize changing source content for path inspection and bounded reads through local MCP tools.
+  icon: https://raw.githubusercontent.com/ctxddev/ctxd-agent-plugin/9f81d373cc5d0eb3aaa0472ad483a924d9865bb1/icon.png
+source:
+  project: https://github.com/ctxddev/ctxd-agent-plugin
+  upstream: https://github.com/ctxd-dev/ctxd
+  branch: main
+  commit: 9f81d373cc5d0eb3aaa0472ad483a924d9865bb1
+  dockerfile: Dockerfile
+run:
+  volumes:
+    - "{{ctxd.source}}:/sources:ro"
+  disableNetwork: true
+config:
+  description: Choose a source folder readable by container UID 10001. Only this folder is mounted, read-only. The context store is rebuilt at container startup.
+  parameters:
+    type: object
+    properties:
+      source:
+        type: string
+        description: Absolute path to the source folder on the Docker host.
+    required:
+      - source
