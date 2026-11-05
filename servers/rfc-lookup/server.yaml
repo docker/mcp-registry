@@ -1,0 +1,37 @@
+name: rfc-lookup
+image: mcp/rfc-lookup
+type: server
+longLived: true
+meta:
+  category: documentation
+  tags:
+    - documentation
+    - rfc
+    - ietf
+    - standards
+about:
+  title: RFC Lookup
+  description: |
+    Reads the IETF RFC corpus section by section and flags obsoleted specs, so an agent cites the current standard and spends far fewer tokens than reading whole documents.
+
+    Title search and section reads work with no setup. For full-text search, download the section index (about 270 MB) into the server's volume once:
+
+    docker run --rm -it -v rfc-mirror:/mirror mcp/rfc-lookup mcp-server-rfc sync --index
+  icon: https://avatars.githubusercontent.com/u/183934437?s=200&v=4
+source:
+  project: https://github.com/shbernal/rfc-ai-tooling
+  branch: main
+  commit: b776154041b8a688217f3a3bf3e5c5627bdf98fe
+  directory: mcp
+run:
+  volumes:
+    - rfc-mirror:/mirror
+config:
+  description: No configuration is needed. The server keeps its mirror in the rfc-mirror volume.
+  env:
+    - name: RFC_TRANSPORT
+      example: stdio
+      value: stdio
+    - name: RFC_CLI
+      example: docker run --rm -it -v rfc-mirror:/mirror mcp/rfc-lookup mcp-server-rfc
+      value: docker run --rm -it -v rfc-mirror:/mirror mcp/rfc-lookup mcp-server-rfc
