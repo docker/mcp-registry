@@ -1,0 +1,39 @@
+name: kafka-mcp
+image: mcp/kafka-mcp
+type: server
+meta:
+  category: database
+  tags:
+    - kafka
+    - redpanda
+    - streaming
+    - devops
+about:
+  title: Kafka Debugging
+  description: Debug Kafka from an agent. Find a message by key or field, measure consumer lag and when it clears, unblock a stuck consumer, replay since a moment, compare two clusters. Read-only endpoints hide every tool that writes, and every write previews what it would change first.
+  icon: https://avatars.githubusercontent.com/u/57708132?v=4
+source:
+  project: https://github.com/denizgursoy/kafka-mcp
+  commit: 859a3bf20572860cb788ccdc6186b6d578c7a654
+run:
+  command:
+    - --server=false
+    - --endpoint={{kafka-mcp.endpoint}}
+  env:
+    CONFIG_FILE: /config/kafka-mcp.yaml
+  volumes:
+    - "{{kafka-mcp.config_file}}:/config/kafka-mcp.yaml:ro"
+config:
+  description: Point the server at your kafka-mcp.yaml, which names the clusters to connect to and the endpoints to expose. Keep passwords out of the file with "{env:VAR}".
+  parameters:
+    type: object
+    properties:
+      config_file:
+        type: string
+        description: Absolute path to your kafka-mcp.yaml on this machine
+      endpoint:
+        type: string
+        description: Endpoint from the file to serve. Leave empty when the file defines only one
+        default: ""
+    required:
+      - config_file
