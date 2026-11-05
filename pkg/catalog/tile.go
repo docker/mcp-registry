@@ -44,6 +44,12 @@ func ToTile(ctx context.Context, server servers.Server) (Tile, error) {
 	license := "Apache License 2.0"
 	githubStars := 0
 
+	// A remote endpoint does not imply Docker ownership or a software license.
+	if server.Remote.URL != "" {
+		owner = ""
+		license = ""
+	}
+
 	if server.Type == "server" && server.Remote.URL == "" {
 		client := github.NewFromServer(server)
 		repository, err := client.GetProjectRepository(ctx, upstream)
