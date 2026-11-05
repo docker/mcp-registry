@@ -1,0 +1,45 @@
+name: sandboxio
+image: ghcr.io/bit-agents/sandboxio-mcp
+type: server
+meta:
+  category: developer-tools
+  tags:
+    - sandbox
+    - code-execution
+    - agents
+    - security
+about:
+  title: Sandboxio
+  description:
+    Give your assistant somewhere to run code that is not your machine. Python and
+    shell execute in an isolated sandbox with no network by default, a fixed time limit and
+    stable error codes; files persist under /work for the session. The backend, the egress
+    policy and the timeout are fixed at startup — no tool changes them, and nothing ever runs
+    on the host. One run_python tool instead of many narrow ones. Backed by E2B microVMs in
+    this image.
+  icon: https://raw.githubusercontent.com/bit-agents/sandboxio/main/docs/assets/icon.png
+source:
+  project: https://github.com/bit-agents/sandboxio
+  branch: main
+  commit: 8c968d858fb4a100c4a40e84b62ee44ca7781d01
+  dockerfile: docker/mcp/Dockerfile
+run:
+  command:
+    - --backend
+    - e2b://code-interpreter-v1
+config:
+  description: Pick the backend template and supply the E2B credential.
+  secrets:
+    - name: sandboxio.e2b_api_key
+      env: E2B_API_KEY
+      example: <E2B_API_KEY>
+  env:
+    - name: SBX_DEBUG
+      example: "0"
+      value: "{{sandboxio.debug}}"
+  parameters:
+    type: object
+    properties:
+      debug:
+        type: string
+        default: "0"
