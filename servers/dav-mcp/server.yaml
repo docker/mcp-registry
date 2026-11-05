@@ -1,0 +1,52 @@
+name: dav-mcp
+image: mcp/dav-mcp
+type: server
+meta:
+  category: productivity
+  tags:
+    - calendar
+    - contacts
+    - caldav
+    - carddav
+    - tasks
+about:
+  title: CalDAV and CardDAV
+  description: Manage calendars, events, contacts and tasks on any CalDAV/CardDAV server (Nextcloud, Baikal, Radicale, iCloud and others) with 27 tools, including free/busy queries and field-level updates
+  icon: https://avatars.githubusercontent.com/u/223725160?s=200&v=4
+source:
+  project: https://github.com/PhilflowIO/dav-mcp
+  commit: a114de68261a5368d3527406fd1886b14b4788a2
+run:
+  command:
+    - src/server-stdio.js
+config:
+  description: Configure the connection to your CalDAV/CardDAV server
+  secrets:
+    - name: dav-mcp.password
+      env: CALDAV_PASSWORD
+      example: your-app-password
+  env:
+    - name: CALDAV_SERVER_URL
+      example: https://dav.example.com/dav.php/
+      value: "{{dav-mcp.server_url}}"
+    - name: CALDAV_USERNAME
+      example: alice
+      value: "{{dav-mcp.username}}"
+    - name: AUTH_METHOD
+      example: Basic
+      value: "{{dav-mcp.auth_method}}"
+  parameters:
+    type: object
+    properties:
+      server_url:
+        description: Base URL of your CalDAV/CardDAV server (e.g. https://dav.example.com/dav.php/)
+        type: string
+      username:
+        description: Username for DAV server authentication
+        type: string
+      auth_method:
+        description: "Authentication method: Basic (default; switches to Digest automatically when the server only offers Digest) or Digest"
+        type: string
+    required:
+      - server_url
+      - username

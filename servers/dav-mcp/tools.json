@@ -1,0 +1,676 @@
+[
+  {
+    "name": "list_calendars",
+    "description": "List all available calendars from the CalDAV server. Use this to get calendar URLs needed for other operations"
+  },
+  {
+    "name": "list_events",
+    "description": "List ALL events from a single calendar without filtering. WARNING: Returns all events which can be many thousands - use calendar_query instead for searching with filters (supports multi-calendar search).",
+    "arguments": [
+      {
+        "name": "calendar_url",
+        "type": "string",
+        "desc": "The URL of the calendar to fetch events from. Use list_calendars first to get available URLs."
+      },
+      {
+        "name": "time_range_end",
+        "type": "string",
+        "desc": "Optional: End date in ISO 8601 format",
+        "optional": true
+      },
+      {
+        "name": "time_range_start",
+        "type": "string",
+        "desc": "Optional: Start date in ISO 8601 format (e.g., 2025-01-01T00:00:00.000Z)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "create_event",
+    "description": "Create a new calendar event with title, date, time, optional description and location",
+    "arguments": [
+      {
+        "name": "calendar_url",
+        "type": "string",
+        "desc": "The URL of the calendar to create the event in"
+      },
+      {
+        "name": "end_date",
+        "type": "string",
+        "desc": "End, in the same form as start_date. For an all-day event the end is EXCLUSIVE: a single day on 2026-05-25 is start_date \"2026-05-25\" and end_date \"2026-05-26\"."
+      },
+      {
+        "name": "start_date",
+        "type": "string",
+        "desc": "Start in ISO 8601 format. A datetime (\"2026-05-25T10:00:00Z\") makes a timed event; a bare date (\"2026-05-25\") makes an all-day event."
+      },
+      {
+        "name": "summary",
+        "type": "string",
+        "desc": "Event title/summary"
+      },
+      {
+        "name": "all_day",
+        "type": "boolean",
+        "desc": "Optional. All-day is inferred from the date format, so this is only needed to state the intent explicitly; it must agree with the format of start_date/end_date.",
+        "optional": true
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Event description (optional)",
+        "optional": true
+      },
+      {
+        "name": "location",
+        "type": "string",
+        "desc": "Event location (optional)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "update_event",
+    "description": "PREFERRED: Update event fields without iCal formatting. Use start_date/end_date/all_day to move an event or convert it between all-day and timed. Use fields for everything else: SUMMARY (title), DESCRIPTION (details), LOCATION (place), STATUS (TENTATIVE/CONFIRMED/CANCELLED), and any other RFC 5545 property including custom X-* properties (e.g., X-ZOOM-LINK, X-MEETING-ROOM).",
+    "arguments": [
+      {
+        "name": "event_etag",
+        "type": "string",
+        "desc": "The etag of the event (required for conflict detection)"
+      },
+      {
+        "name": "event_url",
+        "type": "string",
+        "desc": "The URL of the event to update"
+      },
+      {
+        "name": "all_day",
+        "type": "boolean",
+        "desc": "Optional. All-day is inferred from the date format, so this is only needed to state the intent explicitly; it must agree with the format of start_date/end_date. This is the supported way to convert an event between all-day and timed.",
+        "optional": true
+      },
+      {
+        "name": "end_date",
+        "type": "string",
+        "desc": "New end, in the same form as start_date. For an all-day event the end is EXCLUSIVE: a single day on 2026-05-25 is start_date \"2026-05-25\" and end_date \"2026-05-26\".",
+        "optional": true
+      },
+      {
+        "name": "fields",
+        "type": "object",
+        "desc": "Fields to update, keyed by bare UPPERCASE property name (e.g., SUMMARY, LOCATION, STATUS). Any RFC 5545 property or custom X-* property is supported, EXCEPT the dates: use start_date/end_date/all_day for DTSTART, DTEND and DURATION. Property parameters such as \"VALUE=DATE\" are not accepted here, and values must not contain line breaks.",
+        "optional": true
+      },
+      {
+        "name": "start_date",
+        "type": "string",
+        "desc": "New start. A datetime (\"2026-05-25T10:00:00Z\") makes the event timed; a bare date (\"2026-05-25\") makes it all-day. Must be given together with end_date.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "update_event_raw",
+    "description": "ADVANCED: Update event with raw iCal data. Requires manual iCal formatting - use update_event instead for simple field updates (summary, description). Only use this if you have complete pre-formatted iCal data or need to update advanced iCal properties.",
+    "arguments": [
+      {
+        "name": "event_etag",
+        "type": "string",
+        "desc": "The etag of the event"
+      },
+      {
+        "name": "event_url",
+        "type": "string",
+        "desc": "The URL of the event to update"
+      },
+      {
+        "name": "updated_ical_data",
+        "type": "string",
+        "desc": "The complete updated iCal data"
+      }
+    ]
+  },
+  {
+    "name": "delete_event",
+    "description": "Permanently delete a calendar event. WARNING: This action cannot be undone — the event is removed from the server immediately. Use only when the user explicitly requests deletion. Obtain the event URL and etag from list_events or calendar_query first. The etag ensures no conflicting changes occurred since the event was last retrieved.",
+    "arguments": [
+      {
+        "name": "event_etag",
+        "type": "string",
+        "desc": "ETag of the event for conflict detection. Obtain from the same response as the event URL. Ensures no changes were made since retrieval."
+      },
+      {
+        "name": "event_url",
+        "type": "string",
+        "desc": "Full URL of the event to delete. Obtain from list_events or calendar_query response."
+      }
+    ]
+  },
+  {
+    "name": "calendar_query",
+    "description": "⭐ PREFERRED: Search and filter calendar events efficiently. Use instead of list_events to avoid loading thousands of entries. Omit calendar_url to search across ALL calendars automatically.",
+    "arguments": [
+      {
+        "name": "calendar_url",
+        "type": "string",
+        "desc": "Optional: Specific calendar URL. Omit to search ALL calendars (recommended for \"find events with X\" queries). Only provide if user explicitly names a calendar. DO NOT use list_calendars first - that defeats cross-calendar search.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Maximum number of events to return (default 20, max 500). You get the earliest by start date, and the response states how many matched in total.",
+        "optional": true
+      },
+      {
+        "name": "location_filter",
+        "type": "string",
+        "desc": "Search event locations containing this text. Example: \"Berlin\", \"Office\", \"Zoom\". Can be used alone as sufficient filter.",
+        "optional": true
+      },
+      {
+        "name": "summary_filter",
+        "type": "string",
+        "desc": "Search event titles/summaries containing this text (case-insensitive). Example: \"meeting with Elena\" or \"standup\". Can be used alone as sufficient filter.",
+        "optional": true
+      },
+      {
+        "name": "time_range_end",
+        "type": "string",
+        "desc": "End datetime (ISO 8601). If provided, time_range_start is REQUIRED. Both dates together form a complete filter. Do not omit if start is provided.",
+        "optional": true
+      },
+      {
+        "name": "time_range_start",
+        "type": "string",
+        "desc": "Start datetime (ISO 8601, e.g., 2025-10-30T00:00:00Z). If provided, time_range_end is REQUIRED. Calculate dates for \"today\", \"this week\", etc. Can be used alone (with end date) as sufficient filter.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "freebusy_query",
+    "description": "Find free and busy time in a date range — use for \"when am I free?\", \"am I available Tuesday afternoon?\" or finding a slot for a new meeting. Searches all calendars unless one is given. Events marked TRANSPARENT (does not block time) and cancelled events are ignored; recurring events are expanded.",
+    "arguments": [
+      {
+        "name": "time_range_end",
+        "type": "string",
+        "desc": "End of the window to examine (ISO 8601). Required."
+      },
+      {
+        "name": "time_range_start",
+        "type": "string",
+        "desc": "Start of the window to examine (ISO 8601, e.g. 2026-05-25T00:00:00Z). Required."
+      },
+      {
+        "name": "calendar_url",
+        "type": "string",
+        "desc": "Optional: restrict to one calendar. Omit to consider every calendar, which is usually what \"am I free\" means.",
+        "optional": true
+      },
+      {
+        "name": "include_event_details",
+        "type": "boolean",
+        "desc": "Optional: also list the events behind each busy block, with titles. Off by default — the answer to \"when am I free\" is the slots, not the meetings.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "make_calendar",
+    "description": "Create a new calendar collection on the CalDAV server with optional color, description, and component types. A timezone is accepted but not applied yet (the result says so). The URL is derived from display_name. If a calendar already exists at that URL, nothing is created and the error names the existing calendar — use it instead of creating another. If the URL is only held by something else (e.g. a deleted calendar in the trash bin), a numeric suffix is added (-2, -3, ...). Always use the URL returned in the response.",
+    "arguments": [
+      {
+        "name": "display_name",
+        "type": "string",
+        "desc": "Display name for the new calendar"
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "desc": "Optional: Calendar color in hex format (e.g., #FF5733)",
+        "optional": true
+      },
+      {
+        "name": "components",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Optional: Supported component types. If omitted, nothing is sent and the server applies its own default. Use [\"VEVENT\"] for events only, [\"VTODO\"] for tasks only, [\"VEVENT\", \"VTODO\"] for both.",
+        "optional": true
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Optional: Calendar description",
+        "optional": true
+      },
+      {
+        "name": "timezone",
+        "type": "string",
+        "desc": "Currently NOT applied: the calendar is created with the server's default timezone and the result says so (issue #78). Timezone ID (e.g., Europe/Berlin).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "update_calendar",
+    "description": "Update an existing calendar's properties (display name, description, color, timezone). Use this when user asks to \"rename calendar\", \"change calendar color\", or \"update calendar properties\"",
+    "arguments": [
+      {
+        "name": "calendar_url",
+        "type": "string",
+        "desc": "The URL of the calendar to update (get from list_calendars)"
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "desc": "Optional: New calendar color in hex format (e.g., #FF5733)",
+        "optional": true
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Optional: New description for the calendar",
+        "optional": true
+      },
+      {
+        "name": "display_name",
+        "type": "string",
+        "desc": "Optional: New display name for the calendar",
+        "optional": true
+      },
+      {
+        "name": "timezone",
+        "type": "string",
+        "desc": "Optional: New timezone ID (e.g., Europe/Berlin). Sent to the server as a bare timezone ID, not as the VTIMEZONE the CalDAV standard asks for, so a server may reject or ignore it (issue #78).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "delete_calendar",
+    "description": "Delete a calendar and all its events. WARNING: on servers without a trash bin this cannot be undone; servers with one (e.g. Nextcloud) keep the calendar in the trash for a while. Use this when user explicitly asks to \"delete calendar\" or \"remove calendar\"",
+    "arguments": [
+      {
+        "name": "calendar_url",
+        "type": "string",
+        "desc": "The URL of the calendar to delete (get from list_calendars)"
+      }
+    ]
+  },
+  {
+    "name": "calendar_multi_get",
+    "description": "Batch fetch multiple specific calendar events by their URLs. Use when you have exact event URLs and want to retrieve their details",
+    "arguments": [
+      {
+        "name": "calendar_url",
+        "type": "string",
+        "desc": "The URL of the calendar"
+      },
+      {
+        "name": "event_urls",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Array of event URLs to fetch"
+      }
+    ]
+  },
+  {
+    "name": "list_addressbooks",
+    "description": "List all available address books from the CardDAV server. Use this to get address book URLs needed for other contact operations"
+  },
+  {
+    "name": "list_contacts",
+    "description": "List ALL contacts from an address book without filtering. WARNING: Returns all contacts which can be thousands - use addressbook_query instead when searching for specific contacts by name, email, or organization to save tokens",
+    "arguments": [
+      {
+        "name": "addressbook_url",
+        "type": "string",
+        "desc": "The URL of the address book to fetch contacts from"
+      }
+    ]
+  },
+  {
+    "name": "create_contact",
+    "description": "Create a new contact (vCard) with name, email, phone, organization, and other details",
+    "arguments": [
+      {
+        "name": "addressbook_url",
+        "type": "string",
+        "desc": "The URL of the address book to create the contact in"
+      },
+      {
+        "name": "full_name",
+        "type": "string",
+        "desc": "Full name of the contact"
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "Email address (optional)",
+        "optional": true
+      },
+      {
+        "name": "family_name",
+        "type": "string",
+        "desc": "Family/last name",
+        "optional": true
+      },
+      {
+        "name": "given_name",
+        "type": "string",
+        "desc": "Given/first name",
+        "optional": true
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "Additional notes (optional)",
+        "optional": true
+      },
+      {
+        "name": "organization",
+        "type": "string",
+        "desc": "Organization/company (optional)",
+        "optional": true
+      },
+      {
+        "name": "phone",
+        "type": "string",
+        "desc": "Phone number (optional)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "update_contact",
+    "description": "PREFERRED: Update contact fields without vCard formatting. Supports: FN (full name), N (structured name), EMAIL, TEL (phone), ORG (organization), TITLE (job title), NOTE, URL, ADR (address), BDAY (birthday), and any RFC 6350 vCard property including custom X-* properties.",
+    "arguments": [
+      {
+        "name": "vcard_etag",
+        "type": "string",
+        "desc": "The etag of the vCard (required for conflict detection)"
+      },
+      {
+        "name": "vcard_url",
+        "type": "string",
+        "desc": "The URL of the vCard to update"
+      },
+      {
+        "name": "fields",
+        "type": "object",
+        "desc": "Fields to update, keyed by bare UPPERCASE property name (e.g., FN, EMAIL, TEL). Any RFC 6350 vCard property or custom X-* property is supported. Property parameters such as \"TEL;TYPE=CELL\" are not accepted here, and values must not contain line breaks.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "update_contact_raw",
+    "description": "ADVANCED: Update contact with raw vCard data. Requires manual vCard formatting - use update_contact instead for simple field updates (name, email, phone). Only use this if you have complete pre-formatted vCard data or need to update advanced vCard properties.",
+    "arguments": [
+      {
+        "name": "updated_vcard_data",
+        "type": "string",
+        "desc": "The complete updated vCard data"
+      },
+      {
+        "name": "vcard_etag",
+        "type": "string",
+        "desc": "The etag of the vCard"
+      },
+      {
+        "name": "vcard_url",
+        "type": "string",
+        "desc": "The URL of the vCard to update"
+      }
+    ]
+  },
+  {
+    "name": "delete_contact",
+    "description": "Permanently delete a contact (vCard) from the address book. WARNING: This action cannot be undone — the contact is removed from the server immediately. Use only when the user explicitly requests deletion. Obtain the vCard URL and etag from list_contacts or addressbook_query first. The etag ensures no conflicting changes occurred since the contact was last retrieved.",
+    "arguments": [
+      {
+        "name": "vcard_etag",
+        "type": "string",
+        "desc": "ETag of the vCard for conflict detection. Obtain from the same response as the vCard URL. Ensures no changes were made since retrieval."
+      },
+      {
+        "name": "vcard_url",
+        "type": "string",
+        "desc": "Full URL of the vCard to delete. Obtain from list_contacts or addressbook_query response."
+      }
+    ]
+  },
+  {
+    "name": "addressbook_query",
+    "description": "⭐ PREFERRED: Search and filter contacts efficiently (name, email, organization). Use for \"find contacts with...\", \"search for email...\", \"contacts at company...\" queries. Use instead of list_contacts when ANY filter is specified. Omit addressbook_url to search across ALL addressbooks automatically.",
+    "arguments": [
+      {
+        "name": "addressbook_url",
+        "type": "string",
+        "desc": "Optional: Specific addressbook URL. Omit to search ALL addressbooks (recommended for \"find contact X\" queries). Only provide if user explicitly names an addressbook.",
+        "optional": true
+      },
+      {
+        "name": "email_filter",
+        "type": "string",
+        "desc": "Search contact email addresses. Use for queries like \"Gmail contacts\" → \"@gmail.com\", \"work emails\" → \"@company.com\", or specific addresses. At least one filter (name, email, or org) is required.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Maximum number of contacts to return (default 20, max 500). You get them alphabetically by name, and the response states how many matched in total.",
+        "optional": true
+      },
+      {
+        "name": "name_filter",
+        "type": "string",
+        "desc": "Search contact names (full/given/family name). Example: \"John Smith\" or \"Smith\". At least one filter (name, email, or org) is required.",
+        "optional": true
+      },
+      {
+        "name": "organization_filter",
+        "type": "string",
+        "desc": "Search contact organizations/companies. Example: \"Google\" or \"Acme Corp\". At least one filter (name, email, or org) is required.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "addressbook_multi_get",
+    "description": "Batch fetch multiple specific contacts by their URLs. Use when you have exact contact URLs and want to retrieve their details",
+    "arguments": [
+      {
+        "name": "addressbook_url",
+        "type": "string",
+        "desc": "The URL of the address book"
+      },
+      {
+        "name": "contact_urls",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Array of contact URLs to fetch"
+      }
+    ]
+  },
+  {
+    "name": "list_todos",
+    "description": "List ALL todos/tasks from a calendar. WARNING: Returns all todos without filtering - use todo_query for searches with filters by status, summary, or due date.",
+    "arguments": [
+      {
+        "name": "calendar_url",
+        "type": "string",
+        "desc": "The URL of the calendar containing todos"
+      }
+    ]
+  },
+  {
+    "name": "create_todo",
+    "description": "Create a new todo/task in a calendar. Use this when user wants to add a task, todo item, or reminder with optional due date, priority, and status.",
+    "arguments": [
+      {
+        "name": "calendar_url",
+        "type": "string",
+        "desc": "The URL of the calendar to create the todo in"
+      },
+      {
+        "name": "summary",
+        "type": "string",
+        "desc": "The title/summary of the todo (required)"
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Optional detailed description",
+        "optional": true
+      },
+      {
+        "name": "due_date",
+        "type": "string",
+        "desc": "Optional due date in ISO 8601 format (e.g., 2025-12-31T23:59:59+02:00)",
+        "optional": true
+      },
+      {
+        "name": "percent_complete",
+        "type": "number",
+        "desc": "Optional completion percentage (0-100)",
+        "optional": true
+      },
+      {
+        "name": "priority",
+        "type": "number",
+        "desc": "Optional priority: 0=none, 1-3=high, 4-6=medium, 7-9=low",
+        "optional": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Optional status (default: NEEDS-ACTION)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "update_todo",
+    "description": "PREFERRED: Update todo fields without iCal formatting. Supports: SUMMARY (title), DESCRIPTION (details), STATUS (NEEDS-ACTION/IN-PROCESS/COMPLETED/CANCELLED), PRIORITY (0-9), DUE (due date), PERCENT-COMPLETE (0-100), and any RFC 5545 VTODO property including custom X-* properties.",
+    "arguments": [
+      {
+        "name": "todo_etag",
+        "type": "string",
+        "desc": "The etag of the todo (required for conflict detection)"
+      },
+      {
+        "name": "todo_url",
+        "type": "string",
+        "desc": "The URL of the todo to update"
+      },
+      {
+        "name": "fields",
+        "type": "object",
+        "desc": "Fields to update, keyed by bare UPPERCASE property name (e.g., SUMMARY, STATUS, PRIORITY). Any RFC 5545 VTODO property or custom X-* property is supported. Property parameters such as \"DUE;VALUE=DATE\" are not accepted here, and values must not contain line breaks.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "update_todo_raw",
+    "description": "ADVANCED: Update todo with raw VTODO iCal data. Requires manual iCal formatting - use update_todo instead for simple field updates (summary, description, status). Only use this if you have complete pre-formatted VTODO data or need to update advanced iCal properties.",
+    "arguments": [
+      {
+        "name": "todo_etag",
+        "type": "string",
+        "desc": "The current ETag of the todo (required for conflict detection)"
+      },
+      {
+        "name": "todo_url",
+        "type": "string",
+        "desc": "The URL of the todo to update"
+      },
+      {
+        "name": "updated_ical_data",
+        "type": "string",
+        "desc": "Complete updated VTODO iCalendar data"
+      }
+    ]
+  },
+  {
+    "name": "delete_todo",
+    "description": "Permanently delete a todo/task from the calendar. WARNING: This action cannot be undone — the todo is removed from the server immediately. Use only when the user explicitly requests deletion. Obtain the todo URL and etag from list_todos or todo_query first. The etag ensures no conflicting changes occurred since the todo was last retrieved.",
+    "arguments": [
+      {
+        "name": "todo_etag",
+        "type": "string",
+        "desc": "ETag of the todo for conflict detection. Obtain from the same response as the todo URL. Ensures no changes were made since retrieval."
+      },
+      {
+        "name": "todo_url",
+        "type": "string",
+        "desc": "Full URL of the todo to delete. Obtain from list_todos or todo_query response."
+      }
+    ]
+  },
+  {
+    "name": "todo_query",
+    "description": "⭐ PREFERRED: Search and filter todos efficiently. Use instead of list_todos to conserve tokens. Omit calendar_url to search across ALL calendars automatically.",
+    "arguments": [
+      {
+        "name": "calendar_url",
+        "type": "string",
+        "desc": "Optional: Specific calendar URL. Omit to search ALL calendars (recommended).",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Maximum number of todos to return (default 20, max 500). You get the earliest by due date, and the response states how many matched in total.",
+        "optional": true
+      },
+      {
+        "name": "status_filter",
+        "type": "string",
+        "desc": "Filter by todo status. Use \"NEEDS-ACTION\" for pending tasks, \"COMPLETED\" for done tasks. Can be used alone as sufficient filter.",
+        "optional": true
+      },
+      {
+        "name": "summary_filter",
+        "type": "string",
+        "desc": "Search todo summaries/titles containing this text (case-insensitive). Example: \"write report\" or \"review PR\". Can be used alone as sufficient filter.",
+        "optional": true
+      },
+      {
+        "name": "time_range_end",
+        "type": "string",
+        "desc": "End datetime for due date filtering (ISO 8601). If provided, time_range_start is REQUIRED. Both dates together form a complete filter.",
+        "optional": true
+      },
+      {
+        "name": "time_range_start",
+        "type": "string",
+        "desc": "Start datetime for due date filtering (ISO 8601). If provided, time_range_end is REQUIRED. Both dates together form a complete filter.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "todo_multi_get",
+    "description": "Batch fetch multiple specific todos by their URLs. More efficient than fetching one by one when you have exact todo URLs.",
+    "arguments": [
+      {
+        "name": "todo_urls",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Array of todo URLs to fetch"
+      }
+    ]
+  }
+]
