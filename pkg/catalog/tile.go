@@ -183,6 +183,7 @@ func ToTile(ctx context.Context, server servers.Server) (Tile, error) {
 		Title:          server.About.Title,
 		Type:           server.Type,
 		Image:          image,
+		LongLived:      server.LongLived,
 		DateAdded:      &dateAdded,
 		ReadmeURL:      "http://desktop.docker.com/mcp/catalog/v" + strconv.Itoa(Version) + "/readme/" + server.Name + ".md",
 		ToolsURL:       "http://desktop.docker.com/mcp/catalog/v" + strconv.Itoa(Version) + "/tools/" + server.Name + ".json",
