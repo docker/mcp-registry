@@ -1,0 +1,616 @@
+[
+  {
+    "name": "dbconvert_compare_data_sample",
+    "description": "Compare bounded sample rows across two tables using keyed matching when keyColumns are provided or row-order comparison otherwise.",
+    "arguments": [
+      {
+        "name": "source",
+        "type": "object",
+        "desc": "Source table reference"
+      },
+      {
+        "name": "target",
+        "type": "object",
+        "desc": "Target table reference"
+      },
+      {
+        "name": "keyColumns",
+        "type": [
+          "null",
+          "array"
+        ],
+        "desc": "Optional columns used to match rows between source and target samples",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Sample row limit, default 100, max 1000",
+        "optional": true
+      },
+      {
+        "name": "orderBy",
+        "type": "string",
+        "desc": "Optional order by columns applied to both previews",
+        "optional": true
+      },
+      {
+        "name": "orderDir",
+        "type": "string",
+        "desc": "Optional order direction, ASC or DESC",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "dbconvert_compare_schemas",
+    "description": "Compare two table schemas across DBConvert connections and report blockers (data loss), reviews (unverified cross-database type mappings), warnings, and per-column differences.",
+    "arguments": [
+      {
+        "name": "source",
+        "type": "object",
+        "desc": "Source table reference"
+      },
+      {
+        "name": "target",
+        "type": "object",
+        "desc": "Target table reference"
+      }
+    ]
+  },
+  {
+    "name": "dbconvert_describe_table",
+    "description": "Describe columns, indexes, keys, and DDL for a table.",
+    "arguments": [
+      {
+        "name": "connectionId",
+        "type": "string",
+        "desc": "Stored DBConvert connection ID"
+      },
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Database name to inspect"
+      },
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Optional schema name",
+        "optional": true
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "desc": "Table name or qualified table name"
+      }
+    ]
+  },
+  {
+    "name": "dbconvert_describe_view",
+    "description": "Describe a view's columns, defining SQL, materialized flag, and dependencies.",
+    "arguments": [
+      {
+        "name": "connectionId",
+        "type": "string",
+        "desc": "Stored DBConvert connection ID"
+      },
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Database name to inspect"
+      },
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Optional schema name",
+        "optional": true
+      },
+      {
+        "name": "view",
+        "type": "string",
+        "desc": "View name or qualified view name"
+      }
+    ]
+  },
+  {
+    "name": "dbconvert_explain_federated_select",
+    "description": "Run a bounded federated EXPLAIN for a read-only SELECT across alias-mapped DBConvert connections using DuckDB attachments.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Single read-only SELECT query spanning attached aliases"
+      },
+      {
+        "name": "connections",
+        "type": [
+          "null",
+          "array"
+        ],
+        "desc": "Alias-to-connection mappings for the federated query"
+      },
+      {
+        "name": "maxRows",
+        "type": "integer",
+        "desc": "Maximum rows to return, default 100, max 1000",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "dbconvert_explain_select",
+    "description": "Run a bounded EXPLAIN for a single read-only SELECT query against a DBConvert connection. Read the structured planMetrics field for discrete optimizer numbers (queryCost, topRowsEstimate) and quote them verbatim \u2014 do not parse numbers out of the raw rows blob or estimate them from memory. planMetrics values are optimizer estimates, not measured results.",
+    "arguments": [
+      {
+        "name": "connectionId",
+        "type": "string",
+        "desc": "Stored DBConvert connection ID"
+      },
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Optional database name to scope the query",
+        "optional": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Single read-only SELECT query to explain"
+      },
+      {
+        "name": "maxRows",
+        "type": "integer",
+        "desc": "Maximum plan rows to return, default 100, max 1000",
+        "optional": true
+      },
+      {
+        "name": "timeoutSeconds",
+        "type": "integer",
+        "desc": "Query timeout in seconds, default 10, max 60",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "dbconvert_get_connection",
+    "description": "Get credential-free details for one connection: host, port, username, default database, SSL/SSH topology, cloud provider. Passwords, SSH private keys, and cloud access keys/tokens are never included \u2014 they are structurally absent, not redacted, so there is no way to retrieve them through MCP. Report only the fields present in the response.",
+    "arguments": [
+      {
+        "name": "connectionId",
+        "type": "string",
+        "desc": "Stored DBConvert connection ID"
+      }
+    ]
+  },
+  {
+    "name": "dbconvert_get_file_schema",
+    "description": "Inspect file schema and metadata from a direct file path or from a path relative to a stored DBConvert local files connection.",
+    "arguments": [
+      {
+        "name": "connectionId",
+        "type": "string",
+        "desc": "Optional stored DBConvert local files connection ID used as the base path scope",
+        "optional": true
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "File path to inspect; may be relative to the files connection base path when connectionId is provided"
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Optional file format: csv, json, jsonl, parquet; inferred from the path when omitted",
+        "optional": true
+      },
+      {
+        "name": "computeStats",
+        "type": "boolean",
+        "desc": "Include deeper file stats when true",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "dbconvert_list_data_sources",
+    "description": "List DBConvert Streams connections. Each item has exactly id, name, type, and (optionally) cloudProvider \u2014 nothing else. For host/port/username and other connection details use get_connection. Passwords and cloud keys are never exposed by any tool. Report connections using only the fields present; do not add invented fields like used_for or row_counts.",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum items to return, default 100, max 500",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "dbconvert_list_databases",
+    "description": "List databases for a DBConvert connection. System databases are excluded unless includeSystem is true.",
+    "arguments": [
+      {
+        "name": "connectionId",
+        "type": "string",
+        "desc": "Stored DBConvert connection ID"
+      },
+      {
+        "name": "includeSystem",
+        "type": "boolean",
+        "desc": "Leave false. Set true only when the user explicitly asks about Postgres template_* databases, MySQL mysql/sys/performance_schema, or Snowflake builtin databases. These almost never contain user data and including them produces noise.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum items to return, default 100, max 500",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "dbconvert_list_files",
+    "description": "List local files and directories from a direct path or from a stored DBConvert local files connection base path.",
+    "arguments": [
+      {
+        "name": "connectionId",
+        "type": "string",
+        "desc": "Optional stored DBConvert local files connection ID used as the base path scope",
+        "optional": true
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Optional directory path to list; if omitted, uses the files connection base path or the local home directory",
+        "optional": true
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Optional file format filter: csv, json, jsonl, parquet",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum items to return, default 100, max 500",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "dbconvert_list_s3_buckets",
+    "description": "List the S3 buckets reachable with a stored DBConvert S3 connection's credentials.",
+    "arguments": [
+      {
+        "name": "connectionId",
+        "type": "string",
+        "desc": "Stored DBConvert S3 connection ID"
+      }
+    ]
+  },
+  {
+    "name": "dbconvert_list_s3_objects",
+    "description": "List objects (and sub-folder prefixes) under an S3 bucket/prefix using a stored DBConvert S3 connection. Use the returned nextToken with continuationToken to page through large buckets.",
+    "arguments": [
+      {
+        "name": "connectionId",
+        "type": "string",
+        "desc": "Stored DBConvert S3 connection ID"
+      },
+      {
+        "name": "bucket",
+        "type": "string",
+        "desc": "S3 bucket name to list objects from"
+      },
+      {
+        "name": "prefix",
+        "type": "string",
+        "desc": "Optional key prefix to list under (acts like a folder path)",
+        "optional": true
+      },
+      {
+        "name": "recursive",
+        "type": "boolean",
+        "desc": "List every key recursively when true. Default false: list one folder level, returning objects plus common prefixes (sub-folders) \u2014 better for browsing and bounded responses.",
+        "optional": true
+      },
+      {
+        "name": "maxKeys",
+        "type": "integer",
+        "desc": "Maximum objects to return, default 1000, max 1000",
+        "optional": true
+      },
+      {
+        "name": "continuationToken",
+        "type": "string",
+        "desc": "Pagination token from a previous response's nextToken to fetch the next page",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "dbconvert_list_schemas",
+    "description": "List schemas for a database connection and database name. System schemas are excluded unless includeSystem is true.",
+    "arguments": [
+      {
+        "name": "connectionId",
+        "type": "string",
+        "desc": "Stored DBConvert connection ID"
+      },
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Database name to inspect"
+      },
+      {
+        "name": "includeSystem",
+        "type": "boolean",
+        "desc": "Leave false. Set true only when the user explicitly asks about pg_catalog, information_schema, pg_toast, or extension schemas (tiger, topology, etc.). Phrases like 'all schemas' or 'every schema' refer to user schemas only \u2014 do NOT use them as justification to set this true.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum items to return, default 100, max 500",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "dbconvert_list_tables",
+    "description": "List tables for a DBConvert connection, database, and optional schema filter.",
+    "arguments": [
+      {
+        "name": "connectionId",
+        "type": "string",
+        "desc": "Stored DBConvert connection ID"
+      },
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Database name to inspect"
+      },
+      {
+        "name": "schemas",
+        "type": [
+          "null",
+          "array"
+        ],
+        "desc": "Optional schema filters",
+        "optional": true
+      },
+      {
+        "name": "includeSystem",
+        "type": "boolean",
+        "desc": "Leave false. Set true only when the user explicitly asks about system tables/objects in pg_catalog, information_schema, etc.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum items to return, default 100, max 500",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "dbconvert_list_views",
+    "description": "List views for a DBConvert connection, database, and optional schema filter. Views are separate from tables; use dbconvert_list_tables for base tables.",
+    "arguments": [
+      {
+        "name": "connectionId",
+        "type": "string",
+        "desc": "Stored DBConvert connection ID"
+      },
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Database name to inspect"
+      },
+      {
+        "name": "schemas",
+        "type": [
+          "null",
+          "array"
+        ],
+        "desc": "Optional schema filters",
+        "optional": true
+      },
+      {
+        "name": "includeSystem",
+        "type": "boolean",
+        "desc": "Leave false. Set true only when the user explicitly asks about system views in pg_catalog, information_schema, etc.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum items to return, default 100, max 500",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "dbconvert_preview_file",
+    "description": "Return a bounded preview of rows from a local or S3 file (CSV/JSON/JSONL/Parquet) \u2014 the file analogue of preview_table. Use this for a quick look at the data without writing SQL. For columns/types and stats use get_file_schema; to filter, sort, join, or aggregate use run_federated_select.",
+    "arguments": [
+      {
+        "name": "connectionId",
+        "type": "string",
+        "desc": "Optional stored DBConvert local files connection ID used as the base path scope",
+        "optional": true
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "File path to preview; may be relative to the files connection base path when connectionId is provided"
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Optional file format: csv, json, jsonl, parquet; inferred from the path when omitted",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Preview row limit, default 100, max 1000",
+        "optional": true
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Preview row offset",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "dbconvert_preview_table",
+    "description": "Return a bounded preview of table rows with a max of 1000 rows.",
+    "arguments": [
+      {
+        "name": "connectionId",
+        "type": "string",
+        "desc": "Stored DBConvert connection ID"
+      },
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Database name to inspect"
+      },
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Optional schema name",
+        "optional": true
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "desc": "Table name or qualified table name"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Preview row limit, max 1000",
+        "optional": true
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Preview row offset",
+        "optional": true
+      },
+      {
+        "name": "orderBy",
+        "type": "string",
+        "desc": "Optional order by columns",
+        "optional": true
+      },
+      {
+        "name": "orderDir",
+        "type": "string",
+        "desc": "Optional order direction, ASC or DESC",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "dbconvert_preview_view",
+    "description": "Return a bounded preview of view rows with a max of 1000 rows.",
+    "arguments": [
+      {
+        "name": "connectionId",
+        "type": "string",
+        "desc": "Stored DBConvert connection ID"
+      },
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Database name to inspect"
+      },
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Optional schema name",
+        "optional": true
+      },
+      {
+        "name": "view",
+        "type": "string",
+        "desc": "View name or qualified view name"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Preview row limit, max 1000",
+        "optional": true
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Preview row offset",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "dbconvert_run_federated_select",
+    "description": "Run a bounded read-only federated SELECT across alias-mapped DBConvert connections using DuckDB attachments.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Single read-only SELECT query spanning attached aliases"
+      },
+      {
+        "name": "connections",
+        "type": [
+          "null",
+          "array"
+        ],
+        "desc": "Alias-to-connection mappings for the federated query"
+      },
+      {
+        "name": "maxRows",
+        "type": "integer",
+        "desc": "Maximum rows to return, default 100, max 1000",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "dbconvert_run_select",
+    "description": "Run a single bounded read-only SELECT query against a DBConvert connection. When you generated this SQL from a natural-language request, the user trusts the numbers to be correct, not merely syntactically valid. Watch for fan-out: joining one table to two or more independent one-to-many tables (e.g. customer\u2192rental and customer\u2192payment) multiplies rows, so SUM/COUNT/AVG over the result silently inflate. When an aggregate sits on top of multiple joins, verify on actual data \u2014 sanity-check a known row, or aggregate each branch in its own subquery and compare \u2014 before presenting totals as fact. The result includes executionMs, the measured wall-clock execution time. When comparing two query variants for speed, run each and compare executionMs \u2014 this is a real measurement and beats the optimizer cost estimate from explain_select for judging which is actually faster. When querying information_schema or other catalog views to introspect user tables, always exclude system schemas in the WHERE clause: for Postgres add `table_schema NOT IN ('pg_catalog','information_schema') AND table_schema NOT LIKE 'pg_toast%'`; for MySQL add `table_schema NOT IN ('mysql','sys','performance_schema','information_schema')`. Skip this filter only when the user explicitly asks about system internals.",
+    "arguments": [
+      {
+        "name": "connectionId",
+        "type": "string",
+        "desc": "Stored DBConvert connection ID"
+      },
+      {
+        "name": "database",
+        "type": "string",
+        "desc": "Optional database name to scope the query",
+        "optional": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Single read-only SELECT query"
+      },
+      {
+        "name": "maxRows",
+        "type": "integer",
+        "desc": "Maximum rows to return, default 100, max 1000",
+        "optional": true
+      },
+      {
+        "name": "timeoutSeconds",
+        "type": "integer",
+        "desc": "Query timeout in seconds, default 10, max 60",
+        "optional": true
+      }
+    ]
+  }
+]
