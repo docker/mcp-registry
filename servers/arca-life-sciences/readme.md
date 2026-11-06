@@ -13,4 +13,4 @@ Every result cites its source URL. The server is read-only, serves public data o
 
 ## More Information
 
-See [arca.inc/research](https://www.arca.inc/research). Official MCP Registry name: `inc.arca/life-sciences`.
+Docs: [arca.inc/mcp](https://www.arca.inc/mcp). Official MCP Registry name: `inc.arca/life-sciences`.
