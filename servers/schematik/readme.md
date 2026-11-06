@@ -1,1 +1,1 @@
-Docs: https://www.schematik.io
+Docs: https://www.schematik.io/mcp/docs
