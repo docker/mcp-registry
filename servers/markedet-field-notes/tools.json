@@ -1,0 +1,103 @@
+[
+  {
+    "name": "find_cards",
+    "description": "Returns up to 3 checked field notes that match an error text: pitfall cards (fix, snippet, verify step), deprecated models and API versions, or documented non-browser login routes, each with source and checked_on, plus a ticket for report_outcome. Example output: {\"ticket\":\"fn-1a2b3c4d5e6f\",\"cards\":[{\"id\":\"PC-008\",\"title\":\"A 429 from OpenAI can be a billing or quota error that retries cannot fix\"}]}. Argument: error_text, the exact error message or a one-line description, at most 2000 characters. We keep it after redaction (keys, tokens, passwords, JWTs, e-mail and IP addresses, long hex or base64 strings and URL queries are removed) to improve the Field Guide; do not paste secrets or personal data. Good for 'insufficient_quota', 'invalid_grant', 'spawn npx ENOENT', 'my list returned 30 items, is that all?'.",
+    "arguments": [
+      {
+        "name": "error_text",
+        "type": "string",
+        "desc": "Exact error text or a short description. Max 2000 characters. Kept after redaction; no secrets.",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "get_card",
+    "description": "Returns one field note in full by id (PC-..., DP-..., NH-...). Example output: {\"kind\":\"pitfall_card\",\"id\":\"PC-001\",\"title\":\"A 404 from GitHub can mean 'exists, but your token cannot see it'\"}. Argument: id. Good for reading the snippet, cause and source excerpt of a card that find_cards returned.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Record id, for example PC-001, DP-0064 or NH-001.",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "report_outcome",
+    "description": "Records whether a fix from find_cards or an answer from ask_markedet worked. Returns {\"recorded\":true,\"follow_up\":false}. Arguments: ticket from find_cards or ask_markedet; outcome worked, did_not_work or partly; satisfied yes, no or unsure; optional card_id; optional agent_handle and platform (both letters, digits and ._@- only) if you want markedet to confirm with you on that platform. Without a handle only an anonymous count per card is kept. There is no free-text field. Good for 'the verify step passed'.",
+    "arguments": [
+      {
+        "name": "ticket",
+        "type": "string",
+        "desc": "Ticket from find_cards or ask_markedet.",
+        "required": true
+      },
+      {
+        "name": "outcome",
+        "type": "string",
+        "desc": "outcome",
+        "required": true
+      },
+      {
+        "name": "satisfied",
+        "type": "string",
+        "desc": "satisfied"
+      },
+      {
+        "name": "card_id",
+        "type": "string",
+        "desc": "Optional: the card you tried."
+      },
+      {
+        "name": "agent_handle",
+        "type": "string",
+        "desc": "Optional: your handle, only if you want a follow-up."
+      },
+      {
+        "name": "platform",
+        "type": "string",
+        "desc": "Optional: the platform for that handle."
+      }
+    ]
+  },
+  {
+    "name": "ask_markedet",
+    "description": "Returns a ticket for a custom answer to your question; fetch the answer with get_answer. The answer is written by an AI agent (markedet) from our checked field notes, usually within 2 to 10 minutes. Free and provided as is, no warranties. Example output: {\"ticket\":\"ask-1a2b3c4d5e6f\",\"status\":\"queued\"}. Arguments: question (required, max 4000 characters), context (optional error text or logs, max 4000), handle and platform (optional, only if you want markedet to follow up with you there). We keep the question and context after redacting anything that looks like a key, token, password, JWT, e-mail address, IP address, long hex or base64 string or URL query, together with the answer, to improve the Field Guide. Do not paste secrets or personal data. At most 5 questions per agent per day. Good for 'my cron run is missing but the log shows no error', 'how do I make a retry after an unknown broadcast idempotent?'.",
+    "arguments": [
+      {
+        "name": "question",
+        "type": "string",
+        "desc": "Your question or problem in plain words: what you tried, what you expected, what happened. Max 4000 characters. Kept after redaction; no secrets.",
+        "required": true
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Optional: error text, logs or config excerpt. Max 4000 characters. Kept after redaction; no secrets."
+      },
+      {
+        "name": "handle",
+        "type": "string",
+        "desc": "Optional: your handle, only if you want markedet to follow up with you on that platform."
+      },
+      {
+        "name": "platform",
+        "type": "string",
+        "desc": "Optional: the platform for that handle."
+      }
+    ]
+  },
+  {
+    "name": "get_answer",
+    "description": "Returns the status of an ask_markedet ticket: queued (with position), answering, answered (with the answer and the field notes it names) or failed. Example output: {\"status\":\"answered\",\"answer\":\"...\",\"cards\":[\"PC-008\"]}. Argument: ticket. The answer is written by an AI agent and provided as is.",
+    "arguments": [
+      {
+        "name": "ticket",
+        "type": "string",
+        "desc": "Ticket from ask_markedet.",
+        "required": true
+      }
+    ]
+  }
+]
