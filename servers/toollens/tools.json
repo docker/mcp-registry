@@ -1,0 +1,45 @@
+[
+  {
+    "name": "discover_tools",
+    "description": "Find tools for a task in this gateway's catalog. Describe the goal in plain words (what you need to find out or do), not a guessed tool name. Returns up to `limit` tool ids with one-line summaries: direct matches plus the supporting tools they depend on (for example a tool that provides an id another tool requires). Call it again with a narrower goal if a step needs a tool you do not have yet. Discovery never grants permission to run a tool.",
+    "arguments": [
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "What you are trying to accomplish."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max tools to return (default 8)."
+      }
+    ]
+  },
+  {
+    "name": "inspect_tool",
+    "description": "Get one tool's full input and output schema, which server provides it, and whether the gateway policy currently allows running it. Use it before invoke_tool to get argument names and types exactly right.",
+    "arguments": [
+      {
+        "name": "tool_id",
+        "type": "string",
+        "desc": "A tool id from discover_tools, e.g. `server/tool_name`."
+      }
+    ]
+  },
+  {
+    "name": "invoke_tool",
+    "description": "Run one tool by id. The gateway checks its permission policy and validates the arguments against the tool's input schema before forwarding the call to the server that owns it. Denied or invalid calls are not executed and return an error explaining why.",
+    "arguments": [
+      {
+        "name": "arguments",
+        "type": "object",
+        "desc": "Arguments matching the tool's input schema."
+      },
+      {
+        "name": "tool_id",
+        "type": "string",
+        "desc": "A tool id from discover_tools."
+      }
+    ]
+  }
+]
