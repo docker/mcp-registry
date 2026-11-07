@@ -17,7 +17,7 @@
   },
   {
     "name": "prepare_workflow_plan",
-    "description": "Create or save a workflow plan without paying or starting a run. Supply the complete document. Omit both plan_id and base_version to create; supply both to save a revision. The document is strict and bounded to 256000 JSON bytes. Preserve exact accepted narration. After a lost save answer, read and compare the saved document; never auto-approve or purchase.",
+    "description": "Free; starts no run. The complete document: omit plan_id and base_version to create, supply both to save a revision. Strict, at most 256000 JSON bytes; keep accepted narration exact. After a lost save answer, read the saved document; never auto-approve or buy.",
     "arguments": [
       {
         "name": "document",
@@ -729,7 +729,7 @@
   },
   {
     "name": "generate_video",
-    "description": "Input: the same fields as quote_video, plus attempt. Generate one silent clip, a NEW run, charged unit_credits per second of duration_s once delivered. Modes: text; first_frame (the requested aspect ratio within 2%); reference (1 to 4). Poll get_run. A generation that fails is charged nothing. Repeating an identical request returns the run it started, starting nothing new; pass attempt 2 for another one. Price: 3 to 90 credits per second of clip, by model and size. Quote first with quote_video.",
+    "description": "Input: the same fields as quote_video, plus attempt. Generate one silent clip, a NEW run, charged unit_credits per second of duration_s once delivered. Modes: text; first_frame (the requested format within 2%); reference (1 to 4). Poll get_run. A generation that fails is charged nothing. Repeating an identical request returns the run it started, starting nothing new; pass attempt 2 for another one. Price: 3 to 90 credits per second of clip, by model and size. Quote first with quote_video.",
     "arguments": [
       {
         "name": "prompt",
@@ -1332,7 +1332,7 @@
   },
   {
     "name": "find_trends",
-    "description": "Input: the same fields as quote_trends. Reels that took off on a topic: up to 10 per platform, one per creator, TikTok and Instagram in one ranking by x_median (views over the creator's median). Charged only on success, a mix that reached one platform too; 10 per hour. poll repeats this call. Price: 20 credits per call. Quote first with quote_trends.",
+    "description": "Input: the same fields as quote_trends, plus sort. Reels that took off on a topic: up to 10 per platform, one per creator, TikTok and Instagram ranked by x_median. Charged only on success, a one-platform mix too; 10 per hour. poll repeats this call; sort reorders it free. Price: 20 credits per call. Quote first with quote_trends.",
     "arguments": [
       {
         "name": "keywords",
@@ -1352,6 +1352,11 @@
       {
         "name": "posted_within_days",
         "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "sort",
+        "type": "string",
         "desc": ""
       }
     ]
@@ -1498,7 +1503,7 @@
   },
   {
     "name": "extract_brand",
-    "description": "Free. A public site's colours, fonts, logo and corners as a proposed design; the user confirms it. logo_url: import with create_asset for design.logo_asset_id.",
+    "description": "Free. A site's colours, fonts, logo, corners and name as a proposed design and voice; the user confirms. logo_url: create_asset it for design.logo_asset_id.",
     "arguments": [
       {
         "name": "url",
@@ -1509,18 +1514,23 @@
   },
   {
     "name": "brand_kit",
-    "description": "Free. No design: the saved one (used when a video names none), our looks and faces. design: save the user's confirmed one.",
+    "description": "Free. Alone: saved design, script voice, our looks and faces. design, voice: save the user's confirmed one; voice {} clears it.",
     "arguments": [
       {
         "name": "design",
         "type": "object",
         "desc": "The design object of quote_ugc input."
+      },
+      {
+        "name": "voice",
+        "type": "object",
+        "desc": ""
       }
     ]
   },
   {
     "name": "create_actor",
-    "description": "Input: the same fields as quote_actor, plus attempt. Create a personal actor from words describing a fictional adult: a 9:16 portrait with one face plus the other formats. Poll get_run (created_actor.actor_id). Each published image is charged as quoted; refused descriptions and unusable portraits cost nothing. from_actor_id keeps the face; a mismatch costs nothing. A style_reference look-alike is refused at no charge. Refused with actor_generation_disabled while generation is off. portrait becomes the 9:16 portrait at no charge; one without exactly one well-framed face is refused at no charge. Price: 4 to 45 credits per image, by model and size. Quote first with quote_actor.",
+    "description": "Input: the same fields as quote_actor, plus attempt. Create a personal actor from words on a fictional adult: a 9:16 portrait with one face plus the other formats. Poll get_run (created_actor.actor_id). Each published image is charged as quoted; refused words and unusable portraits cost nothing. from_actor_id keeps the face; a mismatch costs nothing. A style_reference look-alike is refused at no charge. Refused with actor_generation_disabled while off. portrait (a human-faced mascot too) becomes the 9:16 portrait at no charge; one without one well-framed face is refused at no charge. Price: 4 to 45 credits per image, by model and size. Quote first with quote_actor.",
     "arguments": [
       {
         "name": "description",
