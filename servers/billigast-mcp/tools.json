@@ -1,7 +1,7 @@
 [
   {
     "name": "compare",
-    "description": "Every store's price for one product across Prisjakt and PriceRunner, cheapest first by total (price + shipping) when shipping is known, else price; offers the site reports sold out come last. The same store on both sites is one row: price, shipping, total, stock and url come from one offer, seen_on has each site's price. Also cheapest (new) and cheapest_secondhand (used/refurbished), both skipping sold-out offers unless nothing else is listed, cheapest_in_stock (new, reported in stock), Prisjakt's price history (lowest new price per day; 30/90-day and all-time lows) and a verdict on Prisjakt's lowest new price against that history, naming a cheaper offer listed only on PriceRunner. With only one site known the other is looked up by name; not found = one site only.",
+    "description": "Use this when the user wants every store's price for one product, whether a price is good or a deal right now (Black Friday, rea), or its price history and lowest price in the last 30/90 days. Not for finding products: search first unless the name carries model numbers. Offers from Prisjakt and PriceRunner, cheapest first by total (price + shipping) when shipping is known, sold-out last; a store on both sites is one row (price, shipping, total, stock and url from one offer; seen_on has each site's price). Also cheapest (new), cheapest_secondhand and cheapest_in_stock, skipping sold-out offers unless nothing else is listed; Prisjakt's price history (lowest new price per day, 30/90-day and all-time lows) and a verdict on the current price against it, naming a cheaper offer listed only on PriceRunner. A site without the product's key is looked up by name.",
     "arguments": [
       {
         "name": "in_stock_only",
@@ -24,13 +24,13 @@
       {
         "name": "product",
         "type": "string",
-        "desc": "A key from search ('prisjakt:123+pricerunner:456'), a Prisjakt or PriceRunner product page URL, or a plain product name including its model numbers (the first search result carrying them is used; none = not found)."
+        "desc": "A key from search ('prisjakt:123+pricerunner:456'), a Prisjakt or PriceRunner product page URL, or a plain product name with its model numbers, e.g. 'airpods pro 3', 'samsung qe55q80d'. Names follow search's query rules: Swedish or English, brand and model in Latin letters, no intent words (billigast, pris, köpa). The first search result carrying the model numbers is used; none = not found."
       }
     ]
   },
   {
     "name": "search",
-    "description": "Search Prisjakt and PriceRunner at once. Returns products with both sites' listings merged when they are the same model: key (pass to compare), name, brand, category, image, rating, each site's lowest new price, lowest used/refurbished price, offer count and url (sources), how the sites were tied (match: name, null for one site) and the site with the lowest new price (cheapest; used and refurbished prices never count). errors lists a site that failed; the other's results still come back.",
+    "description": "Use this when the user wants to know where a product is cheapest in Sweden, to compare store prices, or what something costs in Swedish shops (Elgiganten, Power, NetOnNet, Webhallen, Inet, Komplett, CDON and others, via Prisjakt and PriceRunner). Not for second-hand classified ads (Blocket, Tradera) or prices outside Sweden. Returns products, both sites' listings merged when they are the same model: key (pass to compare), name, brand, category, image, rating, per site the lowest new and used/refurbished price, offer count and url (sources), match (name; null for one site) and cheapest (lowest new price; used never counts). used_query shows the words searched when they differ from query; hint says what to try when nothing is found; errors lists a site that failed while the other answered.",
     "arguments": [
       {
         "name": "limit",
@@ -41,19 +41,19 @@
       {
         "name": "max_price",
         "type": "number",
-        "desc": "Highest price, SEK incl. VAT.",
+        "desc": "Highest price, SEK incl. VAT, e.g. 1000 for 'under 1000 kr'.",
         "optional": true
       },
       {
         "name": "min_price",
         "type": "number",
-        "desc": "Lowest price, SEK incl. VAT.",
+        "desc": "Lowest price, SEK incl. VAT, e.g. 500 for 'över 500 kr'.",
         "optional": true
       },
       {
         "name": "query",
         "type": "string",
-        "desc": "Product to look for, e.g. 'airpods pro 2', 'iphone 16 128gb', 'samsung qe55q80d'. Model names and numbers work best."
+        "desc": "Product or category in Swedish or English, e.g. 'robotdammsugare roborock', 'tvättmaskin bosch', 'iphone 16 128gb', 'dubbdäck 205/55 r16'. Translate category words from other languages into Swedish (наушники → hörlurar). Brand + model + the spec that matters (128gb, 55 tum, 205/55 r16); colours in Swedish (svart, vit). No intent words: billig/billigast/cheapest, köpa/buy, pris/price, bästa/best, deal/rea, begagnad/used, ny/new. Price limits go in min_price/max_price, not here. One product or category per query."
       },
       {
         "name": "sources",
