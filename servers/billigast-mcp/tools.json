@@ -1,0 +1,69 @@
+[
+  {
+    "name": "compare",
+    "description": "Every store's price for one product across Prisjakt and PriceRunner, cheapest first by total (price + shipping) when shipping is known, else price; offers the site reports sold out come last. The same store on both sites is one row with both prices in seen_on. Also cheapest (new) and cheapest_secondhand (used/refurbished), both skipping sold-out offers unless nothing else is listed, cheapest_in_stock (new, reported in stock), Prisjakt's price history (lowest new price per day; 30/90-day and all-time lows) and a verdict on the cheapest price. With only one site known the other is looked up by name; not found = one site only.",
+    "arguments": [
+      {
+        "name": "in_stock_only",
+        "type": "boolean",
+        "desc": "List only offers the site reports in stock. Default false.",
+        "optional": true
+      },
+      {
+        "name": "include_used",
+        "type": "boolean",
+        "desc": "Also list used and refurbished offers. Default false: new only (unknown condition counts as new). cheapest_secondhand is reported either way.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Offers to list, 1-50, default 20.",
+        "optional": true
+      },
+      {
+        "name": "product",
+        "type": "string",
+        "desc": "A key from search ('prisjakt:123+pricerunner:456'), a Prisjakt or PriceRunner product page URL, or a plain product name (the first search result is used)."
+      }
+    ]
+  },
+  {
+    "name": "search",
+    "description": "Search Prisjakt and PriceRunner at once. Returns products with both sites' listings merged when they are the same model: key (pass to compare), name, brand, category, image, rating, each site's lowest price, offer count and url (sources), how the sites were tied (match: gtin/name, null for one site) and the cheapest site. errors lists a site that failed; the other's results still come back.",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Products to return, 1-20, default 8.",
+        "optional": true
+      },
+      {
+        "name": "max_price",
+        "type": "number",
+        "desc": "Highest price, SEK incl. VAT.",
+        "optional": true
+      },
+      {
+        "name": "min_price",
+        "type": "number",
+        "desc": "Lowest price, SEK incl. VAT.",
+        "optional": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Product to look for, e.g. 'airpods pro 2', 'iphone 16 128gb', 'samsung qe55q80d'. Model names and numbers work best."
+      },
+      {
+        "name": "sources",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Sites to search, default both: ['prisjakt'], ['pricerunner'] or both.",
+        "optional": true
+      }
+    ]
+  }
+]
