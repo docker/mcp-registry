@@ -1,0 +1,82 @@
+[
+  {
+    "name": "index",
+    "description": "Build the code index. Call it only when a tool says \"No codebase indexed\". Pass an absolute path, or comma-separated paths for a monorepo. A file watcher then keeps it fresh.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Absolute path of the project"
+      },
+      {
+        "name": "paths",
+        "type": "string",
+        "desc": "More paths, comma-separated"
+      }
+    ]
+  },
+  {
+    "name": "search",
+    "description": "Find code by meaning or keyword: \"where is...\", \"how does... work\", \"find the code that...\". Returns ranked results with file and line range; the first three carry the whole function or class. Exact names in the query (`parse_config RetryPolicy`) bring their definitions first. For the full code of a cut result, call `find_symbol`.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "What to find, in plain words or code terms"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max results"
+      }
+    ]
+  },
+  {
+    "name": "find_symbol",
+    "description": "Get the whole code of functions, classes, methods or constants by name (\"show me create_order\"), with file, line range, callers and callees. Use it instead of a file read or grep for a definition. Pass several names in one call. A class over 2,000 characters gives an outline; ask for \"Class.method\" for one method. For every use of a name, use `graph`.",
+    "arguments": [
+      {
+        "name": "symbol_name",
+        "type": "string",
+        "desc": "One name, or several with commas"
+      },
+      {
+        "name": "exact",
+        "type": "boolean",
+        "desc": "False matches part of a name"
+      }
+    ]
+  },
+  {
+    "name": "graph",
+    "description": "Trace the call graph: who calls a function (direction='callers') or what it calls ('callees'). transitive=true covers everything that depends on it; use it before you change, rename or delete a shared function (\"what breaks if I change X\"). A callers result also has `references`, the whole-word uses of the name, so no grep is needed. For a method, pass `Class.method`: the result also lists the `overrides` in subclasses. Edges are static: calls through callbacks, reflection or dynamic dispatch show only in `references`.",
+    "arguments": [
+      {
+        "name": "symbol_name",
+        "type": "string",
+        "desc": "Function or symbol to trace"
+      },
+      {
+        "name": "direction",
+        "type": "string",
+        "desc": "'callers' or 'callees'"
+      },
+      {
+        "name": "transitive",
+        "type": "boolean",
+        "desc": "All direct and indirect dependents. Only with direction='callers'."
+      }
+    ]
+  },
+  {
+    "name": "map",
+    "description": "Get an overview of the project: \"give me an overview\", \"how is this structured\", \"where do I start\". 'summary' lists files, languages, top modules and quality. 'architecture' gives layers, dependencies, entry points and hub symbols. 'full' gives both. Use it first in an unfamiliar repository.",
+    "arguments": [
+      {
+        "name": "detail",
+        "type": "string",
+        "desc": "'summary', 'architecture' or 'full' (both)"
+      }
+    ]
+  }
+]
