@@ -1,0 +1,39 @@
+name: progressor
+image: ghcr.io/racstan/progressor-mcp
+type: server
+longLived: true
+meta:
+  category: productivity
+  tags:
+    - productivity
+    - project-management
+    - planning
+    - tasks
+    - developer-tools
+    - ai-agents
+about:
+  title: Progressor
+  description: Keeps your AI coding agent's plan (goals, steps, decisions and notes) in a .progressor folder inside your project, so the plan survives new conversations and context resets. Free for personal and other noncommercial use. The live dashboard runs as a separate container, see the readme.
+  icon: https://raw.githubusercontent.com/racstan/progressor-mcp/d87e41d3352015a66b489be5129cae80b4fe69d1/src/ui/logo.png
+source:
+  project: https://github.com/racstan/progressor-mcp
+  commit: d87e41d3352015a66b489be5129cae80b4fe69d1
+run:
+  volumes:
+    - "{{progressor.project|volume}}"
+    - progressor-data:/data
+config:
+  description: The project folder Progressor keeps its plan in (a .progressor folder is created inside it)
+  env:
+    - name: PROGRESSOR_ROOT
+      example: /Users/local-test/my-project
+      value: "{{progressor.project|volume-target}}"
+  parameters:
+    type: object
+    properties:
+      project:
+        type: string
+        description: Full path of your project's folder
+        default: /Users/local-test/my-project
+    required:
+      - project

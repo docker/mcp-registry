@@ -1,0 +1,1108 @@
+[
+  {
+    "name": "add_decision",
+    "description": "Record a choice made for a claimed Goal along the way, such as 'old models get thinking on/off only', so it survives context compression; get_status shows it. Not for lasting project rules (add_standing_instruction) or project-wide background (update_context).",
+    "arguments": [
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "The decision, in one line."
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The claimed Goal's ID, such as 'ship-oauth-login'. Needed only when this Session holds several Goals.",
+        "optional": true
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Another project's plan to use instead of this one's: its name or ID on the dashboard, or its folder's full path. Changes there are marked as made from this project. Leave out for this project.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "add_goal",
+    "description": "Add a Goal to the end of the Roadmap, with an optional Task list and Outcome; with claim: true, also claim it to start work. A title another Goal already has is refused unless allow_duplicate is set. To record work already finished, set done on the Goal and on every Task. Plan each Goal with an Outcome (one sentence on what done looks like) and Tasks that each have a short title, the files they touch, a one-line summary and an estimate. Tell the Developer the plan in a few plain lines first. With claim: true the answer is the whole status.",
+    "arguments": [
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "A few words naming the Goal, such as 'Ship OAuth login'."
+      },
+      {
+        "name": "allow_duplicate",
+        "type": "boolean",
+        "desc": "Add the Goal even though another Goal has the same title.",
+        "optional": true
+      },
+      {
+        "name": "bundles",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "For a release goal: the finished goals it bundles, by ID, instead of all the unreleased ones.",
+        "optional": true
+      },
+      {
+        "name": "claim",
+        "type": "boolean",
+        "desc": "Claim the new Goal straight away, to start working on it.",
+        "optional": true
+      },
+      {
+        "name": "done",
+        "type": "boolean",
+        "desc": "Record a Goal that is already finished. Every Task must then have done: true.",
+        "optional": true
+      },
+      {
+        "name": "estimate",
+        "type": "string",
+        "desc": "How long the whole Goal should take, such as '6h', when its Tasks are not estimated one by one yet. Without it, the Goal's estimate is the sum of its Tasks'.",
+        "optional": true
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "A short ID for the Goal's refs, such as 'web-ui': lowercase letters, digits and dashes. Made from the title when left out.",
+        "optional": true
+      },
+      {
+        "name": "outcome",
+        "type": "string",
+        "desc": "What done looks like, in one sentence, such as 'Users can sign in with Google and stay signed in for 30 days'.",
+        "optional": true
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Another project's plan to use instead of this one's: its name or ID on the dashboard, or its folder's full path. Changes there are marked as made from this project. Leave out for this project.",
+        "optional": true
+      },
+      {
+        "name": "release",
+        "type": "boolean",
+        "desc": "Make it a release goal: it bundles the finished goals no earlier release took, and the reply gives the facts to write the changelog entry and version bump from.",
+        "optional": true
+      },
+      {
+        "name": "repeat",
+        "type": "string",
+        "desc": "Make it come back: 1d, 1w, 2w, 1mo or a weekday (monday). A goal like it is added by itself when due, once the last one is finished or dropped.",
+        "optional": true
+      },
+      {
+        "name": "tasks",
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "waits_on",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Goals it waits on: IDs here, or \u003cproject\u003e/\u003cgoal-id\u003e.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "add_hand_test",
+    "description": "Add something only the Developer can try by hand to a claimed Goal, such as 'OpenCode may ask permission to read an attached file: allow it and check the reply'. Put it here instead of in your chat summary: the Developer sees the Goal's hand-test list on the dashboard and marks each one there as works, doesn't work (with a note) or won't test. A failure adds a Task to the Goal by itself; get_status shows what is still open and the new marks. complete_goal with tests unmarked leaves the Goal waiting on them, and it finishes when the last is marked.",
+    "arguments": [
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "What to try and what to look for, in one or two short plain sentences."
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The claimed Goal's ID, such as 'ship-oauth-login'. Needed only when this Session holds several Goals.",
+        "optional": true
+      },
+      {
+        "name": "task",
+        "type": "string",
+        "desc": "The ID of the Task it is about, such as 't3'.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "add_hotfix",
+    "description": "Add a hotfix: a bug the Developer wants fixed before any other work, often from a customer report. Pass the report word for word. It goes at the top of the Roadmap with two Tasks (a test that shows the bug, then the fix), and every Session is told it is waiting until one claims it. With claim: true, claim it now; otherwise finish the step you are on first, then claim it.",
+    "arguments": [
+      {
+        "name": "report",
+        "type": "string",
+        "desc": "The bug report as the Developer or customer wrote it: what goes wrong, and how to make it happen if known."
+      },
+      {
+        "name": "claim",
+        "type": "boolean",
+        "desc": "Claim the hotfix straight away, to start on it now.",
+        "optional": true
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Another project's plan to use instead of this one's: its name or ID on the dashboard, or its folder's full path. Changes there are marked as made from this project. Leave out for this project.",
+        "optional": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "A few words naming the bug; the report's first line when left out.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "add_note",
+    "description": "Note something you spotted that belongs to a Goal, such as a bug found during cleanup that belongs to the Voice Goal, instead of dealing with it now. Any Goal on the Roadmap that is not dropped, claimed or not. get_status shows the open notes of the Goals this Session holds.",
+    "arguments": [
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The ID of the Goal the note belongs to."
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "What you spotted, in one line."
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Another project's plan to use instead of this one's: its name or ID on the dashboard, or its folder's full path. Changes there are marked as made from this project. Leave out for this project.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "add_standing_instruction",
+    "description": "Save a lasting rule from the Developer about how you should work in this project, such as 'ask me before changing the plan'. get_status lists it from then on. Use it only for rules meant to last; a one-off request is just done.",
+    "arguments": [
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "The rule, in the Developer's words where possible."
+      },
+      {
+        "name": "hard",
+        "type": "boolean",
+        "desc": "true for a rule that must never be broken (not just a preference); get_status, the session start and get_rules list those first as HARD RULE.",
+        "optional": true
+      },
+      {
+        "name": "helpers_at_once",
+        "type": "integer",
+        "desc": "Makes this rule the project's helper limit: the most Tasks that may be 'with a helper' at once, such as 2 when the Developer says 'at most 2 helpers in parallel'. One rule holds the limit; setting it here takes it off any other. 0 removes it.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "add_tasks",
+    "description": "Append Tasks to the claimed Goal's plan, each with an estimate of how long it takes. For work that is not part of the plan, declare a Detour instead. Set done on a Task that is already finished: a small change you have made is recorded in this one call, with hand_test for what the Developer should try.",
+    "arguments": [
+      {
+        "name": "tasks",
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "desc": ""
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The claimed Goal's ID, such as 'ship-oauth-login'. Needed only when this Session holds several Goals.",
+        "optional": true
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Another project's plan to use instead of this one's: its name or ID on the dashboard, or its folder's full path. Changes there are marked as made from this project. Leave out for this project.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "ask_developer",
+    "description": "Ask the Developer a question on the dashboard, with 2 to 4 short choices they can click (they can also answer in their own words), instead of stopping in the chat. Use it for product and UX choices only they can make; carry on with other work meanwhile. Their answer reaches you at your next Progressor call, under 'New from the Developer', and is kept as a decision on the Goal. While a question is open the dashboard shows the Goal as waiting on them. To offer ways to go instead, give alternatives and recommended: nobody has to pick, you go ahead with yours. To take back a question that no longer needs an answer, pass withdraw with its ID instead.",
+    "arguments": [
+      {
+        "name": "alternatives",
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "desc": "2 to 4 ways to go, instead of choices: a title, a line about it, a picture ID from attach_picture.",
+        "optional": true
+      },
+      {
+        "name": "choices",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "2 to 4 short answers to pick from, such as ['On by default', 'Follow the computer'].",
+        "optional": true
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The claimed Goal's ID, such as 'ship-oauth-login'. Needed only when this Session holds several Goals.",
+        "optional": true
+      },
+      {
+        "name": "question",
+        "type": "string",
+        "desc": "The question, in one plain sentence a non-programmer understands.",
+        "optional": true
+      },
+      {
+        "name": "recommended",
+        "type": "integer",
+        "desc": "The alternative you would pick (1-based; default 1).",
+        "optional": true
+      },
+      {
+        "name": "task",
+        "type": "string",
+        "desc": "The ID of the Task it is about, such as 't3'.",
+        "optional": true
+      },
+      {
+        "name": "wait",
+        "type": "string",
+        "desc": "How long to wait for a pick before going ahead with yours, such as \"10m\"; default from the settings (\"0m\": at once).",
+        "optional": true
+      },
+      {
+        "name": "withdraw",
+        "type": "string",
+        "desc": "The ID of an open question to withdraw (such as 'q2'), instead of asking a new one.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "attach_picture",
+    "description": "Show the Developer a screenshot or a short screen recording on the dashboard instead of naming a file in chat. It is copied (not moved) next to the plan, stays on this computer and out of git, and appears on the Goal, on the step or on the hand test you name; the Developer clicks it to enlarge. Allowed: .png .jpg .jpeg .webp .gif and .webm .mp4, up to 10 MB, with a short caption. To take one back, pass remove with its ID (such as 'p2') instead.",
+    "arguments": [
+      {
+        "name": "caption",
+        "type": "string",
+        "desc": "What it shows, in a few plain words (up to 200 characters).",
+        "optional": true
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The claimed Goal's ID, such as 'ship-oauth-login'. Needed only when this Session holds several Goals.",
+        "optional": true
+      },
+      {
+        "name": "hand_test",
+        "type": "string",
+        "desc": "The ID of the hand test it is about, such as 'h2'.",
+        "optional": true
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "The file's path, absolute or from the project's folder.",
+        "optional": true
+      },
+      {
+        "name": "remove",
+        "type": "string",
+        "desc": "The ID of a picture to remove (such as 'p2'), instead of attaching one.",
+        "optional": true
+      },
+      {
+        "name": "task",
+        "type": "string",
+        "desc": "The ID of the Task it is about, such as 't3'.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "claim_goal",
+    "description": "Claim a Goal for this Session, so only this Session works on it. The Session keeps any other Goals it holds; while it holds several, pass goal to the tools that change one. Fails if another running Session holds it. Claiming a done Goal reopens it: its finished Tasks stay done, and add_tasks adds the new work to the same list.",
+    "arguments": [
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The Goal ID, such as 'ship-oauth-login'."
+      },
+      {
+        "name": "takeover",
+        "type": "boolean",
+        "desc": "Take the Goal from another running Session. Only when the Developer asks for it.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "claim_resource",
+    "description": "Claim a named shared resource that only one session or helper can use at a time (a dev window that allows a single instance, plasmashell, a port), before you or a helper start something that needs it. Refused, saying who holds it, since when and why, when someone else has it: then do not start it; do other work and try again later (nothing waits for you). Claiming your own resource again refreshes its time. It frees itself after `minutes` (30 unless given, at most 240) from the last claim, when its Session ends, or when you release it. A helper usually cannot call Progressor: claim on its behalf before you start it, with label such as 'helper: media run', and call release_resource when it hands back.",
+    "arguments": [
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Why you need it, in a few words, such as 'running the UI test'. Shown to whoever is refused."
+      },
+      {
+        "name": "resource",
+        "type": "string",
+        "desc": "The shared thing's name, such as 'dev-window' or 'plasmashell'. Case and spaces do not matter."
+      },
+      {
+        "name": "label",
+        "type": "string",
+        "desc": "Who it is held for when that is not this Session itself, such as 'helper: media run'. Claim and release a helper's lock with the same label.",
+        "optional": true
+      },
+      {
+        "name": "minutes",
+        "type": "number",
+        "desc": "How long to keep it before it frees itself, from now. 30 if omitted; claim again to extend.",
+        "optional": true
+      },
+      {
+        "name": "task",
+        "type": "string",
+        "desc": "The Task ID it is for, such as 't3'.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "complete_goal",
+    "description": "Mark the claimed Goal done and release it, once its Outcome is true and its Tasks are done, released or dropped (not with a helper, waiting on the Developer or only checked). While the Developer still has hand tests (add_hand_test) to mark, the Goal is released as built and waiting on their tests instead: it finishes by itself when they mark the last one, and a failure reopens it with a new Task. unmarked_hand_tests_ok finishes it now, only when the Developer says to finish anyway. If more work turns up later, claim_goal reopens it.",
+    "arguments": [
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The claimed Goal's ID, such as 'ship-oauth-login'. Needed only when this Session holds several Goals.",
+        "optional": true
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Another project's plan to use instead of this one's: its name or ID on the dashboard, or its folder's full path. Changes there are marked as made from this project. Leave out for this project.",
+        "optional": true
+      },
+      {
+        "name": "unmarked_hand_tests_ok",
+        "type": "boolean",
+        "desc": "Finish now even though some hand tests are still not marked by the Developer. Only when the Developer says to finish anyway.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "complete_task",
+    "description": "Mark a Task of the claimed Goal done, recording the files it touched. When what you built differs from the summary (a part left out, done another way, put somewhere else), pass the new summary so the plan matches the work. Works whether or not the Task was started; to finish several, use update_tasks. Answers briefly, with the time it took and where the work stands. For a Task that turned out unnecessary, use drop_task instead; to change a Task without finishing it, use update_task.",
+    "arguments": [
+      {
+        "name": "task",
+        "type": "string",
+        "desc": "The Task ID, such as 't3'."
+      },
+      {
+        "name": "code",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Files the Task touched, optionally with :line; added to the ones it has.",
+        "optional": true
+      },
+      {
+        "name": "commits",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Short hashes of its commits; found from git when left out.",
+        "optional": true
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The claimed Goal's ID, such as 'ship-oauth-login'. Needed only when this Session holds several Goals.",
+        "optional": true
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Another project's plan to use instead of this one's: its name or ID on the dashboard, or its folder's full path. Changes there are marked as made from this project. Leave out for this project.",
+        "optional": true
+      },
+      {
+        "name": "summary",
+        "type": "string",
+        "desc": "One or two sentences on the fix or change the Task makes, such as 'Callback re-sets the session cookie on every hit; only set it after token exchange.'",
+        "optional": true
+      },
+      {
+        "name": "tests",
+        "type": "string",
+        "desc": "The test run behind it, in a few words ('715 passed').",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "drop_goal",
+    "description": "Drop a Goal that will not be done, with the reason; its Plan File stays as a record. Releases this Session's Claim on it. A Goal another running Session holds, or one already done, cannot be dropped. To drop a single Task, use drop_task.",
+    "arguments": [
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The Goal ID, such as 'ship-oauth-login'."
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Why the Goal will not be done."
+      },
+      {
+        "name": "stop_repeating",
+        "type": "boolean",
+        "desc": "For a goal a routine made: also stop the routine, so it won't come back.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "drop_task",
+    "description": "Drop one Task of the claimed Goal that is no longer needed, with the reason; it stays in the Plan File, struck through. To replace the whole remaining plan, end a Detour with 'recalibrate' instead; to drop the whole Goal, use drop_goal.",
+    "arguments": [
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Why the Task is no longer needed."
+      },
+      {
+        "name": "task",
+        "type": "string",
+        "desc": "The Task ID, such as 't3'."
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The claimed Goal's ID, such as 'ship-oauth-login'. Needed only when this Session holds several Goals.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "end_detour",
+    "description": "End the open Detour. 'merge back': it was small and is done; the plan is unchanged. 'return': go back to the plan, appending `tasks` for the Detour's intended work if any. 'recalibrate': drop every remaining Task and replace them with `tasks`.",
+    "arguments": [
+      {
+        "name": "ending",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The claimed Goal's ID, such as 'ship-oauth-login'. Needed only when this Session holds several Goals.",
+        "optional": true
+      },
+      {
+        "name": "tasks",
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "desc": "Tasks to append (return) or the new Task list (recalibrate).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "get_item",
+    "description": "Look up one Goal, Task, Detour, decision, note or Standing Instruction by its ref (progressor://\u003cgoal\u003e/\u003citem\u003e, or progressor://roadmap/\u003cinstruction\u003e), with its file and line. Use it when the Developer pastes a ref or you need one item's details; for where the work stands overall, use get_status.",
+    "arguments": [
+      {
+        "name": "ref",
+        "type": "string",
+        "desc": "A ref such as progressor://login/t2 or progressor://roadmap/i1."
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "get_rules",
+    "description": "The project's Standing Instructions as a block to paste into the brief of a helper agent you start, hard rules first. Helpers don't see the Standing Instructions, so include this block whenever you brief one.",
+    "annotations": {
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "get_status",
+    "description": "Compact summary of every Goal this Session holds (current Task, open Detour, Tasks with a helper or waiting on the Developer, next Task, decisions and open notes) and the Developer's Standing Instructions. Call it at the start of every conversation and after context compression. With project, another project's Goals and Tasks instead, to change them from here.",
+    "arguments": [
+      {
+        "name": "check",
+        "type": "boolean",
+        "desc": "Also run the plan check-up and list everything it found.",
+        "optional": true
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Another project's plan to use instead of this one's: its name or ID on the dashboard, or its folder's full path. Changes there are marked as made from this project. Leave out for this project.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "handoff",
+    "description": "A markdown handoff of a stretch of work, for whoever picks it up next. Without text: the facts for the range (steps, decisions, open items, commits, files). Write the handoff from them, then call again with text and title to save it for the dashboard.",
+    "arguments": [
+      {
+        "name": "commits",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Exactly these commits, instead of a range.",
+        "optional": true
+      },
+      {
+        "name": "since",
+        "type": "string",
+        "desc": "A date (2026-11-01) or a commit to start after; the last handoff when left out.",
+        "optional": true
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "The handoff you wrote, in markdown.",
+        "optional": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "",
+        "optional": true
+      },
+      {
+        "name": "until",
+        "type": "string",
+        "desc": "A date to end at; now when left out.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "list_resources",
+    "description": "Who holds which shared resource now, for how long, and why. get_status shows the same. Resources whose time is up or whose Session has ended are free and not listed.",
+    "annotations": {
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "move_goal",
+    "description": "Move a Goal right before or after another Goal, so the Roadmap lists the work in the order it should happen. Give exactly one of before and after. The dashboard lists the Goals that need the Developer (things to try, steps to check, questions) in this order too, so put the one they should check first in front.",
+    "arguments": [
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The Goal ID, such as 'ship-oauth-login'."
+      },
+      {
+        "name": "after",
+        "type": "string",
+        "desc": "The ID of the Goal to move it behind.",
+        "optional": true
+      },
+      {
+        "name": "before",
+        "type": "string",
+        "desc": "The ID of the Goal to move it in front of.",
+        "optional": true
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Another project's plan to use instead of this one's: its name or ID on the dashboard, or its folder's full path. Changes there are marked as made from this project. Leave out for this project.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "move_task",
+    "description": "Move a Task of a claimed Goal to another Goal when it belongs there. It keeps its title, summary, files and state, gets a new ID at the end of the other Goal's list (or right before or after the Task given in before or after) and a 'moved from' line. In the old Goal it stays as a dropped Task whose reason is where it went, so refs and history still work. The other Goal must not be dropped, done or held by another running Session; a Task in progress can move only if the other Goal has none in progress.",
+    "arguments": [
+      {
+        "name": "task",
+        "type": "string",
+        "desc": "The Task ID, such as 't3'."
+      },
+      {
+        "name": "to_goal",
+        "type": "string",
+        "desc": "The ID of the Goal to move the Task to."
+      },
+      {
+        "name": "after",
+        "type": "string",
+        "desc": "A Task ID in the other Goal to put it behind.",
+        "optional": true
+      },
+      {
+        "name": "before",
+        "type": "string",
+        "desc": "A Task ID in the other Goal to put it in front of.",
+        "optional": true
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The claimed Goal the Task is in. Needed only when this Session holds several Goals.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "plan_history",
+    "description": "The plan's recent changes (who, when, what). restore: \u003cid\u003e goes back to before that change; that can be undone too.",
+    "arguments": [
+      {
+        "name": "list",
+        "type": "integer",
+        "desc": "How many changes to list; 10 unless set.",
+        "optional": true
+      },
+      {
+        "name": "restore",
+        "type": "string",
+        "desc": "A change's ID from the list.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "release_goal",
+    "description": "Release this Session's Claim on a Goal, leaving it paused for a later Session.",
+    "arguments": [
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The claimed Goal's ID, such as 'ship-oauth-login'. Needed only when this Session holds several Goals.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "release_resource",
+    "description": "Release a shared resource you claimed with claim_resource, as soon as the work that needed it ends (including a helper's: release it when the helper hands back). Pass the same label you claimed it with. Another holder's resource is refused, unless force is given, which is only for when the Developer says the holder is gone.",
+    "arguments": [
+      {
+        "name": "resource",
+        "type": "string",
+        "desc": "The shared thing's name, such as 'dev-window' or 'plasmashell'. Case and spaces do not matter."
+      },
+      {
+        "name": "force",
+        "type": "boolean",
+        "desc": "Release it even though someone else holds it. Only when the Developer asks.",
+        "optional": true
+      },
+      {
+        "name": "label",
+        "type": "string",
+        "desc": "Who it is held for when that is not this Session itself, such as 'helper: media run'. Claim and release a helper's lock with the same label.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "reply_to_developer",
+    "description": "Answer a message the Developer sent you on the dashboard (shown under 'New from the Developer' with its ID, such as m2): say in a sentence or two, in plain words, what you did or will do about it. The reply shows under their message on the dashboard. Reply to every message, even if only to say you will do it later. A message to the whole project is answered with whole_project: true and needs no Goal.",
+    "arguments": [
+      {
+        "name": "message",
+        "type": "string",
+        "desc": "The message ID, such as 'm2'."
+      },
+      {
+        "name": "reply",
+        "type": "string",
+        "desc": "Your answer, in plain words for someone who doesn't code."
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The claimed Goal's ID, such as 'ship-oauth-login'. Needed only when this Session holds several Goals.",
+        "optional": true
+      },
+      {
+        "name": "whole_project",
+        "type": "boolean",
+        "desc": "True for a message to the whole project rather than to a Goal.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "set_task_state",
+    "description": "Set a Task's state. 'with a helper': handed to a helper agent that is working on it (several Tasks can be). 'waiting on you': you are waiting on the Developer, such as for them to test something by hand; the dashboard shows the Goal as waiting on them, so tell them what you need. 'checked': you checked a helper's work (tests, review) but it is not merged or released yet; give evidence, one short line on what you checked (\"715 passed, live send OK\"), which the Developer sees on the step. With 'with a helper', give helper_branch, helper_folder (the worktree path) and helper_label: they are recorded with the Task and shown in get_status and on the dashboard, and get_status warns when a finished Task's helper branch still has unmerged work. 'released': merged and out (shipped, installed or published); counts as done. 'pending', 'in progress' and 'done' work too (in progress follows start_task's one-at-a-time rule). Set a state as soon as it changes, such as 'checked' right after you check a helper's work, so the Developer's dashboard keeps moving. If the project has a helper limit (get_status shows it), keep at most that many Tasks with a helper: one more is still set, with a warning. To drop a Task, use drop_task.",
+    "arguments": [
+      {
+        "name": "state",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "task",
+        "type": "string",
+        "desc": "The Task ID, such as 't3'."
+      },
+      {
+        "name": "evidence",
+        "type": "string",
+        "desc": "With state 'checked': one short line on what you checked, such as '715 passed, live send OK'. Give it: the Developer sees it on the dashboard step.",
+        "optional": true
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The claimed Goal's ID, such as 'ship-oauth-login'. Needed only when this Session holds several Goals.",
+        "optional": true
+      },
+      {
+        "name": "helper_branch",
+        "type": "string",
+        "desc": "With state 'with a helper': the git branch the helper works on, such as 'feat/export'. Recorded so a branch left behind can be found later.",
+        "optional": true
+      },
+      {
+        "name": "helper_folder",
+        "type": "string",
+        "desc": "With state 'with a helper': the helper's worktree folder (its path).",
+        "optional": true
+      },
+      {
+        "name": "helper_label",
+        "type": "string",
+        "desc": "With state 'with a helper': a label for the helper, such as the model it runs on ('Sonnet').",
+        "optional": true
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Another project's plan to use instead of this one's: its name or ID on the dashboard, or its folder's full path. Changes there are marked as made from this project. Leave out for this project.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "start_detour",
+    "description": "Declare that the work is splitting off from the planned Tasks, before doing it. Branches from the current Task. Only one Detour can be open.",
+    "arguments": [
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Why the work has to split off from the plan now."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "What the Detour does, such as 'Fix flaky token refresh'."
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The claimed Goal's ID, such as 'ship-oauth-login'. Needed only when this Session holds several Goals.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "start_task",
+    "description": "Mark a Task in progress: you are working on it yourself; call it before you change code for the Task. Answers briefly, with where the work stands. Only one Task of a Goal can be in progress at a time; for Tasks in other hands, use set_task_state.",
+    "arguments": [
+      {
+        "name": "task",
+        "type": "string",
+        "desc": "The Task ID, such as 't3'."
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The claimed Goal's ID, such as 'ship-oauth-login'. Needed only when this Session holds several Goals.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "update_context",
+    "description": "Replace the project's Important context: lasting background you and the Developer need in every conversation, such as what the project is, key facts, where things live and choices that hold for the whole project. Not for rules (add_standing_instruction) or for one Goal's details. get_status shows the current text: send the whole new text, or an empty text to clear it. At most 4000 characters.",
+    "arguments": [
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "The whole Important context, in plain words; short paragraphs or a list."
+      }
+    ]
+  },
+  {
+    "name": "update_decision",
+    "description": "Reword a decision of a claimed Goal, or remove it with an empty text. The IDs (c1, c2...) are in get_status.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "The decision ID, such as 'c2'."
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "The new wording; empty to remove the decision."
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The claimed Goal's ID, such as 'ship-oauth-login'. Needed only when this Session holds several Goals.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "update_goal",
+    "description": "Rename a Goal, set its Outcome or its estimate. Its ID, refs and Plan File stay the same, and it needs no Claim. To change a Goal's Tasks, claim it and use add_tasks, update_task or drop_task.",
+    "arguments": [
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The Goal ID, such as 'ship-oauth-login'."
+      },
+      {
+        "name": "estimate",
+        "type": "string",
+        "desc": "How long the whole Goal should take, such as '6h'; it covers the open Tasks that have no estimate of their own. An empty string removes it, so the Goal's estimate is the sum of its Tasks'.",
+        "optional": true
+      },
+      {
+        "name": "outcome",
+        "type": "string",
+        "desc": "The new Outcome; an empty string removes it.",
+        "optional": true
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Another project's plan to use instead of this one's: its name or ID on the dashboard, or its folder's full path. Changes there are marked as made from this project. Leave out for this project.",
+        "optional": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "The new title.",
+        "optional": true
+      },
+      {
+        "name": "waits_on",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "The goals it waits on, replacing any it had (empty: none): IDs here, or \u003cproject\u003e/\u003cgoal-id\u003e.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "update_hand_test",
+    "description": "Reword a hand test of the claimed Goal, change which Task it is about, or remove it with an empty text (for one that turned out not to need testing). Its mark from the Developer stays; only the Developer marks tests.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "The hand test ID, such as 'h2'."
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The claimed Goal's ID, such as 'ship-oauth-login'. Needed only when this Session holds several Goals.",
+        "optional": true
+      },
+      {
+        "name": "task",
+        "type": "string",
+        "desc": "The ID of the Task it is about; an empty string removes the link.",
+        "optional": true
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "The new wording; empty to remove the hand test.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "update_note",
+    "description": "Resolve a note once it is dealt with (resolved: true), reopen it (false), reword it, or remove it with an empty text.",
+    "arguments": [
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The ID of the Goal the note belongs to."
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "The note ID, such as 'n2'."
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Another project's plan to use instead of this one's: its name or ID on the dashboard, or its folder's full path. Changes there are marked as made from this project. Leave out for this project.",
+        "optional": true
+      },
+      {
+        "name": "resolved",
+        "type": "boolean",
+        "desc": "true once the note is dealt with; false to reopen it.",
+        "optional": true
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "The new wording; empty to remove the note.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "update_standing_instruction",
+    "description": "Reword a Standing Instruction when the Developer changes a rule, make it a hard rule (hard: true) or an ordinary one again (hard: false), set or change the helper limit it holds (helpers_at_once), or remove it with an empty text when they drop it. Give any of text, hard and helpers_at_once; what you leave out stays. The IDs (s1, s2...) are in get_status.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "The Standing Instruction ID, such as 's2'."
+      },
+      {
+        "name": "hard",
+        "type": "boolean",
+        "desc": "true for a rule that must never be broken (not just a preference); get_status, the session start and get_rules list those first as HARD RULE.",
+        "optional": true
+      },
+      {
+        "name": "helpers_at_once",
+        "type": "integer",
+        "desc": "Makes this rule the project's helper limit: the most Tasks that may be 'with a helper' at once, such as 2 when the Developer says 'at most 2 helpers in parallel'. One rule holds the limit; setting it here takes it off any other. 0 removes it.",
+        "optional": true
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "The new wording; empty to remove the rule. Left out, the wording stays.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "update_task",
+    "description": "Change a Task's title, summary, files or estimate, for instance when the fix turns out different from the plan or you learn it takes longer. Leaves its status alone.",
+    "arguments": [
+      {
+        "name": "task",
+        "type": "string",
+        "desc": "The Task ID, such as 't3'."
+      },
+      {
+        "name": "code",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "The Task's files, optionally with :line; replaces the ones it has.",
+        "optional": true
+      },
+      {
+        "name": "estimate",
+        "type": "string",
+        "desc": "The Task's new estimate, such as '45m' or '2h'; an empty string removes it.",
+        "optional": true
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The claimed Goal's ID, such as 'ship-oauth-login'. Needed only when this Session holds several Goals.",
+        "optional": true
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Another project's plan to use instead of this one's: its name or ID on the dashboard, or its folder's full path. Changes there are marked as made from this project. Leave out for this project.",
+        "optional": true
+      },
+      {
+        "name": "summary",
+        "type": "string",
+        "desc": "One or two sentences on the fix or change the Task makes, such as 'Callback re-sets the session cookie on every hit; only set it after token exchange.'",
+        "optional": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "A short title for the Task, a few words, such as 'Fix callback redirect loop'.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "update_tasks",
+    "description": "Change several Tasks in one call, such as completing two and starting the next, or setting the estimates of several, instead of one call each. The operations are applied in order, so a start can follow the complete of the Task that was in progress; if any one fails, none is applied. A 'state' operation takes the same helper_branch, helper_folder, helper_label (with 'with a helper') and evidence (with 'checked') as set_task_state. Each operation can name its own claimed Goal with goal, else the call's goal (or the only Goal held) is used. The recommended way to change more than one Task. Answers with one line per call, not the whole status.",
+    "arguments": [
+      {
+        "name": "operations",
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "desc": ""
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "The claimed Goal's ID, such as 'ship-oauth-login'. Needed only when this Session holds several Goals.",
+        "optional": true
+      },
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Another project's plan to use instead of this one's: its name or ID on the dashboard, or its folder's full path. Changes there are marked as made from this project. Leave out for this project.",
+        "optional": true
+      }
+    ]
+  }
+]
