@@ -55,12 +55,21 @@
   },
   {
     "name": "price_check",
-    "description": "Asking-price distribution (p10/p25/median/p75/p90) of comparable live ads, with up to 6 example ads. Give ad_id to judge that ad (comparables are derived from its make, model, year, mileage or length; its percentile is returned), or describe the item with the search filters. For Torget items pass a short query (e.g. 'iphone 13 128gb') for good comparables. Explicit filters override the derived ones.",
+    "description": "Use this when the user asks what a used item sells for on Blocket, whether an asking price is fair, or whether to buy used or new. Returns the asking-price distribution (p10/p25/median/p75/p90) of comparable live ads, with up to 6 example ads. Give ad_id to judge that ad (comparables are derived from its make, model, year, mileage or length; its percentile is returned), or describe the item with the search filters. For Torget items pass a short query (e.g. 'iphone 13 128gb') for good comparables; for mass-market products (phones, consoles, headphones) also pass title_only and excludes for accessories and wanted ads, e.g. ['skal', 'fodral', 'laddare', 'kontroll', 'controller', 'headset', 'fäste', 'cover', 'köpes', 'bytes']. With require/exclude/title_only the stats come from those of the newest 200 ads that pass them (scanned, dropped). Pass new_price when a shop price comparison gave you one: vs_new says what % of it the median and the ad ask, and ads under 10% of it are left out as accessories or parts. Explicit filters override the derived ones.",
     "arguments": [
       {
         "name": "ad_id",
         "type": "string",
         "desc": "Ad id or blocket.se URL to judge.",
+        "optional": true
+      },
+      {
+        "name": "exclude",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Drop rows whose title or specs contain any of these (case-insensitive, also inside words), e.g. ['skal', 'laddare', 'köpes'] for a phone. 'köpes' and 'bortskänkes' also drop wanted ads and giveaways.",
         "optional": true
       },
       {
@@ -85,6 +94,12 @@
         "name": "near",
         "type": "object",
         "desc": "Only ads within radius_km of a point; rows then carry distance_km.",
+        "optional": true
+      },
+      {
+        "name": "new_price",
+        "type": "number",
+        "desc": "Current lowest new price of the same model in Swedish shops (e.g. Billigast compare's cheapest.price), SEK incl. VAT.",
         "optional": true
       },
       {
@@ -121,6 +136,15 @@
         "optional": true
       },
       {
+        "name": "require",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Words or phrases that must all appear in the row's title or specs (case-insensitive), e.g. ['128gb'].",
+        "optional": true
+      },
+      {
         "name": "seller",
         "type": "string",
         "desc": "Only private sellers or only dealers (companies).",
@@ -136,6 +160,12 @@
         "name": "shipping",
         "type": "boolean",
         "desc": "Torget only: only ads that can be shipped.",
+        "optional": true
+      },
+      {
+        "name": "title_only",
+        "type": "boolean",
+        "desc": "Keep only rows whose title contains every word of query.",
         "optional": true
       },
       {
@@ -166,7 +196,7 @@
   },
   {
     "name": "search",
-    "description": "Search live Blocket ads in any vertical with filters, distance and sorting. Returns compact rows (price, place, age, seller, badges, key specs, url, photo, risk_words), the total count, the filters applied, unmatched filter values with suggestions, optional facets (value counts to refine with) and blocket_url (the same search on blocket.se). exclude/require/title_only drop off-topic rows and read up to 4 more pages to refill (scanned, dropped, next_page). deals labels each row's price against the same search's asking prices (deal_basis).",
+    "description": "Search live Blocket ads in any vertical with filters, distance and sorting. Returns compact rows (price, place, age, seller, badges, key specs, url, photo, risk_words), the total count, the filters applied, unmatched filter values with suggestions, optional facets (value counts to refine with) and blocket_url (the same search on blocket.se). exclude/require/title_only drop off-topic rows and read up to 4 more pages to refill (scanned, dropped, next_page). deals labels each row's price against the same search's asking prices (deal_basis). Not for prices in shops (new products): use a price comparison tool such as Billigast.",
     "arguments": [
       {
         "name": "deals",
