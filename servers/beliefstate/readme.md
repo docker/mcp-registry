@@ -1,1 +1,1 @@
-https://github.com/Antcolombo/beliefstate-agent-integrations#connection-options
+https://github.com/Antcolombo/beliefstate-agent-integrations#connection-authentication-and-pricing
