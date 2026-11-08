@@ -24,7 +24,7 @@ docker run -d --name progressor --restart unless-stopped \
   -v progressor-data:/data \
   -v /path/to/your/projects:/path/to/your/projects \
   -p 127.0.0.1:4800:4800 \
-  ghcr.io/racstan/progressor-mcp daemon run
+  mcp/progressor daemon run
 ```
 
 On Windows the Toolkit mounts `C:\Projects\shop` at `/C/Projects/shop`, so mount it the same way: `-v "C:\Projects:/C/Projects"`.
