@@ -1,7 +1,7 @@
 [
   {
     "name": "compare",
-    "description": "Every store's price for one product across Prisjakt and PriceRunner, cheapest first by total (price + shipping) when shipping is known, else price; offers the site reports sold out come last. The same store on both sites is one row with both prices in seen_on. Also cheapest (new) and cheapest_secondhand (used/refurbished), both skipping sold-out offers unless nothing else is listed, cheapest_in_stock (new, reported in stock), Prisjakt's price history (lowest new price per day; 30/90-day and all-time lows) and a verdict on the cheapest price. With only one site known the other is looked up by name; not found = one site only.",
+    "description": "Every store's price for one product across Prisjakt and PriceRunner, cheapest first by total (price + shipping) when shipping is known, else price; offers the site reports sold out come last. The same store on both sites is one row: price, shipping, total, stock and url come from one offer, seen_on has each site's price. Also cheapest (new) and cheapest_secondhand (used/refurbished), both skipping sold-out offers unless nothing else is listed, cheapest_in_stock (new, reported in stock), Prisjakt's price history (lowest new price per day; 30/90-day and all-time lows) and a verdict on Prisjakt's lowest new price against that history, naming a cheaper offer listed only on PriceRunner. With only one site known the other is looked up by name; not found = one site only.",
     "arguments": [
       {
         "name": "in_stock_only",
@@ -24,13 +24,13 @@
       {
         "name": "product",
         "type": "string",
-        "desc": "A key from search ('prisjakt:123+pricerunner:456'), a Prisjakt or PriceRunner product page URL, or a plain product name (the first search result is used)."
+        "desc": "A key from search ('prisjakt:123+pricerunner:456'), a Prisjakt or PriceRunner product page URL, or a plain product name including its model numbers (the first search result carrying them is used; none = not found)."
       }
     ]
   },
   {
     "name": "search",
-    "description": "Search Prisjakt and PriceRunner at once. Returns products with both sites' listings merged when they are the same model: key (pass to compare), name, brand, category, image, rating, each site's lowest price, offer count and url (sources), how the sites were tied (match: gtin/name, null for one site) and the cheapest site. errors lists a site that failed; the other's results still come back.",
+    "description": "Search Prisjakt and PriceRunner at once. Returns products with both sites' listings merged when they are the same model: key (pass to compare), name, brand, category, image, rating, each site's lowest new price, lowest used/refurbished price, offer count and url (sources), how the sites were tied (match: name, null for one site) and the site with the lowest new price (cheapest; used and refurbished prices never count). errors lists a site that failed; the other's results still come back.",
     "arguments": [
       {
         "name": "limit",
