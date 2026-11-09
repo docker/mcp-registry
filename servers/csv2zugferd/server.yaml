@@ -1,0 +1,32 @@
+name: csv2zugferd
+image: mcp/csv2zugferd
+type: server
+meta:
+  category: finance
+  tags:
+    - finance
+    - e-invoicing
+    - zugferd
+    - factur-x
+    - csv
+about:
+  title: csv2zugferd
+  description: Setup assistant for the csv2zugferd CSV to ZUGFeRD/Factur-X (EN 16931) mapping. Reads the CSV header, checks the YAML configuration, runs a trial mapping and saves the configuration file. The production conversion to XML and PDF/A-3 stays in the local csv2zugferd CLI.
+  icon: https://zugferd-tools.de/android-chrome-512x512.png
+source:
+  project: https://github.com/rillsoft/csv2zugferd
+  commit: 698fcdc5e7ca8f84331b20cf29472dca0cffdc62
+run:
+  volumes:
+    - '{{csv2zugferd.path}}:/data'
+  disableNetwork: true
+config:
+  description: Directory with the CSV files and the YAML configuration. The server reads and writes only inside this directory, mounted at /data.
+  parameters:
+    type: object
+    properties:
+      path:
+        type: string
+        default: /Users/local-test/invoices
+    required:
+      - path
