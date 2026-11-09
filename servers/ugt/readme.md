@@ -4,4 +4,4 @@ UGT's hosted MCP server is how any AI app starts with UGT. It finds how UGT runs
 
 Connect to https://mcp.usegeekthing.com/mcp using streamable HTTP. It is free and read-only and needs no authentication.
 
-Source repository: https://github.com/auscaster/ugt
+Source repository: https://github.com/usegeekthing/ugt
