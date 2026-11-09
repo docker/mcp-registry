@@ -2752,5 +2752,341 @@
         "optional": true
       }
     ]
+  },
+  {
+    "name": "h1b_lca_sponsor_leads",
+    "description": "Find employers sponsoring H-1B, H-1B1 and E-3 workers from the US Department of Labor OFLC LCA disclosure data (FY2026 Q3 default), with job title, SOC code, worksite, wage range and unit, case status, dates and worker count, plus a free employer roll-up sheet. Unlike npi_provider_lists (healthcare providers) and federal_contract_finder (federal awards), this is labor-condition-application filings. Use when recruiters, immigration attorneys, payroll/benefits/relocation sellers or wage analysts need sponsor lists by employer, state, city, title or SOC. Do not use for approved-visa outcomes, individual workers or non-LCA visas (PERM, O-1). Parameters: employers, states, cities, titleContains, socContains narrow rows; visaClass defaults H-1B (All widens it); caseStatuses, minWage with wageUnit, receivedFrom/To or daysBack filter further; fiscalYearQuarter or dataUrl pick another disclosure file; demoMode (or empty input) returns a tiny embedded sample without the ~250 MB DOL download; maxResults caps billed cases (hard max 5000). Tight filters finish faster. Runs with no matches are free. Returns per item: agentSummary, caseNumber, status, receivedDate, visaClass, employerName, employerCity, employerState, jobTitle, socCode, socTitle, worksiteCity, worksiteState plus wage, date and worker-count fields; plus LCA_CASES_XLSX (Cases + Employers sheets)/CSV.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/h1b-lca-sponsor-leads (https://apify.com/pandadad0214/h1b-lca-sponsor-leads) on your own Apify account. Price: $0.002 per lca case returned. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "employers",
+        "type": "array",
+        "desc": "Employer name contains. Substring match on employer name (any). e.g. Google, Infosys, Deloitte.",
+        "optional": true
+      },
+      {
+        "name": "states",
+        "type": "array",
+        "desc": "Worksite states. 2-letter worksite state codes, e.g. TX, CA, NY.",
+        "optional": true
+      },
+      {
+        "name": "cities",
+        "type": "array",
+        "desc": "Worksite cities. Worksite city substring match, e.g. Austin, Seattle.",
+        "optional": true
+      },
+      {
+        "name": "titleContains",
+        "type": "string",
+        "desc": "Job title contains. Substring match on job title, e.g. software, data scientist, nurse.",
+        "optional": true
+      },
+      {
+        "name": "socContains",
+        "type": "string",
+        "desc": "SOC code or title contains. Match SOC_CODE or SOC_TITLE, e.g. 15-1252, Software Developers.",
+        "optional": true
+      },
+      {
+        "name": "visaClass",
+        "type": "string",
+        "desc": "Visa class. Default H-1B. Choose All to include H-1B1 and E-3. Choices: H-1B = H-1B; H-1B1 Chile = H-1B1 Chile; H-1B1 Singapore = H-1B1 Singapore; E-3 Australian = E-3 Australian; All = All (H-1B + H-1B1 + E-3).",
+        "optional": true
+      },
+      {
+        "name": "caseStatuses",
+        "type": "array",
+        "desc": "Case statuses. Default: Certified. Add Certified - Withdrawn if useful.",
+        "optional": true
+      },
+      {
+        "name": "minWage",
+        "type": "number",
+        "desc": "Minimum wage (from rate). Keep cases whose wage-from is at least this amount (same unit as Wage unit).",
+        "optional": true
+      },
+      {
+        "name": "wageUnit",
+        "type": "string",
+        "desc": "Wage unit. Only keep this pay unit (Year, Hour, Month, Week, Bi-Weekly). Empty = any. Choices:  = Any; Year = Year; Hour = Hour; Month = Month; Week = Week; Bi-Weekly = Bi-Weekly.",
+        "optional": true
+      },
+      {
+        "name": "receivedFrom",
+        "type": "string",
+        "desc": "Received on or after. Optional YYYY-MM-DD.",
+        "optional": true
+      },
+      {
+        "name": "receivedTo",
+        "type": "string",
+        "desc": "Received on or before. Optional YYYY-MM-DD.",
+        "optional": true
+      },
+      {
+        "name": "daysBack",
+        "type": "integer",
+        "desc": "Received in the last N days. Optional; ignored when Received from is set. Uses decision/received date when available.",
+        "optional": true
+      },
+      {
+        "name": "onlyFullTime",
+        "type": "boolean",
+        "desc": "Full-time positions only. Skip part-time LCAs.",
+        "optional": true
+      },
+      {
+        "name": "fiscalYearQuarter",
+        "type": "string",
+        "desc": "Fiscal year / quarter file. Optional override of the DOL filename stem, e.g. FY2026_Q3 or FY2025_Q4. Default = latest known (FY2026_Q3).",
+        "optional": true
+      },
+      {
+        "name": "dataUrl",
+        "type": "string",
+        "desc": "Custom disclosure file URL. Optional full URL to an LCA_Disclosure_Data_*.xlsx. Overrides fiscal year / quarter.",
+        "optional": true
+      },
+      {
+        "name": "demoMode",
+        "type": "boolean",
+        "desc": "Demo mode (embedded sample). Use the tiny embedded sample instead of downloading the ~250 MB DOL file. For empty-input demos and offline tests only.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum results. You pay per LCA case returned, so this also caps the cost. Default 200 (hard max 5000).",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "new_york_new_business_leads",
+    "description": "List newly filed New York LLCs, corporations and other entities from the official NY Department of State Active Corporations open data (data.ny.gov), with DOS ID, entity type, filing date, county, jurisdiction, process name and address, and CEO and registered agent when filed. Unlike florida_new_business_leads (Sunbiz filings with officers) and texas_new_business_leads (Comptroller franchise taxpayers), this is New York DOS filings. Use when banks, payroll, insurance, accounting, agencies or suppliers want new New York owners in their first weeks. Do not use for other states, for emails or phones (the source has none) or for sole proprietors. Parameters: daysBack (default 7) or filedFrom/filedTo set the window; counties, cities, zipPrefixes, entityTypes (e.g. DOMESTIC LIMITED LIABILITY COMPANY) and nameContains narrow rows; requireCeo and requireProcessAddress drop incomplete rows (CEO is often empty on new LLCs, so the process address is the reliable contact); maxResults caps billed businesses. Runs with no matches are free. Returns per item: agentSummary, dosId, name, entityType, filingDate, county, jurisdiction, processName, processAddress, processCity, processState, processZip, ceoName and CEO address fields, sourceUrl; plus NYBIZ_XLSX/CSV.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/new-york-new-business-leads (https://apify.com/pandadad0214/new-york-new-business-leads) on your own Apify account. Price: $0.0015 per business returned. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "daysBack",
+        "type": "integer",
+        "desc": "Filed with DOS in the last N days. Default 7. Matches initial DOS filing date. Use 1 on a daily schedule.",
+        "optional": true
+      },
+      {
+        "name": "filedFrom",
+        "type": "string",
+        "desc": "Filed on or after. Optional YYYY-MM-DD; overrides days back. Applied to initial DOS filing date.",
+        "optional": true
+      },
+      {
+        "name": "filedTo",
+        "type": "string",
+        "desc": "Filed on or before. Optional YYYY-MM-DD; overrides days back when set with Filed on or after.",
+        "optional": true
+      },
+      {
+        "name": "counties",
+        "type": "array",
+        "desc": "Counties. NYS county of the entity, e.g. New York (Manhattan), Kings (Brooklyn), Queens, Bronx, Richmond (Staten Island), Suffolk, Nassau, Westchester, Erie, Monroe.",
+        "optional": true
+      },
+      {
+        "name": "cities",
+        "type": "array",
+        "desc": "Cities. Match DOS process city OR location city (case-insensitive), e.g. New York, Brooklyn, Queens, Buffalo, Rochester, Albany.",
+        "optional": true
+      },
+      {
+        "name": "zipPrefixes",
+        "type": "array",
+        "desc": "ZIP prefixes. Match DOS process ZIP or location ZIP starts-with, e.g. 100 (Manhattan), 112 (Brooklyn), 113 (Queens), 104 (Bronx), 103 (Staten Island), 117 (Suffolk).",
+        "optional": true
+      },
+      {
+        "name": "entityTypes",
+        "type": "array",
+        "desc": "Entity types. Empty = all types. The open dataset includes domestic and foreign LLCs, corporations, nonprofits, professional entities and partnerships — not only corporations.",
+        "optional": true
+      },
+      {
+        "name": "nameContains",
+        "type": "string",
+        "desc": "Name contains. Case-insensitive substring of the current entity name, e.g. construction, realty, consulting.",
+        "optional": true
+      },
+      {
+        "name": "requireCeo",
+        "type": "boolean",
+        "desc": "Only with a CEO name on file. Keep rows that list a CEO (dataset field CEO Name / chairman_name). Brand-new LLCs often have no CEO on file yet.",
+        "optional": true
+      },
+      {
+        "name": "requireProcessAddress",
+        "type": "boolean",
+        "desc": "Only with a DOS process address. Keep rows that list a DOS process street address (the reliable contact address in this source).",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum results. You pay per business returned, so this also caps the cost. Default 500; hard max 5000.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "eu_ted_tenders",
+    "description": "Search official EU TED (Tenders Electronic Daily) public procurement notices through the TED Search API v3, with English title, publication date, buyer country, NUTS, notice and contract type, procedure, estimated or award value when published, tender deadline, CPV codes and TED HTML/PDF links. Unlike federal_contract_finder (US federal awards) and grants_finder (US assistance grants), this covers European public tenders. Use when BD or capture teams, EU suppliers or researchers need tenders by keyword, CPV code or buyer country. Do not use to submit bids, for US opportunities or for national portals outside TED. Parameters: daysBack (default 7) or publishedFrom/To set the window; keywords and cpvCodes (e.g. 72000000 IT services) match the notice; countries takes ISO-3 buyer codes such as DEU or FRA; maxResults caps billed notices. Value is often missing because many notices omit it. Empty input runs a small IT-services demo. Runs with no matches are free. Returns per item: agentSummary, noticeId, title, publicationDate, countries, nuts, noticeType, contractType, procedure, estimatedValue, deadline, CPV codes, noticeUrl, pdfUrl, htmlUrl; plus TED_XLSX/CSV.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/eu-ted-tenders (https://apify.com/pandadad0214/eu-ted-tenders) on your own Apify account. Price: $0.002 per notice returned. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "daysBack",
+        "type": "integer",
+        "desc": "Published in the last N days. Default 7. Searches publication-date >= today minus (N-1) days (UTC). Use 1 on a daily schedule. Ignored when Published from / Published to are set.",
+        "optional": true
+      },
+      {
+        "name": "publishedFrom",
+        "type": "string",
+        "desc": "Published from. Optional YYYY-MM-DD. Overrides days back for the start of the window.",
+        "optional": true
+      },
+      {
+        "name": "publishedTo",
+        "type": "string",
+        "desc": "Published to. Optional YYYY-MM-DD.",
+        "optional": true
+      },
+      {
+        "name": "keywords",
+        "type": "array",
+        "desc": "Keywords. Full-text search. Each keyword becomes FT ~ \"...\" and they are joined with AND. Quotes are stripped. Example: software, cloud.",
+        "optional": true
+      },
+      {
+        "name": "cpvCodes",
+        "type": "array",
+        "desc": "CPV codes. Common Procurement Vocabulary codes, e.g. 72000000 (IT services), 45000000 (construction), 33000000 (medical). Several codes are OR'd.",
+        "optional": true
+      },
+      {
+        "name": "countries",
+        "type": "array",
+        "desc": "Buyer countries. ISO-3 country codes, e.g. DEU, FRA, ITA, ESP, POL, NLD, BEL, IRL, SWE. Two-letter codes (DE, FR, IT) are converted. Filtered server-side with buyer-country.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum results. You pay per notice returned, so this also caps the cost. Default 200; hard max 2000.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "broken_link_checker",
+    "description": "Crawl one or more start pages and check every unique http(s) link for HTTP status, final URL after redirects, a broken flag (status 400+) and a redirected flag, with external links checked by default. Unlike ai_search_seo_audit (page SEO/GEO scoring) and website_change_monitor (content diffs over time), this finds dead and redirecting links. Use when SEO, content or agency teams need a 404 report for a site or page. Do not use to search the web, to crawl a whole large site in one call or to check private or internal addresses (blocked and never billed). Parameters: startUrls (required in practice) are the pages crawled; maxPages is pages followed per host (1 = only the start pages); maxLinks caps checked links and therefore billing; checkExternal=false stays on-site; timeoutSecs is the per-request timeout (default 15). Billed per link that returns an HTTP status; timeouts, DNS failures and robots-skipped targets are free. Returns per item: agentSummary, originalUrl, finalUrl, statusCode, broken, redirected, external, contentType, sourcePage, error; plus LINKS_XLSX (all links plus a Broken sheet)/CSV.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/broken-link-checker (https://apify.com/pandadad0214/broken-link-checker) on your own Apify account. Price: $0.001 per link checked. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxLinks when you leave it unset, so it also limits what is billed; setting maxLinks higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "startUrls",
+        "type": "array",
+        "desc": "Start URLs. Pages to start from. The Actor fetches each page, extracts http(s) links, and checks them. Leave empty for a short demo on example.com. One URL per line.",
+        "optional": true
+      },
+      {
+        "name": "maxPages",
+        "type": "integer",
+        "desc": "Pages to crawl per host. How many HTML pages on the same host as each start URL to fetch for extracting more links. 1 = only the start URL(s). Further same-host pages are queued only when this is greater than 1. robots.txt is respected for crawl sources.",
+        "optional": true
+      },
+      {
+        "name": "maxLinks",
+        "type": "integer",
+        "desc": "Maximum links to check. Maximum unique http(s) URLs to check. This is what you are charged for. Hard max 2,000. (maxResults is accepted as an alias.)",
+        "optional": true
+      },
+      {
+        "name": "checkExternal",
+        "type": "boolean",
+        "desc": "Check outbound (external) links. When on, links to other hosts are checked too. Turn off to check only same-host links.",
+        "optional": true
+      },
+      {
+        "name": "timeoutSecs",
+        "type": "integer",
+        "desc": "Per-request timeout (seconds). How long to wait for each request. Timed-out URLs are recorded but not charged.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
   }
 ]
