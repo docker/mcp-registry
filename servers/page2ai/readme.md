@@ -6,7 +6,7 @@ navigation, and cookie banners.
 
 - **Source**: https://github.com/igorsaevets/page2ai-mcp
 - **Documentation**: https://igorsaevets.github.io/page2ai-docs/
-- **Hosted endpoint**: https://page2ai-mcp-remote.vercel.app/api/mcp
+- **Hosted endpoint**: https://page2ai.igorsaevets.com/api/mcp
 - **npm alternative** (stdio): `npx -y @page2ai/mcp` (Node 22+)
 - **License**: MIT
 - **Author**: Igor Saevets (ORCID `0009-0006-8636-1377`)
