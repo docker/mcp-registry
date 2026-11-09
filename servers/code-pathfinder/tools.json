@@ -1,0 +1,107 @@
+[
+  {
+    "name": "get_index_info",
+    "description": "Get comprehensive statistics about the indexed codebase (Python, Go, Java). Use this FIRST to understand the project scope before making other queries.",
+    "arguments": []
+  },
+  {
+    "name": "find_symbol",
+    "description": "Search and filter symbols by name and/or type. Supports Python, Go, and Java. Supports partial matching. Results are paginated.",
+    "arguments": [
+      {"name": "name", "type": "string", "desc": "Symbol name to find. Optional. Can be: short name ('login'), partial name ('auth'), or FQN ('myapp.auth.login')"},
+      {"name": "type", "type": "string", "desc": "Filter by single symbol type. Optional. One of: function_definition, method, constructor, property, special_method, class_definition, interface, enum, dataclass, module_variable, constant, class_field, parameter"},
+      {"name": "types", "type": "array", "desc": "Filter by multiple symbol types. Optional. Array of type strings. Alternative to 'type' parameter"},
+      {"name": "module", "type": "string", "desc": "Filter by module. Optional. Matches symbols whose FQN starts with the module path (e.g., 'core.settings', 'data_manager.models'). Works with all symbol types"},
+      {"name": "limit", "type": "integer", "desc": "Max results to return (default: 50, max: 500)"},
+      {"name": "cursor", "type": "string", "desc": "Pagination cursor from previous response"}
+    ]
+  },
+  {
+    "name": "find_module",
+    "description": "Search for Python modules by name. Returns module information including file path and symbol counts.",
+    "arguments": [
+      {"name": "name", "type": "string", "desc": "Module name to find. Can be FQN ('myapp.auth') or short name ('auth')"}
+    ]
+  },
+  {
+    "name": "list_modules",
+    "description": "List all Python modules in the indexed project. Returns comprehensive module information.",
+    "arguments": []
+  },
+  {
+    "name": "get_callers",
+    "description": "Find all functions that CALL a given function (reverse call graph / incoming edges). Answer: \"Who uses this function?\" Results are paginated.",
+    "arguments": [
+      {"name": "function", "type": "string", "desc": "Function to find callers for. Use short name ('login') or FQN ('myapp.auth.login')"},
+      {"name": "limit", "type": "integer", "desc": "Max results to return (default: 50, max: 500)"},
+      {"name": "cursor", "type": "string", "desc": "Pagination cursor from previous response"}
+    ]
+  },
+  {
+    "name": "get_callees",
+    "description": "Find all functions CALLED BY a given function (forward call graph / outgoing edges). Answer: \"What does this function depend on?\" Results are paginated.",
+    "arguments": [
+      {"name": "function", "type": "string", "desc": "Function to find callees for. Use short name ('process') or FQN ('myapp.payment.process')"},
+      {"name": "limit", "type": "integer", "desc": "Max results to return (default: 50, max: 500)"},
+      {"name": "cursor", "type": "string", "desc": "Pagination cursor from previous response"}
+    ]
+  },
+  {
+    "name": "get_call_details",
+    "description": "Get detailed information about a SPECIFIC call from one function to another. Most detailed view of a single call site.",
+    "arguments": [
+      {"name": "caller", "type": "string", "desc": "The function making the call (short name or FQN)"},
+      {"name": "callee", "type": "string", "desc": "The function being called (short name, will match partially)"}
+    ]
+  },
+  {
+    "name": "resolve_import",
+    "description": "Resolve a Python import path to its actual file location in the project.",
+    "arguments": [
+      {"name": "import", "type": "string", "desc": "Import path to resolve. Can be FQN ('myapp.auth.users') or short name ('users')"}
+    ]
+  },
+  {
+    "name": "find_dockerfile_instructions",
+    "description": "Search Dockerfile instructions with semantic filtering. Supports instruction-specific filters (has_digest for FROM, user for USER, port for EXPOSE).",
+    "arguments": [
+      {"name": "instruction_type", "type": "string", "desc": "Filter by instruction type (FROM, RUN, USER, EXPOSE, COPY, ADD, WORKDIR, etc.)"},
+      {"name": "file_path", "type": "string", "desc": "Filter by Dockerfile path (supports partial matching)"},
+      {"name": "base_image", "type": "string", "desc": "Filter FROM instructions by base image name (e.g., 'python', 'alpine')"},
+      {"name": "port", "type": "integer", "desc": "Filter EXPOSE instructions by port number"},
+      {"name": "has_digest", "type": "boolean", "desc": "Filter FROM instructions by digest pinning (true=pinned, false=unpinned)"},
+      {"name": "user", "type": "string", "desc": "Filter USER instructions by username"},
+      {"name": "limit", "type": "integer", "desc": "Maximum results to return (default: 100)"}
+    ]
+  },
+  {
+    "name": "find_compose_services",
+    "description": "Search docker-compose services with filtering. Supports configuration filters (has_privileged, has_volume, exposes_port).",
+    "arguments": [
+      {"name": "service_name", "type": "string", "desc": "Filter by service name (supports partial matching)"},
+      {"name": "file_path", "type": "string", "desc": "Filter by docker-compose.yml path"},
+      {"name": "has_privileged", "type": "boolean", "desc": "Filter by privileged mode (true=privileged containers only)"},
+      {"name": "exposes_port", "type": "integer", "desc": "Filter services exposing specific port"},
+      {"name": "has_volume", "type": "string", "desc": "Filter services with specific volume path (e.g., '/var/run/docker.sock')"},
+      {"name": "limit", "type": "integer", "desc": "Maximum results to return (default: 100)"}
+    ]
+  },
+  {
+    "name": "get_dockerfile_details",
+    "description": "Get complete breakdown of a Dockerfile with all instructions and multi-stage analysis.",
+    "arguments": [
+      {"name": "file_path", "type": "string", "desc": "Path to Dockerfile (required)"}
+    ]
+  },
+  {
+    "name": "get_docker_dependencies",
+    "description": "Retrieves dependency information for Docker entities (compose services or Dockerfile stages).",
+    "arguments": [
+      {"name": "type", "type": "string", "desc": "Entity type: \"compose\" for docker-compose services or \"dockerfile\" for Dockerfile stages"},
+      {"name": "name", "type": "string", "desc": "Entity name: service name (for compose) or stage name/alias (for dockerfile)"},
+      {"name": "file_path", "type": "string", "desc": "Optional: Filter to specific file path"},
+      {"name": "direction", "type": "string", "desc": "Traversal direction: \"upstream\", \"downstream\", or \"both\" (default: \"both\")"},
+      {"name": "max_depth", "type": "integer", "desc": "Maximum traversal depth (default: 10)"}
+    ]
+  }
+]

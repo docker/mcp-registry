@@ -1,0 +1,39 @@
+name: code-pathfinder
+image: mcp/code-pathfinder
+type: server
+meta:
+  category: security
+  tags:
+    - security
+    - sast
+    - code-analysis
+    - call-graph
+    - python
+    - java
+    - go
+    - docker
+about:
+  title: Code Pathfinder
+  description: SAST engine with MCP interface for code analysis. Builds call graphs, resolves types, tracks taint flows across Python, Java, Go, and Dockerfiles. Find symbols, trace callers/callees, analyze Docker configurations, and detect security vulnerabilities.
+  icon: https://codepathfinder.dev/assets/cpf-logo-200.png
+source:
+  project: https://github.com/shivasurya/code-pathfinder
+  dockerfile: Dockerfile.mcp
+  commit: 7c5187c55f5aec6315308505bd309c5d04a0e38e
+run:
+  volumes:
+    - "{{code-pathfinder.path|volume-target}}:/project"
+  allowHosts:
+    - assets.codepathfinder.dev
+    - us.i.posthog.com
+config:
+  description: Select the project directory to analyze. Code Pathfinder will index the codebase and expose call graph, symbol search, and security analysis tools.
+  parameters:
+    type: object
+    properties:
+      path:
+        type: string
+        description: Path to the project directory to analyze
+        default: /Users/demo/project
+    required:
+      - path
