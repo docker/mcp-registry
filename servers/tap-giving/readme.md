@@ -1,1 +1,1 @@
-Docs: https://github.com/RyanShook/tap-giving-mcp
+Docs: https://github.com/Tap-Giving/tap-giving-mcp
