@@ -1,0 +1,71 @@
+name: pinot
+image: mcp/pinot
+type: server
+meta:
+  category: database
+  tags:
+    - database
+    - pinot
+    - apache-pinot
+    - startree
+    - olap
+    - analytics
+about:
+  title: Apache Pinot
+  description: Official StarTree server for Apache Pinot and StarTree Cloud. Explore tables, schemas and segments, run validated read-only SQL with paginated results, and preview-then-confirm schema and table-config changes.
+  icon: https://avatars.githubusercontent.com/u/76601333?s=200&v=4
+source:
+  project: https://github.com/startreedata/mcp-pinot
+  branch: v4.1.0
+  commit: cc246cc5684b1f9d2f4e2e580f770463708d819d
+config:
+  description: Configure the connection to your Pinot cluster
+  secrets:
+    - name: pinot.token
+      env: PINOT_TOKEN
+      example: <PINOT_OR_STARTREE_API_TOKEN>
+      required: false
+    - name: pinot.password
+      env: PINOT_PASSWORD
+      example: <PINOT_PASSWORD>
+      required: false
+  env:
+    - name: PINOT_CONTROLLER_URL
+      example: http://host.docker.internal:9000
+      value: "{{pinot.controller_url}}"
+    - name: PINOT_BROKER_URL
+      example: http://host.docker.internal:8000
+      value: "{{pinot.broker_url}}"
+    - name: PINOT_USERNAME
+      example: admin
+      value: "{{pinot.username}}"
+    - name: PINOT_DATABASE
+      example: default
+      value: "{{pinot.database}}"
+    - name: PINOT_USE_MSQE
+      example: "false"
+      value: "{{pinot.use_msqe}}"
+  parameters:
+    type: object
+    properties:
+      controller_url:
+        type: string
+        description: Pinot controller URL, used for table, schema and segment metadata
+      broker_url:
+        type: string
+        description: Pinot broker URL, used for SQL queries
+      username:
+        type: string
+        description: Username for basic auth (leave empty when using a token or no auth)
+      database:
+        type: string
+        description: Database name for multi-database clusters (leave empty for the default)
+      use_msqe:
+        type: string
+        description: Set to true to run queries on the multi-stage query engine
+        enum:
+          - "true"
+          - "false"
+    required:
+      - controller_url
+      - broker_url
