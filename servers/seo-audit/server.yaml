@@ -1,0 +1,58 @@
+name: seo-audit
+image: mcp/seo-audit
+type: server
+meta:
+  category: search
+  tags:
+    - seo
+    - search-console
+    - technical-seo
+    - crawler
+    - dataforseo
+about:
+  title: SEO Audit Console
+  description: |
+    The complete technical SEO audit at conversation speed — Google Search Console
+    history + a first-party crawl + on-demand DataForSEO, merged into one prioritised
+    audit inside Claude: 90+ checks ranked by recoverable clicks, paste-ready fixes,
+    keyword and content-gap research, and AI-search readiness. From Houtini, the
+    consultancy that brings AI to the corporate table.
+
+    Google Search Console history is optional — mount a GSC service-account JSON at
+    /creds/gsc.json and set GOOGLE_APPLICATION_CREDENTIALS to enable it; the crawl and
+    DataForSEO features work without it.
+  icon: https://www.google.com/s2/favicons?domain=houtini.com&sz=64
+source:
+  project: https://github.com/houtini-ai/seo-audit
+  commit: 7a0c1001ad382b5b4eaeac096c6b8b1914496225
+run:
+  volumes:
+    - "{{seo-audit.data_path}}:/data"
+config:
+  description: >
+    DataForSEO powers keyword and SERP data (paid); Firecrawl and Majestic are
+    optional enrichment. The audit store persists to a host directory you choose.
+  parameters:
+    type: object
+    properties:
+      data_path:
+        type: string
+        description: Host directory for the local SQLite audit store (persists between runs).
+    required:
+      - data_path
+  env:
+    - name: SAC_DATA_DIR
+      value: /data
+  secrets:
+    - name: dataforseo.username
+      env: DATAFORSEO_USERNAME
+      example: you@example.com
+    - name: dataforseo.password
+      env: DATAFORSEO_PASSWORD
+      example: your_dataforseo_password
+    - name: firecrawl.api_key
+      env: FIRECRAWL_API_KEY
+      example: fc-xxxxxxxxxxxxxxxx
+    - name: majestic.api_key
+      env: MAJESTIC_API_KEY
+      example: your_majestic_key
