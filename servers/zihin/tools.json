@@ -1,1716 +1,3172 @@
 [
   {
-    "name": "whoami",
-    "description": "Identifica o tenant, role e plano da sessão MCP atual. Use para confirmar em qual organização e com qual nível de acesso você está conectado."
-  },
-  {
-    "name": "list_published_agents",
-    "description": "Lista agentes disponíveis para conversa. Retorna apenas agentes publicados do tenant."
-  },
-  {
-    "name": "list_agent_sessions",
-    "description": "Lista conversas recentes com um agente. Para usuários finais (role member), retorna apenas as próprias sessões; operadores (admin/editor/owner) veem as do tenant.",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente"
-      },
-      {
-        "name": "limit",
-        "type": "integer",
-        "desc": "Limite de resultados (default: 20, max: 100)"
-      },
-      {
-        "name": "offset",
-        "type": "integer",
-        "desc": "Offset para paginação"
-      },
-      {
-        "name": "control_mode",
-        "type": "string",
-        "desc": "Filtra por modo de controle da sessão (Sprint 72)"
-      },
-      {
-        "name": "consumer_key",
-        "type": "string",
-        "desc": "Filtra pelas sessões de um consumidor específico"
-      },
-      {
-        "name": "roots_only",
-        "type": "boolean",
-        "desc": "true = só sessões raiz (exclui sessões de subagentes, #227)"
-      }
-    ]
-  },
-  {
-    "name": "get_session_history",
-    "description": "Retorna o histórico de mensagens de uma conversa. Filtra mensagens técnicas (tool calls) e retorna apenas interações user/assistant.",
+    "name": "archive_session",
+    "description": "Archive a conversation (leaves the active list; reversible)",
     "arguments": [
       {
         "name": "session_id",
         "type": "string",
-        "desc": "ID da sessão (retornado por chat_with_agent ou list_agent_sessions)"
+        "desc": "Session session_id string or UUID"
       }
-    ]
+    ],
+    "annotations": {
+      "title": "Archive Session",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "attach_integration_credential",
+    "description": "Attach a credential from the company's own vault: `integration_id`, `secret_ref` (secret name; the `platform/` namespace is reserved) and `auth_kind` (`bearer`, `api_key`, `tunnel`). One credential per integration; it cannot be replaced afterwards",
+    "arguments": [
+      {
+        "name": "auth_kind",
+        "type": "string",
+        "desc": "Authentication method for the destination"
+      },
+      {
+        "name": "integration_id",
+        "type": "string",
+        "desc": "An integration owned by this tenant"
+      },
+      {
+        "name": "secret_ref",
+        "type": "string",
+        "desc": "Secret name in the tenant vault. The platform/ namespace is reserved."
+      }
+    ],
+    "annotations": {
+      "title": "Attach Integration Credential",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "cancel_agent_turn",
+    "description": "Cancel an in-progress agent turn (mid-LLM, mid-tool, mid-stream). Useful for loop runaway, off-target responses, or compliance stops. In multi-agent (sub-agent) sessions, propagates via `root_execution_id`",
+    "arguments": [
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": "Target session_id string or UUID"
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional cancellation reason recorded in the operation audit log",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Cancel Agent Turn",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "cancel_process_instance",
+    "description": "Cancel a running process instance. Returns a `command_id` with status `received` — read the outcome with `get_process_command`",
+    "arguments": [
+      {
+        "name": "instance_id",
+        "type": "string",
+        "desc": "Process instance UUID"
+      },
+      {
+        "name": "reason_note",
+        "type": "string",
+        "desc": "Cancellation reason, recorded with the operator in the server audit log, not in the instance trail",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Cancel Process Instance",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
   },
   {
     "name": "chat_with_agent",
-    "description": "Envia uma mensagem a um agente e recebe a resposta completa (síncrono — sem streaming progressivo).\nO agente usa todas as tools configuradas (api_config, MCP externo).\n\nResposta inclui: response (texto), session_id (manter para contexto), tools_used (nomes), tool_calls (detalhes com name, duration_ms, success), execution_time_ms, model_used, execution_id (correlação com get_execution_diagnostics).\noutcome nomeia o desfecho real do turno (COMPLETED, LENGTH, CANCELLED, PAUSED, BUDGET_EXCEEDED, QUOTA_EXCEEDED, SESSION_BUSY, TIMEOUT ou ERROR); success só é true para COMPLETED e LENGTH (resposta cortada pelo teto de saída, mas entregue) — não confie só em success===true sem checar outcome se precisar distinguir bloqueio de sucesso pleno.\noutcome TIMEOUT com resposta = a chamada ao modelo passou do tempo; vem com timed_out: true e timeout_clock (first_signal = o provedor não começou a responder; idle = parou no meio; call = a chamada sem stream passou do teto). A resposta é a mensagem de falha do turno e o motivo fica na execução (get_execution_diagnostics).\nTurno que estoura o deadline do runtime retorna erro TURN_TIMEOUT com execution_id, session_id, timed_out: true e timeout_clock: turn — a execução fica registrada e a sessão pode ser retomada.\nConsumidor sob controle da plataforma (denylist do tenant, engajamento encerrado ou sessão suspensa) devolve { gated: true, gate, gate_action, response } SEM executar o agente — response é a mensagem fixa configurada, não saída do modelo.\n\nIMPORTANTE: use o session_id retornado nas próximas mensagens para manter o contexto da conversa — ou, em integrações, session_from (a sessão é derivada de campos e você não precisa guardar id).\n\nIntegrações (só key admin/owner; em editor/member os campos voltam em ignored_fields): context = dados do sistema de origem que o agente LÊ (vão junto da mensagem, nunca no system prompt); bindings = argumentos AUTORITATIVOS das tools (defaults_from_context / ${context.x}; nunca vão ao modelo nem ficam gravados); session_from = nomes de campos de context/bindings que definem a conversa (mesmo hash do webhook session_strategy derive). A resposta traz accepted_fields e ignored_fields.",
+    "description": "Send a message to a published agent. This executes the agent, consumes tokens and may cause external side effects. Reuse session_id for conversation context and client_message_id for idempotent retries. Shared admin/owner integrations must provide consumer_key to enable person-scoped memory. Returns response, execution/session identifiers, usage and structured blocks. See https://docs.zihin.ai/agents/invocation-contract.",
     "arguments": [
       {
         "name": "agent_id",
         "type": "string",
-        "desc": "UUID do agente"
+        "desc": "Agent UUID"
       },
       {
         "name": "message",
         "type": "string",
-        "desc": "Mensagem para enviar ao agente"
+        "desc": "Message to send to the agent"
       },
       {
-        "name": "session_id",
-        "type": "string",
-        "desc": "ID da sessão retornado por uma chamada anterior. Envie para manter contexto. Omita na primeira mensagem."
-      },
-      {
-        "name": "context",
-        "type": "object",
-        "desc": "Dados do sistema de origem que o agente lê (ex.: userName). Plano, só escalares, até 2000 caracteres. Vai junto da mensagem do usuário, nunca no system prompt. Chave com nome de segredo é redigida. Só key admin/owner."
+        "name": "attachments",
+        "type": "array",
+        "desc": "Attachments by bucket path only; URLs and base64 are not accepted. Available only to the person who owns the file, through a member key or personal OAuth. Other keys receive this field in ignored_fields.",
+        "optional": true,
+        "items": {
+          "type": "object"
+        }
       },
       {
         "name": "bindings",
         "type": "object",
-        "desc": "Argumentos autoritativos das tools (defaults_from_context / ${context.x}), ex.: idSolicitante. Nunca vão ao modelo nem ficam gravados. Só key admin/owner."
+        "desc": "Values injected into agent tool arguments through defaults_from_context or ${context.x}. Never sent to the model or stored. Requires an admin or owner key.",
+        "optional": true
+      },
+      {
+        "name": "client_message_id",
+        "type": "string",
+        "desc": "Client-generated UUID for 24-hour idempotency per agent and person/key. Reusing the same ID and message replays the response without execution; an active turn returns SESSION_BUSY; a different message returns IDEMPOTENCY_CONFLICT.",
+        "optional": true
+      },
+      {
+        "name": "consumer_channel",
+        "type": "string",
+        "desc": "Original consumer channel, such as whatsapp, email, web or api. Requires consumer_key and an admin/owner key. Lowercase free text; defaults to mcp. Distinct from the MCP transport.",
+        "optional": true
+      },
+      {
+        "name": "consumer_display_name",
+        "type": "string",
+        "desc": "Display name for consumer_key. Requires consumer_key and an admin/owner key. Updates the profile and current conversation; completed conversations retain their historical name.",
+        "optional": true
+      },
+      {
+        "name": "consumer_key",
+        "type": "string",
+        "desc": "Identity of the person represented by the message, such as an external user ID or digits-only phone number. Scopes personal memory and engagement. Only admin/owner keys may declare it; editor keys ignore it, while member keys and personal OAuth already identify their person. Without it, operator keys run without memory. Reusing another person's session_id returns CONFLICT; omit it for a new conversation. A session without an identity adopts the first declared identity and remains bound to it.",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "object",
+        "desc": "Source-system data available to the agent (for example, userName). Flat scalar values only, up to 2000 characters. Sent with the user message, never in the system prompt. Secret-named fields are redacted. Requires an admin or owner key.",
+        "optional": true
+      },
+      {
+        "name": "metadata",
+        "type": "object",
+        "desc": "Opaque correlation metadata, such as trace_id. Never sent to the model; stored with secret redaction in the execution. list_executions can filter trace_id. Flat scalars only, at most 20 keys and 4 KB.",
+        "optional": true
       },
       {
         "name": "session_from",
         "type": "array",
-        "desc": "Nomes de campos de context/bindings que definem a conversa (ex.: [\"hashFornecedor\"]). A sessão é criada na 1ª vez e reaproveitada — mesmo hash do webhook (session_strategy derive). Não combine com session_id. Só key admin/owner."
+        "desc": "Names of context/bindings fields defining the conversation, for example [\"customerId\"]. Creates a session on first use and reuses the same derived identity. Do not combine with session_id. Requires an admin or owner key.",
+        "optional": true,
+        "items": {
+          "type": "string"
+        }
       },
       {
-        "name": "metadata",
-        "type": "object",
-        "desc": "Dados opacos de correlação (ex.: trace_id). Nunca vão ao modelo; gravados (redigidos) em agent_executions.metadata — consultáveis por trace_id. Objeto plano de escalares, até 20 chaves e 4 KB."
-      },
-      {
-        "name": "consumer_key",
+        "name": "session_id",
         "type": "string",
-        "desc": "Identidade do consumidor final em nome de quem a mensagem é enviada (ex.: id do usuário no seu sistema, telefone só-dígitos). Escopa memória e controle de engajamento por pessoa. Sem ela, integrações com key admin/owner rodam SEM memória (falha fechada, doc 38 D5). Keys de papel member já identificam a pessoa e NÃO podem falar por outra. Key de papel editor: o campo é IGNORADO. Sob admin/owner a identidade é DECLARADA: reusar o session_id de OUTRA pessoa é recusado com code CONFLICT (omita o session_id para abrir uma conversa nova); uma conversa que ainda não tem identidade é ADOTADA pela primeira declaração e fica travada nela."
+        "desc": "Session ID from a previous call. Reuse it to retain conversation context; omit for the first message.",
+        "optional": true
+      },
+      {
+        "name": "timeout_ms",
+        "type": "number",
+        "desc": "Requested turn deadline in milliseconds; can only shorten the channel deadline. Values below 1000 are ignored and reported in ignored_fields. Expiry returns TIMEOUT/TURN_TIMEOUT.",
+        "optional": true
       }
-    ]
+    ],
+    "annotations": {
+      "title": "Chat With Agent",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
   },
   {
-    "name": "get_consumer_profile",
-    "description": "Retorna o perfil agregado de um consumidor (cross-session, cross-agent). Inclui display_name, canais usados, # de sessões, # de turns, lista de agentes que já interagiram, flags de produto e timestamps.",
-    "arguments": [
-      {
-        "name": "consumer_key",
-        "type": "string",
-        "desc": "Identificador do consumer (WaId/idUsuario/email normalizado). Mesmo valor de agent_sessions.consumer_key."
-      }
-    ]
-  },
-  {
-    "name": "list_consumers",
-    "description": "Lista paginada de consumidores do tenant atual, ordenada por mais recentes (last_seen_at desc). Útil pra dashboards \"consumers ativos\" ou ranking.",
-    "arguments": [
-      {
-        "name": "limit",
-        "type": "integer",
-        "desc": "Máximo de registros (até 100)"
-      },
-      {
-        "name": "offset",
-        "type": "integer",
-        "desc": "Offset de paginação"
-      },
-      {
-        "name": "search",
-        "type": "string",
-        "desc": "Substring case-insensitive em display_name ou consumer_key (até 80 chars, sanitizado)"
-      },
-      {
-        "name": "blocked",
-        "type": "boolean",
-        "desc": "true = só denylisted, false = só não-denylisted, omit = todos"
-      }
-    ]
-  },
-  {
-    "name": "list_consumer_sessions",
-    "description": "Lista as sessões de um consumidor específico (cross-agent, ordenadas por mais recentes). Complementa get_consumer_profile (que retorna só contadores agregados).",
-    "arguments": [
-      {
-        "name": "consumer_key",
-        "type": "string",
-        "desc": "Identificador do consumer (mesmo de agent_sessions.consumer_key)"
-      },
-      {
-        "name": "limit",
-        "type": "integer",
-        "desc": "Máximo de registros (até 100)"
-      },
-      {
-        "name": "offset",
-        "type": "integer",
-        "desc": "Offset de paginação"
-      }
-    ]
-  },
-  {
-    "name": "send_manual_message",
-    "description": "Envia uma mensagem manual ao consumer pelo MESMO canal outbound do agente (Twilio/Meta/webhook), sem invocar LLM e sem consumir quota. Útil quando atendimento humano assumiu uma sessão (use combinado com set_session_control mode=manual_handoff). Mensagem é gravada no conversation_history com metadata.author=human (F4) — assim o agente NÃO aprende a imitar esse padrão se reassumir. ENVIO ÚNICO: a mesma mensagem para a mesma sessão dentro de 60s é deduplicada (reenvio da tool call NÃO entrega 2x; a resposta vem com idempotent_replay=true). Para controlar a janela, passe idempotency_key — a mesma chave é aceita pelo REST POST /api/v1/sessions/:id/manual-message (header Idempotency-Key).",
+    "name": "clear_session",
+    "description": "Irreversibly clear conversation history while preserving the conversation record. Returns SESSION_BUSY during an active turn or SERVICE_UNAVAILABLE when the delivery lock is unavailable. Requires the HTTP backend.",
     "arguments": [
       {
         "name": "session_id",
         "type": "string",
-        "desc": "session_id text (ou UUID id) da sessão"
-      },
-      {
-        "name": "message",
-        "type": "string",
-        "desc": "Texto da mensagem manual a enviar"
-      },
-      {
-        "name": "idempotency_key",
-        "type": "string",
-        "desc": "Chave de idempotência opcional (1–200 chars). Sem ela, a chave é derivada do texto da mensagem com janela de 60s."
+        "desc": "Session session_id string or UUID"
       }
-    ]
-  },
-  {
-    "name": "cancel_agent_turn",
-    "description": "Cancela um turn de agente EM ANDAMENTO (mid-LLM, mid-tool, mid-stream). Útil quando agente entrou em loop caro, está respondendo errado, ou consumer pediu para parar. Diferente de set_session_control(suspended) que só bloqueia próximo turn — aqui interrompe o que já executa. Em multi-agent (Sprint 63), cancelar parent propaga em cascata via root_execution_id pra sub-agentes ativos.",
-    "arguments": [
-      {
-        "name": "session_id",
-        "type": "string",
-        "desc": "session_id text (ou UUID id) da sessão alvo"
-      },
-      {
-        "name": "reason",
-        "type": "string",
-        "desc": "Motivo opcional do cancel (audit/telemetria)"
-      }
-    ]
-  },
-  {
-    "name": "set_session_control",
-    "description": "Define o modo de controle de uma sessão específica (engaged | suspended | manual_handoff). Quando != engaged, o gate sessionControlGate curto-circuita o agent loop sem consumir quota. Use suspended pra pausar; manual_handoff pra sinalizar que atendimento humano assumiu. Com expires_at a pausa é temporária: no prazo a sessão volta sozinha para engaged.",
-    "arguments": [
-      {
-        "name": "session_id",
-        "type": "string",
-        "desc": "session_id text (ou UUID id) da sessão"
-      },
-      {
-        "name": "mode",
-        "type": "string",
-        "desc": "engaged = volta ao normal; suspended = pausa; manual_handoff = humano assumiu"
-      },
-      {
-        "name": "reason",
-        "type": "string",
-        "desc": "Motivo opcional (audit/telemetria)"
-      },
-      {
-        "name": "message",
-        "type": "string",
-        "desc": "Canned message opcional. Vazia = ACK silencioso (default). Só aplicada quando mode != engaged."
-      },
-      {
-        "name": "expires_at",
-        "type": "string",
-        "desc": "Prazo opcional (ISO 8601 com fuso, ex.: 2026-10-05T12:00:00Z; no máximo 30 dias) para mode suspended/manual_handoff. No prazo a sessão volta para engaged sozinha. Omitido = sem prazo — e uma nova chamada sem expires_at APAGA o prazo anterior (repita o prazo para só trocar a mensagem)."
-      }
-    ]
-  },
-  {
-    "name": "set_consumer_denylist",
-    "description": "Adiciona ou remove um consumidor do denylist universal do tenant (flag do_not_contact). Quando ativo, todas as mensagens desse consumer são bypassadas pelo Consumer Denylist Gate (sem invocação de LLM/Whisper, sem consumo de quota). Cross-agent — bloqueia em TODOS os agentes do tenant.",
-    "arguments": [
-      {
-        "name": "consumer_key",
-        "type": "string",
-        "desc": "Identificador do consumer (mesmo de agent_sessions.consumer_key)."
-      },
-      {
-        "name": "blocked",
-        "type": "boolean",
-        "desc": "true = adiciona ao denylist; false = remove."
-      },
-      {
-        "name": "reason",
-        "type": "string",
-        "desc": "Motivo opcional do bloqueio (audit/telemetria). Apenas usado quando blocked=true."
-      },
-      {
-        "name": "message",
-        "type": "string",
-        "desc": "Mensagem canned opcional a ser entregue ao consumer ao tentar interagir. Vazia = ACK silencioso (default). Apenas usado quando blocked=true."
-      }
-    ]
-  },
-  {
-    "name": "list_agents",
-    "description": "Lista todos os agentes do tenant. Retorna id, nome, status, tipo e metadados.",
-    "arguments": [
-      {
-        "name": "status",
-        "type": "string",
-        "desc": "Filtrar por status"
-      },
-      {
-        "name": "type",
-        "type": "string",
-        "desc": "Filtrar por tipo (ex: assistant, chatbot)"
-      },
-      {
-        "name": "include_archived",
-        "type": "boolean",
-        "desc": "Incluir agentes arquivados"
-      },
-      {
-        "name": "include_unpublished",
-        "type": "boolean",
-        "desc": "Incluir agentes despublicados (publicação inativa no tenant). Use para encontrar um agente que sumiu da lista após unpublish e republicá-lo."
-      }
-    ]
-  },
-  {
-    "name": "get_agent",
-    "description": "Retorna detalhes completos de um agente, incluindo schemas, triggers e configurações.",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente"
-      }
-    ]
-  },
-  {
-    "name": "create_agent",
-    "description": "Cria um novo agente. Retorna o agente criado com seu UUID.",
-    "arguments": [
-      {
-        "name": "name",
-        "type": "string",
-        "desc": "Nome interno do agente"
-      },
-      {
-        "name": "commercial_name",
-        "type": "string",
-        "desc": "Nome comercial (exibido ao usuário final)"
-      },
-      {
-        "name": "bio",
-        "type": "string",
-        "desc": "Descrição/biografia do agente"
-      },
-      {
-        "name": "type",
-        "type": "string",
-        "desc": "Tipo do agente (orchestrator = invoca outros agentes via invoke_agent)"
-      },
-      {
-        "name": "tags",
-        "type": "array",
-        "desc": "Tags para categorização"
-      },
-      {
-        "name": "visibility",
-        "type": "string",
-        "desc": "Visibilidade do agente"
-      },
-      {
-        "name": "llm_config",
-        "type": "object",
-        "desc": "Configuração do LLM. model: \"provider.modelo\" (ex: \"openai.gpt-4.1-nano\", \"anthropic.claude-sonnet-4-6\") ou \"auto\". temperature: 0-2. fallback_chain: cadeia de modelos ordenada."
-      },
-      {
-        "name": "metadata",
-        "type": "object",
-        "desc": "Metadados adicionais em JSON livre. Ex: { \"department\": \"vendas\", \"priority\": \"high\" }"
-      }
-    ]
-  },
-  {
-    "name": "update_agent",
-    "description": "Atualiza campos de um agente existente. Envia apenas os campos que deseja alterar.",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente a atualizar"
-      },
-      {
-        "name": "name",
-        "type": "string",
-        "desc": "Novo nome interno"
-      },
-      {
-        "name": "commercial_name",
-        "type": "string",
-        "desc": "Novo nome comercial"
-      },
-      {
-        "name": "bio",
-        "type": "string",
-        "desc": "Nova descrição/biografia"
-      },
-      {
-        "name": "type",
-        "type": "string",
-        "desc": "Novo tipo"
-      },
-      {
-        "name": "tags",
-        "type": "array",
-        "desc": "Novas tags"
-      },
-      {
-        "name": "visibility",
-        "type": "string",
-        "desc": "Nova visibilidade"
-      },
-      {
-        "name": "llm_config",
-        "type": "object",
-        "desc": "Nova configuração do LLM. model: \"provider.modelo\" ou \"auto\". temperature: 0-2. fallback_chain: cadeia de fallback."
-      },
-      {
-        "name": "metadata",
-        "type": "object",
-        "desc": "Novos metadados em JSON livre"
-      },
-      {
-        "name": "chat_enabled",
-        "type": "boolean",
-        "desc": "Habilita/desabilita o agente no chat nativo (chat.zihin.ai). Gate por agente do canal chat — default false. Vive em tenant_agents, não no agente."
-      },
-      {
-        "name": "memory_enabled",
-        "type": "boolean",
-        "desc": "Liga/desliga a memória persistente do agente (tools save/recall/forget_memory + auto-recall). Default false. Contrato: docs/technical/MEMORY-CONTRACT.md."
-      },
-      {
-        "name": "engagement_control_enabled",
-        "type": "boolean",
-        "desc": "Carrega a tool core end_engagement: o agente pode encerrar o próprio engajamento com um consumidor (gate responde mensagem fixa sem LLM até expirar). Default false. Independente de memory_enabled."
-      },
-      {
-        "name": "quick_replies_enabled",
-        "type": "boolean",
-        "desc": "Permite a tool core suggest_replies (até 4 chips de resposta rápida ao fim do turno). Só vale onde o canal renderiza: chat nativo ou integração /stream que declara capabilities.blocks=[\"quick_replies\"]. Default true. Desligue para economizar a chamada extra ao modelo."
-      }
-    ]
-  },
-  {
-    "name": "delete_agent",
-    "description": "Arquiva um agente (soft delete). O agente pode ser restaurado depois.",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente a arquivar"
-      }
-    ]
+    ],
+    "annotations": {
+      "title": "Clear Session",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
   },
   {
     "name": "clone_agent",
-    "description": "Clona um agente existente com seus schemas. O clone é criado em status draft.\nTriggers podem ser clonados opcionalmente (desabilitados por padrão).\nSchemas inválidos geram warnings mas não bloqueiam a clonagem.",
+    "description": "Clone agent with schemas and optionally triggers",
     "arguments": [
       {
         "name": "agent_id",
         "type": "string",
-        "desc": "UUID do agente a clonar"
-      },
-      {
-        "name": "new_name",
-        "type": "string",
-        "desc": "Nome do clone (default: \"Cópia de <original>\")"
+        "desc": "UUID of the agent to clone"
       },
       {
         "name": "include_schemas",
         "type": "boolean",
-        "desc": "Clonar schemas do agente"
+        "desc": "Clone the agent schemas",
+        "optional": true
       },
       {
         "name": "include_triggers",
         "type": "boolean",
-        "desc": "Clonar triggers (serão criados desabilitados)"
+        "desc": "Clone triggers; cloned triggers are initially disabled",
+        "optional": true
+      },
+      {
+        "name": "new_name",
+        "type": "string",
+        "desc": "Clone name; omit to use the generated name",
+        "optional": true
       }
-    ]
-  },
-  {
-    "name": "publish_agent",
-    "description": "Publica ou despublica um agente para o tenant. Publicar torna o agente disponível para uso.",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente"
-      },
-      {
-        "name": "action",
-        "type": "string",
-        "desc": "Ação: publicar ou despublicar"
-      }
-    ]
-  },
-  {
-    "name": "list_schemas",
-    "description": "Lista todos os schemas (configurações) de um agente. Schemas definem persona, tools (API/DB/MCP), skills e workflow.",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente"
-      },
-      {
-        "name": "schema_type",
-        "type": "string",
-        "desc": "Filtrar por tipo de schema"
-      },
-      {
-        "name": "include_inactive",
-        "type": "boolean",
-        "desc": "Incluir schemas desativados"
-      }
-    ]
-  },
-  {
-    "name": "get_schema",
-    "description": "Retorna detalhes completos de um schema, incluindo schema_data.",
-    "arguments": [
-      {
-        "name": "schema_id",
-        "type": "string",
-        "desc": "UUID do schema"
-      }
-    ]
-  },
-  {
-    "name": "create_schema",
-    "description": "Cria um novo schema para um agente. O schema_data varia conforme o tipo:\n- persona_config: { editor_schema: { persona: { role, objective, tone, language, expertise, constraints, personality_traits, custom_guidelines } } }\n- api_config: { tool_definition, editor_schema } — ATENÇÃO: endpoint.name DEVE ser igual a tool_definition.name. editor_schema.api.timeout_ms (1000-120000, default 30000) é a fonte única do quanto esperar: alimenta o AbortSignal do fetch e o teto do executor (doc loop-review/34 F1).\n- workflow_config: { steps, transitions, conditions }\n- skill_config: { skill: { name, instructions, priority? } } — instruções comportamentais transversais\n- mcp_tool_config / mcp_resource_config: vínculo de tool/resource de MCP server (normalmente gerados pelo Builder)\nTriggers e CSPs NÃO são schemas: use create_trigger e create_csp.\n\nWORKFLOW RECOMENDADO (evita erros de contrato): leia o resource zihin://schemas/{schema_type} (JSON Schema formal — o mesmo que o servidor valida), monte o schema_data, valide com validate_schema_data (dry-run), então crie.",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente"
-      },
-      {
-        "name": "name",
-        "type": "string",
-        "desc": "Sem efeito (legado): schema não tem nome próprio. O nome que vale fica dentro de schema_data (ex.: tool_definition.name, skill.name)."
-      },
-      {
-        "name": "schema_type",
-        "type": "string",
-        "desc": "Tipo do schema"
-      },
-      {
-        "name": "schema_data",
-        "type": "object",
-        "desc": "Dados do schema. Estrutura por tipo:\n\nPERSONA_CONFIG: { editor_schema: { persona: { role: string (obrigatório, minLength 3), objective: string (obrigatório, minLength 10), tone?: string, language?: string, expertise?: string[], constraints?: string[], personality_traits?: string[], custom_guidelines?: object, response_style?: { format?: string, rules?: string[], max_response_length?: number } } } }\n\nAPI_CONFIG: { tool_definition: { name: string (snake_case), description: string (min 20 chars), input_schema: { type: \"object\", required: string[], properties: { campo: { type, description } } } }, editor_schema: { api: { base_url: string (URL), endpoints: [{ name: string (DEVE ser igual a tool_definition.name), method: \"GET\"|\"POST\"|\"PUT\"|\"DELETE\", path: string }], auth?: { prefix: \"Bearer\"|\"Basic\", secret_ref: string } } } }\n\nREGRAS CRÍTICAS para API_CONFIG:\n1. endpoint.name DEVE ser IGUAL a tool_definition.name (senão a tool falha no roteamento interno)\n2. Path parameters usam formato ${variavel} (com cifrão). Ex: /resources/${resource_id}/items\n3. Auth: usar \"prefix\" (não \"type\") no objeto auth. Ex: { \"prefix\": \"Bearer\", \"secret_ref\": \"MY_TOKEN\" }. Para Basic Auth, armazenar o secret já em base64\n4. Para input_schema com objetos aninhados (ex: body complexo com sub-objetos), definir cada campo como type \"object\" com suas próprias properties\n\nCAMPOS DE TRANSFORMAÇÃO (opcionais em cada endpoint):\n- default_body: { \"from\": \"noreply@x.com\" } — valores fixos mergeados no body (LLM pode sobrescrever, exceto locked_fields)\n- locked_fields: [\"from\"] — campos do default_body que o LLM NÃO pode sobrescrever (enforcement server-side)\n- field_mapping: { \"body\": \"html\" } — renomeia campos do body antes de enviar (body vira html)\n- array_fields: [\"to\", \"cc\"] — garante que esses campos sejam sempre arrays\n- body_format: \"array\" — wrappa o body inteiro em array [body] (default: \"object\")\n- defaults_from_context: { \"userId\": \"idUsuario\" } — auto-inject de valores do webhookContext quando LLM não fornece\n\nWORKFLOW_CONFIG: { steps: [{ id, name, action }], transitions: [{ from, to, condition }], conditions?: array }\n\nSKILL_CONFIG: { skill: { name: string (minLength 3), instructions: string (minLength 50, markdown com regras comportamentais), priority?: integer (0-1000, default 0, maior = aparece primeiro no prompt) } }\n\nContrato formal de cada tipo: resource zihin://schemas/{schema_type}. CSPs não são schemas — campos multi-agent (max_agent_depth, allowed_invoke_agents, child_timeout_ms) vivem em create_csp com policy_type=behavior."
-      },
-      {
-        "name": "description",
-        "type": "string",
-        "desc": "Descrição do schema"
-      }
-    ]
-  },
-  {
-    "name": "update_schema",
-    "description": "Atualiza os dados (schema_data) de um schema existente — o nome que vale fica dentro de schema_data. Fluxo seguro com mais de um editor: get_schema → use a `version` como base_version → update_schema (com changelog). Para api_config: endpoint.name DEVE ser igual a tool_definition.name. Para persona_config: usar formato { editor_schema: { persona: { role, objective, ... } } }.",
-    "arguments": [
-      {
-        "name": "schema_id",
-        "type": "string",
-        "desc": "UUID do schema a atualizar"
-      },
-      {
-        "name": "schema_data",
-        "type": "object",
-        "desc": "Novos dados do schema (mesma estrutura por tipo de create_schema). IMPORTANTE: enviar schema_data completo, não parcial — o objeto substitui o anterior por inteiro."
-      },
-      {
-        "name": "base_version",
-        "type": "integer",
-        "desc": "Recomendado. A `version` que você leu em get_schema. Se o schema mudou desde então (outra pessoa editou), nada é gravado e volta CONFLICT com a versão atual — releia e reaplique. Sem ele, a última escrita vence."
-      },
-      {
-        "name": "changelog",
-        "type": "string",
-        "desc": "Por que a mudança foi feita. Fica gravado na versão criada (list_versions/compare_versions)."
-      }
-    ]
-  },
-  {
-    "name": "delete_schema",
-    "description": "Desativa um schema (soft delete). O schema fica inativo mas pode ser reativado.",
-    "arguments": [
-      {
-        "name": "schema_id",
-        "type": "string",
-        "desc": "UUID do schema a desativar"
-      }
-    ]
-  },
-  {
-    "name": "list_triggers",
-    "description": "Lista todos os triggers do tenant. Triggers disparam execuções de agentes automaticamente.",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "Filtrar por agente específico"
-      },
-      {
-        "name": "trigger_type",
-        "type": "string",
-        "desc": "Filtrar por tipo de trigger"
-      },
-      {
-        "name": "enabled",
-        "type": "boolean",
-        "desc": "Filtrar por status (habilitado/desabilitado)"
-      }
-    ]
-  },
-  {
-    "name": "get_trigger",
-    "description": "Retorna detalhes completos de um trigger, incluindo configuração e estatísticas.",
-    "arguments": [
-      {
-        "name": "trigger_id",
-        "type": "string",
-        "desc": "UUID do trigger"
-      }
-    ]
-  },
-  {
-    "name": "create_trigger",
-    "description": "Cria um novo trigger para um agente. **Contrato autoritativo: resource zihin://schemas/trigger_config** (o mesmo JSON Schema que o servidor valida; envie apenas agent_id/name/trigger_type/trigger_config — tenant_id e ids são injetados pelo servidor). Use SOMENTE os enums abaixo — não invente valores como \"public\" para sender_access.mode. A configuração (trigger_config) depende do tipo:\n- webhook: { query_extraction: { field: \"chatInput\" }, response_adapter: { format: \"ebarn\"|\"slack\"|\"teams\"|\"twiml\"|\"raw\" }, context_mapping: {}, session_strategy: { mode: \"derive\"|\"ephemeral\", fields?: [] }, sender_access?: { mode: \"any\"|\"members\"|\"whitelist\", identity_field?, match_column?, whitelist? }, execution?: { mode: \"sync\"|\"async\", ack_response?: { body, content_type }, callback?: { url, method, content_type, auth: { type, secret_ref }, body_template, response_transform }, message_buffer?: { enabled, window_ms, max_messages, concat_separator }, split_config?: { enabled, max_chunk_size, max_chunks, chunk_strategy: \"paragraph\"|\"sentence\"|\"length\", numbering, inter_chunk_delay_ms } } }\n- email: { allowed_senders: [], subject_filter: \"\" }\n- schedule: { cron: \"0 9 * * *\", timezone: \"America/Sao_Paulo\", query_template: \"mensagem fixa\", enabled_days?: [\"monday\",\"friday\"], session_strategy?: { mode: \"new\" } (sessão nova a cada execução; é o único modo aceito para schedule), output?: { channel: \"silent\"|\"webhook\"|\"callback\"|\"user\" (user = SPEC D: entrega na sessão do chat nativo do usuário-alvo + push; exige target: { field: \"user_id\"|\"consumer_key\", value } e aceita push: { title, body }), webhook_url?: \"https://...\" (webhook), callback?: { url, method?, content_type?, auth?: { type, secret_ref }, body_template?, response_transform?: { strip_markdown, max_length } } (callback) } }\n\nresponse_adapter.format determina defaults automáticos de transform: twiml → strip_markdown=true, max_length=4096. Override via execution.callback.response_transform.\nsender_access controla quem pode acionar o webhook: \"any\" (default), \"members\" (tenant_users), \"whitelist\" (lista explícita).\nmessage_buffer agrupa mensagens rápidas (popcorn) em uma janela de debounce via Redis antes de executar o agente.\nsplit_config divide respostas longas em múltiplos chunks para canais com limite de tamanho (WhatsApp, SMS).",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente"
-      },
-      {
-        "name": "name",
-        "type": "string",
-        "desc": "Nome do trigger"
-      },
-      {
-        "name": "trigger_type",
-        "type": "string",
-        "desc": "Tipo de trigger"
-      },
-      {
-        "name": "description",
-        "type": "string",
-        "desc": "Descrição do trigger"
-      },
-      {
-        "name": "trigger_config",
-        "type": "object",
-        "desc": "Configuração do trigger. Estrutura por tipo:\n\nWEBHOOK: { query_extraction: { mode: \"field\"|\"full_body\", field?: string (default: \"message\") }, response_adapter: { format: \"ebarn\"|\"slack\"|\"teams\"|\"twiml\"|\"raw\", content_type?: string, max_length?: number }, context_mapping?: { campo: \"$.path.no.body\" }, session_strategy?: { mode: \"derive\"|\"ephemeral\", fields?: string[] }, sender_access?: { mode: \"any\"|\"members\"|\"whitelist\", identity_field?: string, match_column?: string, whitelist?: string[] }, execution?: { mode: \"sync\"|\"async\", ack_response?: { body: string|object, content_type: string }, callback?: { url: string, method: \"POST\"|\"PUT\"|\"PATCH\", content_type: string, auth: { type: \"basic\"|\"bearer\"|\"api_key\"|\"none\", secret_ref: string }, headers?: object, body_template: object|string, response_transform?: { strip_markdown: boolean, max_length: number } }, message_buffer?: { enabled: boolean, window_ms?: number (100-60000, default 5000), max_messages?: number (1-100, default 10), concat_separator?: string (default \"\\n\") }, split_config?: { enabled: boolean, max_chunk_size?: number (100-50000, default 1500), max_chunks?: number (1-50, default 10), chunk_strategy?: \"paragraph\"|\"sentence\"|\"length\" (default \"paragraph\"), numbering?: boolean (default true), inter_chunk_delay_ms?: number (0-10000, default 500) } } }\n\nSCHEDULE: { cron: string (ex: \"0 9 * * *\"), timezone?: string (default: \"America/Sao_Paulo\"), query_template: string (tarefa para o agente), enabled_days?: string[] (ex: [\"monday\",\"friday\"]), session_strategy?: { mode: \"new\" } (sessão nova a cada execução; é o único modo aceito para schedule), output?: { channel: \"silent\"|\"webhook\"|\"callback\"|\"user\" (default: \"silent\"; user = SPEC D: entrega na sessão do chat nativo + push, exige target: { field: \"user_id\"|\"consumer_key\", value }), webhook_url?: string (se channel=webhook), callback?: { url, method?, content_type?, auth?: { type, secret_ref }, body_template?, response_transform?: { strip_markdown?, max_length? } } (se channel=callback) } } — memory_config é REJEITADO pelo servidor (doc loop-review/38, onda 3): o resultado do schedule é entregue como MENSAGEM, use output.channel=\"user\"|\"callback\"|\"webhook\"\n\nEMAIL: { allowed_senders: string[], subject_filter?: string }"
-      },
-      {
-        "name": "api_key_id",
-        "type": "string",
-        "desc": "UUID da API Key para execução autenticada"
-      }
-    ]
-  },
-  {
-    "name": "update_trigger",
-    "description": "Atualiza um trigger existente. Envia apenas os campos que deseja alterar.",
-    "arguments": [
-      {
-        "name": "trigger_id",
-        "type": "string",
-        "desc": "UUID do trigger a atualizar"
-      },
-      {
-        "name": "name",
-        "type": "string",
-        "desc": "Novo nome"
-      },
-      {
-        "name": "description",
-        "type": "string",
-        "desc": "Nova descrição"
-      },
-      {
-        "name": "trigger_config",
-        "type": "object",
-        "desc": "Nova configuração do trigger (mesma estrutura por tipo de create_trigger)"
-      },
-      {
-        "name": "api_key_id",
-        "type": "string",
-        "desc": "Nova API Key para execução"
-      }
-    ]
-  },
-  {
-    "name": "delete_trigger",
-    "description": "Remove um trigger permanentemente. Esta ação não pode ser desfeita.",
-    "arguments": [
-      {
-        "name": "trigger_id",
-        "type": "string",
-        "desc": "UUID do trigger a remover"
-      }
-    ]
-  },
-  {
-    "name": "toggle_trigger",
-    "description": "Habilita ou desabilita um trigger. Triggers desabilitados não disparam execuções.",
-    "arguments": [
-      {
-        "name": "trigger_id",
-        "type": "string",
-        "desc": "UUID do trigger"
-      },
-      {
-        "name": "enabled",
-        "type": "boolean",
-        "desc": "true para habilitar, false para desabilitar"
-      }
-    ]
-  },
-  {
-    "name": "list_trigger_executions",
-    "description": "Lista execuções de um trigger com paginação. Retorna histórico de execuções incluindo status, tempos e tokens.",
-    "arguments": [
-      {
-        "name": "trigger_id",
-        "type": "string",
-        "desc": "UUID do trigger"
-      },
-      {
-        "name": "limit",
-        "type": "integer",
-        "desc": "Limite de resultados (default: 20, max: 100)"
-      },
-      {
-        "name": "offset",
-        "type": "integer",
-        "desc": "Offset para paginação"
-      }
-    ]
-  },
-  {
-    "name": "get_trigger_execution",
-    "description": "Retorna detalhes enriquecidos de uma execução: session correlacionada, chamadas LLM, tool calls e métricas agregadas.",
-    "arguments": [
-      {
-        "name": "execution_id",
-        "type": "string",
-        "desc": "UUID da execução"
-      }
-    ]
-  },
-  {
-    "name": "get_session_trigger_context",
-    "description": "Navegação reversa: a partir de um session_id, retorna o trigger e a execução que originaram a sessão. Retorna has_trigger: false se a sessão não veio de trigger.",
-    "arguments": [
-      {
-        "name": "session_id",
-        "type": "string",
-        "desc": "session_id da sessão"
-      }
-    ]
-  },
-  {
-    "name": "list_mcp_servers",
-    "description": "Lista os MCP servers vinculados a um agente. MCP servers conectam o agente a tools externas.",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente"
-      },
-      {
-        "name": "status",
-        "type": "string",
-        "desc": "Filtrar por status"
-      }
-    ]
-  },
-  {
-    "name": "get_mcp_server",
-    "description": "Retorna detalhes completos de um MCP server, incluindo configuração e capabilities.",
-    "arguments": [
-      {
-        "name": "mcp_server_id",
-        "type": "string",
-        "desc": "UUID do MCP server"
-      }
-    ]
-  },
-  {
-    "name": "create_mcp_server",
-    "description": "Registra um novo MCP server para um agente. O agente poderá usar as tools expostas pelo server.\n\nTransports: 'http' (Streamable HTTP; era do protocolo negociada automaticamente), 'stdio' (local, apenas dev). O 'sse' legado foi descontinuado (migração MCP 2026-07-28).\n\nCombinações auth_method + config:\n- none: config vazio {} (sem autenticação)\n- bearer: { vault_secret_id: \"NOME_DO_SECRET\" } — o secret contém o token Bearer\n- api_key: { vault_secret_id: \"NOME_DO_SECRET\", api_key_header: \"X-Api-Key\" } — header customizável\n- tunnel: config vazio {} — token da plataforma resolvido via env var INTERNAL_TUNNEL_TOKEN (não vault). Usar para MCP servers via Zihin Tunnel\n- oauth: { vault_secret_id: \"OAUTH_CREDS\", oauth_token_url: \"https://...\" } — OAuth2 client credentials\n\nCampos opcionais em config: timeout (ms, 1000-120000 — só CONEXÃO + listagem de tools), call_timeout_ms (ms, 1000-120000 — timeout por CHAMADA de tool deste server; omitido = 30s global; alimenta também o teto do executor — doc loop-review/34 F1; retry de timeout é opt-in, não default), headers (object com headers extras), defaults_from_context (object com valores fixos injetados nas tools). Contrato: zihin://schemas/mcp_resource_config.",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente"
-      },
-      {
-        "name": "name",
-        "type": "string",
-        "desc": "Nome do MCP server"
-      },
-      {
-        "name": "endpoint",
-        "type": "string",
-        "desc": "URL do endpoint ou comando stdio"
-      },
-      {
-        "name": "description",
-        "type": "string",
-        "desc": "Descrição do server"
-      },
-      {
-        "name": "transport",
-        "type": "string",
-        "desc": "Tipo de transporte"
-      },
-      {
-        "name": "auth_method",
-        "type": "string",
-        "desc": "Método de autenticação"
-      },
-      {
-        "name": "config",
-        "type": "object",
-        "desc": "Configuração adicional (vault_secret_id, headers, timeout de conexão, call_timeout_ms por chamada de tool)"
-      }
-    ]
-  },
-  {
-    "name": "update_mcp_server",
-    "description": "Atualiza configuração de um MCP server existente.",
-    "arguments": [
-      {
-        "name": "mcp_server_id",
-        "type": "string",
-        "desc": "UUID do MCP server"
-      },
-      {
-        "name": "name",
-        "type": "string",
-        "desc": "Novo nome"
-      },
-      {
-        "name": "endpoint",
-        "type": "string",
-        "desc": "Novo endpoint"
-      },
-      {
-        "name": "description",
-        "type": "string",
-        "desc": "Nova descrição"
-      },
-      {
-        "name": "transport",
-        "type": "string",
-        "desc": "Novo tipo de transporte"
-      },
-      {
-        "name": "auth_method",
-        "type": "string",
-        "desc": "Novo método de autenticação"
-      },
-      {
-        "name": "config",
-        "type": "object",
-        "desc": "Nova configuração"
-      },
-      {
-        "name": "status",
-        "type": "string",
-        "desc": "Novo status"
-      }
-    ]
-  },
-  {
-    "name": "delete_mcp_server",
-    "description": "Remove um MCP server de um agente. As tools do server deixam de estar disponíveis.",
-    "arguments": [
-      {
-        "name": "mcp_server_id",
-        "type": "string",
-        "desc": "UUID do MCP server a remover"
-      }
-    ]
-  },
-  {
-    "name": "test_mcp_server",
-    "description": "Testa a conectividade de um MCP server externo com handshake REAL do protocolo (negociação de era) e listagem de tools. Retorna era/versão do protocolo, latência, tools disponíveis e classe de erro em falha.\nUse para diagnosticar problemas de conexão, auth, endpoint offline ou incompatibilidade de protocolo.",
-    "arguments": [
-      {
-        "name": "mcp_server_id",
-        "type": "string",
-        "desc": "UUID do MCP server a testar"
-      }
-    ]
-  },
-  {
-    "name": "invalidate_mcp_cache",
-    "description": "Invalida o cache de tools MCP. Use quando:\n- Atualizou tools no MCP server externo e quer que o agente carregue as novas tools imediatamente\n- Um MCP server está com problemas e quer forçar reconexão\n- Quer limpar cache após alterar configuração de auth\nFunciona mesmo sem MCP Client ativo (reseta metadados no DB para forçar reconexão).\nSem parâmetros: invalida todo o cache do tenant. Com mcp_server_id: invalida apenas o server especificado.",
-    "arguments": [
-      {
-        "name": "mcp_server_id",
-        "type": "string",
-        "desc": "UUID do MCP server específico (omitir para invalidar todo o cache do tenant)"
-      }
-    ]
-  },
-  {
-    "name": "list_api_keys",
-    "description": "Lista todas as API Keys do tenant. Retorna id, nome, status, prefix, suffix, rate limit e estatísticas."
-  },
-  {
-    "name": "create_api_key",
-    "description": "Cria uma nova API Key para o tenant. Retorna a chave completa (visível apenas neste momento).\n\nPrefixes: zhn_live_ (produção), zhn_test_ (teste), zhn_dev_ (desenvolvimento). Diferença é semântica — mesmo comportamento.\nA chave gerada é exibida apenas uma vez — salve-a imediatamente.\n\nRoles: admin (todas as tools + endpoints REST), editor (leitura + consumer), member (consumer only). \"owner\" é exclusivo de contas de usuário (tenant_users), não disponível para API Keys. Anti-escalação: não é possível criar key com role superior ao seu.\n\nSe rate_limit_per_minute for omitido, usa o máximo do plano do tenant.",
-    "arguments": [
-      {
-        "name": "name",
-        "type": "string",
-        "desc": "Nome da API Key (ex: \"Webhook eBarn\", \"n8n Produção\")"
-      },
-      {
-        "name": "description",
-        "type": "string",
-        "desc": "Descrição do uso da chave"
-      },
-      {
-        "name": "prefix",
-        "type": "string",
-        "desc": "Prefixo da chave: zhn_live_ (produção), zhn_test_ (teste), zhn_dev_ (dev)"
-      },
-      {
-        "name": "rate_limit_per_minute",
-        "type": "number",
-        "desc": "Limite de requisições por minuto (validado contra plano do tenant)"
-      },
-      {
-        "name": "expires_in_days",
-        "type": "number",
-        "desc": "Dias até expiração (omitir para sem expiração)"
-      },
-      {
-        "name": "role",
-        "type": "string",
-        "desc": "Role RBAC: admin (todas as tools + REST), editor (consumer + builder-read), member (consumer only). Anti-escalação: não pode ser superior ao seu role"
-      }
-    ]
-  },
-  {
-    "name": "get_api_key",
-    "description": "Retorna detalhes completos de uma API Key específica: nome, status, role, rate limits, estatísticas de uso e tenant associado.",
-    "arguments": [
-      {
-        "name": "key_id",
-        "type": "string",
-        "desc": "UUID da API Key"
-      }
-    ]
-  },
-  {
-    "name": "update_api_key",
-    "description": "Atualiza o rate_limit_per_minute de uma API Key existente. O novo valor é validado contra o plano do tenant.\nEvita a necessidade de revogar e recriar a chave apenas para ajustar o RPM.",
-    "arguments": [
-      {
-        "name": "key_id",
-        "type": "string",
-        "desc": "UUID da API Key a atualizar"
-      },
-      {
-        "name": "rate_limit_per_minute",
-        "type": "number",
-        "desc": "Novo limite de requisições por minuto (validado contra plano do tenant)"
-      }
-    ]
-  },
-  {
-    "name": "delete_api_key",
-    "description": "Revoga uma API Key permanentemente. Triggers e webhooks que usam esta chave deixarão de funcionar.",
-    "arguments": [
-      {
-        "name": "key_id",
-        "type": "string",
-        "desc": "UUID da API Key a revogar"
-      }
-    ]
-  },
-  {
-    "name": "list_csps",
-    "description": "Lista todas as políticas de segurança (CSPs) do tenant. Filtrável por escopo, tipo e status.",
-    "arguments": [
-      {
-        "name": "scope",
-        "type": "string",
-        "desc": "Filtrar por escopo da política"
-      },
-      {
-        "name": "policy_type",
-        "type": "string",
-        "desc": "Filtrar por tipo de política"
-      },
-      {
-        "name": "is_active",
-        "type": "boolean",
-        "desc": "Filtrar por status ativo/inativo"
-      },
-      {
-        "name": "scope_target_id",
-        "type": "string",
-        "desc": "Filtrar por ID do alvo (agent_id, team_id, user_id)"
-      }
-    ]
-  },
-  {
-    "name": "get_csp",
-    "description": "Retorna detalhes completos de uma política de segurança, incluindo regras e exceções.",
-    "arguments": [
-      {
-        "name": "csp_id",
-        "type": "string",
-        "desc": "UUID da CSP"
-      }
-    ]
-  },
-  {
-    "name": "create_csp",
-    "description": "Cria uma nova política de segurança contextual (CSP).\n\nEscopos: tenant (global), team, agent, user — herança automática de cima para baixo.\nTipos: schedule (horários), behavior (comportamento), data (dados), origin (origens), custom.\n\n⚠️ Campo fora do contrato é ACEITO em silêncio (o schema permite propriedades extras) e fica INERTE.\nNão invente nome de campo: leia zihin://schemas/csp_config e use exatamente os de $defs.{tipo}Rules.\n\nExemplos de rules por tipo (todos os campos abaixo existem no contrato E são aplicados):\n- schedule: { allowed_hours: { start: \"08:00\", end: \"18:00\" }, allowed_days: [\"mon\",\"tue\",\"wed\",\"thu\",\"fri\"], blocked_dates: [\"2026-12-25\"], timezone: \"America/Sao_Paulo\" }\n- behavior: { max_tokens_per_request: 4096, max_iterations: 10, max_tool_calls: 20, must_not_tools: [\"web_search\",\"fetch_url\"] }\n- data: { sensitive_fields: [\"cpf\",\"email\"], never_expose: [\"password_hash\"], restricted_entities: [\"folha_pagamento\"], restriction_message: \"Não posso consultar esse dado.\" }\n- custom: qualquer shape — é passado ao prompt como bloco de política sem interpretação do runtime.\n\nControle de superfície de tools (behavior):\n- must_not_tools: nomes de tools que o agente NUNCA executa, mesmo carregadas. Filtrado antes do turno no runtime (inclusive no resume de HITL). É o único jeito de tirar uma tool nativa do agente sem desligar o recurso no tenant.\n\n⚠️ policy_type \"origin\" NÃO é aplicado em runtime: nenhum entrypoint propaga o IP/origem do cliente\naté o loop, e countries/vpn/tor exigem provedor de geo que a plataforma não integra. A CSP é aceita e\narmazenada, mas não bloqueia nada — não use como controle de segurança.\n\nContrato formal: resource zihin://schemas/csp_config (envie só name/policy_type/scope/rules/... — tenant_id é injetado pelo servidor).\n\nAprovação por escopo (OE-2a, só chat nativo) — campos de behavior:\n- require_approval_for: array de string (nome de tool) ou objetos { tool_name } | { mcp_server_id } | { source: \"mcp\"|\"api\"|\"db\" } — tools casadas exigem aprovação HITL antes de executar\n- approval_policy_id: UUID de política criada via create_approval_policy — define QUEM aprova (sem ela, aprova o próprio solicitante)\nEx: behavior: { require_approval_for: [\"create_deal\", { source: \"db\" }], approval_policy_id: \"<uuid>\" }",
-    "arguments": [
-      {
-        "name": "name",
-        "type": "string",
-        "desc": "Nome da política"
-      },
-      {
-        "name": "policy_type",
-        "type": "string",
-        "desc": "Tipo da política"
-      },
-      {
-        "name": "scope",
-        "type": "string",
-        "desc": "Escopo de aplicação"
-      },
-      {
-        "name": "scope_target_id",
-        "type": "string",
-        "desc": "ID do alvo (obrigatório para escopos team, agent, user)"
-      },
-      {
-        "name": "rules",
-        "type": "object",
-        "desc": "Regras da política (estrutura varia por tipo — veja descrição acima)"
-      },
-      {
-        "name": "exceptions",
-        "type": "object",
-        "desc": "Exceções às regras (mesma estrutura de rules, sobrescreve campos específicos)"
-      },
-      {
-        "name": "description",
-        "type": "string",
-        "desc": "Descrição da política"
-      },
-      {
-        "name": "priority",
-        "type": "number",
-        "desc": "Prioridade (maior = mais importante, default: 0)"
-      }
-    ]
-  },
-  {
-    "name": "update_csp",
-    "description": "Atualiza uma política de segurança existente. Envia apenas os campos que deseja alterar.\n\n⚠️ rules é SUBSTITUÍDO, não mesclado: reenvie os campos que quer manter. Campo fora do contrato é aceito em silêncio e fica inerte — confira em zihin://schemas/csp_config.\n\nCampos de behavior mais usados:\n- must_not_tools: blocklist de tools que o agente nunca executa (único controle de superfície de tools).\n- max_iterations / max_tool_calls / max_tokens_per_request: tetos de execução por turno.\n- require_approval_for + approval_policy_id: aprovação por escopo (OE-2a, só chat nativo — ver create_approval_policy).",
-    "arguments": [
-      {
-        "name": "csp_id",
-        "type": "string",
-        "desc": "UUID da CSP a atualizar"
-      },
-      {
-        "name": "name",
-        "type": "string",
-        "desc": "Novo nome"
-      },
-      {
-        "name": "rules",
-        "type": "object",
-        "desc": "Novas regras (substituem as anteriores por completo)"
-      },
-      {
-        "name": "exceptions",
-        "type": "object",
-        "desc": "Novas exceções"
-      },
-      {
-        "name": "description",
-        "type": "string",
-        "desc": "Nova descrição"
-      },
-      {
-        "name": "priority",
-        "type": "number",
-        "desc": "Nova prioridade"
-      }
-    ]
-  },
-  {
-    "name": "delete_csp",
-    "description": "Remove uma política de segurança permanentemente.",
-    "arguments": [
-      {
-        "name": "csp_id",
-        "type": "string",
-        "desc": "UUID da CSP a remover"
-      }
-    ]
-  },
-  {
-    "name": "toggle_csp",
-    "description": "Ativa ou desativa uma política de segurança. CSPs inativas não são aplicadas.",
-    "arguments": [
-      {
-        "name": "csp_id",
-        "type": "string",
-        "desc": "UUID da CSP"
-      }
-    ]
-  },
-  {
-    "name": "get_effective_csps",
-    "description": "Retorna as políticas efetivas para um contexto específico, considerando herança de escopos.\nA resolução segue: tenant → team → agent → user (mais específico sobrescreve).",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente para resolver CSPs no escopo agent"
-      },
-      {
-        "name": "team_id",
-        "type": "string",
-        "desc": "UUID do time para resolver CSPs no escopo team"
-      },
-      {
-        "name": "user_id",
-        "type": "string",
-        "desc": "UUID do usuário para resolver CSPs no escopo user"
-      }
-    ]
-  },
-  {
-    "name": "get_agent_full",
-    "description": "Retorna visão completa do agente: dados, schemas ativos, triggers, CSPs vinculadas e configuração de publicação.",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente"
-      }
-    ]
-  },
-  {
-    "name": "list_agent_tools",
-    "description": "Lista todas as ferramentas resolvidas de um agente (api_config + MCP tools + core tools).\nMostra o que o agente efetivamente terá disponível em runtime, com nome, descrição e parâmetros.",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente"
-      }
-    ]
-  },
-  {
-    "name": "validate_agent_schemas",
-    "description": "Valida todos os schemas de um agente. Verifica api_config (endpoints, auth).\nRetorna schemas válidos, inválidos e warnings — útil antes de publicar o agente.\nTambém cruza persona, skills e workflow com a SUPERFÍCIE EFETIVA de tools (tools carregadas menos must_not_tools da CSP): toda tool citada no texto que o agente não pode chamar vira warning em `surface.cited_outside` (reason blocked_by_csp ou not_in_surface). É o que evita o agente \"ensinar\" uma tool que a CSP bloqueou e responder \"ferramenta indisponível\" ao usuário.",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente a validar"
-      }
-    ]
-  },
-  {
-    "name": "get_agent_metrics",
-    "description": "Retorna métricas agregadas de um agente: chamadas LLM (calls, errors, success_rate, tokens, custo, latência p50/p95 — agregação em SQL, sem cap de linhas), uso de tools (amostra das últimas 2000 chamadas, com flag sample_truncated) e sessões.\nÚtil para monitorar performance e custos de um agente em produção. Para saúde de infra do tenant (erros sem agente), use get_tenant_health.",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente"
-      },
-      {
-        "name": "period",
-        "type": "string",
-        "desc": "Período de análise: 1d (último dia), 7d (última semana), 30d (último mês)"
-      }
-    ]
-  },
-  {
-    "name": "validate_schema_data",
-    "description": "Valida schema_data sem salvar (dry-run) — MESMA validação Ajv do create_schema/update_schema. Use SEMPRE antes de criar/atualizar schemas para evitar tentativa e erro.\nO contrato formal de cada tipo está no resource zihin://schemas/{schema_type}. Retorna erros, warnings e infos de validação.",
-    "arguments": [
-      {
-        "name": "schema_type",
-        "type": "string",
-        "desc": "Tipo do schema a validar (todos os tipos canônicos — trigger_config/csp_config são validados aqui mas criados via create_trigger/create_csp)"
-      },
-      {
-        "name": "schema_data",
-        "type": "object",
-        "desc": "Dados do schema a validar (mesma estrutura de create_schema)"
-      }
-    ]
-  },
-  {
-    "name": "toggle_schema",
-    "description": "Ativa ou desativa um schema sem deletá-lo. Schemas inativos não são carregados no runtime do agente.",
-    "arguments": [
-      {
-        "name": "schema_id",
-        "type": "string",
-        "desc": "UUID do schema"
-      }
-    ]
-  },
-  {
-    "name": "test_trigger",
-    "description": "Testa um trigger enviando um payload de exemplo. Executa o agente vinculado e retorna o resultado.\nÚtil para verificar se webhook, schedule ou email trigger estão configurados corretamente.\nATENÇÃO: executa o agente de verdade (não é dry-run), mas usa uma sessão temporária.",
-    "arguments": [
-      {
-        "name": "trigger_id",
-        "type": "string",
-        "desc": "UUID do trigger a testar"
-      },
-      {
-        "name": "test_payload",
-        "type": "object",
-        "desc": "Payload de teste. Para webhook: { \"chatInput\": \"mensagem teste\" }. Para schedule: omitir (usa query do cron)."
-      }
-    ]
-  },
-  {
-    "name": "get_execution_diagnostics",
-    "description": "Retorna trace de diagnóstico completo de uma execução: timeline cronológica de LLM calls e tool calls, com tokens, latência, modelo usado e finish_reason. Cada llm_call traz cached (tokens LIDOS do cache, com desconto) e cache_creation (tokens ESCRITOS no cache, cobrados a ~1,25× a entrada); summary.cache_creation_tokens soma a escrita do turno — sem esse campo o cost_usd parece não fechar com a tabela de preços (era a #344). execution.metadata traz a correlação que o caller do /stream mandou (trace_id, correlation_id…), ou null. Use o execution_id (campo id do agent_executions) ou root_execution_id retornado pelo chat_with_agent.",
-    "arguments": [
-      {
-        "name": "execution_id",
-        "type": "string",
-        "desc": "UUID da execução (id do agent_executions ou root_execution_id)"
-      }
-    ]
-  },
-  {
-    "name": "list_secrets",
-    "description": "Lista todos os secrets do tenant (sem expor valores).\nRetorna nome, categoria, descrição, uso e timestamps.\nUse o campo \"name\" como secret_ref em api_config."
-  },
-  {
-    "name": "create_secret",
-    "description": "Cria um novo secret criptografado para o tenant.\nO valor é criptografado com AES-256-GCM e armazenado no vault.\nIMPORTANTE: O valor plaintext não será retornado após criação — salve-o antes.\n\nApós criar, use o \"name\" como:\n- secret_ref em api_config auth (ex: \"ZIGMA_API_KEY\")\n- vault_secret_id em connection_config (ex: \"DB_PASSWORD_PROD\")",
-    "arguments": [
-      {
-        "name": "name",
-        "type": "string",
-        "desc": "Nome do secret (ex: \"ZIGMA_API_KEY\", \"DB_PASSWORD_PROD\"). Deve ser único por tenant."
-      },
-      {
-        "name": "value",
-        "type": "string",
-        "desc": "Valor plaintext a ser criptografado (ex: a API key, senha do banco)"
-      },
-      {
-        "name": "category",
-        "type": "string",
-        "desc": "Categoria do secret"
-      },
-      {
-        "name": "description",
-        "type": "string",
-        "desc": "Descrição do uso do secret"
-      },
-      {
-        "name": "usage_hint",
-        "type": "string",
-        "desc": "Dica de uso para desenvolvedores. Valores recomendados: \"bearer_token\", \"api_key\", \"password\", \"connection_string\", \"oauth_client\". Puramente informativo — não afeta comportamento."
-      }
-    ]
-  },
-  {
-    "name": "update_secret",
-    "description": "Atualiza o valor de um secret existente. O novo valor é criptografado e substitui o anterior.",
-    "arguments": [
-      {
-        "name": "name",
-        "type": "string",
-        "desc": "Nome do secret a atualizar"
-      },
-      {
-        "name": "value",
-        "type": "string",
-        "desc": "Novo valor plaintext"
-      },
-      {
-        "name": "description",
-        "type": "string",
-        "desc": "Nova descrição (opcional)"
-      }
-    ]
-  },
-  {
-    "name": "delete_secret",
-    "description": "Remove um secret permanentemente. ATENÇÃO: api_config que referenciam este secret deixarão de funcionar.",
-    "arguments": [
-      {
-        "name": "name",
-        "type": "string",
-        "desc": "Nome do secret a remover"
-      }
-    ]
-  },
-  {
-    "name": "list_versions",
-    "description": "Lista o histórico de versões de um recurso (agent, schema, trigger ou mcp_server). Cada versão registra uma alteração com before/after.",
-    "arguments": [
-      {
-        "name": "resource_type",
-        "type": "string",
-        "desc": "Tipo do recurso"
-      },
-      {
-        "name": "resource_id",
-        "type": "string",
-        "desc": "UUID do recurso"
-      },
-      {
-        "name": "limit",
-        "type": "integer",
-        "desc": "Limite de resultados (default: 20, max: 100)"
-      },
-      {
-        "name": "offset",
-        "type": "integer",
-        "desc": "Offset para paginação"
-      }
-    ]
-  },
-  {
-    "name": "get_version",
-    "description": "Retorna detalhes de uma versão específica de um recurso, incluindo dados before/after e campos alterados.",
-    "arguments": [
-      {
-        "name": "resource_type",
-        "type": "string",
-        "desc": "Tipo do recurso"
-      },
-      {
-        "name": "resource_id",
-        "type": "string",
-        "desc": "UUID do recurso"
-      },
-      {
-        "name": "version",
-        "type": "integer",
-        "desc": "Número da versão"
-      }
-    ]
+    ],
+    "annotations": {
+      "title": "Clone Agent",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
   },
   {
     "name": "compare_versions",
-    "description": "Compara duas versões de um recurso, mostrando diff campo a campo entre elas.",
+    "description": "Compare two recorded versions of a configuration resource and inspect their changes.",
     "arguments": [
       {
-        "name": "resource_type",
-        "type": "string",
-        "desc": "Tipo do recurso"
+        "name": "from_version",
+        "type": "integer",
+        "desc": "Source version, normally the older version"
       },
       {
         "name": "resource_id",
         "type": "string",
-        "desc": "UUID do recurso"
+        "desc": "Resource UUID"
       },
       {
-        "name": "from_version",
-        "type": "integer",
-        "desc": "Versão de origem (mais antiga)"
+        "name": "resource_type",
+        "type": "string",
+        "desc": "Resource type"
       },
       {
         "name": "to_version",
         "type": "integer",
-        "desc": "Versão de destino (mais recente)"
+        "desc": "Target version, normally the newer version"
       }
-    ]
+    ],
+    "annotations": {
+      "title": "Compare Versions",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
   },
   {
-    "name": "rollback_version",
-    "description": "Restaura um recurso individual para uma versão anterior. O trigger grava automaticamente a nova versão resultante do rollback.",
+    "name": "create_agent",
+    "description": "Create a draft agent and return its UUID. Add a persona with create_schema (persona_config), then publish_agent. Returns PLAN_LIMIT_REACHED when the tenant agent limit is reached. Read zihin://skills/criar-agente.",
     "arguments": [
       {
-        "name": "resource_type",
+        "name": "name",
         "type": "string",
-        "desc": "Tipo do recurso"
+        "desc": "Internal agent name"
       },
       {
-        "name": "resource_id",
+        "name": "bio",
         "type": "string",
-        "desc": "UUID do recurso"
+        "desc": "Agent description or biography",
+        "optional": true
       },
       {
-        "name": "target_version",
-        "type": "integer",
-        "desc": "Número da versão para restaurar"
+        "name": "commercial_name",
+        "type": "string",
+        "desc": "Display name shown to end users",
+        "optional": true
+      },
+      {
+        "name": "llm_config",
+        "type": "object",
+        "desc": "Model configuration. model uses provider.model or auto; temperature ranges from 0 to 2; fallback_chain is an ordered model list.",
+        "optional": true
+      },
+      {
+        "name": "metadata",
+        "type": "object",
+        "desc": "Additional JSON metadata, such as {\"department\":\"sales\",\"priority\":\"high\"}",
+        "optional": true
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "desc": "Categorization tags",
+        "optional": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "Agent type; orchestrator can invoke other agents through invoke_agent",
+        "optional": true
+      },
+      {
+        "name": "visibility",
+        "type": "string",
+        "desc": "Agent visibility",
+        "optional": true
       }
-    ]
+    ],
+    "annotations": {
+      "title": "Create Agent",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
   },
   {
-    "name": "list_agent_history",
-    "description": "Timeline completa de todas as alterações de um agente (schemas, triggers, MCP servers). Filtrável por tipo de recurso.",
+    "name": "create_api_key",
+    "description": "Create API Key with role (anti-escalation enforced)",
     "arguments": [
       {
-        "name": "agent_id",
+        "name": "name",
         "type": "string",
-        "desc": "UUID do agente"
+        "desc": "API key name, for example ERP Webhook or Production n8n"
       },
       {
-        "name": "resource_type",
+        "name": "description",
         "type": "string",
-        "desc": "Filtrar por tipo de recurso"
-      },
-      {
-        "name": "limit",
-        "type": "integer",
-        "desc": "Limite de resultados (default: 50)"
-      },
-      {
-        "name": "offset",
-        "type": "integer",
-        "desc": "Offset para paginação"
-      }
-    ]
-  },
-  {
-    "name": "list_snapshots",
-    "description": "Lista snapshots de publicação de um agente. Cada snapshot captura o estado completo no momento da publicação.",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente"
-      },
-      {
-        "name": "limit",
-        "type": "integer",
-        "desc": "Limite de resultados (default: 20)"
-      },
-      {
-        "name": "offset",
-        "type": "integer",
-        "desc": "Offset para paginação"
-      }
-    ]
-  },
-  {
-    "name": "get_snapshot",
-    "description": "Retorna detalhes completos de um snapshot de publicação, incluindo estado do agente, schemas, triggers e MCP servers.",
-    "arguments": [
-      {
-        "name": "snapshot_id",
-        "type": "string",
-        "desc": "UUID do snapshot"
-      }
-    ]
-  },
-  {
-    "name": "rollback_snapshot",
-    "description": "Restaura um agente completo para um snapshot de publicação anterior. Restaura agent, schemas, triggers e MCP servers.",
-    "arguments": [
-      {
-        "name": "snapshot_id",
-        "type": "string",
-        "desc": "UUID do snapshot para restaurar"
-      }
-    ]
-  },
-  {
-    "name": "list_agent_memory",
-    "description": "Lista memórias persistentes de um agente. Retorna fatos, preferências, instruções e contexto armazenados.",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente"
-      },
-      {
-        "name": "user_key",
-        "type": "string",
-        "desc": "Filtrar por user_key específico (identifica o usuário final)"
-      },
-      {
-        "name": "category",
-        "type": "string",
-        "desc": "Filtrar por categoria de memória"
-      },
-      {
-        "name": "limit",
-        "type": "integer",
-        "desc": "Máximo de memórias por página (default 50)"
-      },
-      {
-        "name": "before",
-        "type": "string",
-        "desc": "Paginação: `updated_at` do último item da página anterior"
-      }
-    ]
-  },
-  {
-    "name": "delete_agent_memory",
-    "description": "Remove (soft delete) uma memória específica de um agente. Requer agent_id, memory_key e user_key. Chaves com prefixo \"_\" são controle da plataforma e não podem ser removidas por aqui.",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente"
-      },
-      {
-        "name": "memory_key",
-        "type": "string",
-        "desc": "Chave da memória a ser removida"
-      },
-      {
-        "name": "user_key",
-        "type": "string",
-        "desc": "Identificador do usuário final dono da memória"
-      },
-      {
-        "name": "scope",
-        "type": "string",
-        "desc": "Escopo da memória (default agent_user). A mesma chave pode existir em escopos diferentes."
-      }
-    ]
-  },
-  {
-    "name": "get_scheduler_status",
-    "description": "Retorna o status atual do serviço de agendamento (SchedulerService). Mostra jobs ativos, próximas execuções e estatísticas."
-  },
-  {
-    "name": "set_engagement_control",
-    "description": "Define (action=canned) ou reabre (action=engage) o engajamento de um agente com um consumidor. Com canned, a plataforma responde `message` a esse consumidor sem acionar o agente, até expirar. user_key = identidade do consumidor (telefone só-dígitos em WhatsApp; idUsuario em webhook; user_id no chat).",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente"
-      },
-      {
-        "name": "user_key",
-        "type": "string",
-        "desc": "Identidade do consumidor (mesma chave de agent_memory / consumer_key)"
-      },
-      {
-        "name": "action",
-        "type": "string",
-        "desc": "canned = parar de engajar e responder message; engage = reabrir"
-      },
-      {
-        "name": "message",
-        "type": "string",
-        "desc": "Obrigatória com canned. Texto puro, sem links/HTML."
-      },
-      {
-        "name": "reason",
-        "type": "string",
-        "desc": "Motivo operacional (curto)"
+        "desc": "Description of the key purpose",
+        "optional": true
       },
       {
         "name": "expires_in_days",
         "type": "integer",
-        "desc": "Prazo do bloqueio em dias. Omitido = sem prazo."
-      }
-    ]
-  },
-  {
-    "name": "get_agent_budget",
-    "description": "Retorna o orçamento (teto de gasto em USD) e o saldo do ciclo atual de um agente. O budget conta TODAS as chamadas LLM do agente, incluindo BYOK. unlimited=true significa sem teto configurado.",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente"
-      }
-    ]
-  },
-  {
-    "name": "list_agent_budgets",
-    "description": "Lista saldo/teto de gasto (USD) de TODOS os agentes do tenant em batch. Útil para visão de burn-rate consolidada sem N+1."
-  },
-  {
-    "name": "set_agent_budget",
-    "description": "Define ou remove o teto de gasto (USD) de um agente. limit_usd=null remove o teto (ilimitado). É também o laço de recuperação: elevar o teto faz um agente parado por budget voltar a rodar no próximo turno. Retorna o saldo recalculado.",
-    "arguments": [
-      {
-        "name": "agent_id",
-        "type": "string",
-        "desc": "UUID do agente"
+        "desc": "Days until expiry; omit for no expiry",
+        "optional": true
       },
       {
-        "name": "limit_usd",
+        "name": "prefix",
         "type": "string",
-        "desc": "Teto em USD (>= 0) ou null para remover o teto"
-      }
-    ]
-  },
-  {
-    "name": "list_approvals",
-    "description": "Lista pendências de aprovação HITL do tenant (ações de tools aguardando aprovação de usuário). admin/owner veem todas; editor vê apenas as próprias solicitações e o que pode aprovar. A decisão (aprovar/rejeitar) acontece no chat do aprovador, não por esta API.",
-    "arguments": [
-      {
-        "name": "status",
-        "type": "string",
-        "desc": "Filtro de status (default: awaiting_user)"
+        "desc": "Key prefix: zhn_live_ for production, zhn_test_ for testing, zhn_dev_ for development",
+        "optional": true
       },
       {
-        "name": "limit",
+        "name": "rate_limit_per_minute",
         "type": "integer",
-        "desc": "Máximo de itens (default: 100, max: 200)"
-      }
-    ]
-  },
-  {
-    "name": "list_approval_policies",
-    "description": "Lista políticas de aprovação do tenant (quem aprova o quê). Políticas são referenciadas por CSPs via behavior.approval_policy_id.",
-    "arguments": [
+        "desc": "Requests per minute, an integer of at least 1, validated against the tenant plan",
+        "optional": true
+      },
       {
-        "name": "active_only",
-        "type": "boolean",
-        "desc": "true = apenas políticas ativas"
-      }
-    ]
-  },
-  {
-    "name": "get_approval_policy",
-    "description": "Retorna uma política de aprovação por ID (nome, stages com aprovadores, is_active).",
-    "arguments": [
-      {
-        "name": "policy_id",
+        "name": "role",
         "type": "string",
-        "desc": "UUID da política"
+        "desc": "RBAC role: admin has full access; editor has consumer and builder-read access; member has consumer access. Cannot exceed the caller's role.",
+        "optional": true
       }
-    ]
+    ],
+    "annotations": {
+      "title": "Create API Key",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
   },
   {
     "name": "create_approval_policy",
-    "description": "Cria uma política de aprovação (quem aprova ações de tools sob HITL). stages[].approvers aceita {type:\"user\", id:\"<uuid>\"} ou {type:\"role\", role:\"admin\"}. Para ativar em um agente: vincule na CSP via behavior.approval_policy_id + behavior.require_approval_for. Contrato formal: resource zihin://schemas/approval_policy (envie só name/description/stages — tenant_id e created_by são injetados pelo servidor).",
+    "description": "Create a policy. `stages[].approvers` accepts `{type:\"user\", id}` or `{type:\"role\", role}`",
     "arguments": [
       {
         "name": "name",
         "type": "string",
-        "desc": "Nome da política"
-      },
-      {
-        "name": "description",
-        "type": "string",
-        "desc": "Descrição"
+        "desc": "Policy name"
       },
       {
         "name": "stages",
         "type": "array",
-        "desc": "Estágios de aprovação (v1: 1 estágio, min_approvals=1)"
+        "desc": "Approval stages; currently one stage with min_approvals=1",
+        "items": {
+          "type": "object"
+        }
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Description",
+        "optional": true
       }
-    ]
+    ],
+    "annotations": {
+      "title": "Create Approval Policy",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
   },
   {
-    "name": "update_approval_policy",
-    "description": "Atualiza uma política de aprovação (nome, descrição, stages, is_active). is_active=false desativa a política. Envie apenas os campos a alterar.",
+    "name": "create_csp",
+    "description": "Create a contextual security policy with tenant, team, agent or user scope. Read zihin://schemas/csp_config: unknown rule fields may be accepted but have no effect. behavior.must_not_tools blocks named tools; execution ceilings use max_iterations, max_tool_calls and max_tokens_per_request. Native-chat human approval uses require_approval_for with tool names or matchers (tool_name, mcp_server_id, source=mcp|api) and approval_policy_id. Data rules are model instructions, not programmatic masking. origin policies are stored but not enforced; never use them as an access-control boundary. Custom rules become prompt instructions. See zihin://skills/governanca-e-operacao for examples.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Policy name"
+      },
+      {
+        "name": "policy_type",
+        "type": "string",
+        "desc": "Policy type"
+      },
+      {
+        "name": "rules",
+        "type": "object",
+        "desc": "Policy rules; structure depends on the policy type. See zihin://schemas/csp_config."
+      },
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": "Scope where the policy applies"
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Policy description",
+        "optional": true
+      },
+      {
+        "name": "exceptions",
+        "type": "object",
+        "desc": "Rule exceptions using the same structure as rules; overrides specific fields",
+        "optional": true
+      },
+      {
+        "name": "priority",
+        "type": "number",
+        "desc": "Priority; higher values take precedence. Defaults to 0.",
+        "optional": true
+      },
+      {
+        "name": "scope_target_id",
+        "type": "string",
+        "desc": "Target ID; required for team, agent and user scopes",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Create CSP",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "create_integration",
+    "description": "Register an integration: `kind` (`tunnel`, `api`, `mcp`), `name`, `target`, `shareable`, `limits`. `target` and `limits` are **immutable** — to change them, create another integration",
+    "arguments": [
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "How the destination is reached"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Human-readable resource label"
+      },
+      {
+        "name": "limits",
+        "type": "object",
+        "desc": "Access limits; immutable after creation. Create a new integration to expand its scope.",
+        "optional": true
+      },
+      {
+        "name": "shareable",
+        "type": "boolean",
+        "desc": "Whether the integration can be shared; defaults to false",
+        "optional": true
+      },
+      {
+        "name": "target",
+        "type": "object",
+        "desc": "Destination descriptor, such as tunnel origin/path, base_url or server reference. Immutable after creation.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Create Integration",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "create_mcp_server",
+    "description": "Register an external MCP server for an agent. Use http (Streamable HTTP) or stdio (local development). Authentication: none; bearer with config.vault_secret_id; api_key with vault_secret_id and optional api_key_header; tunnel uses platform authentication. timeout controls connection and tool discovery; call_timeout_ms controls each tool call (1000–120000 ms, default 30000). Timed-out calls are not retried automatically. Read zihin://schemas/mcp_resource_config for headers and defaults_from_context.",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Agent UUID"
+      },
+      {
+        "name": "endpoint",
+        "type": "string",
+        "desc": "Endpoint URL or stdio command"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "MCP server name"
+      },
+      {
+        "name": "auth_method",
+        "type": "string",
+        "desc": "Authentication method; OAuth is not yet supported for this external-server configuration",
+        "optional": true
+      },
+      {
+        "name": "config",
+        "type": "object",
+        "desc": "Additional configuration: vault_secret_id, headers, connection timeout and per-tool call_timeout_ms",
+        "optional": true
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Server description",
+        "optional": true
+      },
+      {
+        "name": "integration_id",
+        "type": "string",
+        "desc": "Optional registered integration link; see list_integrations. With tunnel authentication, destination access requires an active integration grant. For other authentication methods, the link is informational.",
+        "optional": true
+      },
+      {
+        "name": "transport",
+        "type": "string",
+        "desc": "Transport type",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Create MCP Server",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "create_schema",
+    "description": "Create schema with integrated validation",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Agent UUID"
+      },
+      {
+        "name": "schema_data",
+        "type": "object",
+        "desc": "Schema data. Read zihin://schemas/{schema_type}. persona_config requires editor_schema.persona.role (at least 3 characters) and objective (at least 10). api_config requires tool_definition and editor_schema.api; endpoint.name must equal tool_definition.name. Path parameters use ${name} and must appear in input_schema. Authentication uses prefix and secret_ref, not type; Basic credentials must already be base64 encoded. API timeout_ms is 1000–120000, default 30000. Define nested objects with their own properties. Endpoint transformations: default_body, locked_fields, field_mapping, array_fields, body_format and defaults_from_context. Context defaults are authoritative and override model values when present. workflow_config uses editor_schema.workflow with name, mode (strict|guided|flexible), steps (id, name, description, optional type) and optional transitions. skill_config uses a skill wrapper with name (at least 3 characters), instructions (50–5000 characters) and optional priority (0–1000, higher first). CSPs are separate entities; configure multi-agent limits through a behavior CSP."
+      },
+      {
+        "name": "schema_type",
+        "type": "string",
+        "desc": "Schema type"
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Schema description",
+        "optional": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Legacy field with no effect. The name belongs inside schema_data, such as tool_definition.name or skill.name.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Create Schema",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "create_secret",
+    "description": "Create an encrypted tenant secret. Save its value before submitting; plaintext is not returned afterward. Reference its name as secret_ref in API tools, MCP servers and trigger callbacks. Names starting with platform/ are reserved.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Unique tenant secret name, such as ERP_API_KEY or CRM_WEBHOOK_TOKEN"
+      },
+      {
+        "name": "value",
+        "type": "string",
+        "desc": "Valor plaintext a ser criptografado (ex: a API key ou o token)"
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Secret category, for organization only; database is a legacy category",
+        "optional": true
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Description of the secret purpose",
+        "optional": true
+      },
+      {
+        "name": "usage_hint",
+        "type": "string",
+        "desc": "Informational usage hint, such as bearer_token, api_key, password or oauth_client. Does not change runtime behavior.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Create Secret",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "create_trigger",
+    "description": "Create a webhook, schedule or email trigger. Read zihin://schemas/trigger_config and use its exact enums. The server supplies tenant and record identifiers. The returned call block contains method, URL and authentication instructions; it does not return the API key value. Read zihin://skills/triggers-e-canais.",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Agent UUID"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Trigger name"
+      },
+      {
+        "name": "trigger_type",
+        "type": "string",
+        "desc": "Trigger type"
+      },
+      {
+        "name": "api_key_id",
+        "type": "string",
+        "desc": "API key UUID for authenticated execution",
+        "optional": true
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Trigger description",
+        "optional": true
+      },
+      {
+        "name": "trigger_config",
+        "type": "object",
+        "desc": "Trigger configuration; read zihin://schemas/trigger_config. WEBHOOK: query_extraction uses field or full_body; response_adapter selects raw, ebarn, slack, teams or twiml. context_mapping maps request fields; session_strategy uses derive or ephemeral; sender_access uses any, members or whitelist. execution uses sync or async, with optional acknowledgement and authenticated callback. message_buffer groups rapid messages (window_ms 1000–30000, default 5000; max_messages 1–50, default 10). split_config splits long responses. TwiML defaults strip_markdown=true and max_length=4096; override through callback.response_transform. SCHEDULE: cron and query_template are required; timezone defaults to America/Sao_Paulo. Each execution opens a new session. output.channel supports silent, webhook, callback or user. User delivery requires target (user_id or consumer_key); push is optional. Scheduled results are messages, not memory configuration. EMAIL: inbound_address, allowed_senders with mode all|domain|email and the matching domains/emails list, plus optional subject_filter.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Create Trigger",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "delete_agent",
+    "description": "Archive an agent: remove it from listings and stop it responding. Restore through the Zihin console; this server has no restore tool.",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "UUID of the agent to archive"
+      }
+    ],
+    "annotations": {
+      "title": "Delete Agent",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "delete_agent_memory",
+    "description": "Delete one persistent agent memory. Platform control entries are protected and cannot be removed here.",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Agent UUID"
+      },
+      {
+        "name": "memory_key",
+        "type": "string",
+        "desc": "Memory key to remove"
+      },
+      {
+        "name": "user_key",
+        "type": "string",
+        "desc": "Identity of the end user who owns the memory"
+      },
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": "Memory scope; defaults to agent_user. The same key can exist in different scopes.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Delete Agent Memory",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "delete_api_key",
+    "description": "Revoke a tenant API key. Requests using that credential will no longer be authorized.",
+    "arguments": [
+      {
+        "name": "key_id",
+        "type": "string",
+        "desc": "UUID of the API key to revoke"
+      }
+    ],
+    "annotations": {
+      "title": "Delete API Key",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "delete_csp",
+    "description": "Permanently remove a contextual security policy and immediately remove its restrictions. Use toggle_csp to suspend it reversibly.",
+    "arguments": [
+      {
+        "name": "csp_id",
+        "type": "string",
+        "desc": "UUID of the CSP policy to remove"
+      }
+    ],
+    "annotations": {
+      "title": "Delete CSP",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "delete_mcp_server",
+    "description": "Permanently remove an external MCP server from the agent configuration.",
+    "arguments": [
+      {
+        "name": "mcp_server_id",
+        "type": "string",
+        "desc": "UUID of the MCP server to remove"
+      }
+    ],
+    "annotations": {
+      "title": "Delete MCP Server",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "delete_schema",
+    "description": "Permanently remove an agent configuration schema. Its behavior or tool will no longer be available to the agent.",
+    "arguments": [
+      {
+        "name": "schema_id",
+        "type": "string",
+        "desc": "UUID of the schema to deactivate"
+      }
+    ],
+    "annotations": {
+      "title": "Delete Schema",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "delete_secret",
+    "description": "Permanently delete a tenant secret. API tools, MCP servers and trigger callbacks that reference it will stop working.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the secret to remove"
+      }
+    ],
+    "annotations": {
+      "title": "Delete Secret",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "delete_trigger",
+    "description": "Permanently remove a trigger and stop its configured automation.",
+    "arguments": [
+      {
+        "name": "trigger_id",
+        "type": "string",
+        "desc": "UUID of the trigger to remove"
+      }
+    ],
+    "annotations": {
+      "title": "Delete Trigger",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "disable_process",
+    "description": "Remove permission to open new instances of a process, or use * for all. Existing instances continue. Permissions provided by server configuration cannot be removed here.",
+    "arguments": [
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": "Process definition key, or * for all published definitions in the tenant"
+      }
+    ],
+    "annotations": {
+      "title": "Disable Process",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "enable_process",
+    "description": "Allow agents in this tenant to open a published process, or use * for all published processes. Takes effect immediately on this replica without restarting.",
+    "arguments": [
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": "Process definition key, or * for all published definitions in the tenant"
+      }
+    ],
+    "annotations": {
+      "title": "Enable Process",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_agent",
+    "description": "Retrieve an agent configuration by UUID within the current tenant.",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Agent UUID"
+      }
+    ],
+    "annotations": {
+      "title": "Get Agent",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_agent_budget",
+    "description": "Get the current agent spending cap and cycle balance in USD. Includes all model calls, including BYOK; unlimited=true means no cap.",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Agent UUID"
+      }
+    ],
+    "annotations": {
+      "title": "Get Agent Budget",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_agent_full",
+    "description": "Complete agent view (schemas + triggers + CSPs)",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Agent UUID"
+      }
+    ],
+    "annotations": {
+      "title": "Get Agent Full",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_agent_lineage",
+    "description": "Orchestrator→sub-agent pairs that **actually invoked** each other (via `invoke_agent`), with invocation counts — complements `allowed_invoke_agents` (which is \"may invoke\")",
+    "annotations": {
+      "title": "Get Agent Lineage",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_agent_metrics",
+    "description": "Execution metrics by period (`1d`, `7d`, `30d`): LLM calls, errors, success rate, tokens, cost, p50/p95 latency (aggregated server-side — no row cap), tool usage (sampled, with `sample_truncated` disclosure) and sessions",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Agent UUID"
+      },
+      {
+        "name": "period",
+        "type": "string",
+        "desc": "Analysis period: 1d (last day), 7d (last week), 30d (last month)",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Get Agent Metrics",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_api_key",
+    "description": "Retrieve metadata for a tenant API key. The secret key value is not returned.",
+    "arguments": [
+      {
+        "name": "key_id",
+        "type": "string",
+        "desc": "API key UUID"
+      }
+    ],
+    "annotations": {
+      "title": "Get API Key",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_approval_policy",
+    "description": "Policy details (name, stages, approvers, `is_active`)",
     "arguments": [
       {
         "name": "policy_id",
         "type": "string",
-        "desc": "UUID da política"
-      },
-      {
-        "name": "name",
-        "type": "string",
-        "desc": "Novo nome"
-      },
-      {
-        "name": "description",
-        "type": "string",
-        "desc": "Nova descrição"
-      },
-      {
-        "name": "stages",
-        "type": "array",
-        "desc": "Novos estágios"
-      },
-      {
-        "name": "is_active",
-        "type": "boolean",
-        "desc": "false = desativar política"
+        "desc": "Policy UUID"
       }
-    ]
+    ],
+    "annotations": {
+      "title": "Get Approval Policy",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
   },
   {
-    "name": "get_agent_lineage",
-    "description": "Retorna pares orquestrador→subagente que INVOCARAM de fato (via invoke_agent), com contagem de invocações e último uso. Complementa allowed_invoke_agents (que é \"pode invocar\")."
-  },
-  {
-    "name": "get_tenant_health",
-    "description": "Saúde de infra no nível do tenant: erros NÃO atribuíveis a um agente específico (rate limit, auth de provider, infra), agrupados por código canônico. Complementa get_agent_metrics (que é por agente).",
+    "name": "get_consumer_profile",
+    "description": "Get aggregated consumer profile (cross-session, cross-agent): display name, channels used, total sessions, total turns, agents interacted, product flags, timestamps",
     "arguments": [
       {
-        "name": "start_date",
+        "name": "consumer_key",
         "type": "string",
-        "desc": "Início da janela (ISO 8601). Default: sem filtro."
+        "desc": "Consumer identifier (normalized external user ID or email). Must match the session consumer_key."
+      }
+    ],
+    "annotations": {
+      "title": "Get Consumer Profile",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_csp",
+    "description": "Retrieve one contextual security policy and its configured rules.",
+    "arguments": [
+      {
+        "name": "csp_id",
+        "type": "string",
+        "desc": "CSP policy UUID"
+      }
+    ],
+    "annotations": {
+      "title": "Get CSP",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_effective_csps",
+    "description": "Inspect the contextual security policies effective for the requested scope.",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Agent UUID for resolving agent-scoped policies",
+        "optional": true
       },
       {
-        "name": "end_date",
+        "name": "team_id",
         "type": "string",
-        "desc": "Fim da janela (ISO 8601). Default: sem filtro."
+        "desc": "Team UUID for resolving team-scoped policies",
+        "optional": true
+      },
+      {
+        "name": "user_id",
+        "type": "string",
+        "desc": "User UUID for resolving user-scoped policies",
+        "optional": true
       }
-    ]
+    ],
+    "annotations": {
+      "title": "Get Effective CSPs",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_execution_diagnostics",
+    "description": "Get execution diagnostics: chronological model and tool calls, tokens, latency, model, finish_reason, cache reads/writes and caller correlation metadata. Use the execution_id or root_execution_id returned by chat_with_agent.",
+    "arguments": [
+      {
+        "name": "execution_id",
+        "type": "string",
+        "desc": "Execution UUID or root_execution_id returned by an agent invocation"
+      }
+    ],
+    "annotations": {
+      "title": "Get Execution Diagnostics",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
   },
   {
     "name": "get_execution_trace",
-    "description": "Trace hierárquico de uma execução multi-agente a partir do root_execution_id: árvore supervisor→subagentes com fases, tool calls e custo por nó. Use get_session_agent_tree quando tiver o session_id em vez do execution_id.",
+    "description": "Hierarchical multi-agent execution trace from a `root_execution_id`: supervisor→sub-agents with phases, tool calls and cost per node",
     "arguments": [
       {
         "name": "root_execution_id",
         "type": "string",
-        "desc": "UUID da execução raiz (root_execution_id)"
+        "desc": "Root execution UUID (root_execution_id)"
       }
-    ]
+    ],
+    "annotations": {
+      "title": "Get Execution Trace",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_mcp_server",
+    "description": "Retrieve an external MCP server configuration by its UUID.",
+    "arguments": [
+      {
+        "name": "mcp_server_id",
+        "type": "string",
+        "desc": "MCP server UUID"
+      }
+    ],
+    "annotations": {
+      "title": "Get MCP Server",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_process_command",
+    "description": "Outcome of an intervention command: `received` (not applied yet), `applied` or `rejected` (with `reason`). Query this instead of repeating the mutation",
+    "arguments": [
+      {
+        "name": "command_id",
+        "type": "string",
+        "desc": "Command UUID returned by cancel_process_instance or resolve_process_incident"
+      },
+      {
+        "name": "instance_id",
+        "type": "string",
+        "desc": "Process instance UUID"
+      }
+    ],
+    "annotations": {
+      "title": "Get Process Command",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_process_definition",
+    "description": "Get a complete process definition and its version history. Omit version for the latest published version; inspect it before publishing a new one.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "Process definition key, such as review-customer-record"
+      },
+      {
+        "name": "version",
+        "type": "integer",
+        "desc": "Specific version in any status; omit for the latest published version",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Get Process Definition",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_process_engine_status",
+    "description": "Whether the engine is enabled for the tenant",
+    "annotations": {
+      "title": "Get Process Engine Status",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_process_instance",
+    "description": "Inspect a process instance. Editors see status, steps, agent, name and dates. Admin/owner roles also see redacted variables, human tasks, file metadata and computation summaries.",
+    "arguments": [
+      {
+        "name": "instance_id",
+        "type": "string",
+        "desc": "Process instance UUID"
+      }
+    ],
+    "annotations": {
+      "title": "Get Process Instance",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_process_trail",
+    "description": "Read a process instance audit trail in order, including transitions, triggering events/commands and reasons. Sensitive values are redacted. Requires admin or owner.",
+    "arguments": [
+      {
+        "name": "instance_id",
+        "type": "string",
+        "desc": "Process instance UUID"
+      },
+      {
+        "name": "after_sequence",
+        "type": "integer",
+        "desc": "Continue after this sequence; use next_after_sequence from the previous response",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum transitions per call; defaults to 200, maximum 1000",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Get Process Trail",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_scheduler_status",
+    "description": "Status of active scheduled triggers (cron jobs)",
+    "annotations": {
+      "title": "Get Scheduler Status",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_schema",
+    "description": "Retrieve one agent configuration schema and its current version.",
+    "arguments": [
+      {
+        "name": "schema_id",
+        "type": "string",
+        "desc": "Schema UUID"
+      }
+    ],
+    "annotations": {
+      "title": "Get Schema",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
   },
   {
     "name": "get_session_agent_tree",
-    "description": "Árvore de agentes de uma SESSÃO (linhagem por parent_session_id, #227): supervisor + subagentes de todos os turnos. Funciona em sessões multi-turno onde o trace por execução não fecha a árvore.",
+    "description": "Agent tree of a **session** (by parent-session lineage): supervisor + sub-agents across all turns — works where per-execution traces can't close the tree in multi-turn sessions",
     "arguments": [
       {
         "name": "session_id",
         "type": "string",
-        "desc": "session_id da sessão âncora (a do supervisor)"
+        "desc": "Anchor session_id, usually the supervisor's session"
       },
       {
         "name": "execution_id",
         "type": "string",
-        "desc": "Opcional: restringe a árvore a uma execução específica"
+        "desc": "Optionally restrict the tree to one execution",
+        "optional": true
       }
-    ]
+    ],
+    "annotations": {
+      "title": "Get Session Agent Tree",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_session_history",
+    "description": "Message history of a session, read from the durable record and paginated with `before`/`limit`/`next_before` (user/assistant messages only; attachments as metadata) — see [below](https://docs.zihin.ai/integrations/mcp-server#get_session_history)",
+    "arguments": [
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": "Session ID returned by chat_with_agent or list_agent_sessions"
+      },
+      {
+        "name": "before",
+        "type": "string",
+        "desc": "Pagination cursor: use the previous page's next_before value unchanged",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Messages per page, newest before the cursor; defaults to 50, maximum 100",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Get Session History",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_session_trigger_context",
+    "description": "Reverse lookup: given a `session_id`, returns the trigger and execution that originated the session",
+    "arguments": [
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": "Session session_id"
+      }
+    ],
+    "annotations": {
+      "title": "Get Session Trigger Context",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_snapshot",
+    "description": "Retrieve a publication snapshot and inspect its saved configuration before restoration.",
+    "arguments": [
+      {
+        "name": "snapshot_id",
+        "type": "string",
+        "desc": "Snapshot UUID"
+      }
+    ],
+    "annotations": {
+      "title": "Get Snapshot",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_tenant_health",
+    "description": "Tenant-level infra errors **not attributable to a specific agent** (provider auth, rate limit), grouped by canonical error code",
+    "arguments": [
+      {
+        "name": "end_date",
+        "type": "string",
+        "desc": "End of the time window in ISO 8601 format; omit for no end filter",
+        "optional": true
+      },
+      {
+        "name": "start_date",
+        "type": "string",
+        "desc": "Start of the time window in ISO 8601 format; omit for no start filter",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Get Tenant Health",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_trigger",
+    "description": "Retrieve a trigger and its current configuration before inspection or update.",
+    "arguments": [
+      {
+        "name": "trigger_id",
+        "type": "string",
+        "desc": "Trigger UUID"
+      }
+    ],
+    "annotations": {
+      "title": "Get Trigger",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_trigger_execution",
+    "description": "Retrieve one trigger execution and its recorded outcome for troubleshooting.",
+    "arguments": [
+      {
+        "name": "execution_id",
+        "type": "string",
+        "desc": "Execution UUID"
+      }
+    ],
+    "annotations": {
+      "title": "Get Trigger Execution",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_version",
+    "description": "Retrieve one recorded resource version for inspection before restoring it.",
+    "arguments": [
+      {
+        "name": "resource_id",
+        "type": "string",
+        "desc": "Resource UUID"
+      },
+      {
+        "name": "resource_type",
+        "type": "string",
+        "desc": "Resource type"
+      },
+      {
+        "name": "version",
+        "type": "integer",
+        "desc": "Version number"
+      }
+    ],
+    "annotations": {
+      "title": "Get Version",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "grant_integration",
+    "description": "Give a consumer access: `integration_id`, `consumer_tenant_id`, optional `consumer_agent_id` (absent = the whole company), `allowed_operations` (absent or empty = **all** operations) and `expires_at` (ISO 8601). The grant is created **active** and applies on the consumer's next call",
+    "arguments": [
+      {
+        "name": "consumer_tenant_id",
+        "type": "string",
+        "desc": "Tenant receiving access"
+      },
+      {
+        "name": "integration_id",
+        "type": "string",
+        "desc": "An integration owned by this tenant"
+      },
+      {
+        "name": "allowed_operations",
+        "type": "array",
+        "desc": "Allowed operation names, such as tools or endpoints",
+        "optional": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "consumer_agent_id",
+        "type": "string",
+        "desc": "Restrict access to one consumer agent; omit for the entire consumer tenant",
+        "optional": true
+      },
+      {
+        "name": "expires_at",
+        "type": "string",
+        "desc": "Optional expiry timestamp in ISO 8601 format",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Grant Integration",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "invalidate_mcp_cache",
+    "description": "Invalidate cached discovery for an external MCP server after its available tools change.",
+    "arguments": [
+      {
+        "name": "mcp_server_id",
+        "type": "string",
+        "desc": "Specific MCP server UUID; omit to invalidate all MCP caches for the tenant",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Invalidate MCP Cache",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "list_agent_budgets",
+    "description": "Get current USD spending caps and balances for all tenant agents in one call. Includes BYOK usage.",
+    "annotations": {
+      "title": "List Agent Budgets",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_agent_history",
+    "description": "List an agent's recorded change history to investigate configuration changes.",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Agent UUID"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum results; defaults to 50",
+        "optional": true
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Pagination offset",
+        "optional": true
+      },
+      {
+        "name": "resource_type",
+        "type": "string",
+        "desc": "Filter by resource type",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Agent History",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_agent_memory",
+    "description": "List persistent memory entries for an agent",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Agent UUID"
+      },
+      {
+        "name": "before",
+        "type": "string",
+        "desc": "Pagination cursor: updated_at from the previous page's last entry",
+        "optional": true
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Filter by memory category",
+        "optional": true
+      },
+      {
+        "name": "include",
+        "type": "string",
+        "desc": "Include the consumer's original statement that produced the memory. Contains personal data. Requires admin/owner; ignored for other roles.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Memories per page; defaults to 50",
+        "optional": true
+      },
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": "Memory scope; agent_user is person-scoped. The same memory key can exist in different scopes.",
+        "optional": true
+      },
+      {
+        "name": "user_key",
+        "type": "string",
+        "desc": "Filter by user_key identifying the end user",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Agent Memory",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_agent_sessions",
+    "description": "List recent conversations with an agent, newest first; status selects active (default) or archived sessions. Members see their own sessions; operators see tenant sessions. message_count and last_message_preview cover up to 50 recent messages, while total counts all matching sessions. offset must be a multiple of limit.",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Agent UUID"
+      },
+      {
+        "name": "consumer_key",
+        "type": "string",
+        "desc": "Filter sessions by consumer identity",
+        "optional": true
+      },
+      {
+        "name": "control_mode",
+        "type": "string",
+        "desc": "Filter by session control mode",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum results; defaults to 20, maximum 100",
+        "optional": true
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Pagination offset; must be a multiple of limit",
+        "optional": true
+      },
+      {
+        "name": "roots_only",
+        "type": "boolean",
+        "desc": "true returns root sessions only, excluding sub-agent sessions",
+        "optional": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Conversation status: active (default) or archived",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Agent Sessions",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_agent_tools",
+    "description": "All resolved tools (api_config + MCP + core), with `resolved`/`error` status",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Agent UUID"
+      }
+    ],
+    "annotations": {
+      "title": "List Agent Tools",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_agents",
+    "description": "List tenant agents (filters: `status`, `type`, `include_archived`)",
+    "arguments": [
+      {
+        "name": "include_archived",
+        "type": "boolean",
+        "desc": "Include archived agents",
+        "optional": true
+      },
+      {
+        "name": "include_unpublished",
+        "type": "boolean",
+        "desc": "Include agents whose publication is inactive in this tenant. Use this to find and republish an agent removed from the list after unpublishing.",
+        "optional": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Filter by status",
+        "optional": true
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "Filter by agent type, such as assistant or chatbot",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Agents",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_api_keys",
+    "description": "List tenant API key metadata without exposing secret key values.",
+    "annotations": {
+      "title": "List API Keys",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_approval_policies",
+    "description": "Approval policies (filter `active_only`)",
+    "arguments": [
+      {
+        "name": "active_only",
+        "type": "boolean",
+        "desc": "true returns active policies only",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Approval Policies",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_approvals",
+    "description": "Pending approval requests for the tenant. `admin`/`owner` see all; `editor` is scoped to own requests + what they can approve",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum results; defaults to 100, maximum 200",
+        "optional": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Status filter; defaults to awaiting_user",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Approvals",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_consumer_sessions",
+    "description": "Paginated list of a specific consumer's sessions (cross-agent, most recent first) — complements `get_consumer_profile`, which returns only aggregated counters",
+    "arguments": [
+      {
+        "name": "consumer_key",
+        "type": "string",
+        "desc": "Consumer identity, matching consumer_key in sessions"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum records, up to 100",
+        "optional": true
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Pagination offset",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Consumer Sessions",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_consumers",
+    "description": "Paginated list of consumers, ordered by `last_seen_at` (desc). Filters: `search` (substring in display_name or consumer_key), `blocked` (true = only denylisted, false = only not-denylisted)",
+    "arguments": [
+      {
+        "name": "blocked",
+        "type": "boolean",
+        "desc": "true returns denylisted consumers; false returns others; omit for all",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum records, up to 100",
+        "optional": true
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Pagination offset",
+        "optional": true
+      },
+      {
+        "name": "search",
+        "type": "string",
+        "desc": "Case-insensitive substring in display_name or consumer_key, up to 80 characters",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Consumers",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_csps",
+    "description": "List contextual security policies in the current tenant.",
+    "arguments": [
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "desc": "Filter by active or inactive status",
+        "optional": true
+      },
+      {
+        "name": "policy_type",
+        "type": "string",
+        "desc": "Filter by policy type",
+        "optional": true
+      },
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": "Filter by policy scope",
+        "optional": true
+      },
+      {
+        "name": "scope_target_id",
+        "type": "string",
+        "desc": "Filter by target ID: agent_id, team_id or user_id",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List CSPs",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_executions",
+    "description": "Search the tenant's agent executions, most recent first, with pagination (`page`, `limit`). Filters: `trace_id` (the correlation id the integrator sent in `metadata.trace_id`), `session_id`, `agent_id`, `status`, `source` (`chat`, `sse`, `mcp_server`, `webhook`, `schedule`, `email`, `task`, `builder`, `process`), `start_date`/`end_date` (ISO 8601). Same as `GET /api/v1/executions`. For one execution's detail use `get_execution_diagnostics`; for the multi-agent tree, `get_execution_trace`",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Executions for this agent only",
+        "optional": true
+      },
+      {
+        "name": "end_date",
+        "type": "string",
+        "desc": "ISO 8601 timestamp; include records created at or before this time",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Results per page; defaults to 20, maximum 100",
+        "optional": true
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "desc": "Page number; defaults to 1",
+        "optional": true
+      },
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": "Executions for this session only",
+        "optional": true
+      },
+      {
+        "name": "source",
+        "type": "string",
+        "desc": "Invocation source: chat, sse, mcp_server, webhook, schedule, email, task, builder or process",
+        "optional": true
+      },
+      {
+        "name": "start_date",
+        "type": "string",
+        "desc": "ISO 8601 timestamp; include records created at or after this time",
+        "optional": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Execution outcome",
+        "optional": true
+      },
+      {
+        "name": "trace_id",
+        "type": "string",
+        "desc": "Integrator correlation ID, supplied as metadata.trace_id",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Executions",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_integration_grants",
+    "description": "Grants where this company is the owner (`as: \"owner\"`, what it gives) or the consumer (`as: \"consumer\"`, the default — what it receives)",
+    "arguments": [
+      {
+        "name": "as",
+        "type": "string",
+        "desc": "owner lists grants this tenant issued; consumer lists access granted to this tenant",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Integration Grants",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_integrations",
+    "description": "Integrations **this** company owns (`items`, `total`)",
+    "annotations": {
+      "title": "List Integrations",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_mcp_servers",
+    "description": "List the external MCP servers configured for an agent.",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Agent UUID"
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Filter by status",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List MCP Servers",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_process_definitions",
+    "description": "List the latest published definition for each process key in the tenant, including its version, steps and availability to agents. Agents open instances with open_process.",
+    "annotations": {
+      "title": "List Process Definitions",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_process_instances",
+    "description": "List tenant process instances, newest first, with status, current step and owner. Filter by open/closed state or definition; use get_process_instance for details.",
+    "arguments": [
+      {
+        "name": "before",
+        "type": "string",
+        "desc": "Opaque pagination cursor: next_before from the previous page",
+        "optional": true
+      },
+      {
+        "name": "definition_key",
+        "type": "string",
+        "desc": "Process definition key, such as review-customer-record",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Items per page; defaults to 20, maximum 50",
+        "optional": true
+      },
+      {
+        "name": "open",
+        "type": "boolean",
+        "desc": "true returns running instances; false returns completed instances; omit for all",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Process Instances",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_published_agents",
+    "description": "List published agents available for chat",
+    "annotations": {
+      "title": "List Published Agents",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_schemas",
+    "description": "List schemas for an agent (filters: `schema_type`, `include_inactive`)",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Agent UUID"
+      },
+      {
+        "name": "include_inactive",
+        "type": "boolean",
+        "desc": "Include inactive schemas",
+        "optional": true
+      },
+      {
+        "name": "schema_type",
+        "type": "string",
+        "desc": "Filter by schema type",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Schemas",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_secrets",
+    "description": "List tenant secret metadata without exposing credential values. Use each name as secret_ref where supported.",
+    "annotations": {
+      "title": "List Secrets",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_snapshots",
+    "description": "List an agent's publication snapshots available for inspection or restoration.",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Agent UUID"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum results; defaults to 20",
+        "optional": true
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Pagination offset",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Snapshots",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_trigger_executions",
+    "description": "List execution records for a trigger to inspect recent runs and delivery results.",
+    "arguments": [
+      {
+        "name": "trigger_id",
+        "type": "string",
+        "desc": "Trigger UUID"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum results; defaults to 20, maximum 100",
+        "optional": true
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Pagination offset",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Trigger Executions",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_triggers",
+    "description": "List triggers (filters: `agent_id`, `trigger_type`, `enabled`)",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Filter by a specific agent",
+        "optional": true
+      },
+      {
+        "name": "enabled",
+        "type": "boolean",
+        "desc": "true returns enabled triggers; false returns disabled triggers; omit for all",
+        "optional": true
+      },
+      {
+        "name": "trigger_type",
+        "type": "string",
+        "desc": "Filter by trigger type",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Triggers",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_versions",
+    "description": "List recorded versions of a configuration resource for inspection or rollback.",
+    "arguments": [
+      {
+        "name": "resource_id",
+        "type": "string",
+        "desc": "Resource UUID"
+      },
+      {
+        "name": "resource_type",
+        "type": "string",
+        "desc": "Resource type"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum results; defaults to 20, maximum 100",
+        "optional": true
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Pagination offset",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Versions",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "publish_agent",
+    "description": "Publish agent (validates all schemas first)",
+    "arguments": [
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "Publish or unpublish the agent"
+      },
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Agent UUID"
+      }
+    ],
+    "annotations": {
+      "title": "Publish Agent",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "publish_process_definition",
+    "description": "Publish the next version of a process definition. New instances use it; existing instances retain their original version. Validate first. Worker request recipes belong to the definition; agents select among its allowed recipes.",
+    "arguments": [
+      {
+        "name": "spec",
+        "type": "object",
+        "desc": "Complete process definition without version; the platform assigns the next version"
+      }
+    ],
+    "annotations": {
+      "title": "Publish Process Definition",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "ratify_integration_grant",
+    "description": "Confirm a provisional grant (`pending_ratification` → `active`), e.g. one registered by a migration. Repeating it on an active grant returns the grant unchanged",
+    "arguments": [
+      {
+        "name": "grant_id",
+        "type": "string",
+        "desc": "Grant to ratify"
+      }
+    ],
+    "annotations": {
+      "title": "Ratify Integration Grant",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "resolve_process_incident",
+    "description": "Resolve an incident of a process instance (same `command_id` pattern)",
+    "arguments": [
+      {
+        "name": "instance_id",
+        "type": "string",
+        "desc": "Process instance UUID"
+      },
+      {
+        "name": "resolution",
+        "type": "string",
+        "desc": "retry reruns the step; abandon ends the path; substitute_output supplies the step output"
+      },
+      {
+        "name": "substitute_output",
+        "type": "object",
+        "desc": "Used only when resolution=substitute_output",
+        "optional": true
+      },
+      {
+        "name": "task_id",
+        "type": "string",
+        "desc": "Incident identifier when the instance has more than one open incident",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Resolve Process Incident",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "retire_process_definition",
+    "description": "Retire all published versions of a process key to prevent new instances. Existing instances continue. Publish a new version to make the process available again.",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "desc": "Process definition key, such as review-customer-record"
+      }
+    ],
+    "annotations": {
+      "title": "Retire Process Definition",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "revoke_integration_grant",
+    "description": "Revoke a grant. Takes effect on the next call. A revoked grant cannot be reactivated — grant again instead. Repeating it returns the grant unchanged",
+    "arguments": [
+      {
+        "name": "grant_id",
+        "type": "string",
+        "desc": "Grant to revoke"
+      }
+    ],
+    "annotations": {
+      "title": "Revoke Integration Grant",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "rollback_snapshot",
+    "description": "Restore an agent from a previous publication snapshot, overwriting its current configuration, schemas, triggers and MCP servers. Inspect get_snapshot before restoring.",
+    "arguments": [
+      {
+        "name": "snapshot_id",
+        "type": "string",
+        "desc": "UUID of the snapshot to restore"
+      }
+    ],
+    "annotations": {
+      "title": "Rollback Snapshot",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "rollback_version",
+    "description": "Restore a resource from a recorded version, replacing its current configuration.",
+    "arguments": [
+      {
+        "name": "resource_id",
+        "type": "string",
+        "desc": "Resource UUID"
+      },
+      {
+        "name": "resource_type",
+        "type": "string",
+        "desc": "Resource type"
+      },
+      {
+        "name": "target_version",
+        "type": "integer",
+        "desc": "Version number to restore"
+      }
+    ],
+    "annotations": {
+      "title": "Rollback Version",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "send_manual_message",
+    "description": "Send a manual operator message through the same outbound channel as the agent (Twilio/Meta/webhook). Requires `control_mode != engaged`. Message is recorded as human-authored so the agent doesn't imitate the style if it resumes",
+    "arguments": [
+      {
+        "name": "message",
+        "type": "string",
+        "desc": "Operator message to send"
+      },
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": "Session session_id string or UUID"
+      },
+      {
+        "name": "idempotency_key",
+        "type": "string",
+        "desc": "Optional idempotency key (1–200 characters). If omitted, it is derived from the message text within a 60-second window.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Send Manual Message",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "set_agent_budget",
+    "description": "Set or remove the cap (`limit_usd: null` = unlimited). Also the recovery loop: raising the cap lets a budget-stopped agent run again on the next turn",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Agent UUID"
+      },
+      {
+        "name": "limit_usd",
+        "type": "string",
+        "desc": "Spending cap in USD, at least zero; null removes the cap"
+      }
+    ],
+    "annotations": {
+      "title": "Set Agent Budget",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "set_consumer_denylist",
+    "description": "Add or remove a consumer from the tenant-wide denylist. When active, all messages from that consumer are bypassed cross-agent (no LLM, no quota)",
+    "arguments": [
+      {
+        "name": "blocked",
+        "type": "boolean",
+        "desc": "true adds the consumer to the denylist; false removes it"
+      },
+      {
+        "name": "consumer_key",
+        "type": "string",
+        "desc": "Consumer identity, matching consumer_key in sessions"
+      },
+      {
+        "name": "message",
+        "type": "string",
+        "desc": "Optional fixed message returned when the consumer attempts to interact. Empty means a silent acknowledgement (default). Used only when blocked=true.",
+        "optional": true
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional audit reason; used only when blocked=true",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Set Consumer Denylist",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "set_engagement_control",
+    "description": "End or restore the engagement between one agent and one consumer, without blocking the consumer tenant-wide. Evaluated after the tenant denylist and before session control",
+    "arguments": [
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "canned stops engagement and returns the fixed message; engage resumes engagement"
+      },
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "Agent UUID"
+      },
+      {
+        "name": "user_key",
+        "type": "string",
+        "desc": "Consumer identity, using the same key as consumer_key and person-scoped memory"
+      },
+      {
+        "name": "expires_in_days",
+        "type": "integer",
+        "desc": "Control expiry in days; omit for no expiry",
+        "optional": true
+      },
+      {
+        "name": "message",
+        "type": "string",
+        "desc": "Required for canned mode. Plain text without links or HTML.",
+        "optional": true
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Short operational reason",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Set Engagement Control",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "set_session_control",
+    "description": "Change a session's `control_mode` (`engaged`, `suspended`, `manual_handoff`). When `≠ engaged`, the agent loop is bypassed for new messages on that session",
+    "arguments": [
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": "engaged resumes normal operation; suspended pauses; manual_handoff transfers control to a human"
+      },
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": "Session session_id string or UUID"
+      },
+      {
+        "name": "expires_at",
+        "type": "string",
+        "desc": "Optional expiry (ISO 8601 with timezone, for example 2026-10-05T12:00:00Z; at most 30 days) for suspended/manual_handoff mode. At expiry, the session returns to engaged automatically. Omitted means no expiry; another call without expires_at CLEARS the previous expiry. Repeat it to change only the message.",
+        "optional": true
+      },
+      {
+        "name": "message",
+        "type": "string",
+        "desc": "Optional fixed response. Empty means a silent acknowledgement. Applies only when mode is not engaged.",
+        "optional": true
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional audit reason",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Set Session Control",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "test_mcp_server",
+    "description": "Perform a real MCP handshake and list external tools to check connectivity, authentication and protocol compatibility. Updates the stored server status, last error and protocol version. success=true means the test ran; reachable is its result. Inspect error_class and error_message when unreachable.",
+    "arguments": [
+      {
+        "name": "mcp_server_id",
+        "type": "string",
+        "desc": "UUID of the MCP server to test"
+      }
+    ],
+    "annotations": {
+      "title": "Test MCP Server",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "test_trigger",
+    "description": "Execute a trigger with a test payload. This runs the agent, consumes tokens and may cause external side effects.",
+    "arguments": [
+      {
+        "name": "trigger_id",
+        "type": "string",
+        "desc": "UUID of the trigger to test"
+      },
+      {
+        "name": "test_payload",
+        "type": "object",
+        "desc": "Test payload. For webhooks: {\"chatInput\":\"Test message\"}. For schedules, omit to use the scheduled query.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Test Trigger",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "toggle_csp",
+    "description": "Enable or disable a contextual security policy. Inactive policies are not applied. Set enabled for the desired state; omitting it toggles the current state. Concurrent calls can race, so verify the returned is_active value.",
+    "arguments": [
+      {
+        "name": "csp_id",
+        "type": "string",
+        "desc": "CSP policy UUID"
+      },
+      {
+        "name": "enabled",
+        "type": "boolean",
+        "desc": "true = ativa; false = desativa. Omitir inverte o estado atual (repetir a chamada desfaz).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Toggle CSP",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "toggle_schema",
+    "description": "Enable or disable a schema without deleting it. Inactive schemas are not loaded by the agent. Set enabled for the desired state; omitting it toggles the current state. Concurrent calls can race, so verify the returned is_active value.",
+    "arguments": [
+      {
+        "name": "schema_id",
+        "type": "string",
+        "desc": "Schema UUID"
+      },
+      {
+        "name": "enabled",
+        "type": "boolean",
+        "desc": "true = ativa; false = desativa. Omitir inverte o estado atual (repetir a chamada desfaz).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Toggle Schema",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "toggle_trigger",
+    "description": "Enable or disable a trigger without deleting its configuration. Set enabled for the desired state; omitting it toggles the current state. Concurrent calls can race, so verify the returned is_active value.",
+    "arguments": [
+      {
+        "name": "enabled",
+        "type": "boolean",
+        "desc": "true enables the trigger; false disables it"
+      },
+      {
+        "name": "trigger_id",
+        "type": "string",
+        "desc": "Trigger UUID"
+      }
+    ],
+    "annotations": {
+      "title": "Toggle Trigger",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "unarchive_session",
+    "description": "Bring an archived conversation back to the active list. `CONFLICT` if it was not archived",
+    "arguments": [
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": "Session session_id string or UUID"
+      }
+    ],
+    "annotations": {
+      "title": "Unarchive Session",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "update_agent",
+    "description": "Update only the supplied agent fields. memory_enabled, quick_replies_enabled and engagement_control_enabled change the agent tool surface and require admin/owner. chat_enabled controls native chat availability. Inspect partial_update if only part of the update succeeded.",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "UUID of the agent to update"
+      },
+      {
+        "name": "bio",
+        "type": "string",
+        "desc": "New description or biography",
+        "optional": true
+      },
+      {
+        "name": "chat_enabled",
+        "type": "boolean",
+        "desc": "Enable or disable the agent in native chat at chat.zihin.ai. Defaults to false.",
+        "optional": true
+      },
+      {
+        "name": "commercial_name",
+        "type": "string",
+        "desc": "New display name",
+        "optional": true
+      },
+      {
+        "name": "engagement_control_enabled",
+        "type": "boolean",
+        "desc": "Enable the end_engagement tool so the agent can end its engagement with a consumer. A fixed response replaces model execution until the control expires. Defaults to false; independent of memory_enabled.",
+        "optional": true
+      },
+      {
+        "name": "llm_config",
+        "type": "object",
+        "desc": "New model configuration: provider.model or auto, temperature from 0 to 2, and an ordered fallback_chain",
+        "optional": true
+      },
+      {
+        "name": "memory_enabled",
+        "type": "boolean",
+        "desc": "Enable persistent agent memory (save/recall/forget_memory and automatic recall). Defaults to false. Read zihin://skills/criar-agente.",
+        "optional": true
+      },
+      {
+        "name": "metadata",
+        "type": "object",
+        "desc": "New additional JSON metadata",
+        "optional": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "New internal name",
+        "optional": true
+      },
+      {
+        "name": "quick_replies_enabled",
+        "type": "boolean",
+        "desc": "Enable suggest_replies with up to four quick-reply chips. Supported by native chat and integrations declaring capabilities.blocks=[\"quick_replies\"]. Defaults to true; disabling it avoids the extra model call.",
+        "optional": true
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "desc": "New categorization tags",
+        "optional": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "New agent type",
+        "optional": true
+      },
+      {
+        "name": "visibility",
+        "type": "string",
+        "desc": "New visibility",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Update Agent",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "update_api_key",
+    "description": "Update the supplied API key settings within the caller's permissions and tenant plan limits.",
+    "arguments": [
+      {
+        "name": "key_id",
+        "type": "string",
+        "desc": "UUID of the API key to update"
+      },
+      {
+        "name": "rate_limit_per_minute",
+        "type": "integer",
+        "desc": "New requests-per-minute limit, subject to the tenant plan"
+      }
+    ],
+    "annotations": {
+      "title": "Update API Key",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "update_approval_policy",
+    "description": "Update name/description/stages or deactivate (`is_active: false`)",
+    "arguments": [
+      {
+        "name": "policy_id",
+        "type": "string",
+        "desc": "Policy UUID"
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "New description",
+        "optional": true
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "desc": "false deactivates the policy",
+        "optional": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "New name",
+        "optional": true
+      },
+      {
+        "name": "stages",
+        "type": "array",
+        "desc": "New approval stages",
+        "optional": true,
+        "items": {
+          "type": "object"
+        }
+      }
+    ],
+    "annotations": {
+      "title": "Update Approval Policy",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "update_csp",
+    "description": "Update a contextual security policy. Supplied rules replace the whole object; include all fields to retain. Check zihin://schemas/csp_config because unknown fields may be accepted without effect. Use behavior.must_not_tools for tool restrictions and require_approval_for with approval_policy_id for native-chat human approval.",
+    "arguments": [
+      {
+        "name": "csp_id",
+        "type": "string",
+        "desc": "UUID of the CSP policy to update"
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "New description",
+        "optional": true
+      },
+      {
+        "name": "exceptions",
+        "type": "object",
+        "desc": "New rule exceptions",
+        "optional": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "New name",
+        "optional": true
+      },
+      {
+        "name": "priority",
+        "type": "number",
+        "desc": "New priority",
+        "optional": true
+      },
+      {
+        "name": "rules",
+        "type": "object",
+        "desc": "New rules, replacing the previous rules completely",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Update CSP",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "update_mcp_server",
+    "description": "Update only supplied MCP server fields. config replaces the whole object; send all settings to retain. Changes invalidate the agent tool surface; connection, configuration, authentication and transport changes also invalidate server tool discovery.",
+    "arguments": [
+      {
+        "name": "mcp_server_id",
+        "type": "string",
+        "desc": "MCP server UUID"
+      },
+      {
+        "name": "auth_method",
+        "type": "string",
+        "desc": "New authentication method; OAuth is not yet supported for this external-server configuration",
+        "optional": true
+      },
+      {
+        "name": "config",
+        "type": "object",
+        "desc": "New configuration",
+        "optional": true
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "New description",
+        "optional": true
+      },
+      {
+        "name": "endpoint",
+        "type": "string",
+        "desc": "New endpoint",
+        "optional": true
+      },
+      {
+        "name": "integration_id",
+        "type": "string",
+        "desc": "Registered integration link; see list_integrations. With tunnel authentication, destination access requires an active grant. For other methods, the link is informational. Omit to preserve the current link.",
+        "optional": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "New name",
+        "optional": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "New status",
+        "optional": true
+      },
+      {
+        "name": "transport",
+        "type": "string",
+        "desc": "New transport type",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Update MCP Server",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "update_schema",
+    "description": "Update an agent schema using its current base_version. Supplied schema_data replaces the full document; reload and reconcile on CONFLICT.",
+    "arguments": [
+      {
+        "name": "schema_id",
+        "type": "string",
+        "desc": "UUID of the schema to update"
+      },
+      {
+        "name": "base_version",
+        "type": "integer",
+        "desc": "Recommended: version read from get_schema. A concurrent change returns CONFLICT with the current version and saves nothing; reread and reapply. Without it, the last write wins.",
+        "optional": true
+      },
+      {
+        "name": "changelog",
+        "type": "string",
+        "desc": "Reason for the change, recorded in version history",
+        "optional": true
+      },
+      {
+        "name": "schema_data",
+        "type": "object",
+        "desc": "Complete new schema_data in the format used by create_schema. Replaces the previous object entirely; partial updates are not supported.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Update Schema",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "update_secret",
+    "description": "Replace a tenant secret value with a newly encrypted value. Existing references keep using the same secret name.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the secret to update"
+      },
+      {
+        "name": "value",
+        "type": "string",
+        "desc": "New plaintext value"
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Optional new description",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Update Secret",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "update_trigger",
+    "description": "Update only supplied trigger fields. trigger_config replaces the entire configuration; read get_trigger first and include all settings to retain.",
+    "arguments": [
+      {
+        "name": "trigger_id",
+        "type": "string",
+        "desc": "UUID of the trigger to update"
+      },
+      {
+        "name": "api_key_id",
+        "type": "string",
+        "desc": "New API key for execution",
+        "optional": true
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "New description",
+        "optional": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "New name",
+        "optional": true
+      },
+      {
+        "name": "trigger_config",
+        "type": "object",
+        "desc": "New trigger configuration in the format used by create_trigger",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Update Trigger",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "validate_agent_schemas",
+    "description": "Validate an agent's configured schemas and report errors and warnings before publication.",
+    "arguments": [
+      {
+        "name": "agent_id",
+        "type": "string",
+        "desc": "UUID of the agent to validate"
+      }
+    ],
+    "annotations": {
+      "title": "Validate Agent Schemas",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "validate_process_definition",
+    "description": "Validate a process definition without saving: structure, execution rules and tenant ownership of referenced agents, approval policies and MCP servers. Returns errors with paths and reasons. Run before publishing.",
+    "arguments": [
+      {
+        "name": "spec",
+        "type": "object",
+        "desc": "Complete process definition, including key, title, description, variables_schema and steps"
+      }
+    ],
+    "annotations": {
+      "title": "Validate Process Definition",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "validate_schema_data",
+    "description": "Dry-run: validate schema data without saving — same server-side JSON Schema validation as `create_schema`/`update_schema`. Supports all canonical types, including `trigger_config` and `csp_config`",
+    "arguments": [
+      {
+        "name": "schema_data",
+        "type": "object",
+        "desc": "Schema data to validate, using the same structure as create_schema"
+      },
+      {
+        "name": "schema_type",
+        "type": "string",
+        "desc": "Canonical schema type to validate. trigger_config and csp_config can be validated here but are created through create_trigger and create_csp."
+      }
+    ],
+    "annotations": {
+      "title": "Validate Schema Data",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "whoami",
+    "description": "Identify the current session: tenant name, role, and subscription plan",
+    "annotations": {
+      "title": "Whoami",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
   }
 ]
