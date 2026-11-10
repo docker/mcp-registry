@@ -38,7 +38,7 @@
   },
   {
     "name": "plan_reference_remake",
-    "description": "Compile a reference remake into a workflow plan from an analysis_id of analyze_reference and the user's script; free, starts no run. audience: whom the viewer trusts and where (maker, seller, expert at home, user), argued from the analysis and shown to the user; actor, setting and script match it. warnings name what it does not reproduce. Missing media: make it with generate_image or generate_video and compile again. plan_id, base_version and review_notes save the next revision; a note about a shot goes in assets[].anchor or line_edits. Only an approved revision runs.",
+    "description": "Compile a reference remake into a workflow plan from an analysis_id of analyze_reference and the user's script; free, starts no run. audience: whom the viewer trusts and where (maker, seller, expert at home, user), argued from the analysis and shown to the user; actor, setting and script match it. warnings name what it does not reproduce. Missing media: make it with generate_image or generate_video and compile again. plan_id, base_version and review_notes save the next revision; a note changes nothing by itself: a shot goes in assets[].anchor or line_edits, pauses in pause_trim, the product in hand and its demo in product. Only an approved revision runs.",
     "arguments": [
       {
         "name": "plan_id",
@@ -144,6 +144,16 @@
         "name": "cast",
         "type": "array",
         "desc": "As quote_ugc shot cast."
+      },
+      {
+        "name": "pause_trim",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "product",
+        "type": "object",
+        "desc": ""
       },
       {
         "name": "analysis_id",
@@ -673,11 +683,16 @@
   },
   {
     "name": "quote_video",
-    "description": "Price one generate_video call WITHOUT spending credits (unit_credits per second of duration_s). A reference is as quote_image states it. A generation that fails is charged nothing. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing.",
+    "description": "Price one generate_video call WITHOUT spending credits (unit_credits per second of duration_s). Pass prompt, or shot: the clip as framing, subject, beats of 1 to 5 seconds, camera, light and continuity, each written as what the frame shows (describe_tool quote_video says how). A reference is as quote_image states it. A generation that fails is charged nothing. While generations are closed it answers generations_disabled or generations_marking_pending and charges nothing.",
     "arguments": [
       {
         "name": "prompt",
         "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "shot",
+        "type": "object",
         "desc": ""
       },
       {
@@ -729,11 +744,16 @@
   },
   {
     "name": "generate_video",
-    "description": "Input: the same fields as quote_video, plus attempt. Generate one silent clip, a NEW run, charged unit_credits per second of duration_s once delivered. Modes: text; first_frame (the requested format within 2%); reference (1 to 4). Poll get_run. A generation that fails is charged nothing. Repeating an identical request returns the run it started, starting nothing new; pass attempt 2 for another one. Price: 3 to 90 credits per second of clip, by model and size. Quote first with quote_video.",
+    "description": "Input: the same fields as quote_video, plus attempt. Generate one silent clip from a prompt or a shot, a NEW run, charged unit_credits per second of duration_s once delivered. Modes: text; first_frame (the requested format within 2%); reference (1 to 4). Poll get_run. A generation that fails is charged nothing. Repeating an identical request returns the run it started, starting nothing new; pass attempt 2 for another one. Price: 3 to 90 credits per second of clip, by model and size. Quote first with quote_video.",
     "arguments": [
       {
         "name": "prompt",
         "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "shot",
+        "type": "object",
         "desc": ""
       },
       {
@@ -885,7 +905,7 @@
       {
         "name": "shots",
         "type": "array",
-        "desc": "Live shots of the actor on script words, no overlaps; 9:16, long-form qualification. Acting shots: wide or full, a cast from pictures. Each kind has its presenter-second price in list_prices."
+        "desc": "Live shots of the actor on script words, no overlaps; 9:16, long-form qualification. Acting shots: wide or full, a cast from pictures; action: shot, second by second. Each kind has its presenter-second price in list_prices."
       },
       {
         "name": "product_asset_id",
@@ -1121,7 +1141,7 @@
   },
   {
     "name": "list_assets",
-    "description": "List assets, newest first, by role and kind; next_cursor pages. pending lists assets in progress and today's failures; usage counts against 2000 assets and 1 GB, or 20 GB once credits were bought. Free.",
+    "description": "List assets, newest first, by role and kind; mascot true lists saved mascots, whose id is make_faceless mascot_id. next_cursor pages. pending lists assets in progress and today's failures; usage counts against 2000 assets and 1 GB, or 20 GB once credits were bought. Free.",
     "arguments": [
       {
         "name": "role",
@@ -1130,6 +1150,11 @@
       },
       {
         "name": "kind",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "mascot",
         "type": "string",
         "desc": ""
       },
@@ -1667,7 +1692,7 @@
   },
   {
     "name": "make_faceless",
-    "description": "Input: the same fields as quote_faceless, plus attempt. Start a faceless video from a script or brief: an opening clip and image scenes. You select 30–90 seconds; it ends with its narration, at least 25 seconds and at most a quarter past the selection, never beyond 90. Captions are on unless turned off. Poll get_run. attempt=2,3,… starts a NEW run. Price: generated picture 7 credits per image plus opening clip 49 credits per clip plus production (story, voice and render) 1 credits per second of video, at least 50. Quote first with quote_faceless.",
+    "description": "Input: the same fields as quote_faceless, plus attempt. Start a faceless video from a script or brief: an opening clip and image scenes. You select 30–90 seconds; it ends with its narration, at least 25 seconds (an explainer, as long as its narration) and at most a quarter past the selection, never beyond 90. Captions are on unless turned off. Poll get_run. attempt=2,3,… starts a NEW run. Price: generated picture 7 credits per image plus opening clip 49 credits per clip plus production (story, voice and render) 1 credits per second of video, at least 50. Quote first with quote_faceless.",
     "arguments": [
       {
         "name": "input_mode",
@@ -1701,6 +1726,11 @@
       },
       {
         "name": "character_details",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "mascot_id",
         "type": "string",
         "desc": ""
       },
@@ -1756,6 +1786,21 @@
       },
       {
         "name": "moves",
+        "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "tier",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "pause_trim",
         "type": "object",
         "desc": ""
       },
@@ -1811,6 +1856,11 @@
         "desc": ""
       },
       {
+        "name": "mascot_id",
+        "type": "string",
+        "desc": ""
+      },
+      {
         "name": "scene_images",
         "type": "array",
         "desc": ""
@@ -1866,9 +1916,24 @@
         "desc": ""
       },
       {
+        "name": "format",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "tier",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "pause_trim",
+        "type": "object",
+        "desc": ""
+      },
+      {
         "name": "voice",
         "type": "string",
-        "desc": "A list_voices name with skill=make_faceless; omitted, narrator_en_wise_lady. An unknown or make_ugc voice is refused before any charge."
+        "desc": "A list_voices name with skill=make_faceless; omitted, narrator_en_wise_lady, or the fastest voice for an English explainer. An unknown or make_ugc voice is refused before any charge."
       }
     ]
   },
