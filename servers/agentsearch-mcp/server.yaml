@@ -1,0 +1,47 @@
+name: agentsearch-mcp
+image: mcp/agentsearch-mcp
+type: server
+meta:
+  category: search
+  tags:
+    - search
+    - extract
+    - render
+    - x402
+    - web
+about:
+  title: AgentSearch
+  description: Web search, URL-to-markdown extract, JS page render, and search_and_read for AI agents. Default is keyless free search (up to 25/day per IP) plus an extract/render trial. Optional wallet env enables paid calls on AgentSearch's direct x402 API on Base.
+  icon: https://agentsearchhq.com/icon-192.png
+source:
+  project: https://github.com/agentsearchhq-coder/agentsearch-mcp
+  commit: cb0f67aaf714e9cf955c221de449b017d91dda27
+config:
+  description: Optional paid-mode settings. Leave empty for free keyless search and the extract/render trial.
+  secrets:
+    - name: agentsearch-mcp.wallet_private_key
+      env: AGENTSEARCH_WALLET_PRIVATE_KEY
+      example: "0xYOUR_DEDICATED_WALLET_PRIVATE_KEY"
+      description: Optional. Private key of a dedicated Base USDC wallet for paid extract, render, and search_and_read on https://api.agentsearchhq.com. Leave empty for the free tier.
+  env:
+    - name: AGENTSEARCH_MODE
+      example: "free"
+      value: "{{agentsearch-mcp.mode}}"
+    - name: AGENTSEARCH_BASE_URL
+      example: ""
+      value: "{{agentsearch-mcp.base_url}}"
+    - name: AGENTSEARCH_PAYMENT_ROUTE
+      example: "direct"
+      value: "{{agentsearch-mcp.payment_route}}"
+  parameters:
+    type: object
+    properties:
+      mode:
+        type: string
+        description: Search mode. Leave empty or "free" for keyless search (default). "paid" charges $0.008 per search and needs a wallet key.
+      base_url:
+        type: string
+        description: Optional self-hosted AgentSearch-compatible API base URL (no trailing slash).
+      payment_route:
+        type: string
+        description: Paid route when a wallet is set. Leave empty or "direct" for AgentSearch's x402 API on Base. "pocket" is the secondary Pocket Network path.
