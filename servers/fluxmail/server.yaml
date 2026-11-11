@@ -1,0 +1,55 @@
+name: fluxmail
+image: mcp/fluxmail
+type: server
+meta:
+  category: communication
+  tags:
+    - email
+    - gmail
+    - outlook
+    - imap
+    - smtp
+    - communication
+about:
+  title: Fluxmail
+  description: Self-hosted email MCP server for Gmail, Outlook, and IMAP/SMTP. Search, read, draft, send, and organize mail across connected accounts.
+  icon: https://avatars.githubusercontent.com/u/4218237?v=4
+source:
+  project: https://github.com/churichard/fluxmail
+  commit: c399efa4361004b2c29fcc56c4c2cf978916b873
+run:
+  command:
+    - stdio
+    - --profile
+    - $FLUXMAIL_PERMISSION_PROFILE
+  volumes:
+    - fluxmail-data:/data
+config:
+  description: >-
+    Before first use, set up Fluxmail in the fluxmail-data volume with
+    `docker run -it --rm -v fluxmail-data:/data mcp/fluxmail setup`, then connect a mailbox with
+    `docker run -it --rm -v fluxmail-data:/data -e FLUXMAIL_OAUTH_HOST=0.0.0.0 -p 127.0.0.1:8976:8976 mcp/fluxmail accounts add gmail`.
+    Use outlook or imap instead of gmail for those providers. The permission profile sets which tools the
+    agent gets. Google OAuth credentials are optional overrides for Gmail.
+  secrets:
+    - name: fluxmail.google_client_secret
+      env: GOOGLE_CLIENT_SECRET
+      example: <GOOGLE_CLIENT_SECRET>
+      required: false
+  env:
+    - name: FLUXMAIL_PERMISSION_PROFILE
+      example: read-only
+      value: "{{fluxmail.permission_profile}}"
+    - name: GOOGLE_CLIENT_ID
+      example: 123456789.apps.googleusercontent.com
+      value: "{{fluxmail.google_client_id}}"
+  parameters:
+    type: object
+    properties:
+      permission_profile:
+        type: string
+        description: "Tools the agent can use: read-only, read-write, or full"
+        default: read-only
+      google_client_id:
+        type: string
+        description: Optional Google OAuth client ID override for Gmail accounts
