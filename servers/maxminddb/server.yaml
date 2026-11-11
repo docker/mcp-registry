@@ -1,0 +1,50 @@
+name: maxminddb
+image: ghcr.io/oschwald/maxminddb-mcp:0.4.0
+type: server
+meta:
+  category: database
+  tags:
+    - database
+    - geolocation
+    - networking
+about:
+  title: MaxMindDB
+  description: Query local MaxMind DB files for IP geolocation, ASN data, and network analysis. Supports filtered network queries and database downloads. Unofficial integration, not a MaxMind product.
+  icon: https://raw.githubusercontent.com/oschwald/maxminddb-mcp/v0.4.0/packaging/icon.png
+source:
+  project: https://github.com/oschwald/maxminddb-mcp
+  commit: 235bb641a36c292e68b8bc00669aa86c92635787
+run:
+  volumes:
+    - maxminddb-mcp-data:/data
+  env:
+    MAXMINDDB_MCP_CONFIG: ""
+    MAXMINDDB_MCP_DOWNLOAD_ENABLED: "true"
+    MAXMINDDB_MCP_DATABASE_DIR: /data
+config:
+  description: Supply your MaxMind account ID and license key. Downloads GeoLite2-City and GeoLite2-ASN by default and stores databases in a persistent Docker volume. No databases are bundled.
+  secrets:
+    - name: maxminddb.license_key
+      env: MAXMINDDB_MCP_LICENSE_KEY
+      example: <MAXMINDDB_MCP_LICENSE_KEY>
+      description: MaxMind license key with database download access.
+      required: true
+  env:
+    - name: MAXMINDDB_MCP_ACCOUNT_ID
+      example: "123456"
+      value: "{{maxminddb.account_id}}"
+    - name: MAXMINDDB_MCP_EDITIONS
+      example: GeoLite2-City,GeoLite2-ASN
+      value: "{{maxminddb.editions}}"
+  parameters:
+    type: object
+    properties:
+      account_id:
+        type: string
+        description: Your numeric MaxMind account ID.
+      editions:
+        type: string
+        description: Comma-separated MMDB edition IDs available to your account.
+        default: GeoLite2-City,GeoLite2-ASN
+    required:
+      - account_id
