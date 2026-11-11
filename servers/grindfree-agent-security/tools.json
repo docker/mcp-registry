@@ -1,0 +1,97 @@
+[
+  {
+    "name": "promptshield_screen",
+    "description": "Screen untrusted text/HTML for prompt-injection before the model reads it. Paid x402 $0.002 USDC on Base. Returns risk, findings, sanitized. On high risk, prefer sanitized or abort.",
+    "arguments": [
+      { "name": "content", "type": "string", "desc": "Untrusted text or HTML to screen" },
+      { "name": "format", "type": "string", "desc": "Content format: text or html (default text)" }
+    ]
+  },
+  {
+    "name": "promptshield_clean",
+    "description": "Convert HTML to clean LLM-ready text (strips scripts/styles/hidden/zero-width). Paid x402 $0.002 USDC on Base.",
+    "arguments": [
+      { "name": "content", "type": "string", "desc": "HTML or text to clean" }
+    ]
+  },
+  {
+    "name": "crawlsafe_check",
+    "description": "Check whether a URL may be crawled for your user-agent (robots.txt + X-Robots-Tag/meta). SSRF-guarded. Not a malware scanner. Paid x402 $0.002 USDC on Base.",
+    "arguments": [
+      { "name": "url", "type": "string", "desc": "http(s) URL to check" },
+      { "name": "user_agent", "type": "string", "desc": "Crawler UA; first token matched against robots groups" },
+      { "name": "check_page", "type": "boolean", "desc": "Also fetch up to 64KB for X-Robots-Tag/meta (default true)" }
+    ]
+  },
+  {
+    "name": "toolguard_evaluate",
+    "description": "Pre-tool-call policy gate for HTTP/MCP outbound actions. Returns allow|review|deny with deterministic reasons. Caller MUST enforce. Missing policy → review. Paid x402 $0.002 USDC on Base.",
+    "arguments": [
+      { "name": "tool", "type": "string", "desc": "Tool name, e.g. http.fetch or mcp.call" },
+      { "name": "destination", "type": "object", "desc": "Optional host/scheme/port/path_class" },
+      { "name": "arg_classes", "type": "array", "desc": "Argument classes" },
+      { "name": "taint", "type": "array", "desc": "Taint labels" },
+      { "name": "secret_labels", "type": "array", "desc": "Redacted secret labels only" },
+      { "name": "policy", "type": "object", "desc": "Owner policy; absent → review" }
+    ]
+  },
+  {
+    "name": "commandguard_command",
+    "description": "Check an agent-generated shell command BEFORE executing it. Returns allow|warn|block. Caller MUST enforce: do not run on block. Paid x402 $0.001 USDC on Base.",
+    "arguments": [
+      { "name": "command", "type": "string", "desc": "Exact command line the agent intends to run" },
+      { "name": "shell", "type": "string", "desc": "bash, sh, zsh, fish, powershell, or cmd" },
+      { "name": "policy", "type": "object", "desc": "Optional owner policy" }
+    ]
+  },
+  {
+    "name": "commandguard_sql",
+    "description": "Check agent-generated SQL BEFORE executing it. Returns allow|warn|block. Caller MUST enforce. Paid x402 $0.001 USDC on Base.",
+    "arguments": [
+      { "name": "sql", "type": "string", "desc": "One or more SQL statements" },
+      { "name": "dialect", "type": "string", "desc": "postgres, mysql, mariadb, sqlite, mssql, snowflake, bigquery, or other" },
+      { "name": "policy", "type": "object", "desc": "e.g. {read_only:true} or protected_tables" }
+    ]
+  },
+  {
+    "name": "memoryguard_screen",
+    "description": "Screen content BEFORE writing it to an agent's long-term memory. Returns allow|review|block plus a sanitized copy. Paid x402 $0.002 USDC on Base.",
+    "arguments": [
+      { "name": "content", "type": "string", "desc": "Single memory entry (or use entries)" },
+      { "name": "source", "type": "string", "desc": "user, assistant, tool, web, document, email, retrieved, mcp, or unknown" },
+      { "name": "memory_type", "type": "string", "desc": "fact, preference, instruction, episodic, or summary" },
+      { "name": "entries", "type": "array", "desc": "Batch of up to 25 memory entries" },
+      { "name": "policy", "type": "object", "desc": "Optional owner policy" }
+    ]
+  },
+  {
+    "name": "wireshield_scan",
+    "description": "Scan agent OUTPUT before it is rendered or sent: image exfil, URL smuggling, canaries, prompt leakage, secrets. Returns allow|review|block plus a sanitized copy. Paid x402 $0.002 USDC on Base.",
+    "arguments": [
+      { "name": "content", "type": "string", "desc": "Agent output about to be shown or sent" },
+      { "name": "format", "type": "string", "desc": "markdown, text, html, or json" },
+      { "name": "allowed_domains", "type": "array", "desc": "Hosts allowed to auto-load images" },
+      { "name": "canaries", "type": "array", "desc": "Canary tokens planted in your system prompt" },
+      { "name": "system_prompt", "type": "string", "desc": "Optional; used only for verbatim-overlap detection, never stored" },
+      { "name": "policy", "type": "object", "desc": "Optional owner policy" }
+    ]
+  },
+  {
+    "name": "docshield_scan",
+    "description": "Scan a document BEFORE the agent reads it for hidden instructions in PDF/Office/HTML/Markdown. Max 3 MB. Paid x402 $0.004 USDC on Base.",
+    "arguments": [
+      { "name": "path", "type": "string", "desc": "Local file path (read by this MCP server on your machine)" },
+      { "name": "content_base64", "type": "string", "desc": "File bytes, base64 (alternative to path)" },
+      { "name": "content", "type": "string", "desc": "HTML/Markdown/text (alternative to path)" },
+      { "name": "format", "type": "string", "desc": "html, markdown, or text" },
+      { "name": "filename", "type": "string", "desc": "Original filename" },
+      { "name": "include_text", "type": "boolean", "desc": "Return visible-only safe_text" },
+      { "name": "policy", "type": "object", "desc": "Optional owner policy" }
+    ]
+  },
+  {
+    "name": "grindfree_discovery",
+    "description": "Return machine-readable discovery URLs and unpaid 402 challenge shapes for all GrindFree agent-security APIs (no payment).",
+    "arguments": []
+  }
+]
