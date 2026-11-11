@@ -1,0 +1,38 @@
+name: minecraft-mcp
+image: mcp/minecraft-mcp
+type: server
+meta:
+  category: games
+  tags:
+    - games
+    - minecraft
+about:
+  title: Minecraft WorldAPI
+  description: Lets an AI agent see and run a Minecraft server through the WorldAPI plugin on Paper, Fabric, or NeoForge. It reads players and their inventories, blocks and chests, entities, leaderboards, configs, and logs, runs commands, and waits for live events. The WorldAPI token you give it decides which tools appear; without one, a server that allows public reads still answers.
+  icon: https://raw.githubusercontent.com/MairwunNx/minecraft-mcp/master/media/icon.png
+source:
+  project: https://github.com/MairwunNx/minecraft-mcp
+  branch: master
+  commit: 1d60b1d46a9bdc5994e2a378143fd3402a1ec5a4
+config:
+  description: Point it at your server's WorldAPI. From Docker Desktop, a server on your own machine is http://host.docker.internal:8110/api/v1.
+  secrets:
+    - name: minecraft-mcp.worldapi_token
+      env: WORLDAPI_TOKEN
+      example: <WORLDAPI_TOKEN from /worldapi token create agent>
+  env:
+    - name: WORLDAPI_URL
+      example: http://host.docker.internal:8110/api/v1
+      value: "{{minecraft-mcp.worldapi_url}}"
+    - name: WORLDAPI_PLAYER
+      example: Steve
+      value: "{{minecraft-mcp.player}}"
+  parameters:
+    type: object
+    properties:
+      worldapi_url:
+        type: string
+      player:
+        type: string
+    required:
+      - worldapi_url
