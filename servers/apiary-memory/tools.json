@@ -1,0 +1,233 @@
+[
+  {
+    "name": "recall",
+    "description": "Search the human's confirmed memory by natural-language query and return the closest stored entries. Use this to find what was previously decided, recorded, or agreed. Do not use it at session start when you have no query yet - use get_context instead. Do not use it to review entries still awaiting approval - use manage with action list_pending. Annotations already declare this read-only, so this text covers what they cannot: results come from the confirmed store only, private vaults are omitted for agents not permitted to read them, and an empty list means no match rather than no memory.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Natural-language search text, e.g. 'what did we decide about the pricing page'. Ranked by the Hive's index of words and character bigrams, with synonym expansion and a recency nudge; supply query_vector to rank by meaning instead."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of memories to return. Omit for the server default.",
+        "optional": true
+      },
+      {
+        "name": "compact",
+        "type": "boolean",
+        "desc": "Return trimmed records (id, title, snippet) instead of full bodies. Saves tokens when you only need to know whether something exists.",
+        "optional": true
+      },
+      {
+        "name": "vaults",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Narrow the search to these vault names. Omit to search every vault this agent may read. Naming a vault the agent may not read is not an error - it returns nothing from that vault.",
+        "optional": true
+      },
+      {
+        "name": "query_vector",
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "desc": "Precomputed embedding. When supplied, recall ranks by vector similarity and ignores 'query' text matching.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Recall memory",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "propose",
+    "description": "Submit a memory for the human to approve. It lands in a pending queue and changes no confirmed memory. Use it when the human says to remember something, or when a decision is reached that will still matter later. Do not use it as a scratchpad for transient reasoning or for data you merely fetched. This tool cannot confirm its own writes: the entry stays pending until the human accepts it inside their own Hive, so a success response means queued, not stored. Supply client_id to make retries idempotent.",
+    "arguments": [
+      {
+        "name": "content",
+        "type": "string",
+        "desc": "The memory to store, written as a standalone fact that still makes sense without this conversation - include the who and the when."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Short label shown in the human's pending queue. Helps them decide quickly.",
+        "optional": true
+      },
+      {
+        "name": "vault",
+        "type": "string",
+        "desc": "Target vault name. Private vaults are rejected for cloud agents; local agents may target them.",
+        "optional": true
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Free-form tags for later filtering.",
+        "optional": true
+      },
+      {
+        "name": "vector",
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "desc": "Optional precomputed embedding stored alongside the memory, so later recalls are faster and more precise.",
+        "optional": true
+      },
+      {
+        "name": "client_id",
+        "type": "string",
+        "desc": "Idempotency key. Submitting twice with the same key does not create a duplicate - use this when retrying after a timeout.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Propose a memory",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "manage",
+    "description": "Inspect or change the lifecycle of a specific stored memory, addressed by id or by queue state. Use list_pending to review what is awaiting the human's approval, and get_by_id to read one entry in full. forget soft-deletes and is reversible with restore; discard_pending permanently drops an entry that was never confirmed. To search confirmed memory by topic instead of by address, use recall. Except for discard_pending, every action here is reversible, which is why this is not marked destructive.",
+    "arguments": [
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "Which lifecycle operation to run. list_pending takes no id; the other four require one."
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Target memory id. Required for forget, restore, get_by_id and discard_pending; ignored by list_pending.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Manage stored memories",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_context",
+    "description": "Pull a short digest of recent memory from the human's active threads and open tasks, to seed a conversation before they ask anything. Call this once at session start. For answering a specific question, use recall instead, since that searches all confirmed memory rather than only what is recent. For entries still awaiting approval, use manage with action list_pending. Annotations already declare this read-only; what they cannot say is that the digest reflects the most recent activity, so two calls minutes apart may differ.",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of context entries to return. Omit for the server default.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Get session context",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "say",
+    "description": "Post a message to the shared board so the human and other agents see what was done or what is being handed over. Use it when finishing a unit of work, or to hand work to another agent. Do not use it to report routine steps the human did not ask about - the human reads this board. To read what others have posted, use board. Identity comes from your credential, so a caller cannot post as another agent.",
+    "arguments": [
+      {
+        "name": "summary",
+        "type": "string",
+        "desc": "What happened, in one or two sentences. Write the outcome, not a log of steps."
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "Who should see it: 'master' for the human (default), or another agent's id.",
+        "optional": true
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "Card type. May be omitted when stage is given, in which case the kind is derived from the stage.",
+        "optional": true
+      },
+      {
+        "name": "stage",
+        "type": "string",
+        "desc": "Work event: starting, handing off, finished, or blocked. Prefixes the body so the board can be filtered and de-duplicated.",
+        "optional": true
+      },
+      {
+        "name": "task_id",
+        "type": "string",
+        "desc": "Link this message to an existing task; the hand-off graph aggregates by it.",
+        "optional": true
+      },
+      {
+        "name": "refs",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "References the reader may want: file paths, commit shas, or memory ids.",
+        "optional": true
+      },
+      {
+        "name": "ttl",
+        "type": "integer",
+        "desc": "Seconds after which the message stops being returned by board. Defaults to 24 hours, and is clamped to between 60 seconds and 30 days so no card is immortal.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Post to the shared board",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "board",
+    "description": "Read the shared board, optionally only what arrived since your last read. Use it to poll for messages or hand-offs addressed to you. To post, use say. Pass the previous cursor as since so a poll returns only new messages instead of the whole board. Annotations declare this read-only; note that messages expire, so an empty result can mean nothing was posted or that earlier messages have aged out.",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of messages to return. Omit for the server default.",
+        "optional": true
+      },
+      {
+        "name": "since",
+        "type": "string",
+        "desc": "Cursor from a previous call. Only messages newer than this cursor are returned; omit to read the current board.",
+        "optional": true
+      },
+      {
+        "name": "roster",
+        "type": "boolean",
+        "desc": "Also return which agents are currently on duty.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Read the shared board",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  }
+]
