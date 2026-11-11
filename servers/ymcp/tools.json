@@ -1,0 +1,1668 @@
+[
+  {
+    "name": "add_attachment",
+    "description": "Attaches local files (filePath, or several with filePaths), or the given text as a file, to an issue or a knowledge base article. Article text can then reference the images by file name. Returns the attachment IDs.",
+    "arguments": [
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123 (or pass articleId)",
+        "optional": true
+      },
+      {
+        "name": "articleId",
+        "type": "string",
+        "desc": "Knowledge base article ID, e.g. DEMO-A-4 (instead of issueId)",
+        "optional": true
+      },
+      {
+        "name": "filePath",
+        "type": "string",
+        "desc": "Local file to attach",
+        "optional": true
+      },
+      {
+        "name": "filePaths",
+        "type": "array",
+        "desc": "Several local files to attach in one request, e.g. all images of an article",
+        "optional": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "fileName",
+        "type": "string",
+        "desc": "Name for a single attachment; required with textContent, defaults to the file's name",
+        "optional": true
+      },
+      {
+        "name": "textContent",
+        "type": "string",
+        "desc": "Attach this text instead of a local file, e.g. a log excerpt",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "openWorldHint": true,
+      "title": "Add attachment"
+    }
+  },
+  {
+    "name": "add_issue_comment",
+    "description": "Adds a comment to an issue, optionally visible only to given users and groups. Markdown is supported. Returns the comment ID and URL.",
+    "arguments": [
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123"
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "Comment text, Markdown supported"
+      },
+      {
+        "name": "permittedUsers",
+        "type": "array",
+        "desc": "Limit visibility to these user logins",
+        "optional": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "permittedGroups",
+        "type": "array",
+        "desc": "Limit visibility to these group names",
+        "optional": true,
+        "items": {
+          "type": "string"
+        }
+      }
+    ],
+    "annotations": {
+      "openWorldHint": true,
+      "title": "Add issue comment"
+    }
+  },
+  {
+    "name": "add_issue_to_sprint",
+    "description": "Adds an issue to a sprint (the current one by default) of an agile board.",
+    "arguments": [
+      {
+        "name": "board",
+        "type": "string",
+        "desc": "Agile board name or ID, e.g. 195-13"
+      },
+      {
+        "name": "sprint",
+        "type": "string",
+        "desc": "Sprint name or ID, or current. Default: current.",
+        "optional": true
+      },
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123"
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "title": "Add issue to sprint"
+    }
+  },
+  {
+    "name": "apply_command",
+    "description": "Applies a YouTrack command to one or more issues, the same as the command dialog in the UI: set fields, assign, tag, move to another project, add links, vote, star and more in one line. The command is validated first and nothing is applied if any part is invalid; dryRun only validates and lists suggestions.",
+    "arguments": [
+      {
+        "name": "command",
+        "type": "string",
+        "desc": "Command as typed in the YouTrack command dialog, e.g. State In Progress, for jdoe, tag backend, Priority Critical, project OPS, remove tag backend"
+      },
+      {
+        "name": "issueIds",
+        "type": "array",
+        "desc": "Issues to apply the command to, e.g. [\"DEMO-1\",\"DEMO-2\"]",
+        "optional": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Apply to all issues matching this search query instead (at most 100)",
+        "optional": true
+      },
+      {
+        "name": "comment",
+        "type": "string",
+        "desc": "Comment to add together with the command",
+        "optional": true
+      },
+      {
+        "name": "silent",
+        "type": "boolean",
+        "desc": "Don't send notifications about the change. Default false.",
+        "optional": true
+      },
+      {
+        "name": "dryRun",
+        "type": "boolean",
+        "desc": "Only parse the command and report what it would do or why it is invalid. Default false.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "title": "Apply command"
+    }
+  },
+  {
+    "name": "call_api",
+    "description": "Calls any YouTrack (or Hub) REST endpoint as the current user, for what no other tool covers. YouTrack returns only entity IDs unless you pass a fields query, e.g. fields=idReadable,summary,customFields(name,value(name)). Prefer GET; POST and DELETE change data. Reference: https://www.jetbrains.com/help/youtrack/devportal/api-entities.html",
+    "arguments": [
+      {
+        "name": "method",
+        "type": "string",
+        "desc": "HTTP method"
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path relative to the API root, e.g. issues/DEMO-1/comments or admin/projects; a query string may be included"
+      },
+      {
+        "name": "query",
+        "type": "object",
+        "desc": "Query parameters, e.g. {\"fields\":\"idReadable,summary\",\"$top\":10}; arrays repeat the parameter",
+        "optional": true
+      },
+      {
+        "name": "body",
+        "type": "string",
+        "desc": "JSON request body for POST",
+        "optional": true
+      },
+      {
+        "name": "api",
+        "type": "string",
+        "desc": "youtrack (/api/…, default) or hub (/hub/api/rest/…)",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "title": "Call YouTrack REST API"
+    }
+  },
+  {
+    "name": "change_issue_assignee",
+    "description": "Sets the Assignee of an issue. Pass null to unassign.",
+    "arguments": [
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123"
+      },
+      {
+        "name": "assigneeLogin",
+        "type": "string",
+        "desc": "Login of the new assignee, or null to unassign"
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "title": "Change issue assignee"
+    }
+  },
+  {
+    "name": "count_issues",
+    "description": "Counts issues matching a YouTrack search query without fetching them.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "YouTrack search query, same syntax as search_issues"
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Count issues"
+    }
+  },
+  {
+    "name": "create_article",
+    "description": "Creates a knowledge base article, optionally under a parent article and with limited visibility. Returns the article ID and URL.",
+    "arguments": [
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Project key, e.g. HELP"
+      },
+      {
+        "name": "summary",
+        "type": "string",
+        "desc": "Article title"
+      },
+      {
+        "name": "content",
+        "type": "string",
+        "desc": "Article content in Markdown",
+        "optional": true
+      },
+      {
+        "name": "parentArticle",
+        "type": "string",
+        "desc": "ID of the parent article, e.g. HELP-A-1",
+        "optional": true
+      },
+      {
+        "name": "permittedUsers",
+        "type": "array",
+        "desc": "Limit visibility to these user logins",
+        "optional": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "permittedGroups",
+        "type": "array",
+        "desc": "Limit visibility to these group names",
+        "optional": true,
+        "items": {
+          "type": "string"
+        }
+      }
+    ],
+    "annotations": {
+      "openWorldHint": true,
+      "title": "Create article"
+    }
+  },
+  {
+    "name": "create_draft_issue",
+    "description": "Creates an issue draft visible only to the current user. Fill it in with update_issue using the returned draft ID. Returns the draft ID (e.g. 3-22) and URL.",
+    "arguments": [
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Project key, e.g. DEMO"
+      },
+      {
+        "name": "summary",
+        "type": "string",
+        "desc": "Draft summary"
+      }
+    ],
+    "annotations": {
+      "openWorldHint": true,
+      "title": "Create draft issue"
+    }
+  },
+  {
+    "name": "create_issue",
+    "description": "Creates an issue. Call get_issue_fields_schema first: projects may require fields on creation. If the project is not known, ask the user. Returns the issue ID and URL.",
+    "arguments": [
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "Project key, e.g. DEMO. Ask the user if unknown."
+      },
+      {
+        "name": "summary",
+        "type": "string",
+        "desc": "Issue summary (title)"
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Issue description, plain text or Markdown",
+        "optional": true
+      },
+      {
+        "name": "customFields",
+        "type": "object",
+        "desc": "Custom field values keyed by exact field name from get_issue_fields_schema, e.g. {\"Type\":\"Task\",\"Priority\":\"Minor\"}. Multi-value fields take arrays.",
+        "optional": true
+      },
+      {
+        "name": "parentIssue",
+        "type": "string",
+        "desc": "ID of the parent issue; the new issue becomes its subtask",
+        "optional": true
+      },
+      {
+        "name": "permittedUsers",
+        "type": "array",
+        "desc": "Limit visibility to these user logins",
+        "optional": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "permittedGroups",
+        "type": "array",
+        "desc": "Limit visibility to these group names",
+        "optional": true,
+        "items": {
+          "type": "string"
+        }
+      }
+    ],
+    "annotations": {
+      "openWorldHint": true,
+      "title": "Create issue"
+    }
+  },
+  {
+    "name": "create_saved_search",
+    "description": "Saves a search query under a name. It is not added to favorites; pin it in the UI to see it in get_saved_issue_searches.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Saved search name"
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "YouTrack search query"
+      }
+    ],
+    "annotations": {
+      "openWorldHint": true,
+      "title": "Create saved search"
+    }
+  },
+  {
+    "name": "create_sprint",
+    "description": "Creates a sprint on an agile board that uses sprints. Returns the sprint with its ID and URL.",
+    "arguments": [
+      {
+        "name": "board",
+        "type": "string",
+        "desc": "Agile board name or ID, e.g. 195-13"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Sprint name, e.g. 22.10.2026-04.11.2026"
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "Sprint goal",
+        "optional": true
+      },
+      {
+        "name": "start",
+        "type": "string",
+        "desc": "First day, yyyy-MM-dd",
+        "optional": true
+      },
+      {
+        "name": "finish",
+        "type": "string",
+        "desc": "Last day, yyyy-MM-dd",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "openWorldHint": true,
+      "title": "Create sprint"
+    }
+  },
+  {
+    "name": "create_tag",
+    "description": "Creates a tag owned by the current user. Use manage_issue_tags to put it on issues.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Tag name"
+      }
+    ],
+    "annotations": {
+      "openWorldHint": true,
+      "title": "Create tag"
+    }
+  },
+  {
+    "name": "delete_article",
+    "description": "Permanently deletes a knowledge base article. If it has sub-articles, delete or move them first (get_article lists them).",
+    "arguments": [
+      {
+        "name": "articleId",
+        "type": "string",
+        "desc": "Article ID, e.g. HELP-A-1"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "title": "Delete article"
+    }
+  },
+  {
+    "name": "delete_attachment",
+    "description": "Permanently deletes an attachment from an issue or article.",
+    "arguments": [
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123 (or pass articleId)",
+        "optional": true
+      },
+      {
+        "name": "articleId",
+        "type": "string",
+        "desc": "Knowledge base article ID, e.g. DEMO-A-4 (instead of issueId)",
+        "optional": true
+      },
+      {
+        "name": "attachment",
+        "type": "string",
+        "desc": "Attachment ID (e.g. 12-169) or file name"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "title": "Delete attachment"
+    }
+  },
+  {
+    "name": "delete_issue",
+    "description": "Permanently deletes an issue or a draft, with its comments, attachments and work items. This cannot be undone; confirm with the user first.",
+    "arguments": [
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123, or draft ID, e.g. 3-22"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "title": "Delete issue"
+    }
+  },
+  {
+    "name": "delete_issue_comment",
+    "description": "Deletes a comment from an issue. By default it is marked deleted, as in the UI, and can be restored there; permanent erases it. Comment IDs come from get_issue_comments.",
+    "arguments": [
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123"
+      },
+      {
+        "name": "commentId",
+        "type": "string",
+        "desc": "Comment ID as returned by get_issue_comments, e.g. 4-17"
+      },
+      {
+        "name": "permanent",
+        "type": "boolean",
+        "desc": "Erase the comment for good instead of marking it deleted (needs the Delete Comment permission). Default false.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "title": "Delete issue comment"
+    }
+  },
+  {
+    "name": "delete_saved_search",
+    "description": "Permanently deletes a saved search.",
+    "arguments": [
+      {
+        "name": "search",
+        "type": "string",
+        "desc": "Saved search ID or name; among equal names your own search wins"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "title": "Delete saved search"
+    }
+  },
+  {
+    "name": "delete_sprint",
+    "description": "Permanently deletes a sprint from an agile board. Its issues are kept but leave the sprint. To keep history, archive it with update_sprint instead.",
+    "arguments": [
+      {
+        "name": "board",
+        "type": "string",
+        "desc": "Agile board name or ID, e.g. 195-13"
+      },
+      {
+        "name": "sprint",
+        "type": "string",
+        "desc": "Sprint name or ID"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "title": "Delete sprint"
+    }
+  },
+  {
+    "name": "delete_tag",
+    "description": "Permanently deletes a tag and removes it from all issues.",
+    "arguments": [
+      {
+        "name": "tag",
+        "type": "string",
+        "desc": "Tag ID or name; among equal names your own tag wins"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "title": "Delete tag"
+    }
+  },
+  {
+    "name": "delete_work_item",
+    "description": "Permanently deletes a spent time work item. Work item IDs come from get_issue_work_items.",
+    "arguments": [
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123"
+      },
+      {
+        "name": "workItemId",
+        "type": "string",
+        "desc": "Work item ID from get_issue_work_items or log_work, e.g. 199-6"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "title": "Delete work item"
+    }
+  },
+  {
+    "name": "edit_article_content",
+    "description": "Changes part of an article's content by exact find-and-replace, without resending the whole text. Read the article first and copy oldText from it, or set regexp to match a pattern. All edits apply or none do. Returns the article ID, URL and number of replacements.",
+    "arguments": [
+      {
+        "name": "articleId",
+        "type": "string",
+        "desc": "Article ID, e.g. HELP-A-1"
+      },
+      {
+        "name": "edits",
+        "type": "array",
+        "desc": "Replacements applied in order, each to the result of the previous one",
+        "items": {
+          "type": "object"
+        }
+      }
+    ],
+    "annotations": {
+      "openWorldHint": true,
+      "title": "Edit article content"
+    }
+  },
+  {
+    "name": "edit_issue_description",
+    "description": "Changes part of an issue's description by exact find-and-replace, without resending the whole text. Read the issue first and copy oldText from it, or set regexp to match a pattern. All edits apply or none do. Returns the issue ID, URL and number of replacements.",
+    "arguments": [
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123, or draft ID, e.g. 3-22"
+      },
+      {
+        "name": "edits",
+        "type": "array",
+        "desc": "Replacements applied in order, each to the result of the previous one",
+        "items": {
+          "type": "object"
+        }
+      }
+    ],
+    "annotations": {
+      "openWorldHint": true,
+      "title": "Edit issue description"
+    }
+  },
+  {
+    "name": "find_agile_boards",
+    "description": "Finds agile boards whose name or project key contains a substring (case-insensitive). Returns ID, name, projects, whether sprints are used and the current sprint.",
+    "arguments": [
+      {
+        "name": "nameContains",
+        "type": "string",
+        "desc": "Case-insensitive substring of the board name or project key; empty string lists all boards"
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Number of boards to skip. Default 0.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max boards to return. Default 20, max 20.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Find agile boards"
+    }
+  },
+  {
+    "name": "find_projects",
+    "description": "Finds projects whose name or key contains a substring (case-insensitive). Returns key, name and ID. Paginated.",
+    "arguments": [
+      {
+        "name": "nameContains",
+        "type": "string",
+        "desc": "Case-insensitive substring of the project name or key; empty string lists all projects"
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Number of projects to skip. Default 0.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max projects to return. Default 20, max 20.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Find projects"
+    }
+  },
+  {
+    "name": "find_tags",
+    "description": "Finds tags visible to the current user by name substring. Returns ID, name and owner.",
+    "arguments": [
+      {
+        "name": "nameContains",
+        "type": "string",
+        "desc": "Case-insensitive substring of the tag name; empty string lists all visible tags"
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Find tags"
+    }
+  },
+  {
+    "name": "find_user",
+    "description": "Finds a user by login or email. Returns login, full name, email and time zone.",
+    "arguments": [
+      {
+        "name": "loginOrEmail",
+        "type": "string",
+        "desc": "Login or email of the user; \"me\" returns the current user"
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Find user"
+    }
+  },
+  {
+    "name": "find_user_groups",
+    "description": "Finds user groups and project teams whose name contains a substring (case-insensitive). Paginated.",
+    "arguments": [
+      {
+        "name": "nameContains",
+        "type": "string",
+        "desc": "Case-insensitive substring of the group name; empty string lists all groups"
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Number of groups to skip. Default 0.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max groups to return. Default 20, max 20.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Find user groups"
+    }
+  },
+  {
+    "name": "get_agile_board",
+    "description": "Returns an agile board: projects, owner, columns and the field they map to, estimation field, sprint settings, the current sprint and recent sprints.",
+    "arguments": [
+      {
+        "name": "board",
+        "type": "string",
+        "desc": "Agile board name or ID, e.g. 195-13"
+      },
+      {
+        "name": "includeArchived",
+        "type": "boolean",
+        "desc": "Also list archived sprints. Default false.",
+        "optional": true
+      },
+      {
+        "name": "sprintsLimit",
+        "type": "integer",
+        "desc": "Max sprints to list, newest first. Default 20.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Get agile board"
+    }
+  },
+  {
+    "name": "get_article",
+    "description": "Returns an article: title, content, parent and sub-articles, tags, attachments and visibility. Long content can be read in segments with linesOffset and linesCount.",
+    "arguments": [
+      {
+        "name": "articleId",
+        "type": "string",
+        "desc": "Article ID, e.g. HELP-A-1"
+      },
+      {
+        "name": "linesOffset",
+        "type": "integer",
+        "desc": "First content line to return, 0-based. Default 0.",
+        "optional": true
+      },
+      {
+        "name": "linesCount",
+        "type": "integer",
+        "desc": "Number of content lines to return. Default 500.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Get article"
+    }
+  },
+  {
+    "name": "get_attachment",
+    "description": "Reads an attachment of an issue or article. Text files are returned as text and images as images; other files, or anything too large to inline, are saved to saveTo on this machine.",
+    "arguments": [
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123 (or pass articleId)",
+        "optional": true
+      },
+      {
+        "name": "articleId",
+        "type": "string",
+        "desc": "Knowledge base article ID, e.g. DEMO-A-4 (instead of issueId)",
+        "optional": true
+      },
+      {
+        "name": "attachment",
+        "type": "string",
+        "desc": "Attachment ID (e.g. 12-169) or file name"
+      },
+      {
+        "name": "saveTo",
+        "type": "string",
+        "desc": "Local file or directory to save the attachment to instead of returning it",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Get attachment"
+    }
+  },
+  {
+    "name": "get_current_user",
+    "description": "Returns login, email, full name and time zone of the current user.",
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Get current user"
+    }
+  },
+  {
+    "name": "get_issue",
+    "description": "Returns full details of an issue: summary, description, URL, project, reporter, tags, votes, custom fields, links, attachments and the most recent comments.",
+    "arguments": [
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123, or draft ID, e.g. 3-22"
+      },
+      {
+        "name": "recentCommentsCount",
+        "type": "integer",
+        "desc": "How many latest comments to include. Default 5.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Get issue"
+    }
+  },
+  {
+    "name": "get_issue_activities",
+    "description": "Returns the change history of an issue: who changed which field, comments, links, tags, attachments, sprints and work items, with old and new values. Newest first by default; paginated with a cursor.",
+    "arguments": [
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123"
+      },
+      {
+        "name": "categories",
+        "type": "array",
+        "desc": "Kinds of changes to include. Default: all.",
+        "optional": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "oldestFirst",
+        "type": "boolean",
+        "desc": "Return the oldest changes first. Default: newest first.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max activities to return. Default 20, max 50.",
+        "optional": true
+      },
+      {
+        "name": "cursor",
+        "type": "string",
+        "desc": "nextCursor from a previous call, to continue",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Get issue activities"
+    }
+  },
+  {
+    "name": "get_issue_attachments",
+    "description": "Lists the attachments of an issue or a knowledge base article: ID, file name, size, type, author and date.",
+    "arguments": [
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123 (or pass articleId)",
+        "optional": true
+      },
+      {
+        "name": "articleId",
+        "type": "string",
+        "desc": "Knowledge base article ID, e.g. DEMO-A-4 (instead of issueId)",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Get attachments"
+    }
+  },
+  {
+    "name": "get_issue_comments",
+    "description": "Returns comments of an issue, oldest first. Paginated.",
+    "arguments": [
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123"
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Number of comments to skip. Default 0.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max comments to return. Default 10, max 10.",
+        "optional": true
+      },
+      {
+        "name": "includeDeleted",
+        "type": "boolean",
+        "desc": "Also list deleted comments (marked deleted, without text), e.g. to restore one. Default false.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Get issue comments"
+    }
+  },
+  {
+    "name": "get_issue_fields_schema",
+    "description": "Returns a JSON Schema of the project's custom fields with allowed values. Must be used before create_issue and update_issue: property names are the exact field names to pass.",
+    "arguments": [
+      {
+        "name": "projectKey",
+        "type": "string",
+        "desc": "Project key, e.g. DEMO"
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Get issue fields schema"
+    }
+  },
+  {
+    "name": "get_issue_vcs_changes",
+    "description": "Returns commits and pull requests linked to an issue through a VCS integration (GitHub, GitLab, Bitbucket, Gitea, TeamCity): version, message, author, date and links. Empty when the project has no VCS integration.",
+    "arguments": [
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max changes to return. Default 20, max 50.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Get issue VCS changes"
+    }
+  },
+  {
+    "name": "get_issue_work_items",
+    "description": "Returns spent time work items of an issue, oldest first, with total minutes. Paginated.",
+    "arguments": [
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123"
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Number of work items to skip. Default 0.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max work items to return. Default 20, max 50.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Get issue work items"
+    }
+  },
+  {
+    "name": "get_project",
+    "description": "Returns project details: key, name, description, leader, custom field names and time tracking settings including work types and work item attributes (for log_work).",
+    "arguments": [
+      {
+        "name": "projectKey",
+        "type": "string",
+        "desc": "Project key, e.g. DEMO"
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Get project"
+    }
+  },
+  {
+    "name": "get_saved_issue_searches",
+    "description": "Returns the current user's favorite saved issue searches. Their queries can be passed to search_issues.",
+    "arguments": [
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Number of searches to skip. Default 0.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max searches to return. Default 20, max 20.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Get saved issue searches"
+    }
+  },
+  {
+    "name": "get_sprint",
+    "description": "Returns a sprint of an agile board (the current one by default): name, goal, dates, archived flag and its issues with board-relevant custom fields. Paginated over issues.",
+    "arguments": [
+      {
+        "name": "board",
+        "type": "string",
+        "desc": "Agile board name or ID, e.g. 195-13"
+      },
+      {
+        "name": "sprint",
+        "type": "string",
+        "desc": "Sprint name or ID, or current. Default: current.",
+        "optional": true
+      },
+      {
+        "name": "customFieldsToReturn",
+        "type": "array",
+        "desc": "Custom fields to include per issue. Default: the board's column field, Assignee and the estimation field. Pass [] for none.",
+        "optional": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Number of issues to skip. Default 0.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max issues to return. Default 20, max 50.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Get sprint"
+    }
+  },
+  {
+    "name": "get_time_report",
+    "description": "Summarizes spent time across issues: total and per author, issue, work type, day or project, filtered by issue query, author and period. E.g. what did I log this week, or time spent on a project in a month.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Issue search query limiting the issues, e.g. project: DEMO",
+        "optional": true
+      },
+      {
+        "name": "author",
+        "type": "string",
+        "desc": "Login of whoever logged the time, or me",
+        "optional": true
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "First day, yyyy-MM-dd",
+        "optional": true
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "Last day, yyyy-MM-dd",
+        "optional": true
+      },
+      {
+        "name": "groupBy",
+        "type": "string",
+        "desc": "Group totals by author, issue, workType, day or project. Default author.",
+        "optional": true
+      },
+      {
+        "name": "includeItems",
+        "type": "boolean",
+        "desc": "Also list the work items (up to itemsLimit). Default false.",
+        "optional": true
+      },
+      {
+        "name": "itemsLimit",
+        "type": "integer",
+        "desc": "Max work items to list with includeItems. Default 50, max 200.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Get time report"
+    }
+  },
+  {
+    "name": "get_user_group_members",
+    "description": "Returns members of a user group or project team: login, full name and email. Paginated.",
+    "arguments": [
+      {
+        "name": "group",
+        "type": "string",
+        "desc": "Group or project team name, as returned by find_user_groups"
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Number of members to skip. Default 0.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max members to return. Default 20, max 20.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Get user group members"
+    }
+  },
+  {
+    "name": "link_issues",
+    "description": "Links two issues. {\"targetIssueId\":\"DEMO-1\",\"linkType\":\"subtask of\",\"issueToLinkId\":\"DEMO-2\"} makes DEMO-1 a subtask of DEMO-2. Returns the number of linked issues per link type of the target.",
+    "arguments": [
+      {
+        "name": "targetIssueId",
+        "type": "string",
+        "desc": "Issue that gets the link, e.g. DEMO-1"
+      },
+      {
+        "name": "linkType",
+        "type": "string",
+        "desc": "Link name as read from the target issue, e.g. relates to, subtask of, parent for, depends on, is required for, duplicates, is duplicated by"
+      },
+      {
+        "name": "issueToLinkId",
+        "type": "string",
+        "desc": "Issue to link to, e.g. DEMO-2"
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "title": "Link issues"
+    }
+  },
+  {
+    "name": "log_work",
+    "description": "Adds a spent time work item to an issue. Use get_project to see the project's work types and work item attributes. Returns the created work item.",
+    "arguments": [
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123"
+      },
+      {
+        "name": "durationMinutes",
+        "type": "integer",
+        "desc": "Spent time in minutes, greater than 0"
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "What was done",
+        "optional": true
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "When the work was done: yyyy-MM-dd or yyyy-MM-dd HH:mm:ss in local time. Default: now.",
+        "optional": true
+      },
+      {
+        "name": "workType",
+        "type": "string",
+        "desc": "Work type name, e.g. Development; see workTypes in get_project",
+        "optional": true
+      },
+      {
+        "name": "workItemAttributes",
+        "type": "object",
+        "desc": "Work item attributes as {attribute name: value name}; see timeTrackingSettings in get_project",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "openWorldHint": true,
+      "title": "Log work"
+    }
+  },
+  {
+    "name": "manage_issue_tags",
+    "description": "Adds a tag to an issue or removes it. The tag is given by ID or name; when no tag matches, the error lists similar tags. Returns the issue ID and its tags after the change.",
+    "arguments": [
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123"
+      },
+      {
+        "name": "tag",
+        "type": "string",
+        "desc": "Tag ID (preferred, e.g. 6-12) or tag name; a name matches the first tag with that name"
+      },
+      {
+        "name": "operation",
+        "type": "string",
+        "desc": "add or remove"
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "title": "Manage issue tags"
+    }
+  },
+  {
+    "name": "remove_issue_from_sprint",
+    "description": "Removes an issue from a sprint (the current one by default) of an agile board. The issue itself is kept.",
+    "arguments": [
+      {
+        "name": "board",
+        "type": "string",
+        "desc": "Agile board name or ID, e.g. 195-13"
+      },
+      {
+        "name": "sprint",
+        "type": "string",
+        "desc": "Sprint name or ID, or current. Default: current.",
+        "optional": true
+      },
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123"
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "title": "Remove issue from sprint"
+    }
+  },
+  {
+    "name": "restore_issue_comment",
+    "description": "Restores a comment that was deleted (not permanently) with delete_issue_comment or in the UI.",
+    "arguments": [
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123"
+      },
+      {
+        "name": "commentId",
+        "type": "string",
+        "desc": "ID of a deleted comment, from get_issue_comments with includeDeleted"
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "title": "Restore issue comment"
+    }
+  },
+  {
+    "name": "search_articles",
+    "description": "Searches the knowledge base. Returns ID, title, URL, parent article and lines matching the free-text terms. Paginated.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Knowledge base query, e.g. project: HELP, author: me, tag: faq, created: {This month}, \"exact phrase\", free text"
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Number of articles to skip. Default 0.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max articles to return. Default 10, max 20.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Search articles"
+    }
+  },
+  {
+    "name": "search_issues",
+    "description": "Searches issues with the YouTrack query language and returns id, summary, project, resolved, reporter, created, updated and the requested custom fields. Use get_issue for full details. Paginated.\n\nYouTrack search query. Syntax:\n- free text matches summary, description and comments; wildcards * and ?\n- attribute filters: project: DEMO, for: me, reporter: jdoe, tag: {multi word}, <Field>: <Value> (e.g. State: Open, Priority: Critical)\n- negation with -: State: -Fixed; multi-word names and values in braces: {Fix versions}: {2026.1 EAP}\n- dates: created: {This month}, updated: {minus 2h} .. *, created: 2026-01-01 .. 2026-02-01\n- shortcuts: #Unresolved, #Resolved, has: attachments, has: -comments\n- links: <link type>: DEMO-1 (e.g. subtask of: DEMO-1), links: DEMO-1, mentions: DEMO-1\n- terms are joined with AND by space; use \"or\" and parentheses for alternatives\n- sort: sort by: updated desc",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "YouTrack search query, see the tool description for syntax"
+      },
+      {
+        "name": "customFieldsToReturn",
+        "type": "array",
+        "desc": "Custom fields to include in results. Default: Type, State, Assignee. Pass [] for none.",
+        "optional": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Number of issues to skip. Default 0.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max issues to return. Default 20, max 20.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "readOnlyHint": true,
+      "title": "Search issues"
+    }
+  },
+  {
+    "name": "unlink_issues",
+    "description": "Removes a link between two issues; arguments mirror link_issues. {\"targetIssueId\":\"DEMO-1\",\"linkType\":\"subtask of\",\"issueToLinkId\":\"DEMO-2\"} makes DEMO-1 no longer a subtask of DEMO-2.",
+    "arguments": [
+      {
+        "name": "targetIssueId",
+        "type": "string",
+        "desc": "Issue that gets the link, e.g. DEMO-1"
+      },
+      {
+        "name": "linkType",
+        "type": "string",
+        "desc": "Link name as read from the target issue, e.g. relates to, subtask of, parent for, depends on, is required for, duplicates, is duplicated by"
+      },
+      {
+        "name": "issueToLinkId",
+        "type": "string",
+        "desc": "Issue to link to, e.g. DEMO-2"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "title": "Unlink issues"
+    }
+  },
+  {
+    "name": "update_article",
+    "description": "Changes the title, content or parent of an article. With append, content is added to the end. To change part of the content, use edit_article_content instead of resending it. Returns the article ID and URL.",
+    "arguments": [
+      {
+        "name": "articleId",
+        "type": "string",
+        "desc": "Article ID, e.g. HELP-A-1"
+      },
+      {
+        "name": "summary",
+        "type": "string",
+        "desc": "New title",
+        "optional": true
+      },
+      {
+        "name": "content",
+        "type": "string",
+        "desc": "New content in Markdown, or text to append when append is true",
+        "optional": true
+      },
+      {
+        "name": "append",
+        "type": "boolean",
+        "desc": "Append content to the end instead of replacing it. Default false.",
+        "optional": true
+      },
+      {
+        "name": "parentArticleId",
+        "type": "string",
+        "desc": "Move the article under this parent; empty string makes it top-level",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "openWorldHint": true,
+      "title": "Update article"
+    }
+  },
+  {
+    "name": "update_issue",
+    "description": "Updates an issue: summary, description, a subset of custom fields, star (subscription) and vote. Only the given properties change; to change part of the description, use edit_issue_description. Returns the issue ID and what was changed.",
+    "arguments": [
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123, or draft ID, e.g. 3-22"
+      },
+      {
+        "name": "summary",
+        "type": "string",
+        "desc": "New summary",
+        "optional": true
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "New description, plain text or Markdown",
+        "optional": true
+      },
+      {
+        "name": "customFields",
+        "type": "object",
+        "desc": "Custom fields to change, keyed by exact field name from get_issue_fields_schema. null clears a field.",
+        "optional": true
+      },
+      {
+        "name": "subscription",
+        "type": "boolean",
+        "desc": "true stars the issue for the current user, false unstars it",
+        "optional": true
+      },
+      {
+        "name": "vote",
+        "type": "boolean",
+        "desc": "true votes for the issue, false removes the vote",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "title": "Update issue"
+    }
+  },
+  {
+    "name": "update_issue_comment",
+    "description": "Replaces the text of an issue comment. Markdown is supported.",
+    "arguments": [
+      {
+        "name": "issueId",
+        "type": "string",
+        "desc": "Issue ID, e.g. DEMO-123"
+      },
+      {
+        "name": "commentId",
+        "type": "string",
+        "desc": "Comment ID from get_issue_comments, e.g. 4-17"
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "New comment text, Markdown supported"
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "title": "Update issue comment"
+    }
+  },
+  {
+    "name": "update_saved_search",
+    "description": "Renames a saved search or changes its query.",
+    "arguments": [
+      {
+        "name": "search",
+        "type": "string",
+        "desc": "Saved search ID or name; among equal names your own search wins"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "New name",
+        "optional": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "New query",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "title": "Update saved search"
+    }
+  },
+  {
+    "name": "update_sprint",
+    "description": "Changes a sprint's name, goal or dates, or archives and restores it. Only the given properties change.",
+    "arguments": [
+      {
+        "name": "board",
+        "type": "string",
+        "desc": "Agile board name or ID, e.g. 195-13"
+      },
+      {
+        "name": "sprint",
+        "type": "string",
+        "desc": "Sprint name or ID, or current"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "New name",
+        "optional": true
+      },
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "New goal",
+        "optional": true
+      },
+      {
+        "name": "start",
+        "type": "string",
+        "desc": "New first day, yyyy-MM-dd",
+        "optional": true
+      },
+      {
+        "name": "finish",
+        "type": "string",
+        "desc": "New last day, yyyy-MM-dd",
+        "optional": true
+      },
+      {
+        "name": "archived",
+        "type": "boolean",
+        "desc": "Archive (true) or restore (false) the sprint",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "title": "Update sprint"
+    }
+  },
+  {
+    "name": "update_tag",
+    "description": "Renames a tag.",
+    "arguments": [
+      {
+        "name": "tag",
+        "type": "string",
+        "desc": "Tag ID or name; among equal names your own tag wins"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "New tag name"
+      }
+    ],
+    "annotations": {
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "title": "Update tag"
+    }
+  }
+]
