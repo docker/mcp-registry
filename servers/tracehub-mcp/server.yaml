@@ -1,0 +1,52 @@
+name: tracehub-mcp
+image: ghcr.io/mcpsmiths/tracehub-mcp:latest
+type: server
+meta:
+  category: monitoring
+  tags:
+    - datadog
+    - debugging
+    - jaeger
+    - llm
+    - model-context-protocol
+    - observability
+    - opentelemetry
+    - python
+    - sentry
+    - telemetry
+    - tempo
+    - traceloop
+    - tracing
+about:
+  title: TraceHub
+  description: Query OpenTelemetry traces from LLM applications across Jaeger, Grafana Tempo, Traceloop, Datadog, and Sentry - search traces/spans, inspect a trace's full span tree, find errors, and aggregate LLM usage/cost/latency by model, service, session, or prompt version. Apache-2.0 fork of traceloop/opentelemetry-mcp-server.
+  icon: https://avatars.githubusercontent.com/u/328360906?v=4
+source:
+  project: https://github.com/mcpsmiths/tracehub-mcp
+  commit: b53ab0e21e365a65a706f03b92b5a57eead9562e
+run:
+  command:
+    - --transport
+    - stdio
+config:
+  description: Configure which observability backend to query. BACKEND_TYPE must be one of jaeger, tempo, traceloop, datadog, or sentry - each has its own auth requirements (see https://github.com/mcpsmiths/tracehub-mcp#configuration). This example configures a self-hosted Jaeger instance running on your host machine.
+  secrets:
+    - name: tracehub-mcp.backend_api_key
+      env: BACKEND_API_KEY
+      example: <BACKEND_API_KEY>
+  env:
+    - name: BACKEND_TYPE
+      example: jaeger
+      value: "{{tracehub-mcp.backend_type}}"
+    - name: BACKEND_URL
+      example: http://host.docker.internal:16686
+      value: "{{tracehub-mcp.backend_url}}"
+  parameters:
+    type: object
+    properties:
+      backend_type:
+        type: string
+        description: Backend type - jaeger, tempo, traceloop, datadog, or sentry
+      backend_url:
+        type: string
+        description: Backend API URL. Use http://host.docker.internal:<port> to reach a backend running on your host machine.
