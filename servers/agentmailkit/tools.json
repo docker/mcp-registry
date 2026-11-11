@@ -1,0 +1,53 @@
+[
+  {
+    "name": "list_jobs",
+    "description": "List every configured job, returning one object per job with id, schedule, sources, delivery, render, model and status. Start here to see what exists.",
+    "arguments": []
+  },
+  {
+    "name": "preview_job",
+    "description": "Render what a job would email and return subject, path, chars, truncated, body and would_deliver_to. Writes a local file and can never send, so it is always safe to call.",
+    "arguments": [
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "The id of the job to render, as returned by list_jobs"
+      },
+      {
+        "name": "model",
+        "type": "string",
+        "desc": "Override the job's model; pass \"echo\" for an offline preview with no LLM call",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "run_job",
+    "description": "Run a job through the real pipeline and return its run receipt. dry_run defaults to true and stops before delivery; dry_run=false SENDS REAL EMAIL from the configured inbox.",
+    "arguments": [
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "The id of the job to run, as returned by list_jobs"
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Defaults to true, which stops before delivery. Only false actually sends",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "list_plugins",
+    "description": "List the registered plugin names grouped by kind, so you can see what a job is allowed to reference.",
+    "arguments": [
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "Narrow to one kind: source, model, gate, delivery, render or post",
+        "optional": true
+      }
+    ]
+  }
+]
