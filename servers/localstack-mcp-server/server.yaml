@@ -1,0 +1,44 @@
+name: localstack-mcp-server
+image: mcp/localstack-mcp-server
+type: server
+meta:
+  category: devops
+  tags:
+    - localstack
+    - aws
+    - cloud
+    - devops
+    - testing
+about:
+  title: LocalStack
+  description: Let an AI agent manage and interact with LocalStack on your machine, deploy infrastructure, and debug your local cloud in natural language.
+  icon: https://raw.githubusercontent.com/localstack/localstack-mcp-server/main/icon.png
+source:
+  project: https://github.com/localstack/localstack-mcp-server
+  commit: 3b9262261c078e4bac2e9e4e957e2ce66a792aad
+run:
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  env:
+    LOCALSTACK_HOSTNAME: host.docker.internal
+config:
+  description: Configure your LocalStack Auth Token (required) and optional AWS credentials for the AWS Replicator tool
+  secrets:
+    - name: localstack-mcp-server.localstack_auth_token
+      env: LOCALSTACK_AUTH_TOKEN
+      required: true
+    - name: localstack-mcp-server.aws_access_key_id
+      env: AWS_ACCESS_KEY_ID
+      required: false
+    - name: localstack-mcp-server.aws_secret_access_key
+      env: AWS_SECRET_ACCESS_KEY
+      required: false
+  env:
+    - name: AWS_DEFAULT_REGION
+      example: us-east-1
+      value: "{{localstack-mcp-server.aws_default_region}}"
+  parameters:
+    type: object
+    properties:
+      aws_default_region:
+        type: string
