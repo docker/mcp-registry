@@ -1,0 +1,362 @@
+[
+  {
+    "name": "get_ad",
+    "description": "Full details of 1-5 ads by id or blocket.se URL: description, specs, equipment, all photos, place, status (active/sold/removed), seller (dealer, years on Blocket, other ads via seller.id), shipping/buy-now, favourites count, red flags and vehicle history links. Several ids render a comparison.",
+    "arguments": [
+      {
+        "name": "ids",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Ad ids from search rows, or blocket.se ad URLs."
+      }
+    ]
+  },
+  {
+    "name": "get_ad_photos",
+    "description": "An ad's photos as images (640 px wide JPEGs) to look at the item's condition yourself, plus its title, url and total photo count. Returns the first max photos (default 4, up to 8).",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Ad id from a search row, or a blocket.se ad URL."
+      },
+      {
+        "name": "max",
+        "type": "integer",
+        "desc": "Number of photos, default 4, at most 8.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "list_filters",
+    "description": "Filter names and values (with live ad counts) available for a vertical, to use in search.filters. Pass filter to list one filter's values, query to find values by substring (e.g. filter 'make', query 'hallberg').",
+    "arguments": [
+      {
+        "name": "filter",
+        "type": "string",
+        "desc": "One filter name (e.g. 'make') to list all its values.",
+        "optional": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Substring to find filter values by (e.g. 'hallberg').",
+        "optional": true
+      },
+      {
+        "name": "vertical",
+        "type": "string",
+        "desc": "torget = general marketplace (furniture, electronics, clothes, kids, hobby, tools...); car, boat, mc (motorcycles), caravan (husvagn), motorhome (husbil), truck (lastbil/släp), tractor, combine (skördetröska), snowmobile, atv, moped (mopeder/scooters), bus."
+      }
+    ]
+  },
+  {
+    "name": "price_check",
+    "description": "Use this when the user asks what a used item sells for on Blocket, whether an asking price is fair, or whether to buy used or new. Returns the asking-price distribution (p10/p25/median/p75/p90) of comparable live ads, with up to 6 example ads. Give ad_id to judge that ad (comparables are derived from its make, model, year, mileage or length; its percentile is returned), or describe the item with the search filters. For Torget items pass a short query (e.g. 'iphone 13 128gb') for good comparables; for mass-market products (phones, consoles, headphones) also pass title_only and excludes for accessories and wanted ads, e.g. ['skal', 'fodral', 'laddare', 'kontroll', 'controller', 'headset', 'fäste', 'cover', 'köpes', 'bytes']. With require/exclude/title_only the stats come from those of the newest 200 ads that pass them (scanned, dropped). Pass new_price when a shop price comparison gave you one: vs_new says what % of it the median and the ad ask, and ads under 10% of it are left out as accessories or parts. Explicit filters override the derived ones.",
+    "arguments": [
+      {
+        "name": "ad_id",
+        "type": "string",
+        "desc": "Ad id or blocket.se URL to judge.",
+        "optional": true
+      },
+      {
+        "name": "exclude",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Drop rows whose title or specs contain any of these (case-insensitive, also inside words), e.g. ['skal', 'laddare', 'köpes'] for a phone. 'köpes' and 'bortskänkes' also drop wanted ads and giveaways.",
+        "optional": true
+      },
+      {
+        "name": "filters",
+        "type": "object",
+        "desc": "Vertical-specific filters by Blocket filter name → value label(s) or {min,max}. Examples: car {make: 'Volvo', model: 'V70', fuel: 'Diesel', transmission: 'Automatisk', body_type: 'Kombi', car_equipment: ['Dragkrok']}; boat {class: 'Segelbåt', make: 'Najad', length_feet: {min: 28}}; torget {category: 'Möbler och inredning', condition: 'Mycket bra skick - som ny', brand: 'IKEA'}. Unsure? Call list_filters.",
+        "optional": true
+      },
+      {
+        "name": "mileage_max_mil",
+        "type": "integer",
+        "desc": "Highest mileage in Swedish mil (1 mil = 10 km).",
+        "optional": true
+      },
+      {
+        "name": "mileage_min_mil",
+        "type": "integer",
+        "desc": "Lowest mileage in Swedish mil (1 mil = 10 km).",
+        "optional": true
+      },
+      {
+        "name": "near",
+        "type": "object",
+        "desc": "Only ads within radius_km of a point; rows then carry distance_km.",
+        "optional": true
+      },
+      {
+        "name": "new_price",
+        "type": "number",
+        "desc": "Current lowest new price of the same model in Swedish shops (e.g. Billigast compare's cheapest.price), SEK incl. VAT.",
+        "optional": true
+      },
+      {
+        "name": "new_today",
+        "type": "boolean",
+        "desc": "Only ads published today.",
+        "optional": true
+      },
+      {
+        "name": "places",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Counties (län) or municipalities, e.g. ['Stockholm'], ['Nacka', 'Värmdö'], ['Västra Götaland']. Omit for all of Sweden.",
+        "optional": true
+      },
+      {
+        "name": "price_max",
+        "type": "integer",
+        "desc": "Highest price, SEK.",
+        "optional": true
+      },
+      {
+        "name": "price_min",
+        "type": "integer",
+        "desc": "Lowest price, SEK.",
+        "optional": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Search words, ideally Swedish ('soffa', 'barnvagn', 'V70', 'Hallberg-Rassy'). Blocket operators: -word excludes a word, a OR b matches either, \"exact phrase\", word* matches a prefix.",
+        "optional": true
+      },
+      {
+        "name": "require",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Words or phrases that must all appear in the row's title or specs (case-insensitive), e.g. ['128gb'].",
+        "optional": true
+      },
+      {
+        "name": "seller",
+        "type": "string",
+        "desc": "Only private sellers or only dealers (companies).",
+        "optional": true
+      },
+      {
+        "name": "seller_id",
+        "type": "string",
+        "desc": "Only this seller's ads (seller.id from a row or get_ad).",
+        "optional": true
+      },
+      {
+        "name": "shipping",
+        "type": "boolean",
+        "desc": "Torget only: only ads that can be shipped.",
+        "optional": true
+      },
+      {
+        "name": "title_only",
+        "type": "boolean",
+        "desc": "Keep only rows whose title contains every word of query.",
+        "optional": true
+      },
+      {
+        "name": "trade",
+        "type": "string",
+        "desc": "Torget only: for sale (Säljes), free giveaways (Bortskänkes) or wanted ads (Köpes).",
+        "optional": true
+      },
+      {
+        "name": "vertical",
+        "type": "string",
+        "desc": "Default torget, or the ad's vertical with ad_id. torget = general marketplace (furniture, electronics, clothes, kids, hobby, tools...); car, boat, mc (motorcycles), caravan (husvagn), motorhome (husbil), truck (lastbil/släp), tractor, combine (skördetröska), snowmobile, atv, moped (mopeder/scooters), bus.",
+        "optional": true
+      },
+      {
+        "name": "year_max",
+        "type": "integer",
+        "desc": "Latest model year (vehicles).",
+        "optional": true
+      },
+      {
+        "name": "year_min",
+        "type": "integer",
+        "desc": "Earliest model year (vehicles).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "search",
+    "description": "Search live Blocket ads in any vertical with filters, distance and sorting. Returns compact rows (price, place, age, seller, badges, key specs, url, photo, risk_words), the total count, the filters applied, unmatched filter values with suggestions, optional facets (value counts to refine with) and blocket_url (the same search on blocket.se). exclude/require/title_only drop off-topic rows and read up to 4 more pages to refill (scanned, dropped, next_page). deals labels each row's price against the same search's asking prices (deal_basis). Not for prices in shops (new products): use a price comparison tool such as Billigast.",
+    "arguments": [
+      {
+        "name": "deals",
+        "type": "boolean",
+        "desc": "Label each row's price great/good/fair/high with its percentile and % vs the median asking price of up to 200 ads of the same search (deal_basis). Costs one extra request.",
+        "optional": true
+      },
+      {
+        "name": "exclude",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Drop rows whose title or specs contain any of these (case-insensitive, also inside words), e.g. ['skal', 'laddare', 'köpes'] for a phone. 'köpes' and 'bortskänkes' also drop wanted ads and giveaways.",
+        "optional": true
+      },
+      {
+        "name": "facets",
+        "type": "boolean",
+        "desc": "Also return value counts for the main filters (market overview, refining).",
+        "optional": true
+      },
+      {
+        "name": "filters",
+        "type": "object",
+        "desc": "Vertical-specific filters by Blocket filter name → value label(s) or {min,max}. Examples: car {make: 'Volvo', model: 'V70', fuel: 'Diesel', transmission: 'Automatisk', body_type: 'Kombi', car_equipment: ['Dragkrok']}; boat {class: 'Segelbåt', make: 'Najad', length_feet: {min: 28}}; torget {category: 'Möbler och inredning', condition: 'Mycket bra skick - som ny', brand: 'IKEA'}. Unsure? Call list_filters.",
+        "optional": true
+      },
+      {
+        "name": "mileage_max_mil",
+        "type": "integer",
+        "desc": "Highest mileage in Swedish mil (1 mil = 10 km).",
+        "optional": true
+      },
+      {
+        "name": "mileage_min_mil",
+        "type": "integer",
+        "desc": "Lowest mileage in Swedish mil (1 mil = 10 km).",
+        "optional": true
+      },
+      {
+        "name": "near",
+        "type": "object",
+        "desc": "Only ads within radius_km of a point; rows then carry distance_km.",
+        "optional": true
+      },
+      {
+        "name": "new_today",
+        "type": "boolean",
+        "desc": "Only ads published today.",
+        "optional": true
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "desc": "Blocket result page, default 1. Pass next_page from a previous response to continue.",
+        "optional": true
+      },
+      {
+        "name": "places",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Counties (län) or municipalities, e.g. ['Stockholm'], ['Nacka', 'Värmdö'], ['Västra Götaland']. Omit for all of Sweden.",
+        "optional": true
+      },
+      {
+        "name": "price_max",
+        "type": "integer",
+        "desc": "Highest price, SEK.",
+        "optional": true
+      },
+      {
+        "name": "price_min",
+        "type": "integer",
+        "desc": "Lowest price, SEK.",
+        "optional": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Search words, ideally Swedish ('soffa', 'barnvagn', 'V70', 'Hallberg-Rassy'). Blocket operators: -word excludes a word, a OR b matches either, \"exact phrase\", word* matches a prefix.",
+        "optional": true
+      },
+      {
+        "name": "require",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Words or phrases that must all appear in the row's title or specs (case-insensitive), e.g. ['128gb'].",
+        "optional": true
+      },
+      {
+        "name": "rows",
+        "type": "integer",
+        "desc": "Ads per page, default 20. With exclude/require/title_only a response can hold a few more.",
+        "optional": true
+      },
+      {
+        "name": "seller",
+        "type": "string",
+        "desc": "Only private sellers or only dealers (companies).",
+        "optional": true
+      },
+      {
+        "name": "seller_id",
+        "type": "string",
+        "desc": "Only this seller's ads (seller.id from a row or get_ad).",
+        "optional": true
+      },
+      {
+        "name": "shipping",
+        "type": "boolean",
+        "desc": "Torget only: only ads that can be shipped.",
+        "optional": true
+      },
+      {
+        "name": "since",
+        "type": "string",
+        "desc": "ISO time: only ads published after it (newest first). Use for 'anything new since…'.",
+        "optional": true
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "desc": "Default relevance. closest needs near; year_*/mileage_* vehicles; length_* boats. deal = cheapest vs the median first (implies deals).",
+        "optional": true
+      },
+      {
+        "name": "title_only",
+        "type": "boolean",
+        "desc": "Keep only rows whose title contains every word of query.",
+        "optional": true
+      },
+      {
+        "name": "trade",
+        "type": "string",
+        "desc": "Torget only: for sale (Säljes), free giveaways (Bortskänkes) or wanted ads (Köpes).",
+        "optional": true
+      },
+      {
+        "name": "vertical",
+        "type": "string",
+        "desc": "Default torget. torget = general marketplace (furniture, electronics, clothes, kids, hobby, tools...); car, boat, mc (motorcycles), caravan (husvagn), motorhome (husbil), truck (lastbil/släp), tractor, combine (skördetröska), snowmobile, atv, moped (mopeder/scooters), bus.",
+        "optional": true
+      },
+      {
+        "name": "year_max",
+        "type": "integer",
+        "desc": "Latest model year (vehicles).",
+        "optional": true
+      },
+      {
+        "name": "year_min",
+        "type": "integer",
+        "desc": "Earliest model year (vehicles).",
+        "optional": true
+      }
+    ]
+  }
+]
