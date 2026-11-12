@@ -1,0 +1,55 @@
+name: uptime-kuma
+image: mcp/uptime-kuma
+type: server
+meta:
+  category: monitoring
+  tags:
+    - uptime-kuma
+    - monitoring
+    - uptime
+    - status-page
+    - self-hosted
+about:
+  title: Uptime Kuma
+  description: Manage a self-hosted Uptime Kuma 2 instance from your AI assistant. Check what's down, read heartbeat history, and create or change monitors, notification channels, tags, maintenance windows, status pages and Docker hosts. Credentials are redacted from tool output by default, and a read-only mode removes every tool that makes changes. Community-built; not affiliated with the Uptime Kuma project.
+  icon: https://raw.githubusercontent.com/louislam/uptime-kuma/master/public/icon.svg
+source:
+  project: https://github.com/DavidFuchs/mcp-uptime-kuma
+  branch: main
+  commit: 5241d0fd05157a71fdee4fb812c0819713c948d8
+config:
+  description: Connect to your Uptime Kuma 2 instance. The server runs in a container, so use your machine's LAN address or host.docker.internal rather than localhost. Log in with a username and password, or with a JWT if your account uses 2FA; leave both empty if Uptime Kuma has authentication disabled.
+  secrets:
+    - name: uptime-kuma.password
+      env: UPTIME_KUMA_PASSWORD
+      example: <your Uptime Kuma password>
+    - name: uptime-kuma.jwt_token
+      env: UPTIME_KUMA_JWT_TOKEN
+      example: <JWT from mcp-uptime-kuma-get-jwt>
+    - name: uptime-kuma.headers
+      env: UPTIME_KUMA_HEADERS
+      example: '{"CF-Access-Client-Id":"<id>.access","CF-Access-Client-Secret":"<secret>"}'
+  env:
+    - name: UPTIME_KUMA_URL
+      example: http://host.docker.internal:3001
+      value: "{{uptime-kuma.url}}"
+    - name: UPTIME_KUMA_USERNAME
+      example: admin
+      value: "{{uptime-kuma.username}}"
+    - name: UPTIME_KUMA_READ_ONLY
+      example: false
+      value: "{{uptime-kuma.read_only}}"
+  parameters:
+    type: object
+    properties:
+      url:
+        type: string
+        description: The URL of your Uptime Kuma 2 instance
+      username:
+        type: string
+        description: Your Uptime Kuma username. Leave empty when using a JWT or when authentication is disabled
+      read_only:
+        type: boolean
+        description: Expose only the tools that read, and none that create, change, pause or delete
+    required:
+      - url

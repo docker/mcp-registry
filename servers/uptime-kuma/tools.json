@@ -1,0 +1,1400 @@
+[
+  {
+    "name": "addDockerHost",
+    "description": "Creates a new docker daemon connection. For a unix socket use dockerType=\"socket\" and dockerDaemon=\"/var/run/docker.sock\". For a TCP proxy (e.g. tecnativa/docker-socket-proxy) use dockerType=\"tcp\" and dockerDaemon=\"http://host:2375\". Consider calling testDockerHost first to verify reachability.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Human-readable name for this docker host"
+      },
+      {
+        "name": "dockerType",
+        "type": "string",
+        "desc": "\"socket\" for a unix socket path, \"tcp\" for an HTTP/HTTPS URL"
+      },
+      {
+        "name": "dockerDaemon",
+        "type": "string",
+        "desc": "Unix socket path (e.g. /var/run/docker.sock) when dockerType=socket, or TCP URL (e.g. http://docker-proxy:2375) when dockerType=tcp"
+      }
+    ],
+    "annotations": {
+      "title": "Add Docker Host"
+    }
+  },
+  {
+    "name": "addNotification",
+    "description": "Creates a new notification channel. The configuration fields depend on the notification type (e.g., for slack: webhookURL; for ntfy: ntfyTopic, ntfyServerUrl; for discord: discordWebhookUrl).",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Human-readable name for this notification channel"
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "Notification type (e.g. slack, ntfy, discord, telegram, webhook, smtp)"
+      },
+      {
+        "name": "isDefault",
+        "type": "boolean",
+        "desc": "Enable by default for new monitors",
+        "optional": true
+      },
+      {
+        "name": "applyExisting",
+        "type": "boolean",
+        "desc": "Apply this notification to all existing monitors now",
+        "optional": true
+      },
+      {
+        "name": "config",
+        "type": "object",
+        "desc": "Type-specific configuration fields (e.g. webhookURL for slack, ntfyTopic for ntfy)"
+      }
+    ],
+    "annotations": {
+      "title": "Add Notification"
+    }
+  },
+  {
+    "name": "addTag",
+    "description": "Creates a new tag that can be assigned to monitors.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Tag name"
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "desc": "Tag color as a hex string (e.g. \"#ff0000\") or CSS color name"
+      }
+    ],
+    "annotations": {
+      "title": "Add Tag"
+    }
+  },
+  {
+    "name": "createMaintenance",
+    "description": "Schedules a new maintenance window. During maintenance, the monitors in monitorIDs are suppressed and show MAINTENANCE status instead of DOWN. A window created without monitorIDs suppresses nothing. Use strategy \"manual\" for a window you switch on and off with resumeMaintenance / pauseMaintenance.",
+    "arguments": [
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Title of the maintenance window"
+      },
+      {
+        "name": "strategy",
+        "type": "string",
+        "desc": "Scheduling strategy: single=one-time, recurring-interval=every N days, recurring-weekday=specific weekdays, recurring-day-of-month=specific dates, cron=starts on a cron expression and lasts durationMinutes, manual=on whenever active"
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "desc": "Whether the window is active (default: true). For a manual window, active means in maintenance right now.",
+        "optional": true
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Description or reason for the maintenance",
+        "optional": true
+      },
+      {
+        "name": "timezone",
+        "type": "string",
+        "desc": "Timezone the dates and times are in (e.g. \"America/New_York\", \"UTC\"). Omit to follow the server timezone.",
+        "optional": true
+      },
+      {
+        "name": "dateRange",
+        "type": "array",
+        "desc": "[start, end] as local wall-clock times in the window's timezone, e.g. [\"2026-10-08T10:00\", \"2026-10-08T12:00\"] — the format Uptime Kuma's own UI stores. Required for single; optional bounds for recurring strategies; ignored for manual.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "timeRange",
+        "type": "array",
+        "desc": "Daily [{hours, minutes}, {hours, minutes}] start and end. Required for the recurring-* strategies, ignored otherwise.",
+        "items": {
+          "type": "object"
+        },
+        "optional": true
+      },
+      {
+        "name": "weekdays",
+        "type": "array",
+        "desc": "Days of week (0=Sunday … 6=Saturday) for recurring-weekday strategy",
+        "items": {
+          "type": "integer"
+        },
+        "optional": true
+      },
+      {
+        "name": "daysOfMonth",
+        "type": "array",
+        "desc": "Days of month (1-31) for recurring-day-of-month strategy",
+        "items": {
+          "type": "integer"
+        },
+        "optional": true
+      },
+      {
+        "name": "intervalDay",
+        "type": "integer",
+        "desc": "Interval in days for recurring-interval strategy",
+        "optional": true
+      },
+      {
+        "name": "cron",
+        "type": "string",
+        "desc": "Cron expression for when the window starts, e.g. \"30 3 * * *\" (03:30 daily), for the cron strategy",
+        "optional": true
+      },
+      {
+        "name": "durationMinutes",
+        "type": "integer",
+        "desc": "How long each window lasts, in minutes, for the cron strategy",
+        "optional": true
+      },
+      {
+        "name": "monitorIDs",
+        "type": "array",
+        "desc": "IDs of the monitors this window suppresses. A window with no monitors suppresses nothing. On update this REPLACES the current list; pass [] to detach all.",
+        "items": {
+          "type": "integer"
+        },
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Create Maintenance"
+    }
+  },
+  {
+    "name": "createMonitor",
+    "description": "Creates a new monitor in Uptime Kuma. Requires at minimum a name and type. Use listMonitorTypes to see supported types; prefer one made for the service (e.g. gamedig for a game server) over a port check. For HTTP monitors include url; for TCP/port monitors include hostname and port; for ping and dns include hostname; for json-query include url, jsonPath, jsonPathOperator and expectedValue; for database types (mysql, postgres, mongodb, redis, sqlserver, oracledb) include databaseConnectionString. For any other type, and for anything type-specific such as HTTP authentication, call getMonitorTypeFields first: it lists the required and optional fields of the type, what each means, and whether it is passed at the top level or inside typeFields. A create without the required fields of its type is refused rather than saved as a monitor that fails every check. For an HTTP monitor behind authentication pass the credentials in typeFields (basic_auth_user and basic_auth_pass, or bearer_token) and authMethod is set to match. Never pass \"***\" for a credential. A push monitor is given a generated push token (Uptime Kuma only generates one in its own web UI) and the resulting ping URL is returned. Omitted settings get the web form's defaults: interval 60 (300 for ntp), retryInterval equal to interval, and a per-type timeout.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Display name for the monitor"
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "Monitor type (e.g. http, port, ping, dns, push, keyword). Use listMonitorTypes for all options."
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Free-text description shown on the monitor page",
+        "optional": true
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "desc": "Whether the monitor starts checking immediately (default: true). Pass false to create it paused.",
+        "optional": true
+      },
+      {
+        "name": "resendInterval",
+        "type": "number",
+        "desc": "Resend notification every N checks while down (0 = disabled, the default)",
+        "optional": true
+      },
+      {
+        "name": "timeout",
+        "type": "number",
+        "desc": "Request timeout in SECONDS. Omit for the web form's default: 48, or 10 for ping, 5 for snmp and 1 for kafka-producer, at most 0.8 x interval. Avoid 0: Uptime Kuma's runtime fallback for a stored 0 computes interval * 1000 * 0.8 and then multiplies by 1000 again, yielding a ~13 hour timeout, so the monitor can never report DOWN against a host that accepts the connection and never answers. Push and group monitors do not use it; a 0 stored on one of those is harmless.",
+        "optional": true
+      },
+      {
+        "name": "jsonPath",
+        "type": "string",
+        "desc": "JSONata expression for json-query monitors. Must resolve to a primitive.",
+        "optional": true
+      },
+      {
+        "name": "jsonPathOperator",
+        "type": "string",
+        "desc": "Comparison operator for json-query monitors. UP while value <operator> expectedValue.",
+        "optional": true
+      },
+      {
+        "name": "expectedValue",
+        "type": "string",
+        "desc": "Threshold the json-query result is compared against. Stored as a string.",
+        "optional": true
+      },
+      {
+        "name": "pushToken",
+        "type": "string",
+        "desc": "Push token for push monitors — the secret in the ping URL. Omit and one is generated and returned.",
+        "optional": true
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "URL to monitor (required for http, keyword and json-query; other types that need it are listed by getMonitorTypeFields)",
+        "optional": true
+      },
+      {
+        "name": "hostname",
+        "type": "string",
+        "desc": "Hostname or IP address to check (required for port, ping and dns, and most non-HTTP types — see getMonitorTypeFields)",
+        "optional": true
+      },
+      {
+        "name": "port",
+        "type": "number",
+        "desc": "Port number (required for port; see getMonitorTypeFields for other types)",
+        "optional": true
+      },
+      {
+        "name": "interval",
+        "type": "number",
+        "desc": "Check interval in seconds (default: 60, or 300 for ntp; min: 1)",
+        "optional": true
+      },
+      {
+        "name": "retryInterval",
+        "type": "number",
+        "desc": "Retry interval in seconds when monitor is down (default: the interval, min: 1)",
+        "optional": true
+      },
+      {
+        "name": "maxretries",
+        "type": "number",
+        "desc": "Max retries before marking as down (default: 0)",
+        "optional": true
+      },
+      {
+        "name": "notificationIDList",
+        "type": "object",
+        "desc": "Map of notification IDs to enable (e.g. {\"1\": true, \"3\": true})",
+        "optional": true
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "desc": "Tags to assign to the monitor",
+        "items": {
+          "type": "object"
+        },
+        "optional": true
+      },
+      {
+        "name": "keyword",
+        "type": "string",
+        "desc": "Keyword to search for (keyword monitor type)",
+        "optional": true
+      },
+      {
+        "name": "invertKeyword",
+        "type": "boolean",
+        "desc": "Invert keyword match",
+        "optional": true
+      },
+      {
+        "name": "method",
+        "type": "string",
+        "desc": "HTTP method (GET, POST, etc.) for http type",
+        "optional": true
+      },
+      {
+        "name": "body",
+        "type": "string",
+        "desc": "HTTP request body",
+        "optional": true
+      },
+      {
+        "name": "headers",
+        "type": "string",
+        "desc": "HTTP headers as JSON string",
+        "optional": true
+      },
+      {
+        "name": "accepted_statuscodes",
+        "type": "array",
+        "desc": "Accepted HTTP status codes (e.g. [\"200-299\"])",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "ignoreTls",
+        "type": "boolean",
+        "desc": "Ignore TLS/SSL errors",
+        "optional": true
+      },
+      {
+        "name": "maxredirects",
+        "type": "number",
+        "desc": "Max HTTP redirects (default: 10)",
+        "optional": true
+      },
+      {
+        "name": "upsideDown",
+        "type": "boolean",
+        "desc": "Invert status — treat up as down",
+        "optional": true
+      },
+      {
+        "name": "expiryNotification",
+        "type": "boolean",
+        "desc": "Notify before the TLS certificate expires (http, keyword, json-query, globalping)",
+        "optional": true
+      },
+      {
+        "name": "domainExpiryNotification",
+        "type": "boolean",
+        "desc": "Notify before the domain registration expires (most types with a url or hostname; see getMonitorTypeFields). Needs Uptime Kuma 2.1 or later.",
+        "optional": true
+      },
+      {
+        "name": "parent",
+        "type": "number",
+        "desc": "Parent group monitor ID",
+        "optional": true
+      },
+      {
+        "name": "docker_container",
+        "type": "string",
+        "desc": "Docker container name (required for docker type)",
+        "optional": true
+      },
+      {
+        "name": "docker_host",
+        "type": "number",
+        "desc": "Docker host ID (required for docker type). Use listDockerHosts to find available IDs.",
+        "optional": true
+      },
+      {
+        "name": "dns_resolve_server",
+        "type": "string",
+        "desc": "DNS server to use for resolution (required for dns type, default: 1.1.1.1)",
+        "optional": true
+      },
+      {
+        "name": "dns_resolve_type",
+        "type": "string",
+        "desc": "DNS record type to query, for dns and globalping (default: A). Which types each supports: getMonitorTypeFields",
+        "optional": true
+      },
+      {
+        "name": "databaseConnectionString",
+        "type": "string",
+        "desc": "Connection string for mysql, postgres, mongodb, redis, sqlserver and oracledb monitors (required for those types). For oracledb the login goes in basic_auth_user and basic_auth_pass. A credential: read tools return it as \"***\" unless includeSecrets is set.",
+        "optional": true
+      },
+      {
+        "name": "databaseQuery",
+        "type": "string",
+        "desc": "Query for database monitors. SQL for mysql, postgres and sqlserver (default: SELECT 1) and oracledb (default: SELECT 1 FROM DUAL); a JSON command object for mongodb (default: {\"ping\": 1}).",
+        "optional": true
+      },
+      {
+        "name": "databasePassword",
+        "type": "string",
+        "desc": "Password for mysql monitors, if not inline in the connection string. Stored by Uptime Kuma as radiusPassword. A credential: read tools return it as \"***\".",
+        "optional": true
+      },
+      {
+        "name": "radiusPassword",
+        "type": "string",
+        "desc": "The RADIUS password (required for radius). Also the column databasePassword and typeFields.snmpCommunity are stored in — prefer those names for mysql and snmp.",
+        "optional": true
+      },
+      {
+        "name": "typeFields",
+        "type": "object",
+        "desc": "Fields specific to the monitor type, e.g. {\"mqttTopic\": \"sensors/#\"} for mqtt or {\"bearer_token\": \"…\"} for an HTTP monitor behind authentication. Call getMonitorTypeFields with the type for the names, meanings and allowed values — they are validated, and an unknown name is refused. getMonitor returns these fields at the top level of the monitor; to change one, pass it here.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Create Monitor"
+    }
+  },
+  {
+    "name": "createStatusPage",
+    "description": "Creates a new (empty) status page with the given title and slug. After creating, call updateStatusPage to set the description, theme, groups, and monitors. Slug must be lowercase letters, digits, and dashes only.",
+    "arguments": [
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Display title of the status page"
+      },
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "URL slug (lowercase letters, digits, and dashes only)"
+      }
+    ],
+    "annotations": {
+      "title": "Create Status Page"
+    }
+  },
+  {
+    "name": "deleteDockerHost",
+    "description": "Permanently deletes a docker daemon connection. Any monitors referencing it will have their docker_host cleared by Uptime Kuma (the monitors themselves are not deleted).",
+    "arguments": [
+      {
+        "name": "dockerHostID",
+        "type": "integer",
+        "desc": "The ID of the docker host to delete"
+      }
+    ],
+    "annotations": {
+      "title": "Delete Docker Host",
+      "destructiveHint": true
+    }
+  },
+  {
+    "name": "deleteMaintenance",
+    "description": "Permanently deletes a maintenance window. Its monitors return to normal alerting. Use getMaintenanceWindows to find the ID.",
+    "arguments": [
+      {
+        "name": "maintenanceID",
+        "type": "integer",
+        "desc": "The ID of the maintenance window to delete"
+      }
+    ],
+    "annotations": {
+      "title": "Delete Maintenance",
+      "destructiveHint": true
+    }
+  },
+  {
+    "name": "deleteMonitor",
+    "description": "Permanently deletes a monitor and all its heartbeat history. This action cannot be undone.",
+    "arguments": [
+      {
+        "name": "monitorID",
+        "type": "integer",
+        "desc": "The ID of the monitor to delete"
+      }
+    ],
+    "annotations": {
+      "title": "Delete Monitor",
+      "destructiveHint": true
+    }
+  },
+  {
+    "name": "deleteNotification",
+    "description": "Permanently deletes a notification channel. Monitors that used this channel will no longer send alerts through it.",
+    "arguments": [
+      {
+        "name": "notificationID",
+        "type": "integer",
+        "desc": "The ID of the notification to delete"
+      }
+    ],
+    "annotations": {
+      "title": "Delete Notification",
+      "destructiveHint": true
+    }
+  },
+  {
+    "name": "deleteStatusPage",
+    "description": "Permanently deletes a status page by slug. The status page URL will no longer be accessible.",
+    "arguments": [
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "The status page slug to delete"
+      }
+    ],
+    "annotations": {
+      "title": "Delete Status Page",
+      "destructiveHint": true
+    }
+  },
+  {
+    "name": "deleteTag",
+    "description": "Permanently deletes a tag. It will be removed from all monitors that use it. Use listTags to find the tag ID.",
+    "arguments": [
+      {
+        "name": "tagID",
+        "type": "integer",
+        "desc": "The ID of the tag to delete"
+      }
+    ],
+    "annotations": {
+      "title": "Delete Tag",
+      "destructiveHint": true
+    }
+  },
+  {
+    "name": "getHeartbeats",
+    "description": "Retrieves historical heartbeat data for a specific monitor (response times, status changes over time). Use this for analyzing patterns or history for one monitor. Beats are returned NEWEST-FIRST. By default returns only the most recent heartbeat; set maxHeartbeats (up to 100) for historical analysis. Keep maxHeartbeats ≤10 unless user requests more. Set important:true for the status CHANGES only (Uptime Kuma's own event list) — that is history, not current state, so do not read status from it. Credentials embedded in a status message URL (user:pass@host) read \"***\" unless includeSecrets is set.",
+    "arguments": [
+      {
+        "name": "monitorID",
+        "type": "integer",
+        "desc": "The ID of the monitor to get heartbeats for"
+      },
+      {
+        "name": "maxHeartbeats",
+        "type": "integer",
+        "desc": "If set, returns the most recent X heartbeats (up to 100). If unset, returns only the most recent heartbeat (default: 1)",
+        "optional": true
+      },
+      {
+        "name": "important",
+        "type": "boolean",
+        "desc": "Return only IMPORTANT beats — the status changes behind Uptime Kuma's event list — fetched live from the server rather than the cache. History only: the newest important beat is not the monitor's current status.",
+        "optional": true
+      },
+      {
+        "name": "includeSecrets",
+        "type": "boolean",
+        "desc": "Return credentials in full instead of \"***\". Off by default: this output is persisted in conversation transcripts and logs. Can also be enabled globally with UPTIME_KUMA_INCLUDE_SECRETS=true.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Get Heartbeats",
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "getMaintenanceWindows",
+    "description": "Returns all maintenance windows defined in Uptime Kuma, each with monitorIDs — the monitors it suppresses. A window with an empty monitorIDs list suppresses nothing.",
+    "annotations": {
+      "title": "Get Maintenance Windows",
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "getMonitor",
+    "description": "Retrieves configuration details for a specific monitor by ID (URL, check interval, notification settings, etc.). Use this when you need to examine or modify settings for a specific monitor. For current status, use getMonitorSummary instead. By default returns only common fields plus runtime data (uptime, avgPing); set includeTypeSpecificFields to true to include type-specific fields (e.g., url for HTTP, hostname/port for TCP).",
+    "arguments": [
+      {
+        "name": "monitorID",
+        "type": "integer",
+        "desc": "The ID of the monitor to retrieve"
+      },
+      {
+        "name": "includeTypeSpecificFields",
+        "type": "boolean",
+        "desc": "Include type-specific fields (url, hostname, port, etc.) in addition to common fields. Default: false. When false, only returns MonitorBase fields plus uptime/avgPing.",
+        "optional": true
+      },
+      {
+        "name": "includeSecrets",
+        "type": "boolean",
+        "desc": "Return credentials in full instead of \"***\". Off by default: this output is persisted in conversation transcripts and logs. Can also be enabled globally with UPTIME_KUMA_INCLUDE_SECRETS=true.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Get Monitor",
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "getMonitorSummary",
+    "description": "START HERE for status overview questions. Retrieves current status for all monitors showing UP/DOWN/PENDING/MAINTENANCE states with the most recent heartbeat message. Use this when asked \"how is everything doing?\", \"what's down?\", \"what's up?\", or for any general status overview. Returns essential information (ID, name, pathName, active state, maintenance state, status, message, lastBeatTime, type, tags). Supports filtering by keywords, type, active/maintenance status, tags, parent group, and current status. Check lastBeatTime before trusting the status of a push monitor — one that has stopped beating keeps reporting its last known status. lastBeatTime is UTC with no zone marker, so measure staleness against the current UTC time.",
+    "arguments": [
+      {
+        "name": "keywords",
+        "type": "string",
+        "desc": "Space-separated keywords to filter monitors by pathName (case-insensitive fuzzy match). All keywords must match for a monitor to be included.",
+        "optional": true
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "Filter by monitor type(s). Comma-separated for multiple types. Use listMonitorTypes tool to see all available types.",
+        "optional": true
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "desc": "Filter by active status. true=only active monitors, false=only inactive monitors.",
+        "optional": true
+      },
+      {
+        "name": "maintenance",
+        "type": "boolean",
+        "desc": "Filter by maintenance status. true=only monitors in maintenance, false=only monitors not in maintenance.",
+        "optional": true
+      },
+      {
+        "name": "tags",
+        "type": "string",
+        "desc": "Filter by tag name and optional value. Comma-separated for multiple tags. Format: \"tagName\" or \"tagName=value\". Monitor must have all specified tags. Case-insensitive. Examples: \"production\", \"env=staging\", \"production,region=us-east\"",
+        "optional": true
+      },
+      {
+        "name": "parentId",
+        "type": "integer",
+        "desc": "Filter to the DIRECT children of this group monitor. Pass null for top-level monitors (those with no parent). Not recursive — use the group's own childrenIDs to walk deeper.",
+        "optional": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Filter by current heartbeat status. Comma-separated for multiple statuses. 0=DOWN, 1=UP, 2=PENDING, 3=MAINTENANCE. Examples: \"0\", \"1\", \"0,2\"",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Get Monitor Summary",
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "getMonitorTypeFields",
+    "description": "Describes the fields one monitor type uses: which are required, which are optional, what each means and accepts, and the defaults applied when they are omitted. Call this before createMonitor, or before updateMonitor changes a type or sets type-specific fields: most of them go in the typeFields argument of those tools, which is not described there.",
+    "arguments": [
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "The monitor type, e.g. http, mqtt, snmp. Use listMonitorTypes for all options."
+      }
+    ],
+    "annotations": {
+      "title": "Get Monitor Type Fields",
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "getSettings",
+    "description": "Retrieves the current Uptime Kuma server settings, such as timezone, primary base URL and data retention. Uptime Kuma only returns settings that have been saved, so a setting missing from the result (for example primaryBaseURL) has never been set.",
+    "arguments": [
+      {
+        "name": "includeSecrets",
+        "type": "boolean",
+        "desc": "Return credentials in full instead of \"***\". Off by default: this output is persisted in conversation transcripts and logs. Can also be enabled globally with UPTIME_KUMA_INCLUDE_SECRETS=true.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Get Settings",
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "getStatusPage",
+    "description": "Returns the full configuration of a status page by slug, including the ordered list of groups, the monitors inside each group, and active incidents. Works for unpublished pages too.",
+    "arguments": [
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "The status page slug (the URL-safe identifier)"
+      }
+    ],
+    "annotations": {
+      "title": "Get Status Page",
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "listDockerHosts",
+    "description": "Returns all docker daemon connections configured in Uptime Kuma. These are referenced by docker container monitors via docker_host.",
+    "arguments": [
+      {
+        "name": "includeSecrets",
+        "type": "boolean",
+        "desc": "Return credentials in full instead of \"***\". Off by default: this output is persisted in conversation transcripts and logs. Can also be enabled globally with UPTIME_KUMA_INCLUDE_SECRETS=true.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Docker Hosts",
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "listHeartbeats",
+    "description": "Retrieves historical heartbeat data for ALL monitors (response times, status changes over time). Use this for analyzing patterns across multiple monitors or correlating events. Beats are returned NEWEST-FIRST. By default returns only the most recent heartbeat per monitor; set maxHeartbeats (up to 100) for historical analysis. Keep maxHeartbeats ≤5 unless user requests more. Credentials embedded in a status message URL (user:pass@host) read \"***\" unless includeSecrets is set.",
+    "arguments": [
+      {
+        "name": "maxHeartbeats",
+        "type": "integer",
+        "desc": "If set, returns the most recent X heartbeats per monitor (up to 100). If unset, returns only the most recent heartbeat per monitor (default: 1)",
+        "optional": true
+      },
+      {
+        "name": "includeSecrets",
+        "type": "boolean",
+        "desc": "Return credentials in full instead of \"***\". Off by default: this output is persisted in conversation transcripts and logs. Can also be enabled globally with UPTIME_KUMA_INCLUDE_SECRETS=true.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Heartbeats",
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "listMonitors",
+    "description": "Retrieves configuration details for all monitors (URLs, check intervals, notification settings, etc.). Use this when you need to examine or modify monitor settings. For status checks (\"how is everything doing?\", \"what's down?\"), use getMonitorSummary instead. By default returns only common fields plus runtime data (uptime, avgPing); set includeTypeSpecificFields to true to include type-specific fields (e.g., url for HTTP, hostname/port for TCP). Supports filtering by keywords, type, active/maintenance status, tags, and parent group.",
+    "arguments": [
+      {
+        "name": "includeTypeSpecificFields",
+        "type": "boolean",
+        "desc": "Include type-specific fields (url, hostname, port, etc.) in addition to common fields. Default: false. When false, only returns MonitorBase fields plus uptime/avgPing.",
+        "optional": true
+      },
+      {
+        "name": "keywords",
+        "type": "string",
+        "desc": "Space-separated keywords to filter monitors by pathName (case-insensitive fuzzy match). All keywords must match for a monitor to be included.",
+        "optional": true
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "Filter by monitor type(s). Comma-separated for multiple types. Use listMonitorTypes tool to see all available types.",
+        "optional": true
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "desc": "Filter by active status. true=only active monitors, false=only inactive monitors.",
+        "optional": true
+      },
+      {
+        "name": "maintenance",
+        "type": "boolean",
+        "desc": "Filter by maintenance status. true=only monitors in maintenance, false=only monitors not in maintenance.",
+        "optional": true
+      },
+      {
+        "name": "tags",
+        "type": "string",
+        "desc": "Filter by tag name and optional value. Comma-separated for multiple tags. Format: \"tagName\" or \"tagName=value\". Monitor must have all specified tags. Case-insensitive. Examples: \"production\", \"env=staging\", \"production,region=us-east\"",
+        "optional": true
+      },
+      {
+        "name": "parentId",
+        "type": "integer",
+        "desc": "Filter to the DIRECT children of this group monitor. Pass null for top-level monitors (those with no parent). Not recursive — use the group's own childrenIDs to walk deeper.",
+        "optional": true
+      },
+      {
+        "name": "includeSecrets",
+        "type": "boolean",
+        "desc": "Return credentials in full instead of \"***\". Off by default: this output is persisted in conversation transcripts and logs. Can also be enabled globally with UPTIME_KUMA_INCLUDE_SECRETS=true.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Monitors",
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "listMonitorTypes",
+    "description": "Returns every monitor type Uptime Kuma supports, with what each one checks. Use it to choose the type for createMonitor — there are dedicated types for game servers, MQTT, RADIUS, SNMP, SMTP, gRPC, Docker containers and more — and to find valid values for type filters in other tools.",
+    "annotations": {
+      "title": "List Monitor Types",
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "listNotifications",
+    "description": "Returns all configured notification channels (Slack, ntfy, Discord, email, webhooks, etc.), each with its `type` and its type-specific settings in `config`. To attach a channel to a monitor you only need its id — the credentials in `config` are withheld by default and the names of the withheld fields are listed in `redactedConfigKeys`.",
+    "arguments": [
+      {
+        "name": "includeSecrets",
+        "type": "boolean",
+        "desc": "Return credentials in full instead of \"***\". Off by default: this output is persisted in conversation transcripts and logs. Can also be enabled globally with UPTIME_KUMA_INCLUDE_SECRETS=true.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "List Notifications",
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "listStatusPages",
+    "description": "Returns all configured status pages with their slug, title, visibility, and custom domain settings. Uptime Kuma only sends this list when a client logs in, so a page created or deleted by another client (or the web UI) since then may be missing or still listed; changes made through this server are reflected at once. getStatusPage with a slug always reads the page fresh.",
+    "annotations": {
+      "title": "List Status Pages",
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "listTags",
+    "description": "Returns all tags defined in Uptime Kuma (name, color, and ID).",
+    "annotations": {
+      "title": "List Tags",
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "pauseMaintenance",
+    "description": "Switches a maintenance window off: it stops suppressing its monitors and its schedule stops until resumed. For a manual window this ends the maintenance.",
+    "arguments": [
+      {
+        "name": "maintenanceID",
+        "type": "integer",
+        "desc": "The ID of the maintenance window to pause"
+      }
+    ],
+    "annotations": {
+      "title": "Pause Maintenance",
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "pauseMonitor",
+    "description": "Pauses a monitor, stopping it from performing checks. The monitor will remain in the system but will not send notifications or collect data until resumed.",
+    "arguments": [
+      {
+        "name": "monitorID",
+        "type": "integer",
+        "desc": "The ID of the monitor to pause"
+      }
+    ],
+    "annotations": {
+      "title": "Pause Monitor",
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "resumeMaintenance",
+    "description": "Switches a paused maintenance window back on. For a manual window this starts the maintenance immediately; a scheduled window resumes following its schedule.",
+    "arguments": [
+      {
+        "name": "maintenanceID",
+        "type": "integer",
+        "desc": "The ID of the maintenance window to resume"
+      }
+    ],
+    "annotations": {
+      "title": "Resume Maintenance",
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "resumeMonitor",
+    "description": "Resumes a paused monitor, restarting all checks. Use this to re-enable monitoring after pausing.",
+    "arguments": [
+      {
+        "name": "monitorID",
+        "type": "integer",
+        "desc": "The ID of the monitor to resume"
+      }
+    ],
+    "annotations": {
+      "title": "Resume Monitor",
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "testDockerHost",
+    "description": "Tests connectivity to a docker daemon without persisting it. On success the message includes the number of containers. Use this before addDockerHost to avoid saving a broken configuration.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Display name (used only in the test request)"
+      },
+      {
+        "name": "dockerType",
+        "type": "string",
+        "desc": "\"socket\" for a unix socket path, \"tcp\" for an HTTP/HTTPS URL"
+      },
+      {
+        "name": "dockerDaemon",
+        "type": "string",
+        "desc": "Unix socket path or TCP URL to probe"
+      }
+    ],
+    "annotations": {
+      "title": "Test Docker Host",
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "updateDockerHost",
+    "description": "Updates an existing docker daemon connection. Use listDockerHosts to find the docker host ID. Only the fields you pass are changed — the others are preserved.",
+    "arguments": [
+      {
+        "name": "dockerHostID",
+        "type": "integer",
+        "desc": "The ID of the docker host to update"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "New human-readable name",
+        "optional": true
+      },
+      {
+        "name": "dockerType",
+        "type": "string",
+        "desc": "New connection type",
+        "optional": true
+      },
+      {
+        "name": "dockerDaemon",
+        "type": "string",
+        "desc": "New socket path or TCP URL",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Update Docker Host",
+      "destructiveHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "updateMaintenance",
+    "description": "Updates an existing maintenance window. Only the fields you provide are changed (the server merges them with the stored window). monitorIDs replaces the full monitor list. To switch a window on or off use pauseMaintenance / resumeMaintenance.",
+    "arguments": [
+      {
+        "name": "maintenanceID",
+        "type": "integer",
+        "desc": "The ID of the maintenance window to update"
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Title of the maintenance window",
+        "optional": true
+      },
+      {
+        "name": "strategy",
+        "type": "string",
+        "desc": "Scheduling strategy (see createMaintenance)",
+        "optional": true
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Description or reason for the maintenance",
+        "optional": true
+      },
+      {
+        "name": "timezone",
+        "type": "string",
+        "desc": "Timezone the dates and times are in (e.g. \"America/New_York\", \"UTC\"). Omit to follow the server timezone.",
+        "optional": true
+      },
+      {
+        "name": "dateRange",
+        "type": "array",
+        "desc": "[start, end] as local wall-clock times in the window's timezone, e.g. [\"2026-10-08T10:00\", \"2026-10-08T12:00\"] — the format Uptime Kuma's own UI stores. Required for single; optional bounds for recurring strategies; ignored for manual.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "timeRange",
+        "type": "array",
+        "desc": "Daily [{hours, minutes}, {hours, minutes}] start and end. Required for the recurring-* strategies, ignored otherwise.",
+        "items": {
+          "type": "object"
+        },
+        "optional": true
+      },
+      {
+        "name": "weekdays",
+        "type": "array",
+        "desc": "Days of week (0=Sunday … 6=Saturday) for recurring-weekday strategy",
+        "items": {
+          "type": "integer"
+        },
+        "optional": true
+      },
+      {
+        "name": "daysOfMonth",
+        "type": "array",
+        "desc": "Days of month (1-31) for recurring-day-of-month strategy",
+        "items": {
+          "type": "integer"
+        },
+        "optional": true
+      },
+      {
+        "name": "intervalDay",
+        "type": "integer",
+        "desc": "Interval in days for recurring-interval strategy",
+        "optional": true
+      },
+      {
+        "name": "cron",
+        "type": "string",
+        "desc": "Cron expression for when the window starts, e.g. \"30 3 * * *\" (03:30 daily), for the cron strategy",
+        "optional": true
+      },
+      {
+        "name": "durationMinutes",
+        "type": "integer",
+        "desc": "How long each window lasts, in minutes, for the cron strategy",
+        "optional": true
+      },
+      {
+        "name": "monitorIDs",
+        "type": "array",
+        "desc": "IDs of the monitors this window suppresses. A window with no monitors suppresses nothing. On update this REPLACES the current list; pass [] to detach all.",
+        "items": {
+          "type": "integer"
+        },
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Update Maintenance",
+      "destructiveHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "updateMonitor",
+    "description": "Updates an existing monitor configuration. You must include the monitorID. Only the fields you provide will be changed (the server merges your changes with the existing config). Use getMonitor first to get the current config. Passing a different type converts the monitor in place, keeping its ID and history: the new type must have the fields it needs, passed here or already stored (e.g. url for http, hostname for ping), and a monitor becoming push is given a push token if it has none. Type-specific fields go in typeFields; call getMonitorTypeFields for their names and meanings. Credentials read back as \"***\"; sending \"***\" keeps the stored value.",
+    "arguments": [
+      {
+        "name": "monitorID",
+        "type": "integer",
+        "desc": "The ID of the monitor to update"
+      },
+      {
+        "name": "parent",
+        "type": "integer",
+        "desc": "Parent group monitor ID — re-parents this monitor into that group. Pass null to move it to the top level.",
+        "optional": true
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Free-text description shown on the monitor page",
+        "optional": true
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "Change the monitor type in place (e.g. ping -> http), keeping its ID, history and notifications. Pass the fields the new type needs in the same call (e.g. url for http). A group cannot be converted. Use listMonitorTypes for all options.",
+        "optional": true
+      },
+      {
+        "name": "resendInterval",
+        "type": "number",
+        "desc": "Resend notification every N checks while down (0 = disabled)",
+        "optional": true
+      },
+      {
+        "name": "timeout",
+        "type": "number",
+        "desc": "Request timeout in SECONDS. Avoid 0 — Uptime Kuma's runtime fallback for a stored 0 yields a ~13 hour timeout, so the monitor can never report DOWN against a black-holed endpoint.",
+        "optional": true
+      },
+      {
+        "name": "jsonPath",
+        "type": "string",
+        "desc": "JSONata expression for json-query monitors. Must resolve to a primitive.",
+        "optional": true
+      },
+      {
+        "name": "jsonPathOperator",
+        "type": "string",
+        "desc": "Comparison operator for json-query monitors.",
+        "optional": true
+      },
+      {
+        "name": "expectedValue",
+        "type": "string",
+        "desc": "Threshold the json-query result is compared against, stored as a string.",
+        "optional": true
+      },
+      {
+        "name": "pushToken",
+        "type": "string",
+        "desc": "Push token — the secret in the ping URL. Changing it invalidates the existing URL and any sender still using it stops beating.",
+        "optional": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Display name",
+        "optional": true
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "URL to monitor",
+        "optional": true
+      },
+      {
+        "name": "hostname",
+        "type": "string",
+        "desc": "Hostname",
+        "optional": true
+      },
+      {
+        "name": "port",
+        "type": "number",
+        "desc": "Port number",
+        "optional": true
+      },
+      {
+        "name": "interval",
+        "type": "number",
+        "desc": "Check interval in seconds (min: 1)",
+        "optional": true
+      },
+      {
+        "name": "retryInterval",
+        "type": "number",
+        "desc": "Retry interval in seconds (min: 1)",
+        "optional": true
+      },
+      {
+        "name": "maxretries",
+        "type": "number",
+        "desc": "Max retries before marking as down",
+        "optional": true
+      },
+      {
+        "name": "notificationIDList",
+        "type": "object",
+        "desc": "Notification ID map",
+        "optional": true
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "desc": "Tags to assign",
+        "items": {
+          "type": "object"
+        },
+        "optional": true
+      },
+      {
+        "name": "keyword",
+        "type": "string",
+        "desc": "Keyword to search for",
+        "optional": true
+      },
+      {
+        "name": "invertKeyword",
+        "type": "boolean",
+        "desc": "Invert keyword match",
+        "optional": true
+      },
+      {
+        "name": "method",
+        "type": "string",
+        "desc": "HTTP method",
+        "optional": true
+      },
+      {
+        "name": "body",
+        "type": "string",
+        "desc": "HTTP request body",
+        "optional": true
+      },
+      {
+        "name": "headers",
+        "type": "string",
+        "desc": "HTTP headers as JSON string",
+        "optional": true
+      },
+      {
+        "name": "accepted_statuscodes",
+        "type": "array",
+        "desc": "Accepted HTTP status codes",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "ignoreTls",
+        "type": "boolean",
+        "desc": "Ignore TLS/SSL errors",
+        "optional": true
+      },
+      {
+        "name": "maxredirects",
+        "type": "number",
+        "desc": "Max HTTP redirects",
+        "optional": true
+      },
+      {
+        "name": "upsideDown",
+        "type": "boolean",
+        "desc": "Invert status",
+        "optional": true
+      },
+      {
+        "name": "expiryNotification",
+        "type": "boolean",
+        "desc": "Notify before the TLS certificate expires (http, keyword, json-query, globalping)",
+        "optional": true
+      },
+      {
+        "name": "domainExpiryNotification",
+        "type": "boolean",
+        "desc": "Notify before the domain registration expires (most types with a url or hostname; see getMonitorTypeFields). Needs Uptime Kuma 2.1 or later.",
+        "optional": true
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "desc": "Whether the monitor is active",
+        "optional": true
+      },
+      {
+        "name": "docker_container",
+        "type": "string",
+        "desc": "Docker container name (required for docker type)",
+        "optional": true
+      },
+      {
+        "name": "docker_host",
+        "type": "number",
+        "desc": "Docker host ID (required for docker type). Use listDockerHosts to find available IDs.",
+        "optional": true
+      },
+      {
+        "name": "dns_resolve_server",
+        "type": "string",
+        "desc": "DNS server to use for resolution (for dns type)",
+        "optional": true
+      },
+      {
+        "name": "dns_resolve_type",
+        "type": "string",
+        "desc": "DNS record type to query, for dns and globalping. Which types each supports: getMonitorTypeFields",
+        "optional": true
+      },
+      {
+        "name": "databaseConnectionString",
+        "type": "string",
+        "desc": "Connection string for mysql, postgres, mongodb, redis, sqlserver and oracledb monitors. A credential: read tools return \"***\", and sending \"***\" back keeps the stored value.",
+        "optional": true
+      },
+      {
+        "name": "databaseQuery",
+        "type": "string",
+        "desc": "Query for database monitors. SQL for mysql, postgres, sqlserver and oracledb; a JSON command object for mongodb.",
+        "optional": true
+      },
+      {
+        "name": "databasePassword",
+        "type": "string",
+        "desc": "Password for mysql monitors, stored by Uptime Kuma as radiusPassword. Sending \"***\" back keeps the stored value.",
+        "optional": true
+      },
+      {
+        "name": "radiusPassword",
+        "type": "string",
+        "desc": "The RADIUS password (required for radius). Also the column databasePassword and typeFields.snmpCommunity are stored in — prefer those names for mysql and snmp.",
+        "optional": true
+      },
+      {
+        "name": "typeFields",
+        "type": "object",
+        "desc": "Fields specific to the monitor type, e.g. {\"mqttTopic\": \"sensors/#\"} for mqtt or {\"bearer_token\": \"…\"} for an HTTP monitor behind authentication. Call getMonitorTypeFields with the type for the names, meanings and allowed values — they are validated, and an unknown name is refused. getMonitor returns these fields at the top level of the monitor; to change one, pass it here.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Update Monitor",
+      "destructiveHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "updateNotification",
+    "description": "Updates an existing notification channel. Use listNotifications to find the notification ID.",
+    "arguments": [
+      {
+        "name": "notificationID",
+        "type": "integer",
+        "desc": "The ID of the notification to update"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Human-readable name",
+        "optional": true
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "Notification type",
+        "optional": true
+      },
+      {
+        "name": "isDefault",
+        "type": "boolean",
+        "desc": "Enable by default for new monitors",
+        "optional": true
+      },
+      {
+        "name": "applyExisting",
+        "type": "boolean",
+        "desc": "Apply to all existing monitors now",
+        "optional": true
+      },
+      {
+        "name": "config",
+        "type": "object",
+        "desc": "Type-specific configuration fields to update",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Update Notification",
+      "destructiveHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "updateStatusPage",
+    "description": "Updates an existing status page. config holds only the settings to change; everything else keeps its stored value. publicGroupList, when given, replaces all of the page's groups (a group not in it is deleted; include a group's id to keep it rather than recreate it); omit it to keep the groups as they are. Each group has a name and a monitorList of [{id}]. Use getStatusPage first to read current state before modifying.",
+    "arguments": [
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "The status page slug (immutable identifier)"
+      },
+      {
+        "name": "config",
+        "type": "object",
+        "desc": "The settings to change, merged onto the stored page: title, description, theme, published, showTags, showPoweredBy, domainNameList, customCSS, footerText, icon, etc. Omit to change only the groups.",
+        "optional": true
+      },
+      {
+        "name": "publicGroupList",
+        "type": "array",
+        "desc": "Ordered groups, replacing all current ones. Each: {id?, name, monitorList: [{id}]}. Omit to keep the current groups.",
+        "items": {
+          "type": "object"
+        },
+        "optional": true
+      },
+      {
+        "name": "imgDataUrl",
+        "type": "string",
+        "desc": "Icon as data URL. Omit or pass empty string to keep existing.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Update Status Page",
+      "destructiveHint": true,
+      "idempotentHint": true
+    }
+  }
+]
