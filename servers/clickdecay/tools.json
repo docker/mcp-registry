@@ -1,0 +1,98 @@
+[
+  {
+    "name": "compare_ctr_periods",
+    "description": "Compares clicks, impressions and CTR of two equal-length periods from Google Search Console, splits the click change into an impressions component and a CTR component, and checks the dates against known Search Console reporting issues",
+    "arguments": [
+      {
+        "name": "prior",
+        "type": "object",
+        "desc": "Totals of the earlier period, for example from the Search Console Performance report"
+      },
+      {
+        "name": "current",
+        "type": "object",
+        "desc": "Totals of the later period, for example from the Search Console Performance report"
+      },
+      {
+        "name": "source",
+        "type": "string",
+        "desc": "Where the numbers come from: gsc_ui_export (Search Console Performance report or its export), bulk_export (BigQuery bulk export), api (Search Console API) or other. Some reporting issues apply to one source only",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Compare CTR between two periods",
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "project_clicks_at_ctr",
+    "description": "Calculates the clicks a number of impressions would earn at a CTR you choose (impressions × CTR)",
+    "arguments": [
+      {
+        "name": "impressions",
+        "type": "number",
+        "desc": "Impressions of the period, a whole number"
+      },
+      {
+        "name": "ctrPercent",
+        "type": "number",
+        "desc": "CTR as a percentage from 0 to 100: 3 means 3%, 0.5 means 0.5%. Not a fraction"
+      }
+    ],
+    "annotations": {
+      "title": "Project clicks at a CTR",
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "impressions_needed_for_clicks",
+    "description": "Calculates how many impressions a click target needs at a CTR you choose (clicks ÷ CTR)",
+    "arguments": [
+      {
+        "name": "clicks",
+        "type": "number",
+        "desc": "The click target, a whole number"
+      },
+      {
+        "name": "ctrPercent",
+        "type": "number",
+        "desc": "CTR as a percentage from 0 to 100: 3 means 3%, 0.5 means 0.5%. Not a fraction"
+      }
+    ],
+    "annotations": {
+      "title": "Impressions needed for a click target",
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "check_gsc_reporting_issues",
+    "description": "Lists the known Google Search Console reporting issues that overlap the dates you give, with the affected metrics and the source link",
+    "arguments": [
+      {
+        "name": "periods",
+        "type": "array",
+        "desc": "Up to four date ranges to check. Leave out to list every known issue",
+        "optional": true
+      },
+      {
+        "name": "source",
+        "type": "string",
+        "desc": "Where the numbers come from: gsc_ui_export (Search Console Performance report or its export), bulk_export (BigQuery bulk export), api (Search Console API) or other. Some reporting issues apply to one source only",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Check known Search Console reporting issues",
+      "readOnlyHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  }
+]
