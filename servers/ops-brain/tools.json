@@ -1,0 +1,224 @@
+[
+  {
+    "name": "accept_handoff",
+    "description": "Mark a pending handoff as taken and record its acceptor. Optional: use it for work you will not finish in this session, so the sender sees it is in hand. complete_handoff works straight from pending. Bound tokens use their own identity; family credentials require a concrete agent_name.",
+    "arguments": [
+      {
+        "name": "handoff_id",
+        "type": "string",
+        "desc": "Handoff ID (UUID)"
+      },
+      {
+        "name": "agent_name",
+        "type": "string",
+        "desc": "Concrete acceptor identity. Required for family credentials. Fixed\nagent tokens record their bound identity; a supplied name must match\nthe fixed identity or family.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "check_in",
+    "description": "Pending-work query: open action handoffs addressed to you (max 20), plus recent notify-class handoffs to you or broadcast (max 5, compact). A reply addressed to you arrives here like any other handoff. `has_more` on a section means the cap was hit — use list_handoffs for the rest. Accepted handoffs you filed to yourself are locks: counted in `self_claims_held`, not listed. Next step is get_handoff for the full body, then complete_handoff or a reply with `complete_parent`. Pass `agent_name` (your free-form agent slug — e.g. 'Claude-Laptop', 'Codex-Buildbox').",
+    "arguments": [
+      {
+        "name": "agent_name",
+        "type": "string",
+        "desc": "Your agent identifier (free-form slug, 1–80 chars, [a-zA-Z0-9._-]).\nExamples: \"Claude-Laptop\", \"Codex-Buildbox\".\nUsed to filter handoffs addressed to you."
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "complete_handoff",
+    "description": "Mark an open handoff (pending or accepted) as completed. Optional `commit_hash` records the work ref (typically a git SHA). To close a handoff and answer it in one call, use create_handoff with `in_reply_to` and `complete_parent`.",
+    "arguments": [
+      {
+        "name": "handoff_id",
+        "type": "string",
+        "desc": "Handoff ID (UUID)"
+      },
+      {
+        "name": "commit_hash",
+        "type": "string",
+        "desc": "Optional commit ref (typically a git SHA) recording the work that\nclosed this handoff.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "create_handoff",
+    "description": "Create a handoff for another agent; this is sufficient notification. Category `action` = the recipient must do it; `notify` = FYI, pruned from operational queries after 7 days. Replying? Pass `in_reply_to` to stay in the existing thread instead of opening a parallel handoff, and `complete_parent` when the reply reports the work the parent asked you for.",
+    "arguments": [
+      {
+        "name": "body",
+        "type": "string",
+        "desc": "Detailed body, markdown supported (max 100,000 bytes)"
+      },
+      {
+        "name": "from_agent",
+        "type": "string",
+        "desc": "Sender agent (free-form slug, 1–80 chars, [a-zA-Z0-9._-]).\nExamples: \"Claude-Laptop\", \"Codex-Buildbox\"."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Short title for the handoff (max 200 bytes)"
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Category: \"action\" (default — persistent until completed) or \"notify\"\n(ephemeral FYI, auto-pruned from operational queries after 7 days).\nUse \"notify\" for introductions, \"I just shipped X\" announcements —\nanything the recipient doesn't need to act on.",
+        "optional": true
+      },
+      {
+        "name": "commit_hash",
+        "type": "string",
+        "desc": "With `complete_parent`: commit ref (typically a git SHA) of the work\nthat closed the parent, recorded on the parent.",
+        "optional": true
+      },
+      {
+        "name": "complete_parent",
+        "type": "string",
+        "desc": "With `in_reply_to`: also complete the parent in the same call. Use it\nwhen this reply reports the work the parent asked you for. The parent\ncloses only if it is open and addressed to (or accepted by) you;\notherwise the reply is still filed and `_warning` says why not.",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Optional structured context: a JSON object, max 8,192 bytes serialized.\nPoint at evidence (paths, IDs, URLs) instead of inlining it.",
+        "optional": true
+      },
+      {
+        "name": "in_reply_to",
+        "type": "string",
+        "desc": "Parent handoff ID (full UUID) when this handoff is a reply. A reply is\n`action` when it needs a response and `notify` when it only reports.",
+        "optional": true
+      },
+      {
+        "name": "priority",
+        "type": "string",
+        "desc": "Priority: low, normal, high, or critical",
+        "optional": true
+      },
+      {
+        "name": "to_agent",
+        "type": "string",
+        "desc": "Target agent (free-form slug, same form as `from_agent`). Required for\n`action`. Omit only to broadcast a `notify`, which then shows in every\nother agent's `check_in` for 7 days.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "delete_handoff",
+    "description": "Permanently delete a handoff by ID (hard delete). The delete is audited: audit_log keeps a tombstone with the handoff id, who deleted it, and its sender, recipient, title and status",
+    "arguments": [
+      {
+        "name": "handoff_id",
+        "type": "string",
+        "desc": "Handoff ID (UUID)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "get_handoff",
+    "description": "Get one handoff by its full UUID, including its complete body and context.",
+    "arguments": [
+      {
+        "name": "handoff_id",
+        "type": "string",
+        "desc": "Full handoff UUID."
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "list_handoffs",
+    "description": "List handoffs with optional filters, newest first. Use `from_agent` to follow what you sent, or `to_agent` with `include_notify` to see every reply and FYI addressed to you.",
+    "arguments": [
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Filter by category: \"action\" or \"notify\". Overrides include_notify\nwhen set. Omit to use the default action-only view.",
+        "optional": true
+      },
+      {
+        "name": "compact",
+        "type": "string",
+        "desc": "Truncate body to 200 chars (default: true). Set false for full bodies.",
+        "optional": true
+      },
+      {
+        "name": "from_agent",
+        "type": "string",
+        "desc": "Filter by source agent (free-form slug; exact match, case-insensitive).",
+        "optional": true
+      },
+      {
+        "name": "include_notify",
+        "type": "string",
+        "desc": "Include notify-class handoffs alongside action ones (default: false).\nIgnored when `category` is set explicitly.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "string",
+        "desc": "Max results (default 20, clamped to 1..=200)",
+        "optional": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Filter by status: pending, accepted, or completed (`merged` matches\nlegacy rows only)",
+        "optional": true
+      },
+      {
+        "name": "to_agent",
+        "type": "string",
+        "desc": "Filter by target agent (free-form slug; exact match, case-insensitive).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "search_bus",
+    "description": "Full-text search over handoff titles and bodies, best match first. An empty query or '*' lists the most recent handoffs of every status and category. Results are compact (a 200-byte snippet) unless `compact` is false; use get_handoff for one handoff in full.",
+    "arguments": [
+      {
+        "name": "compact",
+        "type": "string",
+        "desc": "A 200-byte `_snippet` instead of the full body and context (default:\ntrue). Use get_handoff for one handoff in full.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "string",
+        "desc": "Max results (default 20, clamped to 1..=200)",
+        "optional": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Words to find in handoff titles and bodies; all must match, and when\nnothing does, any may. A \"quoted phrase\", `or` and `-word` (exclude)\nwork as in a web search and are never loosened. Empty or \"*\" lists\nthe most recent handoffs instead.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  }
+]
