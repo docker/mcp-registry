@@ -1,0 +1,454 @@
+[
+  {
+    "name": "capture_terminal",
+    "description": "Generate a styled terminal screenshot from text lines. Uses a detected terminal palette when available (Kitty, GNOME, Alacritty, WezTerm, and others) and otherwise falls back to the configured theme. Use for CLI tutorials, command output documentation, and terminal-based guides.",
+    "annotations": {
+      "title": "Capture terminal output",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "arguments": [
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Window title shown in the terminal title bar (e.g., 'bash', 'zsh', 'git log')"
+      },
+      {
+        "name": "lines",
+        "type": "array",
+        "desc": "Lines to render. Prefix command prompts with '$ ' (or '# ' for root) for syntax-colored prompts. Other lines are rendered as output. Maximum 1000 lines.",
+        "items": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "output",
+        "type": "string",
+        "desc": "Output filename (default: auto-generated as 'terminal-<timestamp>.png' or '.jpeg' based on SNAPMCP_FORMAT). Include extension to override format.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "capture_code",
+    "description": "Generate a syntax-highlighted code screenshot using Shiki (300+ bundled languages and 27 themes). Supports inclusive startLine/endLine ranges and optional window chrome. Ideal for code documentation, tutorials, and sharing snippets with an IDE-like appearance.",
+    "annotations": {
+      "title": "Capture highlighted code",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "arguments": [
+      {
+        "name": "code",
+        "type": "string",
+        "desc": "Source code to render. Maximum 200KB."
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "Programming language for highlighting. Supports 300+ bundled Shiki languages, including typescript, javascript, python, rust, go, java, c, cpp, csharp, ruby, php, swift, kotlin, sql, json, yaml, markdown, html, css, bash, dockerfile, toml, xml, graphql, and many more. Use 'text' for plain text.",
+        "optional": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Window title shown in the title bar (e.g., 'src/main.ts', 'example.py')",
+        "optional": true
+      },
+      {
+        "name": "startLine",
+        "type": "number",
+        "desc": "First line number to show in the gutter (1-indexed). Use with endLine to show a code range.",
+        "optional": true
+      },
+      {
+        "name": "endLine",
+        "type": "number",
+        "desc": "Last line number to show in the gutter (1-indexed, inclusive). Must be >= startLine if both provided.",
+        "optional": true
+      },
+      {
+        "name": "output",
+        "type": "string",
+        "desc": "Output filename (default: auto-generated as 'code-<timestamp>.png' or '.jpeg' based on SNAPMCP_FORMAT). Include extension to override format.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "capture_browser",
+    "description": "Take a screenshot of an HTTP(S) URL using headless Chromium. Uses Playwright's bundled Chromium by default; set SNAPMCP_CHROME_EXECUTABLE or the experimental SNAPMCP_CHROME_PROFILE to opt into a system Chrome or persistent profile. Explicit profile mode can send profile cookies and session state to the target site. SSRF protection is enabled by default and blocks private/local targets. Supports full-page or viewport captures.",
+    "annotations": {
+      "title": "Capture a web page",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "URL to capture (http/https). Private and local IPv4/IPv6 targets, localhost variants, and hostnames resolving to private addresses are blocked when SSRF protection is enabled."
+      },
+      {
+        "name": "fullPage",
+        "type": "boolean",
+        "desc": "Capture the full scrollable page (true) or the viewport (false).",
+        "optional": true
+      },
+      {
+        "name": "width",
+        "type": "number",
+        "desc": "Viewport width in pixels (320-3840).",
+        "optional": true
+      },
+      {
+        "name": "height",
+        "type": "number",
+        "desc": "Viewport height in pixels (240-4096).",
+        "optional": true
+      },
+      {
+        "name": "output",
+        "type": "string",
+        "desc": "Output filename (default: auto-generated as 'browser-<timestamp>.png' or '.jpeg' based on SNAPMCP_FORMAT). Include extension to override format.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "capture_file",
+    "description": "Read a file and generate a syntax-highlighted screenshot with automatic language detection from file extension. Supports 300+ bundled Shiki languages. Requires SNAPMCP_ALLOWED_PATHS to be set for security (deny-all by default). Maximum file size 5MB.",
+    "annotations": {
+      "title": "Capture a source file",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "desc": "Absolute path to the file to capture. Must be within SNAPMCP_ALLOWED_PATHS allowlist. Symlinks are resolved to prevent traversal."
+      },
+      {
+        "name": "startLine",
+        "type": "number",
+        "desc": "First line number to capture (1-indexed, inclusive). Use with endLine to capture a specific range.",
+        "optional": true
+      },
+      {
+        "name": "endLine",
+        "type": "number",
+        "desc": "Last line number to capture (1-indexed, inclusive). Must be >= startLine if both provided. Defaults to end of file.",
+        "optional": true
+      },
+      {
+        "name": "output",
+        "type": "string",
+        "desc": "Output filename (default: auto-generated as 'file-<timestamp>.png' or '.jpeg' based on SNAPMCP_FORMAT). Include extension to override format.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "capture_markdown",
+    "description": "Render GitHub-flavored Markdown as a styled document screenshot. Supports tables, task lists, and fenced code blocks with syntax highlighting. Raw HTML is escaped, JavaScript is disabled, and external resources are blocked. Maximum input 200KB.",
+    "annotations": {
+      "title": "Render Markdown",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "arguments": [
+      {
+        "name": "markdown",
+        "type": "string",
+        "desc": "Markdown content to render. Supports GFM tables, task lists, fenced code blocks, strikethrough, and autolinks. Raw HTML is escaped. Maximum 200KB."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Document title shown in the window title bar and as H1 if not present in markdown.",
+        "optional": true
+      },
+      {
+        "name": "output",
+        "type": "string",
+        "desc": "Output filename (default: auto-generated as 'markdown-<timestamp>.png' or '.jpeg' based on SNAPMCP_FORMAT). Include extension to override format.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "capture_html",
+    "description": "Render HTML/CSS as a screenshot in an isolated, JavaScript-disabled context. Inline styles and embedded data images are supported; scripts, frames, external stylesheets, and other external resources are removed or blocked. Maximum input 200KB.",
+    "annotations": {
+      "title": "Render HTML",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "arguments": [
+      {
+        "name": "html",
+        "type": "string",
+        "desc": "HTML content to render. Active elements, event handlers, external references, and unsafe URL schemes are removed. Inline styles, <style> tags, and embedded data images work. Maximum 200KB."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Description for logging and window title (if window chrome enabled).",
+        "optional": true
+      },
+      {
+        "name": "output",
+        "type": "string",
+        "desc": "Output filename (default: auto-generated as 'html-<timestamp>.png' or '.jpeg' based on SNAPMCP_FORMAT). Include extension to override format.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "capture_diff",
+    "description": "Render a unified diff with color-coded additions (green) and deletions (red). Shows file headers, hunk markers, and context lines. Ideal for PR reviews, migration guides, and change documentation. Maximum input 500KB.",
+    "annotations": {
+      "title": "Capture a code diff",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "arguments": [
+      {
+        "name": "diff",
+        "type": "string",
+        "desc": "Unified diff content (for example, output from 'git diff' or 'diff -u'). File headers (---/+++) and hunk markers (@@ -... +... @@) are rendered when present. Maximum 500KB."
+      },
+      {
+        "name": "output",
+        "type": "string",
+        "desc": "Output filename (default: auto-generated as 'diff-<timestamp>.png' or '.jpeg' based on SNAPMCP_FORMAT). Include extension to override format.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "capture_pdf",
+    "description": "Convert a URL to a print-quality PDF using headless Chromium. The complete paginated document is printed. Uses a system Chrome profile only when explicitly configured. SSRF protection is enabled by default (blocks private IPs and localhost).",
+    "annotations": {
+      "title": "Capture a URL as PDF",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "URL to convert to PDF (http/https). Must pass SSRF validation: private and local addresses are blocked and requests are revalidated."
+      },
+      {
+        "name": "width",
+        "type": "number",
+        "desc": "Viewport width in pixels (320-3840) for responsive rendering.",
+        "optional": true
+      },
+      {
+        "name": "height",
+        "type": "number",
+        "desc": "Viewport height in pixels (240-4096) for responsive rendering.",
+        "optional": true
+      },
+      {
+        "name": "output",
+        "type": "string",
+        "desc": "Output filename (default: auto-generated as 'pdf-<timestamp>.pdf'). Must end in .pdf.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "capture_batch",
+    "description": "Capture multiple items in a single call. Each capture is processed sequentially with its own parameters. Use for batch documentation generation (e.g., capture terminal output, code file, and browser screenshot together). Maximum 10 captures per call.",
+    "annotations": {
+      "title": "Capture multiple artifacts",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "arguments": [
+      {
+        "name": "captures",
+        "type": "array",
+        "desc": "Array of captures to process. Each capture specifies its type and type-specific parameters."
+      },
+      {
+        "name": "output",
+        "type": "string",
+        "desc": "Output directory (default: SNAPMCP_DIR). Captures saved as individual files.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "capture_sequence",
+    "description": "Capture ordered process steps as individual image files and optionally compile them into a GIF. Each step has typed capture parameters plus stepNumber and label. When GIF output is requested, frames are rendered as PNG. Maximum 60 steps.",
+    "annotations": {
+      "title": "Capture a process sequence",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "arguments": [
+      {
+        "name": "steps",
+        "type": "array",
+        "desc": "Array of steps to capture. Each step specifies its capture type, type-specific parameters, plus optional stepNumber and label."
+      },
+      {
+        "name": "compileGif",
+        "type": "boolean",
+        "desc": "Compile frames into an animated GIF (requires at least 2 steps)",
+        "optional": true
+      },
+      {
+        "name": "frameDelay",
+        "type": "number",
+        "desc": "Frame delay in milliseconds for GIF (10-5000). Default 800ms.",
+        "optional": true
+      },
+      {
+        "name": "loop",
+        "type": "boolean",
+        "desc": "Whether the GIF loops infinitely",
+        "optional": true
+      },
+      {
+        "name": "output",
+        "type": "string",
+        "desc": "Output directory (default: SNAPMCP_DIR). Steps saved as individual files, GIF as sequence-<timestamp>.gif",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "capture_gif",
+    "description": "Create an animated GIF from 2-60 sequential captures. Frames are rendered as PNG, compiled into a GIF, and removed after encoding. loop=true repeats forever; loop=false plays once. Maximum canvas 8192x8192.",
+    "annotations": {
+      "title": "Capture an animated GIF",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "arguments": [
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Name for the GIF (used in default filename)",
+        "optional": true
+      },
+      {
+        "name": "captures",
+        "type": "array",
+        "desc": "Array of frames to capture. Each frame specifies its capture type and type-specific parameters. Minimum 2, maximum 60 frames."
+      },
+      {
+        "name": "frameDelay",
+        "type": "number",
+        "desc": "Frame delay in milliseconds for GIF (10-5000). Default 800ms.",
+        "optional": true
+      },
+      {
+        "name": "loop",
+        "type": "boolean",
+        "desc": "Whether the GIF loops infinitely (true) or plays once (false)",
+        "optional": true
+      },
+      {
+        "name": "output",
+        "type": "string",
+        "desc": "Output filename (default: auto-generated as '<title>-<timestamp>.gif'). Must end in .gif",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "capture_document",
+    "description": "Create a document with embedded step-by-step captures. Each capture is rendered as an image and embedded in the document with optional captions. Output formats: markdown (with image references), html (self-contained with base64 images), pdf (print-quality), pptx (editable PowerPoint deck), or docx (editable Word document). Maximum 30 captures per document; 25 MB per embedded image and 75 MB total.",
+    "annotations": {
+      "title": "Capture a visual document",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "arguments": [
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Document title"
+      },
+      {
+        "name": "captures",
+        "type": "array",
+        "desc": "Array of captures to embed. Each specifies capture type, type-specific parameters, and optional caption."
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Output document format: markdown (image refs), html (self-contained), pdf (print-quality), pptx (editable PowerPoint), docx (editable Word)",
+        "optional": true
+      },
+      {
+        "name": "includeTimestamps",
+        "type": "boolean",
+        "desc": "Include capture timestamps in the document",
+        "optional": true
+      },
+      {
+        "name": "output",
+        "type": "string",
+        "desc": "Output filename (default: auto-generated as 'document-<timestamp>.md/.html/.pdf/.pptx/.docx'). Extension should match format.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "snapmcp-hint",
+    "description": "Find the right snapmcp tool by natural-language intent, or get concise setup, security, sandbox, agent, and token guidance. Use when tool selection is unclear or before loading the full documentation.",
+    "annotations": {
+      "title": "Find the right snapmcp tool",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "arguments": [
+      {
+        "name": "topic",
+        "type": "string",
+        "desc": "Legacy named topic: init, doctor, browser, themes, output, security, sandbox, gif, document, batch, tokens, agents, discovery, or code-mode.",
+        "optional": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Natural-language intent to search, such as 'website screenshot', 'animated before and after', 'pdf export', or 'read a source file'.",
+        "optional": true
+      }
+    ]
+  }
+]
