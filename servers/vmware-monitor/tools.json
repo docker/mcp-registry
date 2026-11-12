@@ -1,0 +1,660 @@
+[
+  {
+    "name": "list_virtual_machines",
+    "description": "[READ] List virtual machines, with filtering, sorting, and field selection.\n\nReturns the family list envelope {items, returned, limit, total, truncated,\nhint}; ``total`` is the real post-filter count, so read ``truncated`` before\nsummarising. Over 50 VMs with no limit/fields, only the first five fields\nbelow come back (``mode`` says which). ``vms`` is a deprecated pre-1.8.0\nalias of ``items``, removed in 2.0 \u2014 read ``items``.\n\nUse this to resolve an exact VM name, then get_vm_info for detail or\ninvestigate_vm to drill into one; for a fleet-wide view start at\nget_cluster_health_summary instead.",
+    "arguments": [
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max VMs (None = all)."
+      },
+      {
+        "name": "sort_by",
+        "type": "string",
+        "desc": "name | cpu | memory_mb | power_state | folder_path."
+      },
+      {
+        "name": "power_state",
+        "type": "string",
+        "desc": "poweredOn | poweredOff | suspended."
+      },
+      {
+        "name": "fields",
+        "type": "array",
+        "desc": "Any of name, power_state, cpu, memory_mb, folder_path, guest_os, ip_address, host, uuid, tools_status (None = auto)."
+      },
+      {
+        "name": "folder_filter",
+        "type": "string",
+        "desc": "Case-insensitive folder_path substring; nested folders match."
+      },
+      {
+        "name": "name_filter",
+        "type": "string",
+        "desc": "Case-insensitive substring of the VM name. Use this to find one VM by name on a large estate \u2014 it is what the \"VM not found\" errors elsewhere tell you to come here for."
+      }
+    ]
+  },
+  {
+    "name": "list_esxi_hosts",
+    "description": "[READ] List ESXi hosts with CPU cores, memory, version, VM count, and uptime.\n\nReturns the list envelope; ``total`` is the real host count. Static config only\n(cores, total GB) \u2014 use this to resolve a host name, then get_host_performance for\nlive load or investigate_host to drill into one host.",
+    "arguments": [
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max hosts to return (None = all)."
+      }
+    ]
+  },
+  {
+    "name": "list_all_datastores",
+    "description": "[READ] List datastores with capacity, free space, type, and VM count.\n\nReturns the list envelope with a real ``total``. Raw free/used only \u2014 use this\nto resolve a datastore name, then get_datastore_capacity for thin-provisioning\nover-commit risk or investigate_datastore to drill into one datastore.",
+    "arguments": [
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max datastores to return (None = all)."
+      }
+    ]
+  },
+  {
+    "name": "list_all_clusters",
+    "description": "[READ] List clusters with host count, DRS/HA status, and resource totals.\n\nReturns the list envelope with a real ``total``. Each row's ``moid`` (e.g.\ndomain-c123) is the cluster id the vLCM patch tools take. Static topology only\n\u2014 use this to resolve a cluster name, then get_cluster_health_summary, which supersedes\nstitching this with list_esxi_hosts and get_alarms yourself.",
+    "arguments": [
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max clusters to return (None = all)."
+      }
+    ]
+  },
+  {
+    "name": "get_cluster_health_summary",
+    "description": "[READ] One-glance health rollup for every cluster \u2014 \"is anything on fire?\".\n\nStart here for single-vCenter triage. Batches hosts, VM power state, live\nCPU/memory pressure and alarms per cluster, scores each \"ok\"/\"warn\"/\n\"critical\", and ranks the anomalies into ``top_issues``. Use this instead of\nstitching list_all_clusters + list_esxi_hosts + get_alarms yourself.\n\nReturns {totals, top_issues, issues_total, clusters, snapshot,\ncustomization_hint, endpoint} \u2014 not the list envelope. ``endpoint`` gives\napi_type/version/build of this connection, distinct from inventory hosts.\nLead with ``top_issues`` (worst first), show ``clusters`` as context,\nalways echo ``customization_hint`` last.\nPoint-in-time \u2014 no trending. ``top_issues`` includes datastores thin-provisioned\npast 100% of capacity (kind capacity, scope datastore), attributed to the\ncluster of a host that mounts them; get_datastore_capacity has the full table.\nAlarm issues carry ``condition_now`` and ``acknowledged_days``. Only a\n``cleared`` alarm (its condition is read to be false now) ranks after live\nissues; an ``unknown`` one is not re-checked and keeps its severity rank,\nhowever long ago it was acknowledged \u2014 report it as possibly still live.\n\nThen drill into what ``top_issues`` names with investigate_vm,\ninvestigate_host or investigate_datastore; use\nget_cross_vcenter_attention to cover every target at once. Acting on a finding\nbelongs to vmware-aiops.",
+    "arguments": [
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "cluster_filter",
+        "type": "string",
+        "desc": "Case-insensitive substring; only matching clusters show (None = all, plus a standalone-hosts row)."
+      },
+      {
+        "name": "include_vms",
+        "type": "boolean",
+        "desc": "Roll up VM counts (default True); False skips that pass."
+      },
+      {
+        "name": "top_n",
+        "type": "integer",
+        "desc": "Cap ``top_issues`` (default 10; 0 omits it). ``issues_total`` is the pre-cap count."
+      }
+    ]
+  },
+  {
+    "name": "investigate_vm",
+    "description": "[READ] \"What is happening around this VM?\" \u2014 one correlated drill-down.\n\nUse this instead of stitching get_vm_info + list_vm_snapshots + get_alarms +\nget_vm_performance + get_events yourself. Returns one correlated bundle (not the\nlist envelope): the VM's state, its host, cluster and backing datastores, its\nsnapshots and triggered alarms, live performance, and a merged event timeline\nacross VM/host/cluster/datastore (newest first). All reads are batched.\nExplain it in operational language; do not dump it raw.\n\nReach for it after get_cluster_health_summary names a problem VM, or when asked\n\"what's going on with <vm>?\". Point-in-time snapshot \u2014 no trending. Acting on\nwhat you find (power, migrate, delete snapshot) belongs to vmware-aiops.",
+    "arguments": [
+      {
+        "name": "vm_name",
+        "type": "string",
+        "desc": "Exact VM name; unknown names return a teaching error. Get it from list_virtual_machines or get_cluster_health_summary first."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "hours",
+        "type": "integer",
+        "desc": "Event-timeline look-back window in hours (default 24)."
+      }
+    ]
+  },
+  {
+    "name": "investigate_host",
+    "description": "[READ] \"What is happening around this ESXi host?\" \u2014 one correlated drill-down.\n\nUse this instead of stitching list_esxi_hosts + get_host_performance + get_alarms\n+ get_events yourself. Returns one correlated bundle (not the list envelope):\nthe host's state (connection, CPU/memory pressure, version, uptime), its\ncluster, a rollup of the VMs it runs, the datastores it mounts, alarms across\nhost/cluster/datastore, live performance, and a merged event timeline. All\nreads are batched. Explain it in operational language; do not dump it raw.\n\nReach for it after get_cluster_health_summary flags a host. Point-in-time\nsnapshot \u2014 no trending; for syslog lines use scan_host_logs. Acting on a\nfinding (maintenance mode, evacuate) belongs to vmware-aiops.",
+    "arguments": [
+      {
+        "name": "host_name",
+        "type": "string",
+        "desc": "Exact ESXi host name; unknown names return a teaching error. Get it from list_esxi_hosts or get_cluster_health_summary first."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "hours",
+        "type": "integer",
+        "desc": "Event-timeline look-back window in hours (default 24)."
+      }
+    ]
+  },
+  {
+    "name": "investigate_datastore",
+    "description": "[READ] \"What is happening around this datastore?\" \u2014 one correlated drill-down.\n\nUse this instead of stitching list_all_datastores + get_datastore_capacity +\nget_alarms + get_events yourself. Returns one correlated bundle (not the list\nenvelope): capacity / free space / accessibility, the hosts that mount it, a\nrollup of the VMs it backs, alarms across datastore/host, and a merged event\ntimeline. All reads are batched. Explain it in operational language; do not\ndump it raw. Per-datastore latency is not included.\n\nReach for it after get_cluster_health_summary flags storage pressure.\nPoint-in-time snapshot \u2014 no trending. Freeing space (deleting snapshots,\nstorage vMotion) belongs to vmware-aiops.",
+    "arguments": [
+      {
+        "name": "datastore_name",
+        "type": "string",
+        "desc": "Exact datastore name; unknown names return a teaching error. Get it from list_all_datastores or get_datastore_capacity first."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "hours",
+        "type": "integer",
+        "desc": "Event-timeline look-back window in hours (default 24)."
+      }
+    ]
+  },
+  {
+    "name": "get_cross_vcenter_attention",
+    "description": "[READ] \"What needs attention now?\" across EVERY configured vCenter \u2014 one list.\n\nStart here when the estate has more than one vCenter. Rolls every configured\ntarget's cluster-health summary into one globally ranked ``top_issues`` list\n(worst first, each tagged with its ``vcenter``) plus a per-target rollup. Use\nthis instead of calling get_cluster_health_summary once per target and merging\nyourself. Returns a rollup, not the list envelope; lead with ``top_issues``.\n\nDegrades gracefully: an unreachable target is listed under ``unreachable``\nwith a reason and the rest still aggregate, but it is never counted as\nhealthy: ``totals.worst_status`` is at least ``warn`` (``critical`` when no\ntarget answered) and ``totals.status_reason`` says how many were not read.\nPoint-in-time \u2014 no trending.\nOverlap is removed by identity: a host reached through a vCenter and as its\nown ESXi target counts once (hardware UUID), a datastore seen through both is\none issue with the other view's figure under ``also_seen_via`` (datastore\nURL), and ``totals`` separates ``vcenters``, ``esxi_targets`` and\n``unidentified_targets``.\nThen drill in with investigate_vm, investigate_host or\ninvestigate_datastore against the ``vcenter`` the issue names.",
+    "arguments": [
+      {
+        "name": "cluster_filter",
+        "type": "string",
+        "desc": "Case-insensitive cluster substring applied to every target (None = all clusters)."
+      },
+      {
+        "name": "top_n",
+        "type": "integer",
+        "desc": "Cap the merged top_issues list (default 10); ``issues_total`` is the pre-cap count."
+      }
+    ]
+  },
+  {
+    "name": "list_all_networks",
+    "description": "[READ] List networks with name, attached VM count, and accessibility.\n\nReturns the list envelope with a real ``total``. Name, vm_count and accessible\nonly \u2014 no VLAN, uplink or NSX overlay detail. Use this to resolve a port-group\nname, then get_vm_info for the NICs of one VM. NSX segments live in vmware-nsx.",
+    "arguments": [
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max networks to return (None = all)."
+      }
+    ]
+  },
+  {
+    "name": "get_alarms",
+    "description": "[READ] Get active/triggered alarms across the VMware inventory.\n\nReturns the list envelope with a real ``total``. Each alarm carries\nsuggested_actions naming the companion skill and tool for remediation, who\nacknowledged it and when (``acknowledged_by`` / ``acknowledged_at``), and\n``condition_now``: ``holds`` (live), ``cleared`` (vCenter still shows it but\nits state condition is false now \u2014 a stale alarm; see ``condition_note``), or\n``unknown`` (event/metric-based or unreadable \u2014 never guessed). The envelope's\n``stale_alarms`` counts the cleared ones. An expired-vCenter-license alarm is\nre-checked against this vCenter's own license assignment. ``object_label``\nnames alarms about the vCenter appliance itself (e.g. \"vCenter appliance\n192.168.60.16\") that sit on the inventory root; ``entity_name`` stays the\nobject vmware-aiops resolves. Do not report a ``cleared`` alarm as\na live problem; do not report an ``unknown`` one as resolved. Empty\n``items`` with ``truncated`` False means there genuinely are no active alarms \u2014\nnever report \"no data\" otherwise.\n\nUse this for the raw alarm list; prefer get_cluster_health_summary when you want\nalarms folded into a whole-cluster verdict. Then drill into the flagged\nobject with investigate_vm or investigate_host.",
+    "arguments": [
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max alarms to return (None = all)."
+      }
+    ]
+  },
+  {
+    "name": "get_events",
+    "description": "[READ] Get recent vCenter/ESXi events filtered by severity.\n\nReturns the list envelope, newest first. Up to 5000 events in the window are\nread; when more matched, ``read_truncated`` is true and ``read_note`` says how\nfar back the read got \u2014 the oldest events were not examined, so narrow\n``hours`` before concluding nothing happened earlier in the window.\n\nSeverity is this skill's own ranking where it has one, and otherwise\nvCenter's published event catalogue. An event neither can rank comes back\nwith severity \"unknown\" (it is returned, not filtered out) and is counted in\nthe envelope's ``unclassified``, with ``classification_note`` explaining. An\nempty ``items`` alongside a non-zero ``unclassified`` does NOT mean the\nwindow was quiet \u2014 read the note before reporting all-clear.\n\nUse this for an inventory-wide event sweep. When you already know the object,\nprefer investigate_vm / investigate_host instead: they\nreturn the same events correlated with that object's state in one call. ESXi\nsyslog lines are not events \u2014 use scan_host_logs for those.",
+    "arguments": [
+      {
+        "name": "hours",
+        "type": "integer",
+        "desc": "How many hours back to query (default 24). Ignored when both start and end are given; with end alone, how far back from end."
+      },
+      {
+        "name": "severity",
+        "type": "string",
+        "desc": "Minimum severity: \"critical\", \"warning\", or \"info\"."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "start",
+        "type": "string",
+        "desc": "Window start, ISO 8601 (e.g. \"2026-09-03T12:00:00Z\"; no zone = UTC). Use it to ask about a specific day rather than the last N hours."
+      },
+      {
+        "name": "end",
+        "type": "string",
+        "desc": "Window end, ISO 8601; defaults to now."
+      },
+      {
+        "name": "include_routine",
+        "type": "boolean",
+        "desc": "List routine login/logout session events too. By default they are folded and counted in ``routine_folded`` \u2014 one local agent's logins can outnumber everything else in a window."
+      }
+    ]
+  },
+  {
+    "name": "get_host_sensors",
+    "description": "[READ] Get hardware sensor status (temperature, voltage, fan, ...) for all hosts.\n\nReturns the list envelope with a real ``total``; each row has host, sensor_name,\ntype, reading, unit and status (green/yellow/red). No rows for a host is not\n\"hardware is fine\": every connected host that reports no sensors is listed in\n``hosts_without_sensors`` with ``cim_server_running`` / ``cim_server_policy``\n(the CIM Server, sfcbd-watchdog, supplies the sensors; null = not read), and\n``sensors_note`` says what that means \u2014 quote it.\n\n``interpretation_note`` bounds what a red aggregate memory sensor proves:\nit does not identify a DIMM/slot, establish ECC errors, or predict failure.\nKeep observed status separate from a component diagnosis.\n\nUse this for physical hardware only \u2014 for CPU/memory load use\nget_host_performance, and follow up on a red sensor with\ninvestigate_host to see the alarms and events around that host.",
+    "arguments": [
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max sensor rows to return (None = all)."
+      }
+    ]
+  },
+  {
+    "name": "get_host_services",
+    "description": "[READ] Get host service status (running state and startup policy).\n\nReturns the list envelope; each row has host, service key, label, running (bool)\nand policy (on/off/automatic). Every matching host is enumerated, so\n``truncated`` is always False.\n\nUse this to check whether SSH, NTP or the firewall service is in the expected\nstate. For NTP specifically prefer get_ntp_status, which also reports the\nconfigured servers. Starting or stopping a service is a write \u2014 this skill\ncannot do it; use vmware-aiops.",
+    "arguments": [
+      {
+        "name": "host_name",
+        "type": "string",
+        "desc": "Filter to a single host by exact name (None = all hosts)."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      }
+    ]
+  },
+  {
+    "name": "scan_host_logs",
+    "description": "[READ] Scan recent ESXi host syslog lines for error/warning patterns.\n\nReads the last ``lines`` entries of selected logs (default hostd/vmkernel/vpxa) via the\ndiagnostic system and returns only the lines matching known trouble patterns\n(error, fail, critical, panic, lost access, timeout, \u2026). Severity follows the\nlevel ESXi wrote on the line (Cr/Er/Wa/In\u2026, raw token in ``log_level``); a\ncritical keyword still wins. By default findings are grouped by pattern \u2014\neach item has count, hosts, first_seen/last_seen (log time), severity,\nsource (``host_log:<key>``), pattern and one sample; ``lines_matched`` is the\nungrouped count. ``group=false`` returns one row per line (severity, source,\nmessage, time, observed_at, entity, log_level, log_time). ``time`` is the log\ntimestamp (null when absent); ``observed_at`` is when this scan read the line.\nReturns the list envelope {items,\nreturned, limit, total, truncated, hint}. ``total`` is\nnull on purpose \u2014 this is \"errors within the scanned window\", not all errors\never. ``logs_unavailable`` lists every host/log that could NOT be read, with\nthe reason (e.g. the account lacks Global.Diagnostics); empty ``items`` means\nnothing matched only when ``logs_unavailable`` is empty too.\n\nUse this when get_events or investigate_host show a host in trouble\nbut not why: vCenter events and ESXi syslog are different sources. Filter\nwith ``host_name`` to keep the scan fast on large clusters; a name that\nmatches no host returns an error (get the exact name from list_esxi_hosts),\nnot an empty result. Every call reads the last ``lines`` lines afresh.",
+    "arguments": [
+      {
+        "name": "host_name",
+        "type": "string",
+        "desc": "Filter to a single host by exact name (None = all hosts)."
+      },
+      {
+        "name": "lines",
+        "type": "integer",
+        "desc": "How many recent lines per log to scan (default 500, at least 1)."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "group",
+        "type": "boolean",
+        "desc": "Group repeated lines by pattern (default true). One call on a lab returned 353 lines, 195 of them one statistics-provider message."
+      },
+      {
+        "name": "log_keys",
+        "type": "array",
+        "desc": "1\u201316 distinct diagnostic keys, e.g. [\"hostd\", \"vobd\"]. Omit for defaults. Availability depends on the target; unsupported keys appear in logs_unavailable. File paths are not accepted."
+      }
+    ]
+  },
+  {
+    "name": "get_vm_info",
+    "description": "[READ] Get detailed information about one VM (CPU, memory, disks, NICs, snapshots).\n\nReturns a single detail dict, not the list envelope. Static configuration\nonly \u2014 for live CPU/memory use get_vm_performance, and for the same VM correlated\nwith its host, alarms and events use investigate_vm.\n\nUse this when you already know the exact name; get it from\nlist_virtual_machines first, since an unknown name returns a teaching error\nrather than a match. Reconfiguring the VM belongs to vmware-aiops.",
+    "arguments": [
+      {
+        "name": "vm_name",
+        "type": "string",
+        "desc": "Exact name of the virtual machine."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      }
+    ]
+  },
+  {
+    "name": "list_vm_snapshots",
+    "description": "[READ] List all snapshots of one VM, including the nesting hierarchy.\n\nReturns the list envelope, one row per snapshot with name, description, created\ntimestamp, state and level (0 = root; children are level+1). Empty ``items``\nwith ``truncated`` False means the VM genuinely has no snapshots. Read-only \u2014\ncreating, reverting and deleting snapshots live in vmware-aiops.\n\nUse this for one known VM; prefer find_aging_snapshots to sweep the whole inventory\nfor old or sprawling snapshots. Get the name from list_virtual_machines\nfirst \u2014 an unknown name returns a teaching error.",
+    "arguments": [
+      {
+        "name": "vm_name",
+        "type": "string",
+        "desc": "Exact name of the virtual machine."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      }
+    ]
+  },
+  {
+    "name": "get_host_performance",
+    "description": "[READ] Real-time CPU/memory/disk/network utilisation per ESXi host.\n\nReturns the list envelope with a real ``total`` (hosts that reported metrics).\nUnlike list_esxi_hosts (static config: cores, total GB) this is LIVE 20-second\nPerfManager data: cpu_usage_pct, mem_usage_pct, mem_consumed_mb, disk_kbps,\nnet_kbps, busiest first. Disconnected hosts and hosts without a real-time\nprovider are skipped, not reported as zero. Point-in-time only \u2014 no historical\ntrend.\n\nUse this to find which host is hot, then investigate_host to drill\ninto it, or get_vm_performance to see which VMs on it are driving the load.",
+    "arguments": [
+      {
+        "name": "host_name",
+        "type": "string",
+        "desc": "Filter to a single host by exact name (None = all hosts)."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max host rows to return (None = all)."
+      }
+    ]
+  },
+  {
+    "name": "get_vm_performance",
+    "description": "[READ] Real-time CPU/memory/disk/network utilisation per virtual machine.\n\nReturns the list envelope with a real ``total`` (VMs that reported metrics) \u2014\nwith the default limit of 25, ``truncated`` tells you whether more VMs sit\nbehind it. LIVE data (cpu_usage_pct, mem_usage_pct, mem_consumed_mb,\nmem_ballooned_mb, mem_swapped_mb, disk_read_kbps, disk_write_kbps, net_kbps),\nbusiest first. mem_usage_pct is mem.usage.average \u2014 ACTIVE guest memory over\nconfigured, not consumed, so it can read low on a VM under pressure; non-zero\nmem_ballooned_mb (mem.vmmemctl.average) or mem_swapped_mb (mem.swapped.average)\nis the pressure signal. ``counters`` names the counter behind every field.\nOnly powered-on VMs have a real-time provider; powered-off VMs are skipped.\nPoint-in-time only.\n\nUse this to rank load across VMs; for one VM's configuration use get_vm_info, and\nto see the same VM correlated with its host, alarms and events use\ninvestigate_vm.",
+    "arguments": [
+      {
+        "name": "vm_name",
+        "type": "string",
+        "desc": "Filter to a single VM by exact name (None = all powered-on VMs)."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max VM rows to return (default 25; None = all)."
+      }
+    ]
+  },
+  {
+    "name": "find_aging_snapshots",
+    "description": "[READ] Sweep ALL VMs for snapshots and flag old / sprawling ones.\n\nUse this for fleet-wide snapshot sprawl; prefer list_vm_snapshots when you\nonly care about one VM. Returns {total_snapshots, old_snapshots,\nvms_with_snapshots, threshold_days, snapshots[], hint} \u2014 a rollup, not the\nlist envelope. Each row has age_days, is_old and an est_size_mb lower bound\n(snapshotData+snapshotMemory; delta-disk growth is not separable per-snapshot\nvia the API). Read-only \u2014 deleting snapshots belongs to vmware-aiops.",
+    "arguments": [
+      {
+        "name": "age_threshold_days",
+        "type": "integer",
+        "desc": "Age above which a snapshot is flagged old (default 30)."
+      },
+      {
+        "name": "only_old",
+        "type": "boolean",
+        "desc": "When True, return only snapshots past the threshold."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max snapshot rows to return (None = all)."
+      }
+    ]
+  },
+  {
+    "name": "get_vm_backup_snapshot_history",
+    "description": "[READ] How long backups held a snapshot open on one VM, from task history.\n\nImage-level backup products (Veeam, Commvault, Rubrik, NetBackup) snapshot\nthe VM, copy the frozen disks, then delete the snapshot. vCenter records\nboth ends, so the backup window is recoverable without credentials for the\nbackup server.\n\nThis is a LOWER BOUND on the job, not its duration: work the product does\nbefore the snapshot is taken and after it is removed is invisible to\nvCenter. The returned ``basis`` says so \u2014 quote it alongside any figure.\n\nReturns a rollup, not the list envelope: counts, four hour statistics\n(backup_active / snapshot_present / total_window / snapshot_removal),\nlatest_cycle, longest_cycle, and ``unmatched`` rows for creations with no\nremoval (a backup that left its snapshot behind) or removals whose creation\npredates the window.\n\nRead two fields before reporting all-clear. ``history_unavailable`` non-null\nmeans the history could not be read at all \u2014 that is not \"no backups\".\n``coverage_note`` non-null means vCenter has already expired part of the\nrequested window (``task.maxAge`` \u2014 30 days by default; the option is NOT\ncalled vpxd.task.maxAge, which raises vim.fault.InvalidName), so the counts\ndescribe a shorter period than ``days`` asked for. ``window_fully_covered``\nis the positive form: True when retention is at least ``days`` and nothing\nin the window can have expired, so a VM whose oldest task is recent was\nsimply quiet; None when retention or the history could not be read.\n\nAn unmatched creation is not a failed backup. Each one carries ``status:\n\"open\"``, ``age_hours``, this VM's ``longest_completed_cycle_hours`` and\n``possibly_in_progress`` \u2014 True while it is inside that VM's own observed\nenvelope, False past it, None when there is no completed cycle to compare\nagainst. Do not report ``incomplete_cycles`` as failures without reading\nthose.\n\nThe creation *task* itself, during the seconds it executes, is absent\nentirely: no completion time yet, so it forms neither a cycle nor an\n``unmatched`` row. A backup whose snapshot already exists is not this case \u2014\nthat is the open cycle described above. So no open cycle does not prove no\nbackup is running.\n\nDuplicate VM names raise rather than resolve to one, because a duration\nattributed to the wrong same-named VM looks exactly like a correct answer.\nFor snapshots that exist right now use list_vm_snapshots or find_aging_snapshots.",
+    "arguments": [
+      {
+        "name": "vm_name",
+        "type": "string",
+        "desc": "Exact VM name; duplicates are refused, not guessed."
+      },
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "How far back to look, 1 to 365 (default 30)."
+      },
+      {
+        "name": "include_cycles",
+        "type": "boolean",
+        "desc": "Also return the individual cycles, newest kept on cap."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max cycle rows when include_cycles is set (capped at 200)."
+      }
+    ]
+  },
+  {
+    "name": "get_certificate_status",
+    "description": "[READ] Per-host ESXi management certificate expiry.\n\nAn expired ESXi cert drops host management \u2014 this surfaces it before the\noutage. Returns the list envelope with a real ``total``; each row has host,\nnot_after, days_until_expiry and an ``expiring`` flag, soonest first. Host\ncertificates only \u2014 the vCenter appliance's own certificate is not covered.\n\nUse this alongside get_license_status and get_ntp_status for a platform-hygiene\nsweep. Renewing a certificate is a write this skill cannot do; use\nvmware-aiops or vCenter directly.",
+    "arguments": [
+      {
+        "name": "warn_days",
+        "type": "integer",
+        "desc": "Flag certs expiring within this many days (default 30)."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max host rows to return (None = all)."
+      }
+    ]
+  },
+  {
+    "name": "get_license_status",
+    "description": "[READ] vCenter/ESXi license inventory with usage and expiry.\n\nReturns the list envelope, one row per license: name, edition_key, total/used\nunits, unlimited flag (row total == 0) and expiration. Every license is\nenumerated, so ``truncated`` is always False \u2014 this is the complete inventory.\n\nUse this to catch over-allocation or an approaching expiry, alongside\nget_certificate_status and get_ntp_status for a platform-hygiene sweep. ``assignments``\nsays which license each asset (vCenter, hosts, clusters) is assigned, with\n``expired`` per asset \u2014 use it to tell whether an \"expired license\" alarm still\napplies. It is null with ``assignments_note`` when the account cannot read\nassignments. License keys are never returned. Assigning a license is a write.",
+    "arguments": [
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      }
+    ]
+  },
+  {
+    "name": "get_ntp_status",
+    "description": "[READ] Per-host NTP configuration health (servers + ntpd service state).\n\nReturns the list envelope; every matching host is enumerated, so ``truncated``\nis always False. Each row has host, reachable, ntp_servers, ntpd_running,\nntpd_policy and a ``healthy`` flag (servers configured AND ntpd running). The\nSOAP API does not expose live clock offset or stratum \u2014 this is configuration\nhealth only; for actual offset use esxcli on the host.\n\nhealthy/ntp_servers/ntpd_running are null \u2014 not false/empty \u2014 for a host\nvCenter could not reach or could not read. Null means nothing was observed;\nfalse means NTP is misconfigured. Filtering rows for `healthy == false` will\nnot surface the unread ones, so check the envelope's `hosts_unreachable`\nand `hosts_unreadable` counts (with `unreachable_note` / `unreadable_note`)\nbefore reporting the estate as healthy. Unreachable: vCenter cannot reach the\nhost (reachable false). Unreadable: this account cannot read the host's state\n(reachable null) \u2014 not known to be down.\n\nThe envelope's ``ntp_sources_consistent`` compares hosts with each other:\nfalse when hosts that have servers configured use different ones (each row\ncan still be healthy \u2014 this is how clocks drift apart), with\n``ntp_sources_note`` naming which host uses which servers; null when fewer\nthan two hosts have servers to compare.\n\nPrefer this over get_host_services for time problems: that tool reports\nwhether ntpd runs but not which servers are configured. Fixing NTP is a\nwrite; use vmware-aiops.",
+    "arguments": [
+      {
+        "name": "host_name",
+        "type": "string",
+        "desc": "Filter to a single host by exact name (None = all hosts)."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      }
+    ]
+  },
+  {
+    "name": "get_datastore_capacity",
+    "description": "[READ] Per-datastore capacity with thin-provisioning over-commit.\n\nReturns the list envelope with a real ``total``: capacity_gb, free_gb,\ncommitted_gb, provisioned_gb, used_pct, overcommit_pct, riskiest first. Adds the\nrisk signal list_all_datastores lacks \u2014 overcommit_pct over 100% means more\nspace is promised to VMs than physically exists, so a thin datastore can fill up\nwhile still showing free space. Point-in-time.\n\nWhose figure: ``view`` (vCenter / ESXi host / unknown) and ``view_note``.\nProvisioned space is summed by the endpoint over the VMs it has registered on\nthe datastore, so a vCenter and a directly-reached ESXi host can report\ndifferent provisioned_gb for one datastore \u2014 each row's ``vm_count`` says how\nmany VMs the figure covers, and ``vms_not_connected`` names those reported as\norphaned/inaccessible/disconnected (None = could not be read). The figures can\nalso differ with the same vm_count: each endpoint aggregates uncommitted\nspace itself.\n\nUse this for the capacity view, then investigate_datastore to drill\ninto a specific datastore's hosts, VMs and alarms. Reclaiming space (delete\nsnapshots, storage vMotion) belongs to vmware-aiops.",
+    "arguments": [
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max datastore rows to return (None = all)."
+      }
+    ]
+  },
+  {
+    "name": "get_resource_pool_usage",
+    "description": "[READ] Per-resource-pool CPU/memory reservation, limit, and current usage.\n\nReturns the list envelope with a real ``total``; each row has name,\ncpu_reservation_mhz, cpu_limit_mhz, cpu_usage_mhz, mem_reservation_mb,\nmem_limit_mb, mem_usage_mb, sorted by memory usage descending. A limit of -1\nmeans unlimited. Pool names are not cluster-qualified, so identical names in\ndifferent clusters may look alike.\n\nUse this when a VM is throttled but its host is not busy \u2014 the cap is usually\nthe pool. Then get_vm_performance to see which VMs in it are demanding, or\nget_cluster_health_summary for the cluster-level picture.",
+    "arguments": [
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max pool rows to return (None = all)."
+      }
+    ]
+  },
+  {
+    "name": "list_active_tasks",
+    "description": "[READ] In-flight (and optionally just-completed) vCenter tasks.\n\nAnswers \"why is the cluster busy?\". Returns the list envelope {items, returned,\nlimit, total, truncated, hint} with a real ``total``; each row has name, entity,\nstate, progress_pct, start_time, user, an active flag and error (for failed\nrecent tasks), running/queued first, then newest first \u2014 so ``limit`` drops the\noldest. vCenter keeps only a short recent-task\nwindow, so an old task may simply be gone rather than absent.\n\nUse this before blaming load: a migration or clone in flight explains\npressure that get_host_performance shows. Pair with list_active_sessions to see who\nstarted it. Read-only \u2014 cancelling a task belongs to vmware-aiops.",
+    "arguments": [
+      {
+        "name": "include_recent",
+        "type": "boolean",
+        "desc": "Also include recently completed/failed tasks (default True)."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max task rows to return (None = all)."
+      }
+    ]
+  },
+  {
+    "name": "list_active_sessions",
+    "description": "[READ] Currently authenticated vCenter/ESXi sessions (who is logged in).\n\nReturns the list envelope with a real ``total``; each row has user_name,\nfull_name, login_time, last_active, ip_address, user_agent (which client \u2014\ne.g. Aria's adapter shows ``VMware vim-java``), call_count, kind (user/service)\nand a ``current`` flag for this skill's own session. vCenter's own solution\nusers (``vpxd-extension-<machine id>`` and similar) are folded by default and\ncounted in ``service_sessions``. Requires the Sessions privilege; low-privilege\naccounts get a single explanatory row instead of a traceback.\n\nUse this to attribute a change to a person \u2014 pair it with list_active_tasks, which\nnames the user who started each task. Read-only \u2014 terminating a session is\nnot supported here.",
+    "arguments": [
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max session rows to return (None = all)."
+      },
+      {
+        "name": "include_service",
+        "type": "boolean",
+        "desc": "List vCenter's own solution-user sessions too. On a lab vCenter they were 24 of 33 sessions."
+      }
+    ]
+  },
+  {
+    "name": "get_access_info",
+    "description": "[READ] The account this server uses on a target, and whether it holds a tool's privileges.\n\nWhen to use: a tool failed with NoPermission, returned fewer objects than\nexpected, or you want to know up front what the configured account may read.\nAsk about one ``tool``, or omit it to sort every tool of this server into\ngranted / not granted / undetermined.\n\nWhat it returns: {target, account, checked_on, privileges {id: state}, and\neither ``tool`` {name, requires, verdict, meaning, missing_at_root} or the\ntools_* lists}, plus the account's direct permissions (role, on, propagate).\n\nGotchas: privileges are checked on the vCenter/ESXi **root folder** only.\n``not_granted_at_root`` does not mean no access \u2014 a permission on a cluster,\nfolder or VM still lets the tool work there. ``undetermined`` means the\nplatform did not answer and is never to be read as granted. Permissions held\nthrough a group count in the verdict but are not listed by name.",
+    "arguments": [
+      {
+        "name": "tool",
+        "type": "string",
+        "desc": "A tool name on this server, e.g. list_active_sessions (None = all tools)."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      }
+    ]
+  },
+  {
+    "name": "get_host_memory_tiering",
+    "description": "[READ] Per-host memory tiering (vSphere 9.1) and NVMe uplift ratio.\n\nWhen to use: to see which ESXi hosts back RAM with NVMe (memory tiering, 8.0U3+),\nhow large each tier is, and how much of a host's apparent memory rides on NVMe\nrather than DRAM. This is the only source of measured tier byte sizes.\n\nReturns the list envelope {items, returned, limit, total, truncated, hint}. Each\nrow: host, tiering_type (noTiering|hardwareTiering|softwareTiering), tiering_active,\ndram_gb, nvme_gb, total_tiered_gb, uplift_ratio (total/DRAM, None if DRAM unknown),\nand a per-tier breakdown. A host with tiering off reads as tiering_type \"noTiering\",\nnvme_gb 0.0 \u2014 that is a real \"checked, none\", not a gap.\n\nGotchas: reads pyVmomi HostSystem.hardware.memoryTierInfo (needs ESXi 8.0U3+/9.x);\nolder hosts report tiering_type \"unknown\". Read-only.",
+    "arguments": [
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter/ESXi target from config (default if omitted)."
+      },
+      {
+        "name": "host_name",
+        "type": "string",
+        "desc": "Filter to one host by exact name (None = all)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max host rows (None = all)."
+      }
+    ]
+  },
+  {
+    "name": "get_cluster_patch_compliance",
+    "description": "[READ] vLCM software (patch) compliance for one cluster (vSphere Automation REST).\n\nWhen to use: to check whether a cluster's hosts match their assigned software\nimage/baseline before or after a patch cycle. Complements get_host_memory_tiering\n(that is per-host hardware; this is per-cluster lifecycle state).\n\nWhat it returns: {available, cluster, status, hosts_total, non_compliant_hosts,\nscan_time, note, fields}. ``available: False`` means vCenter answered 503 \u2014 it is\nlikely mid-patch (vSphere has no maintenance-ETA endpoint; retry shortly), not an\nerror. Endpoint and field parse verified against a live VCF 9.1 vCenter (see ``note``).\n\nGotchas: ``cluster`` must be the cluster MoID (e.g. domain-c123), which the REST\nAPI requires \u2014 get it from list_all_clusters, not the display name. Read-only:\nreports compliance only; it never runs a remediation.",
+    "arguments": [
+      {
+        "name": "cluster",
+        "type": "string",
+        "desc": "Cluster MoID (e.g. domain-c123)."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter target from config (default if omitted)."
+      }
+    ]
+  },
+  {
+    "name": "get_cluster_last_apply_result",
+    "description": "[READ] Result of the last vLCM remediation (apply) on one cluster (REST).\n\nWhen to use: after a patch/remediation, to confirm the last apply succeeded and\nwhen it finished. Use get_cluster_patch_compliance for current drift; use this for\nthe outcome of the most recent apply.\n\nWhat it returns: {available, cluster, status, end_time, note, fields}, read\ndefensively. A cluster never remediated may return a \"not found\" teaching error;\na 503 yields ``available: False`` (mid-patch, retry).\n\nGotchas: ``cluster`` is the cluster MoID (e.g. domain-c123) \u2014 see list_all_clusters.\nRead-only. Endpoint and field parse verified against a live VCF 9.1 vCenter.",
+    "arguments": [
+      {
+        "name": "cluster",
+        "type": "string",
+        "desc": "Cluster MoID (e.g. domain-c123)."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter target from config (default if omitted)."
+      }
+    ]
+  },
+  {
+    "name": "get_vcenter_deployment_size",
+    "description": "[READ] vCenter appliance deployment size (NEW in vSphere 9.1, REST).\n\nWhen to use: to read the vCenter appliance's current (and, where reported, target)\ndeployment size class \u2014 capacity-planning context that inventory/perf tools do not\ncover.\n\nWhat it returns: {available, note, fields} where ``fields`` is a defensive\npassthrough of the endpoint's top-level scalar values. ``available: False`` means\nvCenter answered 503 (busy/restarting) or is older than 9.1 \u2014 ``reason`` says\nwhich; nothing crashed, and neither is a failure.\n\nGotchas: 9.1-only endpoint \u2014 an older vCenter returns ``available: False``, not data.\nEndpoint and field parse verified against a live VCF 9.1 vCenter. Read-only.",
+    "arguments": [
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "vCenter target from config (default if omitted)."
+      }
+    ]
+  }
+]
