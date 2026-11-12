@@ -634,6 +634,11 @@
         "desc": ""
       },
       {
+        "name": "keep_text",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
         "name": "model",
         "type": "string",
         "desc": ""
@@ -657,6 +662,11 @@
       {
         "name": "prompt",
         "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "keep_text",
+        "type": "boolean",
         "desc": ""
       },
       {
@@ -693,6 +703,11 @@
       {
         "name": "shot",
         "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "keep_text",
+        "type": "boolean",
         "desc": ""
       },
       {
@@ -754,6 +769,11 @@
       {
         "name": "shot",
         "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "keep_text",
+        "type": "boolean",
         "desc": ""
       },
       {
@@ -1141,7 +1161,7 @@
   },
   {
     "name": "list_assets",
-    "description": "List assets, newest first, by role and kind; mascot true lists saved mascots, whose id is make_faceless mascot_id. next_cursor pages. pending lists assets in progress and today's failures; usage counts against 2000 assets and 1 GB, or 20 GB once credits were bought. Free.",
+    "description": "List assets, newest first, 8 a page unless limit (up to 100), fewer when a page would not fit your tool output; filter by role and kind rather than reading them all; mascot true lists saved mascots with their poses, whose id is make_faceless mascot_id. next_cursor pages. pending lists assets in progress and today's failures; usage counts against 2000 assets and 1 GB, or 20 GB once credits were bought. Free.",
     "arguments": [
       {
         "name": "role",
@@ -1172,7 +1192,7 @@
   },
   {
     "name": "get_asset",
-    "description": "Read one asset with a fresh url (an hour). awaiting_upload: PUT the file; processing: read again shortly; failed: error.code; deleted: asset_not_found. Free.",
+    "description": "Read one asset with a fresh url (an hour) and a small preview picture to look at. awaiting_upload: PUT the file; processing: read again shortly; failed: error.code; deleted: asset_not_found. Free.",
     "arguments": [
       {
         "name": "asset_id",
@@ -1236,7 +1256,7 @@
   },
   {
     "name": "analyze_reference",
-    "description": "Input: the same fields as quote_analysis. Read a reference ad into a reference_profile (beats, graphics, captions, pacing, timed transcript); mode \"data\" answers only the data. Pass asset_id of an MP4 asset, at most 120 s and 100 MiB, or source_url of an Instagram reel or post or a TikTok video. A YouTube link is refused: upload its MP4 with create_asset. Charged once it succeeds; a failed analysis costs nothing. 10 new full and 60 new data analyses per hour. The same asset or full link in the same mode answers the same analysis free unless it failed; a vm.tiktok.com link always starts a new one; one made before frames and speakers existed is redone free once. Poll get_reference_analysis with wait_seconds: 50. Price: 70 credits per call; data mode: 10 credits per call. Quote first with quote_analysis.",
+    "description": "Input: the same fields as quote_analysis. Read a reference ad into a reference_profile (beats, graphics, captions, pacing, timed transcript); mode \"data\" answers only the data. Pass asset_id of an MP4 asset, at most 120 s and 100 MiB, or source_url of an Instagram reel or post or a TikTok video. A YouTube link is refused: upload its MP4 with create_asset. Charged once it succeeds; a failed analysis costs nothing. 10 new full and 60 new data analyses per hour. The same asset or full link in the same mode answers the same analysis free unless it failed; one made before frames and speakers existed is redone free once. Poll get_reference_analysis with wait_seconds: 50. Price: 70 credits per call; data mode: 10 credits per call. Quote first with quote_analysis.",
     "arguments": [
       {
         "name": "asset_id",
@@ -1304,7 +1324,7 @@
   },
   {
     "name": "analyze_creator",
-    "description": "Profile an Instagram or TikTok creator from a profile or video link: latest 12 videos with views and x_median, followers and cadence. YouTube is refused. Charged once it succeeds; a private or empty account, or any failure, costs nothing. 30 new profiles per hour. Within an hour the same link, or a handle link of a creator already profiled, answers the same profile, free. Poll get_creator_profile when it says so. Price: 20 credits per call. Quote first with quote_creator_profile.",
+    "description": "Profile an Instagram or TikTok creator from a profile or video link: latest 12 videos with views and x_median, labels breakout (3×, 10,000 views, 24 h) and viral (10×), x_preliminary under 48 h, comment_rate, the caption's funnel code word and why[] for those that took off; followers and cadence. YouTube is refused. Charged once it succeeds; a private or empty account, or any failure, costs nothing. 30 new profiles per hour. Within an hour the same link, or a handle link of a creator already profiled, answers the same profile, free. Poll get_creator_profile when it says so. Price: 20 credits per call. Quote first with quote_creator_profile.",
     "arguments": [
       {
         "name": "source_url",
@@ -1331,7 +1351,7 @@
   },
   {
     "name": "quote_trends",
-    "description": "Price find_trends: 0 when the same query from the last hour would answer. Free.",
+    "description": "Price find_trends: 0 when the same query from the last hour would answer or a free search applies (10 a month; free_searches_left). With search_id and page: a next page, 10 credits, never free. Free.",
     "arguments": [
       {
         "name": "keywords",
@@ -1352,12 +1372,22 @@
         "name": "posted_within_days",
         "type": "integer",
         "desc": ""
+      },
+      {
+        "name": "search_id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "desc": ""
       }
     ]
   },
   {
     "name": "find_trends",
-    "description": "Input: the same fields as quote_trends, plus sort. Reels that took off on a topic: up to 10 per platform, one per creator, TikTok and Instagram ranked by x_median. Charged only on success, a one-platform mix too; 10 per hour. poll repeats this call; sort reorders it free. Price: 20 credits per call. Quote first with quote_trends.",
+    "description": "Input: the same fields as quote_trends, plus sort. Reels that took off on a topic: up to 10 per platform, one per creator, TikTok and Instagram ranked by x_median. Charged only on success, a one-platform mix too; 10 per hour. poll repeats this call; sort reorders it free. No keywords: the primary saved niche (trend_niches). gallery_url: a page to share for 7 days. next_page: more places for 10 credits, up to 5 pages, search_id and page alone. Price: 20 credits per call; next page: 10 credits per call. Quote first with quote_trends.",
     "arguments": [
       {
         "name": "keywords",
@@ -1380,8 +1410,29 @@
         "desc": ""
       },
       {
+        "name": "search_id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "desc": ""
+      },
+      {
         "name": "sort",
         "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "trend_niches",
+    "description": "Free. Alone: the saved niches, the first the primary. niches: save the user's confirmed list, at most 3, replacing it; [] clears it.",
+    "arguments": [
+      {
+        "name": "niches",
+        "type": "array",
         "desc": ""
       }
     ]
@@ -1528,10 +1579,20 @@
   },
   {
     "name": "extract_brand",
-    "description": "Free. A site's colours, fonts, logo, corners and name as a proposed design and voice; the user confirms. logo_url: create_asset it for design.logo_asset_id.",
+    "description": "Free. A site's colours, fonts, logo, corners and name as a proposed design and voice; the user confirms. logo_url: create_asset it for design.logo_asset_id. analysis_id: a style from a reference video's analysis.",
     "arguments": [
       {
         "name": "url",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "analysis_id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "name",
         "type": "string",
         "desc": ""
       }
@@ -1539,7 +1600,7 @@
   },
   {
     "name": "brand_kit",
-    "description": "Free. Alone: saved design, script voice, our looks and faces. design, voice: save the user's confirmed one; voice {} clears it.",
+    "description": "Free. Alone: saved design, script voice, styles, our looks and faces. design, voice, style: save the user's confirmed one; voice {} clears it.",
     "arguments": [
       {
         "name": "design",
@@ -1548,6 +1609,11 @@
       },
       {
         "name": "voice",
+        "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "style",
         "type": "object",
         "desc": ""
       }
