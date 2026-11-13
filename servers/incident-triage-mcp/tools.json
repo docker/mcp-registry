@@ -1,0 +1,755 @@
+[
+  {
+    "name": "alerts_fetch_active",
+    "description": "",
+    "inputSchema": {
+      "properties": {
+        "services": {
+          "default": null,
+          "items": {
+            "type": "string"
+          },
+          "title": "Services",
+          "type": "array"
+        },
+        "since_minutes": {
+          "default": 30,
+          "title": "Since Minutes",
+          "type": "integer"
+        },
+        "max_alerts": {
+          "default": 50,
+          "title": "Max Alerts",
+          "type": "integer"
+        }
+      },
+      "title": "alerts_fetch_activeArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "evidence_get_bundle",
+    "description": "",
+    "inputSchema": {
+      "properties": {
+        "incident_id": {
+          "title": "Incident Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "incident_id"
+      ],
+      "title": "evidence_get_bundleArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "evidence_seed_sample",
+    "description": "\n    Offline helper: writes a deterministic Evidence Bundle v1 JSON to EVIDENCE_DIR.\n    ",
+    "inputSchema": {
+      "properties": {
+        "incident_id": {
+          "title": "Incident Id",
+          "type": "string"
+        },
+        "service": {
+          "title": "Service",
+          "type": "string"
+        },
+        "window_minutes": {
+          "default": 30,
+          "title": "Window Minutes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "incident_id",
+        "service"
+      ],
+      "title": "evidence_seed_sampleArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "evidence_wait_for_bundle",
+    "description": "",
+    "inputSchema": {
+      "properties": {
+        "incident_id": {
+          "title": "Incident Id",
+          "type": "string"
+        },
+        "timeout_seconds": {
+          "default": 30,
+          "title": "Timeout Seconds",
+          "type": "integer"
+        },
+        "poll_seconds": {
+          "default": 2,
+          "title": "Poll Seconds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "incident_id"
+      ],
+      "title": "evidence_wait_for_bundleArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "incident_triage_run",
+    "description": "\n    One-call triage orchestration.\n    Airflow trigger is optional and backend-dependent.\n    ",
+    "inputSchema": {
+      "properties": {
+        "incident_id": {
+          "title": "Incident Id",
+          "type": "string"
+        },
+        "service": {
+          "title": "Service",
+          "type": "string"
+        },
+        "include_ticket": {
+          "default": false,
+          "title": "Include Ticket",
+          "type": "boolean"
+        },
+        "project_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Key"
+        },
+        "notify_slack": {
+          "default": false,
+          "title": "Notify Slack",
+          "type": "boolean"
+        },
+        "notify_provider": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notify Provider"
+        },
+        "slack_channel": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Slack Channel"
+        },
+        "slack_dry_run": {
+          "default": true,
+          "title": "Slack Dry Run",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "incident_id",
+        "service"
+      ],
+      "title": "incident_triage_runArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "incident_triage_summary",
+    "description": "\n    Deterministic (non-LLM) summary of an incident from the Evidence Bundle.\n    ",
+    "inputSchema": {
+      "properties": {
+        "incident_id": {
+          "title": "Incident Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "incident_id"
+      ],
+      "title": "incident_triage_summaryArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "jira_create_ticket",
+    "description": "\n    Safe action:\n    - dry_run=True by default (no mutation)\n    - dry_run=False requires reason + confirm_token + idempotency_key + RBAC allow\n    ",
+    "inputSchema": {
+      "properties": {
+        "incident_id": {
+          "title": "Incident Id",
+          "type": "string"
+        },
+        "project_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Key"
+        },
+        "dry_run": {
+          "default": true,
+          "title": "Dry Run",
+          "type": "boolean"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "confirm_token": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confirm Token"
+        },
+        "idempotency_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Idempotency Key"
+        }
+      },
+      "required": [
+        "incident_id"
+      ],
+      "title": "jira_create_ticketArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "jira_draft_ticket",
+    "description": "",
+    "inputSchema": {
+      "properties": {
+        "incident_id": {
+          "title": "Incident Id",
+          "type": "string"
+        },
+        "project_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Key"
+        }
+      },
+      "required": [
+        "incident_id"
+      ],
+      "title": "jira_draft_ticketArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "jira_list_issue_types",
+    "description": "",
+    "inputSchema": {
+      "properties": {
+        "project_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Key"
+        }
+      },
+      "title": "jira_list_issue_typesArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "jira_list_projects",
+    "description": "",
+    "inputSchema": {
+      "properties": {},
+      "title": "jira_list_projectsArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "jira_validate_credentials",
+    "description": "",
+    "inputSchema": {
+      "properties": {},
+      "title": "jira_validate_credentialsArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "logs_fetch_recent",
+    "description": "",
+    "inputSchema": {
+      "properties": {
+        "service": {
+          "title": "Service",
+          "type": "string"
+        },
+        "start_iso": {
+          "title": "Start Iso",
+          "type": "string"
+        },
+        "end_iso": {
+          "title": "End Iso",
+          "type": "string"
+        },
+        "limit": {
+          "default": 100,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "service",
+        "start_iso",
+        "end_iso"
+      ],
+      "title": "logs_fetch_recentArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "mcp_health",
+    "description": "",
+    "inputSchema": {
+      "properties": {},
+      "title": "mcp_healthArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "mcp_metrics",
+    "description": "",
+    "inputSchema": {
+      "properties": {},
+      "title": "mcp_metricsArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "mcp_traces_recent",
+    "description": "",
+    "inputSchema": {
+      "properties": {
+        "limit": {
+          "default": 25,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "title": "mcp_traces_recentArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "notify_post_update",
+    "description": "\n    Provider-agnostic notification entrypoint.\n    Routes to Slack or Teams based on provider/env defaults.\n    ",
+    "inputSchema": {
+      "properties": {
+        "incident_id": {
+          "title": "Incident Id",
+          "type": "string"
+        },
+        "service": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Service"
+        },
+        "summary": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Summary"
+        },
+        "ticket": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ticket"
+        },
+        "provider": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provider"
+        },
+        "channel": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Channel"
+        },
+        "dry_run": {
+          "default": true,
+          "title": "Dry Run",
+          "type": "boolean"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        }
+      },
+      "required": [
+        "incident_id"
+      ],
+      "title": "notify_post_updateArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "ping",
+    "description": "",
+    "inputSchema": {
+      "properties": {
+        "message": {
+          "default": "hello",
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "title": "pingArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "runbooks_search",
+    "description": "",
+    "inputSchema": {
+      "properties": {
+        "query": {
+          "title": "Query",
+          "type": "string"
+        },
+        "limit": {
+          "default": 5,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "title": "runbooks_searchArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "service_health_snapshot",
+    "description": "",
+    "inputSchema": {
+      "properties": {
+        "service": {
+          "title": "Service",
+          "type": "string"
+        },
+        "start_iso": {
+          "title": "Start Iso",
+          "type": "string"
+        },
+        "end_iso": {
+          "title": "End Iso",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service",
+        "start_iso",
+        "end_iso"
+      ],
+      "title": "service_health_snapshotArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "slack_post_update",
+    "description": "\n    Post an incident update to Slack via Incoming Webhook.\n    Safe-by-default: dry_run=True returns payload without sending.\n    ",
+    "inputSchema": {
+      "properties": {
+        "incident_id": {
+          "title": "Incident Id",
+          "type": "string"
+        },
+        "service": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Service"
+        },
+        "summary": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Summary"
+        },
+        "ticket": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ticket"
+        },
+        "channel": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Channel"
+        },
+        "dry_run": {
+          "default": true,
+          "title": "Dry Run",
+          "type": "boolean"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        }
+      },
+      "required": [
+        "incident_id"
+      ],
+      "title": "slack_post_updateArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "teams_post_update",
+    "description": "\n    Post an incident update to Microsoft Teams via Incoming Webhook.\n    Safe-by-default: dry_run=True returns payload without sending.\n    ",
+    "inputSchema": {
+      "properties": {
+        "incident_id": {
+          "title": "Incident Id",
+          "type": "string"
+        },
+        "service": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Service"
+        },
+        "summary": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Summary"
+        },
+        "ticket": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ticket"
+        },
+        "channel": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Channel"
+        },
+        "dry_run": {
+          "default": true,
+          "title": "Dry Run",
+          "type": "boolean"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        }
+      },
+      "required": [
+        "incident_id"
+      ],
+      "title": "teams_post_updateArguments",
+      "type": "object"
+    }
+  },
+  {
+    "name": "traces_fetch_recent",
+    "description": "",
+    "inputSchema": {
+      "properties": {
+        "service": {
+          "title": "Service",
+          "type": "string"
+        },
+        "start_iso": {
+          "title": "Start Iso",
+          "type": "string"
+        },
+        "end_iso": {
+          "title": "End Iso",
+          "type": "string"
+        },
+        "limit": {
+          "default": 100,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "service",
+        "start_iso",
+        "end_iso"
+      ],
+      "title": "traces_fetch_recentArguments",
+      "type": "object"
+    }
+  }
+]
