@@ -1,0 +1,30 @@
+name: forge
+image: mcp/forge
+type: server
+meta:
+  category: devops
+  tags:
+    - devops
+    - deployment
+    - go
+about:
+  title: Reliant Forge
+  description: Deploy supported sites and apps with a live URL and claim link (unclaimed deployments expire after 72 hours); inspect projects and load deployment playbooks.
+  icon: https://avatars.githubusercontent.com/u/150214184?s=200&v=4
+source:
+  project: https://github.com/reliant-labs/forge
+  commit: 96051c078c367be081151f424dfd2ca26b30046c
+  dockerfile: Dockerfile.mcp
+run:
+  volumes:
+    - "{{forge.path|volume-target}}:/workspace"
+config:
+  description: Allow Forge to read and update this project directory. Use a non-sensitive project writable by uid 10001; local builds require the project's toolchain.
+  parameters:
+    type: object
+    properties:
+      path:
+        type: string
+        description: Absolute host path of the project to mount at /workspace (read-write).
+    required:
+      - path
