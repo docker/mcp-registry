@@ -12,23 +12,33 @@
         "name": "limit",
         "type": "integer",
         "desc": "How many matches at most (optional)"
+      },
+      {
+        "name": "documents",
+        "type": "boolean",
+        "desc": "false: leave out what manuals and receipts say, matching only the things themselves and their photos — when manuals that mention the word crowd out the thing (optional)"
       }
     ]
   },
   {
     "name": "ask_inventory",
-    "description": "Answers a question in words from the household's own items and documents (receipts, manuals, warranty cards), citing the items it used — for \"when does the dishwasher warranty end?\" or \"what filter does the furnace take?\". Use search_inventory instead when the person wants to find a thing rather than learn a fact. Needs the server's AI to be switched on, counts as one AI action, and can take several seconds.",
+    "description": "Answers a question in words from the household's own items and documents (receipts, manuals, warranty cards), citing the items it used — for \"when does the dishwasher warranty end?\" or \"what filter does the furnace take?\". Use search_inventory instead when the person wants to find a thing rather than learn a fact. Needs the server's AI to be switched on, counts as one AI action, and can take several seconds. With itemId, it answers about that one thing only, from its own manual, receipts, warranties and notes (\"how do I reset it?\").",
     "arguments": [
       {
         "name": "question",
         "type": "string",
         "desc": "The question, as the person asked it"
+      },
+      {
+        "name": "itemId",
+        "type": "string",
+        "desc": "Ask about this one item only: an item id from search_inventory or get_item (optional)"
       }
     ]
   },
   {
     "name": "get_item",
-    "description": "Everything about one item: all its fields, where it's kept (and which box), warranties and claims, its photos and documents with what the vision model read in them, and any suggested fields waiting for the person to confirm (item fields go through update_item, a warranty through save_warranty, a schedule through save_maintenance). Use it after search_inventory or list_items has found the item, when you need the details; for what happened to it over time use item_history, and for a quick look at many items list_items is enough.",
+    "description": "Everything about one item: all its fields, where it's kept (and which box), its parts and supplies (bags, filters — items of their own with partOfItemId set to it; add one with create_item and partOfItemId, the part number in model; its manuals' suggested parts are in attachments' suggestions.parts), warranties and claims, its photos and documents with what the vision model read in them, its repairs, what owning it has cost (cost: paid + maintenance + repairs − what it sold for, per year owned), what replaced it, how long it should last (lifespan), when it was last seen (lastSeen; missingSince if nobody can find it), and any suggested fields waiting for the person to confirm (item fields go through update_item, a warranty through save_warranty, a schedule through save_maintenance). Use it after search_inventory or list_items has found the item, when you need the details; for what happened to it over time use item_history, and for a quick look at many items list_items is enough.",
     "arguments": [
       {
         "name": "id",
@@ -39,7 +49,7 @@
   },
   {
     "name": "list_items",
-    "description": "Lists items, most recently changed first, 50 at a time (offset for more), with where each is kept. Use it to browse rather than search: with locationId, everything in that place and the places inside it (\"what's in the garage?\"); containerItemId, what's directly in a box; categoryId, a category and its subcategories; tag, a tag's items (a tag can be a collection, e.g. \"Christmas decorations\"); origin, how they were added (\"claude\": what you added, to check your own work); collectionId (list_collections), a collection's things — wanted \"include\" adds its want list, \"only\" just that. To find a particular thing by name, use search_inventory.",
+    "description": "Lists items, most recently changed first, 50 at a time (offset for more), with where each is kept. Use it to browse rather than search: with locationId, everything in that place and the places inside it (\"what's in the garage?\"); containerItemId, what's directly in a box; categoryId, a category and its subcategories; tag, a tag's items (a tag can be a collection, e.g. \"Christmas decorations\"); origin, how they were added (\"claude\": what you added, to check your own work); collectionId (list_collections), a collection's things — wanted \"include\" adds its want list, \"only\" just that; misplaced, the things nobody can find (marked \"can't find it\"); notSeenSince, what nobody has seen (scanned, confirmed still here, checked in a room review) since a day, longest unseen first. To find a particular thing by name, use search_inventory.",
     "arguments": [
       {
         "name": "locationId",
@@ -77,6 +87,16 @@
         "desc": "The want list (things not owned yet): left out unless asked for (optional)"
       },
       {
+        "name": "misplaced",
+        "type": "boolean",
+        "desc": "true: only things marked \"can't find it\" (each has missingSince) (optional)"
+      },
+      {
+        "name": "notSeenSince",
+        "type": "string",
+        "desc": "Only things not seen since this day (yyyy-mm-dd) and added before it — \"what haven't we seen in a year?\" (optional)"
+      },
+      {
         "name": "limit",
         "type": "integer",
         "desc": "How many items in this page (optional)"
@@ -95,12 +115,12 @@
   },
   {
     "name": "what_needs_attention",
-    "description": "What to act on now, urgent first: maintenance overdue or due within a week, warranties ending within 30 days, warranty claims with no news for two weeks, things running low, borrowed things due back, recalls that may affect something owned, insurance limits that fall short, and items or room scans from photos still to finish. Returns entries with kind, severity (urgent or soon), title, detail, the itemId to open (if any) and a date. Use it for \"anything I should deal with?\" or a daily check-in; for the full maintenance schedule use list_maintenance, for all warranties list_warranties, for what to buy shopping_list. Empty when nothing needs doing.",
+    "description": "What to act on now, urgent first: maintenance overdue or due within a week, warranties ending within 30 days, return windows closing within a week, warranty claims with no news for two weeks, things running low, borrowed things due back, recalls that may affect something owned, insurance limits that fall short, and items or room scans from photos still to finish. Returns entries with kind, severity (urgent or soon), title, detail, the itemId to open (if any) and a date. Use it for \"anything I should deal with?\" or a daily check-in; for the full maintenance schedule use list_maintenance, for all warranties list_warranties, for what to buy shopping_list. Empty when nothing needs doing.",
     "arguments": []
   },
   {
     "name": "shopping_list",
-    "description": "What to buy, run-out first: tracked consumables that have run out or are at or below their minimum (minQuantity, \"keep at least\"), with how many are left and a suggested amount to buy. Use it for \"what do we need?\" or before a shop; after buying, adjust_stock with a positive delta takes things off the list. Read-only.",
+    "description": "What to buy, run-out first: tracked consumables that have run out or are at or below their minimum (minQuantity, \"keep at least\"), with how many are left and a suggested amount to buy (and, for things bought on Amazon, amazonCart: an address that puts that many in the person's Amazon cart; for the rest, amazonSearch: a search on Amazon for its part/model number). Use it for \"what do we need?\" or before a shop; after buying, adjust_stock with a positive delta takes things off the list. Read-only.",
     "arguments": []
   },
   {
@@ -152,12 +172,12 @@
   },
   {
     "name": "inventory_report",
-    "description": "What everything is worth, for insurance: totals by property and by room, the most valuable items, and how many have no value recorded. An item counts at its value, else its purchase price, times its quantity; amounts in cents; gone and wanted things are left out. Use it for \"what's all our stuff worth?\"; to compare against insurance limits use coverage_check.",
+    "description": "What everything is worth, for insurance: totals by property and by room, the most valuable items, and how many have no value recorded. An item counts at its value, else its purchase price, times its quantity; amounts in cents (hundredths) of its currency, which it names; gone and wanted things are left out. Use it for \"what's all our stuff worth?\"; to compare against insurance limits use coverage_check.",
     "arguments": []
   },
   {
     "name": "list_maintenance",
-    "description": "Maintenance tasks (replace filters, service the boiler, clean gutters…), soonest due first, each with its id, the item or place and who usually does it. Use it to see the schedule, to get a task's id for complete_maintenance, and before save_maintenance so you don't add one twice; for just what's urgent across everything, what_needs_attention.",
+    "description": "Maintenance tasks (replace filters, service the boiler, clean gutters…), soonest due first, each with its id, the item or place and who usually does it; a task that uses a part says how many are left and, as part.shortOn, the first time it's due without enough (counting its repeats and other tasks that use the part) — buy more before then. Use it to see the schedule, to get a task's id for complete_maintenance, and before save_maintenance so you don't add one twice; for just what's urgent across everything, what_needs_attention.",
     "arguments": [
       {
         "name": "status",
@@ -234,6 +254,59 @@
     "name": "list_templates",
     "description": "The household's item templates — kinds of things with their own fields (a coin's year and mint mark, a record's label and pressing) — each with its id, fields and how many things use it. Use it to pick a templateId for save_collection, or to see which fields to fill in (customFields on create_item) for that kind of thing. Changes nothing.",
     "arguments": []
+  },
+  {
+    "name": "rooms_to_review",
+    "description": "The household's places with things in them, the next to check first: room reviews under way (with how many things they've checked), then places never reviewed (fullest first), then the longest since their last review — plus how many things nobody can find and how many haven't been seen in a year. Use it when the person wants to check their inventory is still right, or asks which room to go through next; then room_review walks one place.",
+    "arguments": []
+  },
+  {
+    "name": "replacement_forecast",
+    "description": "What's likely to wear out and need replacing, by year — from each thing's lifespan (its own, its category's, or the typical life for its kind: a water heater ~10 years, a fridge ~13) counted from when it was bought (or added), with what replacing it might cost (replacement cost if set, else price paid, else value). Use it for \"what big expenses are coming up?\" or \"what's past its typical life?\". These are estimates — say so, and never tell the person to replace something just because it's old. A thing's or category's lifespan can be set with update_item / save_category lifespanYears.",
+    "arguments": [
+      {
+        "name": "years",
+        "type": "integer",
+        "desc": "How many years ahead, from this one (optional)"
+      }
+    ]
+  },
+  {
+    "name": "mark_seen",
+    "description": "Records what the person says about where a thing is. status \"here\": they've just seen it (\"the drill's in the garage\", \"found the passport!\") — it's marked as seen now, a box with everything in it, and if it was missing it's found again. status \"missing\": they can't find it — it goes on the can't-find list (list_items misplaced) but still counts as owned; for something lost for good, use update_item with disposition \"lost\" instead. If it's been moved, change its locationId with update_item too. Returns the thing's name and what changed.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "The item's id, from search_inventory or list_items"
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "\"here\": seen just now (or found); \"missing\": nobody can find it"
+      }
+    ]
+  },
+  {
+    "name": "room_review",
+    "description": "Walks one place with the person, checking each thing kept there is still right — the same room review as the app's, so they can carry it on there. Call it with just locationId to start (or carry on) the review and get what's to check (a box counts for everything in it; places inside are reviewed on their own). Then, as the person tells you, pass checks: found \"here\" (still there), \"moved\" (with locationId: where it is now), \"missing\" (can't find it), or \"gone\" (only after update_item has set its disposition — sold, given away, thrown out). A check can be changed by checking it again. finish: true when they're done (it's then the place's last review, even with things left unchecked). Returns what's still to check and what's been checked.",
+    "arguments": [
+      {
+        "name": "locationId",
+        "type": "string",
+        "desc": "The place, from rooms_to_review or list_locations"
+      },
+      {
+        "name": "checks",
+        "type": "array",
+        "desc": "What the person found, one entry per thing (optional)"
+      },
+      {
+        "name": "finish",
+        "type": "boolean",
+        "desc": "true: the review is done (optional)"
+      }
+    ]
   },
   {
     "name": "add_photo",
@@ -389,6 +462,11 @@
         "desc": "When it was bought, yyyy-mm-dd (optional)"
       },
       {
+        "name": "returnBy",
+        "type": "string",
+        "desc": "The last day the store takes it back, yyyy-mm-dd — what_needs_attention says so the week before (optional)"
+      },
+      {
         "name": "purchasePriceCents",
         "type": "integer",
         "desc": "What was paid for one, in cents (12999 = $129.99) (optional)"
@@ -429,6 +507,11 @@
         "desc": "The box it's in: an item id with isContainer; it's then wherever the box is (optional)"
       },
       {
+        "name": "partOfItemId",
+        "type": "string",
+        "desc": "The thing this is a part or supply for (an item id): bags for a dust collector, filters for a furnace — listed on that thing's page under Parts & supplies. Put the part number in model (optional)"
+      },
+      {
         "name": "categoryId",
         "type": "string",
         "desc": "A category id from list_categories (optional)"
@@ -466,7 +549,7 @@
       {
         "name": "disposition",
         "type": "string",
-        "desc": "No longer had: sold, given, discarded, lost or stolen (null: still have it). Gone items leave lists and totals (optional)"
+        "desc": "No longer had: sold, given (away), donated (to a charity), discarded, lost or stolen (null: still have it). Gone items leave lists and totals (optional)"
       },
       {
         "name": "disposedOn",
@@ -476,12 +559,32 @@
       {
         "name": "disposalCents",
         "type": "integer",
-        "desc": "What it sold for, in cents (optional)"
+        "desc": "What it sold for, what insurance paid, or (donated) what it was worth when given, in cents (optional)"
+      },
+      {
+        "name": "disposedTo",
+        "type": "string",
+        "desc": "Who it went to: the charity or organisation for a donation (optional)"
       },
       {
         "name": "disposalNote",
         "type": "string",
         "desc": "Who it went to, or what happened (for a lost or stolen claim) (optional)"
+      },
+      {
+        "name": "replacementCents",
+        "type": "integer",
+        "desc": "What it would cost to replace today, in cents (for the insurance report) (optional)"
+      },
+      {
+        "name": "lifespanYears",
+        "type": "integer",
+        "desc": "How many years this one should last, if not its category's or the typical lifespan — for the replacement forecast (optional)"
+      },
+      {
+        "name": "replacedById",
+        "type": "string",
+        "desc": "What replaced it, once it's gone: the new item's id — both pages link the other (optional)"
       },
       {
         "name": "origin",
@@ -550,6 +653,11 @@
         "desc": "When it was bought, yyyy-mm-dd (optional)"
       },
       {
+        "name": "returnBy",
+        "type": "string",
+        "desc": "The last day the store takes it back, yyyy-mm-dd — what_needs_attention says so the week before (optional)"
+      },
+      {
         "name": "purchasePriceCents",
         "type": "integer",
         "desc": "What was paid for one, in cents (12999 = $129.99) (optional)"
@@ -590,6 +698,11 @@
         "desc": "The box it's in: an item id with isContainer; it's then wherever the box is (optional)"
       },
       {
+        "name": "partOfItemId",
+        "type": "string",
+        "desc": "The thing this is a part or supply for (an item id): bags for a dust collector, filters for a furnace — listed on that thing's page under Parts & supplies. Put the part number in model (optional)"
+      },
+      {
         "name": "categoryId",
         "type": "string",
         "desc": "A category id from list_categories (optional)"
@@ -627,7 +740,7 @@
       {
         "name": "disposition",
         "type": "string",
-        "desc": "No longer had: sold, given, discarded, lost or stolen (null: still have it). Gone items leave lists and totals (optional)"
+        "desc": "No longer had: sold, given (away), donated (to a charity), discarded, lost or stolen (null: still have it). Gone items leave lists and totals (optional)"
       },
       {
         "name": "disposedOn",
@@ -637,12 +750,32 @@
       {
         "name": "disposalCents",
         "type": "integer",
-        "desc": "What it sold for, in cents (optional)"
+        "desc": "What it sold for, what insurance paid, or (donated) what it was worth when given, in cents (optional)"
+      },
+      {
+        "name": "disposedTo",
+        "type": "string",
+        "desc": "Who it went to: the charity or organisation for a donation (optional)"
       },
       {
         "name": "disposalNote",
         "type": "string",
         "desc": "Who it went to, or what happened (for a lost or stolen claim) (optional)"
+      },
+      {
+        "name": "replacementCents",
+        "type": "integer",
+        "desc": "What it would cost to replace today, in cents (for the insurance report) (optional)"
+      },
+      {
+        "name": "lifespanYears",
+        "type": "integer",
+        "desc": "How many years this one should last, if not its category's or the typical lifespan — for the replacement forecast (optional)"
+      },
+      {
+        "name": "replacedById",
+        "type": "string",
+        "desc": "What replaced it, once it's gone: the new item's id — both pages link the other (optional)"
       },
       {
         "name": "id",
@@ -1038,6 +1171,62 @@
     ]
   },
   {
+    "name": "save_repair",
+    "description": "Records a repair of an item — a one-off fix, not scheduled maintenance: when (repairedOn), what was done (work), what went wrong (problem), who did it (providerId, from list_providers), parts, what it cost (cents) — or, with id, changes one. warrantyEndsOn adds a warranty on the repair to the item's warranties; taskId links it to a maintenance task of that item. Repairs count in the item's cost of ownership (get_item's cost). Use it when the person says something was fixed (\"the plumber replaced the water heater's thermostat, $180\"). Returns the repair with its id.",
+    "arguments": [
+      {
+        "name": "repairedOn",
+        "type": "string",
+        "desc": "When it was repaired, yyyy-mm-dd (optional)"
+      },
+      {
+        "name": "work",
+        "type": "string",
+        "desc": "What was done: \"Replaced the drain pump\" (optional)"
+      },
+      {
+        "name": "problem",
+        "type": "string",
+        "desc": "What went wrong: \"Wouldn't drain, error E21\" (optional)"
+      },
+      {
+        "name": "providerId",
+        "type": "string",
+        "desc": "Who did it, if not you: a service provider's id (list_providers) (optional)"
+      },
+      {
+        "name": "parts",
+        "type": "string",
+        "desc": "Parts used: \"Drain pump 00436440\" (optional)"
+      },
+      {
+        "name": "costCents",
+        "type": "integer",
+        "desc": "What it cost, in cents (parts and labour) (optional)"
+      },
+      {
+        "name": "taskId",
+        "type": "string",
+        "desc": "The maintenance task it was part of, if any (its id from list_maintenance) (optional)"
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "The repair to change, from get_item; leave out to add a new one (optional)"
+      },
+      {
+        "name": "itemId",
+        "type": "string",
+        "desc": "To log one: the item's id, from search_inventory (optional)"
+      },
+      {
+        "name": "warrantyEndsOn",
+        "type": "string",
+        "desc": "If the repair has its own warranty: when it ends, yyyy-mm-dd — added to the item's warranties (optional)"
+      }
+    ]
+  },
+  {
     "name": "save_warranty_claim",
     "description": "Records a claim under one of an item's warranties — what went wrong, the provider's claim number (reference), its status (filed by default, today by default) — or, with id, updates one when the person hears back: status (filed, in_progress, approved, denied, resolved), the resolution, what it cost (cents). To file: warrantyId (from get_item) and the problem. Closing it (denied or resolved) dates it today unless resolvedOn is given. Claims with no news for two weeks show in what_needs_attention. Returns the claim with its id.",
     "arguments": [
@@ -1229,6 +1418,11 @@
         "name": "parentId",
         "type": "string",
         "desc": "The category it's inside, from list_categories; null or left out: top level (optional)"
+      },
+      {
+        "name": "lifespanYears",
+        "type": "integer",
+        "desc": "How many years its things usually last (overrides the typical lifespans Ferret knows), for the replacement forecast (optional)"
       }
     ]
   },
@@ -1306,7 +1500,7 @@
   },
   {
     "name": "remove",
-    "description": "Removes one thing from the household's records, by kind and id. Confirm with the person first. What each kind does:\n- item: only when it was added by mistake or should be gone from the records — for something sold, given away, thrown out, lost or stolen use update_item with disposition, which keeps it for insurance. It stays in Recently deleted for 30 days (restore_item brings it back), then goes for good with its photos and documents.\n- warranty: one added by mistake or twice (an ended warranty stays on record as expired); its claims go with it. claim: a warranty claim filed by mistake.\n- maintenance: a task no longer needed — not one just done (that's complete_maintenance); its past times done stay in the item's history.\n- property / location: only when empty (no things anywhere in it, empty rooms inside go with it); otherwise refused — move the things first with bulk_update_items.\n- category: its things and subcategories move up to its parent. provider: their past visits stay, without the name. collection: its owned things stay (out of the collection); its want-list entries go. coverage_limit: a limit that no longer applies.\nOnly remove (item) can be undone. Returns what was removed.",
+    "description": "Removes one thing from the household's records, by kind and id. Confirm with the person first. What each kind does:\n- item: only when it was added by mistake or should be gone from the records — for something sold, given away, donated, thrown out, lost or stolen use update_item with disposition, which keeps it for insurance. It stays in Recently deleted for 30 days (restore_item brings it back), then goes for good with its photos and documents.\n- warranty: one added by mistake or twice (an ended warranty stays on record as expired); its claims go with it. claim: a warranty claim filed by mistake.\n- maintenance: a task no longer needed — not one just done (that's complete_maintenance); its past times done stay in the item's history. repair: one logged by mistake (its photos and warranty stay the item's).\n- property / location: only when empty (no things anywhere in it, empty rooms inside go with it); otherwise refused — move the things first with bulk_update_items.\n- category: its things and subcategories move up to its parent. provider: their past visits stay, without the name. collection: its owned things stay (out of the collection); its want-list entries go. coverage_limit: a limit that no longer applies.\nOnly remove (item) can be undone. Returns what was removed.",
     "arguments": [
       {
         "name": "kind",
