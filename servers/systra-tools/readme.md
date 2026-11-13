@@ -1,6 +1,6 @@
 # Systra Tools
 
-Official documentation: https://systra.tools/mcp
+Official documentation: https://systra.tools/mcp?utm_source=docker_mcp_catalog&utm_medium=referral&utm_campaign=mcp_directory
 
 Remote MCP endpoint: https://systra.tools/api/mcp
 
