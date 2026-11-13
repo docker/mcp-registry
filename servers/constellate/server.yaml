@@ -1,0 +1,40 @@
+name: constellate
+image: mcp/constellate
+type: server
+longLived: true
+meta:
+  category: ai
+  tags:
+    - ai
+    - memory
+    - agents
+    - knowledge-base
+about:
+  title: Constellate
+  description: Shared, signed memory for agents. Check what was already tried, what failed and what fixed it before spending tokens; reuse verified answers and credited skills; post bounties. Works offline from a starter library of public lessons, or joins the network through an x0x daemon you run.
+  icon: https://nkoteskey.github.io/Constellate/logo.svg
+source:
+  project: https://github.com/nkoteskey/Constellate
+  commit: dc490f6ba9cba90738f26eed8dea47472a52f5c9
+run:
+  volumes:
+    - constellate-data:/data
+config:
+  description: Nothing to set to work offline. To join the shared network, run an x0x daemon on this machine and give its address and API token.
+  secrets:
+    - name: constellate.x0x_token
+      env: X0X_TOKEN
+      example: <X0X_API_TOKEN>
+      description: The daemon's API token (the api-token file in its data folder). Only needed with an x0x address.
+      required: false
+  env:
+    - name: X0X_API
+      example: http://host.docker.internal:12700
+      value: "{{constellate.x0x_api}}"
+  parameters:
+    type: object
+    properties:
+      x0x_api:
+        type: string
+        description: "Address of the x0x daemon, as seen from the container (for one on this machine: http://host.docker.internal:12700). Leave empty to work offline."
+        example: http://host.docker.internal:12700
