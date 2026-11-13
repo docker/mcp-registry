@@ -1,0 +1,902 @@
+[
+  {
+    "name": "runtime_skill",
+    "description": "Read the agent how-to (one door — discover, route, refuse; pipeline fraggate_list → fraggate_describe → fraggate_call). This is playbook markdown, not a catalog and not a machine manifest. Use this when starting a session or choosing the door before any catalog call. Do not use it for listing hashed registry names, hub Software-tab cards, or executing an engine; use fraggate_list, Softwares, or fraggate_call instead. Dual surface: agent chat has no technical UI chrome; Worker / Flutter / local install stay complete human software. Does not list slugs or run ops. Returns skill markdown plus display.title / display.summary."
+  },
+  {
+    "name": "fraggate_list",
+    "description": "List hashed FragGate names and digests after Softwares so you can discover names. Discovery first — not the Softwares catalog and not exec. Use this when Softwares already returned a slug and you need live, stub, local_only, or digest status. Do not use it for the first catalog read, inspecting one known card, or executing an op; use Softwares (GET /v1/software), fraggate_describe, or fraggate_call instead. Empty {} only. Never enables mesh radios. Never invents tools or ops. Compact LIVE_OPS tokens below are discovery hints required by product verify scripts — they are not exec. Call fraggate_describe for the live card; later unknown names refuse FG-HALLUC-TOOL. Returns registry entries, allowlists, digests, and the MASTER-33 pipeline cite. Not the full FragGate door. Empty fraggate_list is discovery (hashed LIVE_OPS). Catalog LIVE_OPS slugs (40): 4dmap, ark, azai, azbot, azbrowser, azchat, azclce, azcoherence, azhub, aziel-corpus, azieltether, azinterface, azmail, aznet, azos, azvpn, chronolock, codelock, decisiongate, embryolock, employeelock, foldlock, forgereceipts, glossafilter, godlock, mialock, miragegrid, mmconsensus, peacelock, postking, shadowlock, spectrallock, staticclock, temporallock, toolbench, trajectorylock, vibelock, whistlelock, zkattest, zsolver. Compact product-verify tokens (not a second allowlist): allowlist.azhub LIVE_OPS: health, skill, region_list, place_module, remove_module, tether_declare, tether_cut, tether_list, blank_key_status, list_modules, place. allowlist.azinterface LIVE_OPS: health, skill, genesis_status, site_state_get, site_state_set, integrity_check, witness_list, page_cycle_status, mesh_radios, genesis_boot, hold. allowlist.azbrowser LIVE_OPS: ethical_search, lamb_lens_search, navigate, airlock_ingest, airlock, home, tab_open, tab_list, receipt_list, verify, receipt_verify, sandbox_status, sandbox_render, health, skill, vpn. allowlist.azvpn LIVE_OPS: health, skill, doctor, limitation, describe, open, status, list, close, send, recv, pull, peers, attach. allowlist.aznet LIVE_OPS: health, doctor, pair_status, pair, garden_list, stamp, verify_hash, memorial_list, memorial_append, receipt_verify, name_claim, name_read, name_resolve, slot_read, witness, witness_read, skill. UI aliases forward to catalog ops. EmbryoLock LIVE_OPS health/skill/doctor/verify-hash/policy/limitation; wipe/scorch/unlock stay FG-STUB on the public mesh."
+  },
+  {
+    "name": "fraggate_describe",
+    "description": "Inspect one FragGate card for the slug you picked from Softwares (live vs stub vs local_only, public ops, engine_digest). Not execute and not a digest-only proof. Use this when you already have a name or slug from Softwares, fraggate_list, or GET /v1/software. Do not use it for discovering the full registry, proving a digest, pulling a hub product card, or executing an op; use fraggate_list, fraggate_verify, runtime_pull, or fraggate_call instead. Missing both name and slug, or an unknown name, refuses FG-HALLUC-TOOL. Wipe/unlock on embryolock stay FG-STUB. AZChat is LIVE+bound (mesh default off; not AZMail). Pass name or slug — one is enough. Combined name/op forms such as foldlock/fold-preview are accepted. Returns one registry card (ops, stub_ops, digest, status, aliases).",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Optional registry display name (for example FoldLock, EmbryoLock, AZHub). Use name or slug — one is enough. Combined name/op forms such as foldlock/fold-preview are accepted by the door parser. Unknown names refuse FG-HALLUC-TOOL."
+      },
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "Optional catalog slug (lowercase a-z0-9-, for example foldlock, embryolock, azhub). Alternative to name. Prefer the slug returned by fraggate_list or GET /v1/software."
+      }
+    ]
+  },
+  {
+    "name": "fraggate_verify",
+    "description": "Confirm a name, slug, or 64-hex engine_digest against the hashed FragGate registry — a proof, not a card listing. Use this when you must prove a listed name or digest exists after fraggate_describe. Do not use it for listing the registry, describing ops, or executing; use fraggate_list, fraggate_describe, or fraggate_call instead. Not an exec path and not a describe card. Empty {} (no name, slug, or digest) refuses FG-HALLUC-TOOL. Digest without name/slug compares the whole registry hash (kind=registry). Name or slug with an optional digest compares that entry (kind=entry); unknown names refuse FG-HALLUC-TOOL. Mismatch returns ok=false with matched=false — it does not invent a digest. Send digest alone to proof the live registry_digest. Send name or slug (one is enough) to proof one card. Combined name+digest must equal that card's engine_digest. Returns match or mismatch (kind registry|entry, matched, registry_digest).",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Optional registry display name (for example FoldLock, EmbryoLock, AZHub). Use name or slug — one is enough. Combined name/op forms such as foldlock/fold-preview are accepted by the door parser. Unknown names refuse FG-HALLUC-TOOL."
+      },
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "Optional catalog slug (lowercase a-z0-9-, for example foldlock, embryolock, azhub). Alternative to name. Prefer the slug returned by fraggate_list or GET /v1/software."
+      },
+      {
+        "name": "digest",
+        "type": "string",
+        "desc": "Optional 64-char lowercase hex engine_digest or registry digest to verify. When digest is set without name/slug, the tool compares the live registry digest."
+      }
+    ]
+  },
+  {
+    "name": "fraggate_call",
+    "description": "Execute the slug you picked from Softwares through the FragGate single door (CallEnvelope → FragGate → Lamb Lens → SweepGate → Sentinel → Provenance → ChainLock-IN → DecisionGATE → AZPIPE → Internal Domain Layer → optional ASE → RoseClock → TemporalLock → ChainLock-OUT → ForgeReceipts → Return). Default exec path — not the catalog and not a raw session. Use this when Softwares already returned a slug and a live allowlisted op is known. Do not use it for picking the catalog slug, searching library papers, or raw session plumbing; use Softwares, library_lookup, or (only if asked) runtime_run / runtime_session_exec instead. Side effects are operation-dependent (read, write, or refuse). May reach an open world when the target op does (for example AZBrowser ethical_search); many ops stay isolate-local. Unknown names refuse FG-HALLUC-TOOL. Stub, local-only, and Remain-OFF verbs refuse FG-STUB / FG-LOCAL-ONLY / FG-GATE-REFUSE / FG-LAMB-REFUSE. FragGate is THE single door. Required: op, unless job_id is set (that reads a background job and does not start another). Also pass slug or name. Shorthand name foldlock/fold-preview is accepted. Extra top-level keys other than name/slug/product/tool/op/verb/claim/proposal/ground/payload/session_id/id/confirm/dry_run/background/job_id become the op payload when payload is omitted. Example preview: {\"name\":\"foldlock/fold-preview\",\"payload\":{\"text\":\"the cat and the dog\"},\"dry_run\":true}. Optional background=true returns Running and a job_id before the op finishes; Done only after a receipt hash exists. Poll with the same job_id and confirm=true. dry_run does not start a job. UI aliases (list_modules, place, genesis_boot, hold, airlock, home, classify, doctor, pair) forward to catalog ops. Mutation requires confirm=true (runtime gate) or dry_run=true (preview only, no write). confirm and dry_run stay optional on inputSchema.required. dry_run still returns FG-HALLUC-TOOL, FG-STUB, FG-UNKNOWN-OP, or FG-LOCAL-ONLY when a confirm call would refuse. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation. Returns status, result, receipt, engine_slug, engine_op, engine_digest, ran_in, provenance, refusal, and limitations. Not the full FragGate door. Empty fraggate_list is discovery (hashed LIVE_OPS). Catalog LIVE_OPS slugs (40): 4dmap, ark, azai, azbot, azbrowser, azchat, azclce, azcoherence, azhub, aziel-corpus, azieltether, azinterface, azmail, aznet, azos, azvpn, chronolock, codelock, decisiongate, embryolock, employeelock, foldlock, forgereceipts, glossafilter, godlock, mialock, miragegrid, mmconsensus, peacelock, postking, shadowlock, spectrallock, staticclock, temporallock, toolbench, trajectorylock, vibelock, whistlelock, zkattest, zsolver. Compact product-verify tokens (not a second allowlist): allowlist.azhub LIVE_OPS: health, skill, region_list, place_module, remove_module, tether_declare, tether_cut, tether_list, blank_key_status, list_modules, place. allowlist.azinterface LIVE_OPS: health, skill, genesis_status, site_state_get, site_state_set, integrity_check, witness_list, page_cycle_status, mesh_radios, genesis_boot, hold. allowlist.azbrowser LIVE_OPS: ethical_search, lamb_lens_search, navigate, airlock_ingest, airlock, home, tab_open, tab_list, receipt_list, verify, receipt_verify, sandbox_status, sandbox_render, health, skill, vpn. allowlist.azvpn LIVE_OPS: health, skill, doctor, limitation, describe, open, status, list, close, send, recv, pull, peers, attach. allowlist.aznet LIVE_OPS: health, doctor, pair_status, pair, garden_list, stamp, verify_hash, memorial_list, memorial_append, receipt_verify, name_claim, name_read, name_resolve, slot_read, witness, witness_read, skill. UI aliases forward to catalog ops. EmbryoLock LIVE_OPS health/skill/doctor/verify-hash/policy/limitation; wipe/scorch/unlock stay FG-STUB on the public mesh.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Optional registry display name (for example FoldLock, EmbryoLock, AZHub). Use name or slug — one is enough. Combined name/op forms such as foldlock/fold-preview are accepted by the door parser. Unknown names refuse FG-HALLUC-TOOL."
+      },
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "Optional catalog slug (lowercase a-z0-9-, for example foldlock, embryolock, azhub). Alternative to name. Prefer the slug returned by fraggate_list or GET /v1/software."
+      },
+      {
+        "name": "op",
+        "type": "string",
+        "desc": "Required public allowlisted op from fraggate_describe (for example fold-preview, ethical_search, blank_key_status). UI aliases (list_modules, place, genesis_boot, hold, airlock, home, classify, doctor, pair) forward to catalog ops. Unknown ops refuse FG-UNKNOWN-OP; stubs refuse FG-STUB."
+      },
+      {
+        "name": "payload",
+        "type": "object",
+        "desc": "Optional op payload object. Shape is engine-specific (see fraggate_describe). Malformed fields are refused by the engine, not by this door schema. If omitted, leftover top-level keys are used as the payload."
+      },
+      {
+        "name": "background",
+        "type": "boolean",
+        "desc": "Optional. When true, FragGate admits the call and returns Running with a job_id before the op finishes. Done is returned only after a receipt hash exists. dry_run does not start a job. A missing job is Quiet, not Done."
+      },
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "Optional job id from a background call (job_ + 16 hex). When set, the call reads that job and does not start another. confirm=true is still required. It does not re-run the op."
+      },
+      {
+        "name": "request_id",
+        "type": "string",
+        "desc": "Optional logical request id. The same value groups retries of one action on the ResultEnvelope and, for ForgeReceipts, inside the receipt hash."
+      },
+      {
+        "name": "attempt_n",
+        "type": "integer",
+        "desc": "Optional 1-based attempt number for this call. Omitted means attempt 1 of a new request_id."
+      },
+      {
+        "name": "parent_receipt_id",
+        "type": "string",
+        "desc": "Optional prior attempt receipt hash. Null on the first attempt. This is not FragGate ledger prev, which stays call order only."
+      },
+      {
+        "name": "correlation_id",
+        "type": "string",
+        "desc": "Optional client correlation id. Sealed inside a ForgeReceipts hash when this call mints one."
+      },
+      {
+        "name": "claim",
+        "type": "object",
+        "desc": "Optional DecisionGATE proposal attached to this call. Also runs automatically inside the door even when omitted (defaults). Freedom without clarity is chaos."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Documented confirmation flag. Optional in inputSchema.required (connector refresh must not break). tools/call still refuses MCP-CONFIRM-REQUIRED when confirm is missing or false unless dry_run=true. confirm is consent to run the call. It is not tenant auth and it does not upgrade shared public-demo isolation."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Optional preview flag. When true, do not write and do not stamp a ledger tip. Allowlist, hallucination, stub, and local-only checks still run and return the same FragGate refuse code a confirm call would get. MCP-DRY-RUN is returned only when that call would have been allowed to proceed. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation."
+      }
+    ]
+  },
+  {
+    "name": "decisiongate_check",
+    "description": "Run the named DecisionGATE five sequential gates on a proposal (Freedom without clarity is chaos) without executing a catalog product. Also runs automatically inside fraggate_call before exec. Use this when you want a gate check without executing a catalog product verb. Do not use it for executing a product op or searching the library; use fraggate_call or library_lookup instead. Write: appends an ask/refuse ledger tip (not idempotent). Empty {} still runs the five gates and stamps the ledger. Does not execute domain software. Named wrapper — same DecisionGATE kernel; not the full MASTER-33 hop list; Softwares exec stays fraggate_call. All proposal fields are optional. Missing evidence can fail a gate. accountable identity on this runtime is Aziel Eliab only. Mutation requires confirm=true (runtime gate) or dry_run=true (preview only, no write). confirm and dry_run stay optional on inputSchema.required. dry_run still returns FG-HALLUC-TOOL, FG-STUB, FG-UNKNOWN-OP, or FG-LOCAL-ONLY when a confirm call would refuse. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation. Returns gate view, final_state, ledger_tip, and result (code FG-OK on the named module wrapper).",
+    "arguments": [
+      {
+        "name": "statement",
+        "type": "string",
+        "desc": "Optional proposal statement to evaluate."
+      },
+      {
+        "name": "evidence",
+        "type": "array",
+        "desc": "Optional evidence strings. Missing evidence can fail a gate."
+      },
+      {
+        "name": "impact_pos",
+        "type": "array",
+        "desc": "Optional positive-impact list."
+      },
+      {
+        "name": "impact_neg",
+        "type": "array",
+        "desc": "Optional negative-impact list."
+      },
+      {
+        "name": "values",
+        "type": "array",
+        "desc": "Optional values list."
+      },
+      {
+        "name": "accountable",
+        "type": "string",
+        "desc": "Optional accountable party string."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Documented confirmation flag. Optional in inputSchema.required (connector refresh must not break). tools/call still refuses MCP-CONFIRM-REQUIRED when confirm is missing or false unless dry_run=true. confirm is consent to run the call. It is not tenant auth and it does not upgrade shared public-demo isolation."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Optional preview flag. When true, do not write and do not stamp a ledger tip. Allowlist, hallucination, stub, and local-only checks still run and return the same FragGate refuse code a confirm call would get. MCP-DRY-RUN is returned only when that call would have been allowed to proceed. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation."
+      }
+    ]
+  },
+  {
+    "name": "library_lookup",
+    "description": "Search the Aziel Digital Library for papers and cites (aziel-corpus search, example, or skill) — cites, not beliefs and not vault stamps. Use this when you need a library paper, cite, example record, or library skill after Softwares and fraggate_call. Do not use it for running a Softwares slug, adaptive memory belief, ChainLock facts, or private-file search; use fraggate_call for a catalog slug, memory_recall, or chainlock_recall instead. Not a private-file search engine and not AKM/ChainLock. Empty q does not invent a cite. Unknown ops refuse FG-UNKNOWN-OP (allowed: search, example, skill, health). Named corpus wrapper — not MASTER-33; full aziel-corpus LIVE_OPS stay on fraggate_call. q is public corpus text — not memory_recall q and not ChainLock q. Omit op to search. Extra keys besides q/op/payload ride along as aziel-corpus payload (same as passing payload{}). Returns search, example, skill, or health payload inside the display envelope.",
+    "arguments": [
+      {
+        "name": "q",
+        "type": "string",
+        "desc": "Optional public-corpus query for op=search. Empty q returns an empty or default hit set, not an invented cite. Not a memory or ChainLock query."
+      },
+      {
+        "name": "op",
+        "type": "string",
+        "desc": "Optional library verb. search (default) looks up public corpus text; example returns a sample; skill returns the library skill; health is liveness. Other values refuse FG-UNKNOWN-OP."
+      }
+    ]
+  },
+  {
+    "name": "mesh_status",
+    "description": "Read QNM suite rollup totals (enabled?, bearers, nodes = human mesh users + cited human uses, live_nodes = human mesh users + site_live_viewers, software_nodes = {slug}-worker roster) — not the node roster. Packet-transfer cite is QNS-CD-1.0 (photon QNS1 1.3 on local qnsd; GET /v1/qns cites only; Worker does not proxy via emit). Use this when you need public Nodes (users + uses), Live Nodes (users + site viewers), or software_nodes (product Worker roster). Do not use it for listing individual nodes, enabling extra radios, or executing a catalog engine; use mesh_nodes, mesh_enable, or fraggate_call instead. Read-only. Never enables radios beyond default suite-presence. Read-only suite-presence is ON by default. Open-world awareness bind is 0.0.0.0 beside those radios (law LIVE; Worker socket live-when-configured; not a loopback fence; not a Cap-7 public egress IP). Not a login mesh. Views/MCP/downloads do not enter QNM-S. Full node process is local qnm-node/. Kernel-direct fabric wrapper — not MASTER-33; not a second Softwares door. Softwares exec stays fraggate_call. Returns enabled flag, bearers, nodes (human mesh users + cited uses), live_nodes (human mesh users + site_live_viewers), human_mesh_users, site_live_viewers, human_uses, active_nodes, inactive_nodes, isolated_nodes, software_nodes (product Workers), and QNS-CD-1.0 cite."
+  },
+  {
+    "name": "mesh_enable",
+    "description": "Declare an extra QNM suite bearer (POST /v1/mesh/enable) — additive presence, not a first-time on-switch. Use this when an operator wants to declare an additional bearer (example: suite-presence) on top of the default-on rollup. Do not use it for reading status, joining one node, turning suite-presence off, or logging into an account; use mesh_status, mesh_join, or mesh_nodes instead. Write: stores the bearer. Rate-limited. Empty {} is refused (MESH-NEED-BEARER). Login/account/recover/gate names refuse. Does not arm, wipe, heal, or resurrect accounts. Not a login mesh. Read-only suite-presence is already ON by default. bearer is required. Example: suite-presence. Mutation requires confirm=true (runtime gate) or dry_run=true (preview only, no write). confirm and dry_run stay optional on inputSchema.required. dry_run still returns FG-HALLUC-TOOL, FG-STUB, FG-UNKNOWN-OP, or FG-LOCAL-ONLY when a confirm call would refuse. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation. Returns enabled state, bearers, and suite-presence note.",
+    "arguments": [
+      {
+        "name": "bearer",
+        "type": "string",
+        "desc": "Required declared bearer name. Example: suite-presence. Login / account / recover / recovery / gate / IP / publish / phoenix / heal names refuse MESH-ENABLE. This is not a login mesh."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Documented confirmation flag. Optional in inputSchema.required (connector refresh must not break). tools/call still refuses MCP-CONFIRM-REQUIRED when confirm is missing or false unless dry_run=true. confirm is consent to run the call. It is not tenant auth and it does not upgrade shared public-demo isolation."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Optional preview flag. When true, do not write and do not stamp a ledger tip. Allowlist, hallucination, stub, and local-only checks still run and return the same FragGate refuse code a confirm call would get. MCP-DRY-RUN is returned only when that call would have been allowed to proceed. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation."
+      }
+    ]
+  },
+  {
+    "name": "mesh_disable",
+    "description": "Confirm that read-only QNM suite-presence stays ON (POST /v1/mesh/disable refuses MESH-DISABLE-REFUSED) — not a kill switch. Use this when a client still posts the historical disable route and needs the honest refuse. Do not use it for dropping one node or declaring an extra bearer; use mesh_leave or mesh_enable instead. Read-only refuse: suite-presence stays ON. No tethers drop. No implicit heal, no account resurrection, no wipe internals. Repeating still refuses. AZMail mesh_disable is a separate product-local mail ring. Returns MESH-DISABLE-REFUSED with enabled=true and a stay-on note."
+  },
+  {
+    "name": "mesh_join",
+    "description": "Register one product node into the QNM rollup (POST /v1/mesh/join) — first presence, not a TTL refresh. Use this when transmission radios are LIVE and a catalog product should appear in live/locked/isolated counts. Do not use it for refreshing an existing node, reading the roster, enabling radios, or opening an account session; use mesh_heartbeat, mesh_nodes, mesh_enable, or runtime_session_open instead. Write: durable hash-sealed join session for non-worker nodes. Stay registered until explicit leave or 14 days after the last beat. heartbeat_mode active (15–30s), idle (2–5 min, default), or asleep (15–30 min). Miss 3 beats and presence_class is stale, not deleted. One beat restores the declared presence. Stale does not count as Live Nodes. Human bearers (kind=human, bearer=human, or auto-minted mesh_*) count toward public Live Nodes only while the class is live or locked. Softwares {slug}-worker rows are software_nodes, keep a strict 5-minute TTL, and never take a user heartbeat. Downloaded instance ids stay instance_nodes. Isolated humans do not count. Radios off refuses MESH-OFF. A seal mismatch refuses MESH-SESSION-SEAL. Missing product / bad node_id / bad presence / bad heartbeat_mode refuse MESH-BAD-INPUT. Downloads are not live. Read-only suite-presence is ON by default. Not an account session. AnonBroadcast is not a product. Kernel-direct fabric wrapper — same mesh kernel as FragGate mesh/join; not MASTER-33; human Join uses fraggate_call. product is required (catalog slug). node_id optional 8–80 [a-z0-9._-]. presence is live|locked|isolated (default live). heartbeat_mode is active|idle|asleep (default idle). kind/plane may be human|instance. bearer=human marks a human mesh user. Mutation requires confirm=true (runtime gate) or dry_run=true (preview only, no write). confirm and dry_run stay optional on inputSchema.required. dry_run still returns FG-HALLUC-TOOL, FG-STUB, FG-UNKNOWN-OP, or FG-LOCAL-ONLY when a confirm call would refuse. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation. Returns node_id, presence_class, session_seal (sha256), registered_grace_ms, and the software 5-minute TTL note. MESH-OFF when radios are off.",
+    "arguments": [
+      {
+        "name": "product",
+        "type": "string",
+        "desc": "Required catalog product slug (a-z0-9-, for example godlock, azmail). AnonBroadcast is refused. Unknown slugs refuse MESH-BAD-INPUT."
+      },
+      {
+        "name": "node_id",
+        "type": "string",
+        "desc": "Optional stable node id. When set, must be 8–80 characters matching [a-z0-9._-]. Omit to receive a generated id."
+      },
+      {
+        "name": "label",
+        "type": "string",
+        "desc": "Optional short label for the roster. Display only; not a score."
+      },
+      {
+        "name": "presence",
+        "type": "string",
+        "desc": "Optional rollup class. live (default), locked, or isolated. No scores. Other values refuse MESH-BAD-INPUT."
+      },
+      {
+        "name": "heartbeat_mode",
+        "type": "string",
+        "desc": "Optional adaptive beat. active is 15–30s, idle is 2–5 min (default), asleep is 15–30 min. Miss 3 beats and the class is stale, not deleted. Ignored for {slug}-worker."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Documented confirmation flag. Optional in inputSchema.required (connector refresh must not break). tools/call still refuses MCP-CONFIRM-REQUIRED when confirm is missing or false unless dry_run=true. confirm is consent to run the call. It is not tenant auth and it does not upgrade shared public-demo isolation."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Optional preview flag. When true, do not write and do not stamp a ledger tip. Allowlist, hallucination, stub, and local-only checks still run and return the same FragGate refuse code a confirm call would get. MCP-DRY-RUN is returned only when that call would have been allowed to proceed. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation."
+      }
+    ]
+  },
+  {
+    "name": "mesh_heartbeat",
+    "description": "Beat one registered node (POST /v1/mesh/heartbeat) — restores live from stale; not a first join. Use this when you already have a node_id from mesh_join and transmission radios are LIVE. Do not use it for first-time registration or dropping the node; use mesh_join or mesh_leave instead. Write: one beat on a durable session. Restores presence_class live (or locked/isolated if that was declared) from stale. Does not delete a stale row. {slug}-worker refresh still uses the strict 5-minute TTL and is not a user heartbeat. Radios off refuses MESH-OFF. A seal mismatch refuses MESH-SESSION-SEAL and does not count as live. Unknown node_id, or a row past the 14-day grace, refuses MESH-UNKNOWN-NODE — join again; no account resurrection. node_id is required. presence may replace the declared class (live|locked|isolated). heartbeat_mode may switch active|idle|asleep. Optional tip_hash and prev are 64 hex only (Split the wires + REHEAL: presence + tip hash; no body/diff/vote-to-fix). OPERATOR-OVERRIDE 2026-09-17 armed neighbor_heal. Mutation requires confirm=true (runtime gate) or dry_run=true (preview only, no write). confirm and dry_run stay optional on inputSchema.required. dry_run still returns FG-HALLUC-TOOL, FG-STUB, FG-UNKNOWN-OP, or FG-LOCAL-ONLY when a confirm call would refuse. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation. Returns updated presence_class. Stale becomes the declared presence. Body on this plane refuses MESH-NO-BYTES. Same prev + two tips refuses MESH-EQUIVOCATION. Vote-to-fix still refuses MESH-NO-NEIGHBOR-HEAL.",
+    "arguments": [
+      {
+        "name": "node_id",
+        "type": "string",
+        "desc": "Required node id returned by mesh_join."
+      },
+      {
+        "name": "presence",
+        "type": "string",
+        "desc": "Optional replacement presence class. Other values refuse MESH-BAD-INPUT."
+      },
+      {
+        "name": "heartbeat_mode",
+        "type": "string",
+        "desc": "Optional adaptive beat. active 15–30s, idle 2–5 min, asleep 15–30 min. One beat restores live from stale."
+      },
+      {
+        "name": "tip_hash",
+        "type": "string",
+        "desc": "Optional 64-hex tip hash on the fast tick. Fixed-size. No body. Split the wires."
+      },
+      {
+        "name": "prev",
+        "type": "string",
+        "desc": "Optional 64-hex prev the receiver already holds. Same prev + a different tip_hash isolates this node (MESH-EQUIVOCATION)."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Documented confirmation flag. Optional in inputSchema.required (connector refresh must not break). tools/call still refuses MCP-CONFIRM-REQUIRED when confirm is missing or false unless dry_run=true. confirm is consent to run the call. It is not tenant auth and it does not upgrade shared public-demo isolation."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Optional preview flag. When true, do not write and do not stamp a ledger tip. Allowlist, hallucination, stub, and local-only checks still run and return the same FragGate refuse code a confirm call would get. MCP-DRY-RUN is returned only when that call would have been allowed to proceed. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation."
+      }
+    ]
+  },
+  {
+    "name": "mesh_leave",
+    "description": "Drop one node from the QNM rollup (POST /v1/mesh/leave) — not a suite-wide radio off. Use this when a previously joined node should leave the counts. Do not use it for turning suite-presence off or listing nodes; use mesh_nodes or mesh_status instead. Destructive to that node's presence only. Always allowed. No implicit heal. Repeating a missing node_id is a no-op/refuse, not resurrection. node_id is required. Mutation requires confirm=true (runtime gate) or dry_run=true (preview only, no write). confirm and dry_run stay optional on inputSchema.required. dry_run still returns FG-HALLUC-TOOL, FG-STUB, FG-UNKNOWN-OP, or FG-LOCAL-ONLY when a confirm call would refuse. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation. Returns leave receipt for the node_id.",
+    "arguments": [
+      {
+        "name": "node_id",
+        "type": "string",
+        "desc": "Required node id to drop from the rollup."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Documented confirmation flag. Optional in inputSchema.required (connector refresh must not break). tools/call still refuses MCP-CONFIRM-REQUIRED when confirm is missing or false unless dry_run=true. confirm is consent to run the call. It is not tenant auth and it does not upgrade shared public-demo isolation."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Optional preview flag. When true, do not write and do not stamp a ledger tip. Allowlist, hallucination, stub, and local-only checks still run and return the same FragGate refuse code a confirm call would get. MCP-DRY-RUN is returned only when that call would have been allowed to proceed. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation."
+      }
+    ]
+  },
+  {
+    "name": "mesh_nodes",
+    "description": "List the QNM node roster (node_id + presence_class; durable rows stay, {slug}-worker keeps a 5-minute TTL) — not suite totals. Use this when you need the current node list after mesh_status. Do not use it for suite counts without the roster, or mutating presence; use mesh_status, mesh_join, or mesh_leave instead. No scores. No leaderboard. Views/MCP/downloads do not enter QNM-S. Returns node roster with presence classes."
+  },
+  {
+    "name": "mesh_broadcast",
+    "description": "Register the SHA-256 of a local file as a hash receipt — never a publish or upload path. Use this when the operator already holds a local file and wants only its hash recorded. Do not use it for uploading bytes, publishing video, sending mail, or joining a mesh node; use local qnm-node/ anon-broadcast (local sibling, not a loopback fence of the mesh), AZMail via fraggate_call, or mesh_join instead. Write: stores a hash receipt only. Does NOT accept video bytes. Operator keeps the file. Malformed sha256 refuses MESH-BAD-INPUT; publish-shaped keys refuse MESH-NO-PUBLISH. sha256 is required (64 hex). title and product are optional labels, not file contents. Mutation requires confirm=true (runtime gate) or dry_run=true (preview only, no write). confirm and dry_run stay optional on inputSchema.required. dry_run still returns FG-HALLUC-TOOL, FG-STUB, FG-UNKNOWN-OP, or FG-LOCAL-ONLY when a confirm call would refuse. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation. Returns hash receipt (sha256, optional title).",
+    "arguments": [
+      {
+        "name": "sha256",
+        "type": "string",
+        "desc": "Required 64-character hex SHA-256 of the local file. Hash receipt only — not a publish path."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Optional short title for the receipt. Not the file contents."
+      },
+      {
+        "name": "product",
+        "type": "string",
+        "desc": "Optional catalog product slug to attribute the receipt. Not required."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Documented confirmation flag. Optional in inputSchema.required (connector refresh must not break). tools/call still refuses MCP-CONFIRM-REQUIRED when confirm is missing or false unless dry_run=true. confirm is consent to run the call. It is not tenant auth and it does not upgrade shared public-demo isolation."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Optional preview flag. When true, do not write and do not stamp a ledger tip. Allowlist, hallucination, stub, and local-only checks still run and return the same FragGate refuse code a confirm call would get. MCP-DRY-RUN is returned only when that call would have been allowed to proceed. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation."
+      }
+    ]
+  },
+  {
+    "name": "chainlock_append",
+    "description": "Append one fact-bearing stamp to a local ChainLock chain (CL-WP-0.4). Grounded write — not a tip read, not AKM observe, not a LOCKSET seal. Fabric, not Softwares-tab. No Node Gate. Use this when you have a concrete fact to stamp onto a named chain. Do not use it for reading the tip, adaptive memory observation, or sealing LOCKSET; use chainlock_tip, memory_observe, or chainlock_seal instead. Write: additive append (append-only vault; no chainlock_delete). Hash-only or empty fact refuses no-fact. Unknown roster name refuses unknown-chain. Oversized card refuses card-cap. Does not write godlock.uk. Omit c/chain to stamp the session chain. Door aliases: chain→c, s→subject, f→fact, kind→k. Omit k to store kind stamp. subject clips to 80; fact clips to 160 then refuses if still empty. Mutation requires confirm=true (runtime gate) or dry_run=true (preview only, no write). confirm and dry_run stay optional on inputSchema.required. dry_run still returns FG-HALLUC-TOOL, FG-STUB, FG-UNKNOWN-OP, or FG-LOCAL-ONLY when a confirm call would refuse. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation. Returns the new stamp (id, h, fh, chain, seq) plus display envelope.",
+    "arguments": [
+      {
+        "name": "c",
+        "type": "string",
+        "desc": "Optional chain name. One of genesis, identity, ssh, session, acts, evidence, recall, mesh, library, learn. Alias: chain. Omit both to stamp the session chain."
+      },
+      {
+        "name": "chain",
+        "type": "string",
+        "desc": "Alias of c. Omit both to stamp the session chain."
+      },
+      {
+        "name": "subject",
+        "type": "string",
+        "desc": "Optional subject clipped to 80 characters. Alias: s."
+      },
+      {
+        "name": "fact",
+        "type": "string",
+        "desc": "Required fact text clipped to 160 characters. Empty or hash-only after clip refuses no-fact. Alias: f."
+      },
+      {
+        "name": "k",
+        "type": "string",
+        "desc": "Optional kind label. Omit to store kind stamp. Alias: kind."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Documented confirmation flag. Optional in inputSchema.required (connector refresh must not break). tools/call still refuses MCP-CONFIRM-REQUIRED when confirm is missing or false unless dry_run=true. confirm is consent to run the call. It is not tenant auth and it does not upgrade shared public-demo isolation."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Optional preview flag. When true, do not write and do not stamp a ledger tip. Allowlist, hallucination, stub, and local-only checks still run and return the same FragGate refuse code a confirm call would get. MCP-DRY-RUN is returned only when that call would have been allowed to proceed. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation."
+      }
+    ]
+  },
+  {
+    "name": "chainlock_tip",
+    "description": "Read only the live tip card of one local ChainLock chain — not depth recall and not LOCKSET verify. Use this when you need the current tip of a named chain. Do not use it for depth-0–5 grounded recall, LOCKSET verify, or adaptive memory explain; use chainlock_recall, chainlock_verify, or memory_get instead. Does not invent a missing tip. An empty chain returns ok with tip=null and empty=true (not a refuse). Fabric module — not a Softwares-tab product. Omit c/chain to read the session chain tip (not the full vault). chain is an alias of c. This is one card, not depth recall. Returns the tip card (id, h, fh) or tip=null / empty=true when that chain has no stamp.",
+    "arguments": [
+      {
+        "name": "c",
+        "type": "string",
+        "desc": "Optional chain name. One of genesis, identity, ssh, session, acts, evidence, recall, mesh, library, learn. Alias: chain. Omit both to read the session chain tip."
+      },
+      {
+        "name": "chain",
+        "type": "string",
+        "desc": "Alias of c. Omit both to read the session chain tip."
+      }
+    ]
+  },
+  {
+    "name": "chainlock_recall",
+    "description": "Grounded ChainLock recall at depth 0–5 (id+h+fh facts or refuse=no-stamp). Stamped vault facts — not Bayesian rank and not tip-only. Use this when you need stamped facts from the local vault, not a Bayesian ranking. Do not use it for adaptive memory ranking or reading only the live tip; use memory_recall or chainlock_tip instead. Depth above 5 is clipped to 5. refuse=no-stamp when empty — do not invent a fact. Append-only; there is no chainlock_delete. Omit depth to use 1 (not 0). 0 = tip only; 5 = full chain / genesis budget. Omit c/chain to scan session+acts+recall+learn (not the whole roster). q/query is a case-insensitive subject/fact substring; empty q does not invent cards. Returns grounded facts (id, h, fh) or refuse=no-stamp.",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "number",
+        "desc": "Optional recall depth. Omit for 1. 0 = tip only; 5 = genesis/budget maximum. Values outside 0–5 are clipped. Alias: d."
+      },
+      {
+        "name": "q",
+        "type": "string",
+        "desc": "Optional case-insensitive substring over subject/fact. Alias: query. Empty does not invent matches."
+      },
+      {
+        "name": "c",
+        "type": "string",
+        "desc": "Optional chain name. One of genesis, identity, ssh, session, acts, evidence, recall, mesh, library, learn. Alias: chain. Omit both to scan session, acts, recall, and learn — not the full roster."
+      },
+      {
+        "name": "chain",
+        "type": "string",
+        "desc": "Alias of c. Omit both to scan session, acts, recall, and learn — not the full roster."
+      }
+    ]
+  },
+  {
+    "name": "chainlock_verify",
+    "description": "Confirm fail-closed integrity of ChainLock chains and LOCKSET (LS-WP-0.1): broken prev, tip drift, missing GodLock cite. Integrity check — not a new seal. Use this when you must prove local chain integrity before trusting a recall. Do not use it for appending a stamp or sealing a new lockset; use chainlock_append or chainlock_seal instead. Cites godlock.uk; does not write the public ledger. Fail-closed — do not repair silently. Break reasons include broken-prev, stamp-hash-miss, body-hash-miss, tip-drift, missing-godlock-cite. Omit c/chain to verify every roster chain plus the stored LOCKSET. require_seal=true fails closed if no lockset is stored. Returns chain_ok, LOCKSET lattice, and per-chain verify notes.",
+    "arguments": [
+      {
+        "name": "c",
+        "type": "string",
+        "desc": "Optional chain name. One of genesis, identity, ssh, session, acts, evidence, recall, mesh, library, learn. Alias: chain. Omit both to verify every roster chain plus the stored LOCKSET."
+      },
+      {
+        "name": "chain",
+        "type": "string",
+        "desc": "Alias of c. Omit both to verify every roster chain plus the stored LOCKSET."
+      },
+      {
+        "name": "require_seal",
+        "type": "boolean",
+        "desc": "Optional. When true, fail-closed if receipts/LOCKSET.json is missing. When omitted, a stored lockset is still checked if present."
+      }
+    ]
+  },
+  {
+    "name": "chainlock_seal",
+    "description": "Write a new local LOCKSET over live chain tips (members {c,id,h,fh} + TemporalLock + GodLock cite, LS-WP-0.1). Not a raw-session close and not verify-only. Use this when the operator wants a new local lockset over current tips. Do not use it for verify-only, appending one fact, writing godlock.uk, or sealing a raw runtime session; use chainlock_verify, chainlock_append, or runtime_session_close instead. Write: replaces receipts/LOCKSET.json. Empty vault (no live tip on any roster chain) refuses empty-vault. Empty chains are omitted from members, not invented. Runtime cites godlock.uk and does not write the public ledger — the operator posts lockset_sha256. A later seal overwrites the previous local lockset. Empty {} still attempts the seal. Omit ts so TemporalLock stamps now. Passing ts labels that receipt only and never backdates seal authority or prior stamps. Mutation requires confirm=true (runtime gate) or dry_run=true (preview only, no write). confirm and dry_run stay optional on inputSchema.required. dry_run still returns FG-HALLUC-TOOL, FG-STUB, FG-UNKNOWN-OP, or FG-LOCAL-ONLY when a confirm call would refuse. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation. Returns lockset document (members, temporal, godlock cite) and lockset_sha256.",
+    "arguments": [
+      {
+        "name": "ts",
+        "type": "string",
+        "desc": "Optional ISO-8601 timestamp copied onto the TemporalLock block. Omit to use now. Never backdates authority, prior stamps, or godlock.uk."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Documented confirmation flag. Optional in inputSchema.required (connector refresh must not break). tools/call still refuses MCP-CONFIRM-REQUIRED when confirm is missing or false unless dry_run=true. confirm is consent to run the call. It is not tenant auth and it does not upgrade shared public-demo isolation."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Optional preview flag. When true, do not write and do not stamp a ledger tip. Allowlist, hallucination, stub, and local-only checks still run and return the same FragGate refuse code a confirm call would get. MCP-DRY-RUN is returned only when that call would have been allowed to proceed. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation."
+      }
+    ]
+  },
+  {
+    "name": "memory_observe",
+    "description": "Append the first memory_observation to the ChainLock learn chain (AKM-TRIAD-1.0). New fact in — not an outcome resolve and not a grounded ChainLock append. Posterior ≠ truth. Use this when you have a new fact to observe before resolve/calibrate. Do not use it for grounded ChainLock append without AKM, resolving an outcome, or ranked recall; use chainlock_append, memory_resolve, or memory_recall instead. Write: additive learn-chain stamp. authorizes_action stays false. Hash-only cards refuse AKM-NO-FACT. Append-only; there is no memory_delete. fact is required (≤160). subject/memory_id/use_case optional. Mutation requires confirm=true (runtime gate) or dry_run=true (preview only, no write). confirm and dry_run stay optional on inputSchema.required. dry_run still returns FG-HALLUC-TOOL, FG-STUB, FG-UNKNOWN-OP, or FG-LOCAL-ONLY when a confirm call would refuse. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation. Returns memory_id, observation stamp, and display envelope (belief is not truth).",
+    "arguments": [
+      {
+        "name": "subject",
+        "type": "string",
+        "desc": "Optional subject key clipped to 80 characters. Used to find or create memory_id."
+      },
+      {
+        "name": "fact",
+        "type": "string",
+        "desc": "Fact text clipped to 160 characters. Required on observe. Hash-only cards refuse AKM-NO-FACT."
+      },
+      {
+        "name": "memory_id",
+        "type": "string",
+        "desc": "Optional existing memory id. Alternative to subject for resolve/calibrate/get."
+      },
+      {
+        "name": "use_case",
+        "type": "string",
+        "desc": "Optional use-case label for calibration / adaptive recall ranking. Not a truth claim."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Documented confirmation flag. Optional in inputSchema.required (connector refresh must not break). tools/call still refuses MCP-CONFIRM-REQUIRED when confirm is missing or false unless dry_run=true. confirm is consent to run the call. It is not tenant auth and it does not upgrade shared public-demo isolation."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Optional preview flag. When true, do not write and do not stamp a ledger tip. Allowlist, hallucination, stub, and local-only checks still run and return the same FragGate refuse code a confirm call would get. MCP-DRY-RUN is returned only when that call would have been allowed to proceed. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation."
+      }
+    ]
+  },
+  {
+    "name": "memory_resolve",
+    "description": "Append a memory_resolution outcome on an already-observed memory (AKM-TRIAD-1.0). UNKNOWN is distinct from MISS. Does not rewrite history. Use this when an observed memory_id or subject now has an outcome. Do not use it for first observation, calibration, or reading history; use memory_observe, memory_calibrate, or memory_get instead. Write: additive resolution stamp. Missing memory_id/subject refuses AKM-NO-MEMORY. Does not rewrite prior observations. No memory_update — this is the forward outcome path. Requires memory_id or a previously observed subject. outcome is optional [0,1]; omit for UNKNOWN. Mutation requires confirm=true (runtime gate) or dry_run=true (preview only, no write). confirm and dry_run stay optional on inputSchema.required. dry_run still returns FG-HALLUC-TOOL, FG-STUB, FG-UNKNOWN-OP, or FG-LOCAL-ONLY when a confirm call would refuse. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation. Returns resolution stamp with outcome or UNKNOWN.",
+    "arguments": [
+      {
+        "name": "subject",
+        "type": "string",
+        "desc": "Optional subject key clipped to 80 characters. Used to find or create memory_id."
+      },
+      {
+        "name": "fact",
+        "type": "string",
+        "desc": "Fact text clipped to 160 characters. Required on observe. Hash-only cards refuse AKM-NO-FACT."
+      },
+      {
+        "name": "memory_id",
+        "type": "string",
+        "desc": "Optional existing memory id. Alternative to subject for resolve/calibrate/get."
+      },
+      {
+        "name": "use_case",
+        "type": "string",
+        "desc": "Optional use-case label for calibration / adaptive recall ranking. Not a truth claim."
+      },
+      {
+        "name": "outcome",
+        "type": "number",
+        "desc": "Optional graded outcome in [0, 1]. Omit (or pass UNKNOWN) for an UNKNOWN resolution — distinct from MISS."
+      },
+      {
+        "name": "outcome_label",
+        "type": "string",
+        "desc": "Optional label (for example HIT, MISS, GRADED, UNKNOWN). UNKNOWN is a first-class state, not a miss."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Documented confirmation flag. Optional in inputSchema.required (connector refresh must not break). tools/call still refuses MCP-CONFIRM-REQUIRED when confirm is missing or false unless dry_run=true. confirm is consent to run the call. It is not tenant auth and it does not upgrade shared public-demo isolation."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Optional preview flag. When true, do not write and do not stamp a ledger tip. Allowlist, hallucination, stub, and local-only checks still run and return the same FragGate refuse code a confirm call would get. MCP-DRY-RUN is returned only when that call would have been allowed to proceed. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation."
+      }
+    ]
+  },
+  {
+    "name": "memory_calibrate",
+    "description": "Calibrate one memory with the deterministic 3-of-4 triad plus Bayesian posterior (AKM-TRIAD-1.0). Writes a LEARN stamp — not a ranked search and not an explain view. Use this when an observed memory should receive a posterior after evidence, not a ranked search. Do not use it for observing a new fact, resolving an outcome, or explaining a stored node; use memory_observe, memory_resolve, or memory_get instead. Write: forward-only RoseClock LEARN stamp. Posterior ≠ truth. authorizes_action=false. No automatic MODEL_UPDATE. subject or memory_id recommended. use_case labels calibration; it is not a permission. Mutation requires confirm=true (runtime gate) or dry_run=true (preview only, no write). confirm and dry_run stay optional on inputSchema.required. dry_run still returns FG-HALLUC-TOOL, FG-STUB, FG-UNKNOWN-OP, or FG-LOCAL-ONLY when a confirm call would refuse. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation. Returns triad_score, omitted leg, posterior, effective N, and Brier notes.",
+    "arguments": [
+      {
+        "name": "subject",
+        "type": "string",
+        "desc": "Optional subject key clipped to 80 characters. Used to find or create memory_id."
+      },
+      {
+        "name": "fact",
+        "type": "string",
+        "desc": "Fact text clipped to 160 characters. Required on observe. Hash-only cards refuse AKM-NO-FACT."
+      },
+      {
+        "name": "memory_id",
+        "type": "string",
+        "desc": "Optional existing memory id. Alternative to subject for resolve/calibrate/get."
+      },
+      {
+        "name": "use_case",
+        "type": "string",
+        "desc": "Optional use-case label for calibration / adaptive recall ranking. Not a truth claim."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Documented confirmation flag. Optional in inputSchema.required (connector refresh must not break). tools/call still refuses MCP-CONFIRM-REQUIRED when confirm is missing or false unless dry_run=true. confirm is consent to run the call. It is not tenant auth and it does not upgrade shared public-demo isolation."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Optional preview flag. When true, do not write and do not stamp a ledger tip. Allowlist, hallucination, stub, and local-only checks still run and return the same FragGate refuse code a confirm call would get. MCP-DRY-RUN is returned only when that call would have been allowed to proceed. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation."
+      }
+    ]
+  },
+  {
+    "name": "memory_recall",
+    "description": "Ranked adaptive recall after ChainLock verify (AKM-TRIAD-1.0). Belief list — not raw grounded stamps, not a public corpus cite, not one-id explain. Use this when you want a ranked belief list after verify, not raw grounded stamps. Do not use it for grounded ChainLock recall, library search, or explaining one memory_id; use chainlock_recall, library_lookup, or memory_get instead. Does not authorize action (authorizes_action=false). Do not treat posterior rank as fact (belief_is_not_truth). Failed ChainLock verify refuses CHAIN_VERIFY_FAIL and does not invent cards. Empty grounded recall bubbles refuse=no-stamp. Ranking is capped at 16 cards. Omit depth to rank at 5 (full budget), unlike chainlock_recall which defaults to 1. q/query is lexical rank text, not a SQL filter. Empty q still verify-then-ranks stored cards. use_case weights triad_fit; it is not a permission. Optional limit clips the already-capped list. Returns ranked cards after verify (count, facts, belief_is_not_truth, authorizes_action=false).",
+    "arguments": [
+      {
+        "name": "q",
+        "type": "string",
+        "desc": "Optional lexical rank query (subject/fact). Alias: query. Empty still runs verify-then-rank; it does not invent facts."
+      },
+      {
+        "name": "use_case",
+        "type": "string",
+        "desc": "Optional use-case label that weights triad_fit in ranking. Not a permission and not a truth claim."
+      },
+      {
+        "name": "depth",
+        "type": "number",
+        "desc": "Optional ChainLock recall depth after verify. Omit for 5 (full budget). 0 is tip-only ranking."
+      },
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Optional result cap. Hard ceiling is 16 (MEMORY_CONTEXT_CAP) even if a larger number is sent."
+      }
+    ]
+  },
+  {
+    "name": "memory_get",
+    "description": "Read one memory's stored explanation (node, history, or calibration: posterior, triad legs, effective N, Brier) — not a ranked list. Use this when you have a memory_id (or id) and need the stored explanation. Do not use it for ranked adaptive recall or appending an observation; use memory_recall or memory_observe instead. Missing both memory_id and id, or an unknown id, refuses AKM-NOT-FOUND — do not invent a node. authorizes_action stays false. There is no memory_delete; this is the read of the append-only node. Pass memory_id or id — one is enough; they are aliases, not two different records. Omit view for the default node slice. history returns events/resolutions; calibration returns posterior/triad/Brier. subject is not a lookup key here. Returns node, history, or calibration view (belief_is_not_truth).",
+    "arguments": [
+      {
+        "name": "memory_id",
+        "type": "string",
+        "desc": "Memory id to explain. Alternative to id. Missing both refuses AKM-NOT-FOUND."
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Alias of memory_id. Do not send two different values."
+      },
+      {
+        "name": "view",
+        "type": "string",
+        "desc": "Optional slice. Omit or get = stored node; history = events/resolutions; calibration = posterior, triad legs, effective N, Brier."
+      }
+    ]
+  },
+  {
+    "name": "Softwares",
+    "description": "Read the Softwares catalog and pick a slug (first call). Not the hashed live/stub registry. Use this when an agent starts, or a hub refreshes the Software tab, and a slug is needed before fraggate_call. Do not use it for executing that slug, hashed live/stub discovery, or library papers; use fraggate_call after the slug is picked, fraggate_list for hashes, or library_lookup for papers instead. Empty {} only. Never enables mesh radios and never execs. tools/list name is Softwares. runtime_software is a tools/call alias and is not a second listed tool. Same JSON as GET /v1/software (also /v1/fraggate/software). Cards carry name, slug, ops, worker_home — not live/stub/digest hashes. EmbryoLock is live-with-local-destructive-boundary (worker_home embryolock-download-tracker). Plain A–Z → Gate A–Z → Lock A–Z (Clock ≠ Lock), including AZChat LIVE+bound. After this catalog, pick a slug and call fraggate_call. library_lookup is for library papers and cites. Returns sorted software cards (name, slug, ops, worker_home) matching GET /v1/software."
+  },
+  {
+    "name": "runtime_bundle",
+    "description": "Read a compact bootstrap of every product skill URL and invoke prefix — not Software-tab cards and not the hashed registry. Use this when a client needs skill URLs in one shot. Do not use it for Software-tab refresh, hashed registry discovery, or exec; use Softwares, fraggate_list, or fraggate_call instead. Prefer GET /v1/software for hub Software tabs. This helper is URL bootstrap only. Returns compact product list with skill URLs."
+  },
+  {
+    "name": "runtime_pull",
+    "description": "Open one hub product card by slug (name, version, skill, download, ops) — not FragGate live/stub status. Use this when you already have a slug from GET /v1/software or fraggate_list and need the card, not exec. Do not use it for inspecting FragGate live/stub status or executing an op; use fraggate_describe or fraggate_call instead. Not exec — then use fraggate_call. Unknown slug throws unknown product (it does not invent a card and does not refuse FG-HALLUC-TOOL; that code is FragGate-only). Missing skill falls back to in-repo markdown. slug is required. product is an accepted alias of slug. Extra keys besides those two are ignored and are not an op payload. Returns one product card (name, version, skill, download, ops, skill_source).",
+    "arguments": [
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "Required catalog slug from GET /v1/software or fraggate_list (for example foldlock). Alias: product. Not an exec path."
+      },
+      {
+        "name": "product",
+        "type": "string",
+        "desc": "Alias of slug. Do not send two different values."
+      }
+    ]
+  },
+  {
+    "name": "runtime_run",
+    "description": "[advanced/internal] Advanced exec façade: admit a slug+op (still DecisionGATE-admitted) and run it through a raw session. Not the default door. Use this when you were explicitly asked for the raw runtime_run path. Do not use it for the default agent exec path or an already-open session you were asked to exec on; use fraggate_call (default) or runtime_session_exec (existing session_id) instead. Side effects are operation-dependent. Not a backdoor past FragGate. Opens a session when session_id is omitted. slug and op are required for an explicit run. A question in q, question, or text with slug omitted asks the mesh router to pick one live Softwares slug and op. That pick does not exec unless confirm=true. dry_run=true returns the pick and writes nothing. session_id optional; omit to auto-open. Extra keys other than payload/session_id may be treated as payload. Mutation requires confirm=true (runtime gate) or dry_run=true (preview only, no write). confirm and dry_run stay optional on inputSchema.required. dry_run still returns FG-HALLUC-TOOL, FG-STUB, FG-UNKNOWN-OP, or FG-LOCAL-ONLY when a confirm call would refuse. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation. Returns exec display envelope with session_id, result, engine_digest, ran_in, and refusal when gated.",
+    "arguments": [
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "Required catalog slug (or name alias). Unknown slugs refuse FG-HALLUC-TOOL."
+      },
+      {
+        "name": "op",
+        "type": "string",
+        "desc": "Required allowlisted op. Stubs refuse FG-STUB."
+      },
+      {
+        "name": "payload",
+        "type": "object",
+        "desc": "Optional op payload object. Engine-specific."
+      },
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": "Optional existing raw session id. If omitted, a session is opened automatically. Prefer leaving session plumbing invisible unless asked."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Documented confirmation flag. Optional in inputSchema.required (connector refresh must not break). tools/call still refuses MCP-CONFIRM-REQUIRED when confirm is missing or false unless dry_run=true. confirm is consent to run the call. It is not tenant auth and it does not upgrade shared public-demo isolation."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Optional preview flag. When true, do not write and do not stamp a ledger tip. Allowlist, hallucination, stub, and local-only checks still run and return the same FragGate refuse code a confirm call would get. MCP-DRY-RUN is returned only when that call would have been allowed to proceed. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation."
+      }
+    ]
+  },
+  {
+    "name": "runtime_manifest",
+    "description": "[advanced/internal] Read the machine runtime manifest JSON (version, role, door=fraggate, engine slugs, registry_digest) — not the human how-to. Use this when a client needs the machine manifest rather than the human skill. Do not use it for the default agent how-to or hashed registry discovery; use runtime_skill or fraggate_list instead. Not the default agent path. Does not list hub cards or execute. Returns manifest including door=fraggate and registry_digest."
+  },
+  {
+    "name": "runtime_session_open",
+    "description": "[advanced/internal] Open a raw session object (session.id). First step of open → policy → exec → receipt(s) → close. Not the default exec path. Use this when you were explicitly asked for raw session plumbing. Do not use it for the default agent exec path or attaching policy to an existing id; use fraggate_call (default) or runtime_session_policy (existing session_id) instead. Write: creates a session with a 6h TTL and receipt cap 64. Re-open on an existing id returns already=true without resetting the chain. Expired sessions refuse session_expired (410). When REQUIRE_TOKEN=1, session mutate needs RUNTIME_TOKEN; missing SESSION binding returns session_binding_missing (503). Prefer leaving sessions to TTL expire. Not chainlock_seal. Empty {} mints sess_ + 32 hex. Optional id is accepted only when it already matches that pattern; otherwise bad_session_id. source is open metadata (default worker). Mutation requires confirm=true (runtime gate) or dry_run=true (preview only, no write). confirm and dry_run stay optional on inputSchema.required. dry_run still returns FG-HALLUC-TOOL, FG-STUB, FG-UNKNOWN-OP, or FG-LOCAL-ONLY when a confirm call would refuse. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation. Returns session.id plus the first receipt in the display envelope.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Optional caller-chosen session id. Must already match sess_ + 32 lowercase hex or the open refuses bad_session_id. Omit to mint one."
+      },
+      {
+        "name": "source",
+        "type": "string",
+        "desc": "Optional open metadata label. Default worker. Not a permission and not a catalog slug."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Documented confirmation flag. Optional in inputSchema.required (connector refresh must not break). tools/call still refuses MCP-CONFIRM-REQUIRED when confirm is missing or false unless dry_run=true. confirm is consent to run the call. It is not tenant auth and it does not upgrade shared public-demo isolation."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Optional preview flag. When true, do not write and do not stamp a ledger tip. Allowlist, hallucination, stub, and local-only checks still run and return the same FragGate refuse code a confirm call would get. MCP-DRY-RUN is returned only when that call would have been allowed to proceed. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation."
+      }
+    ]
+  },
+  {
+    "name": "runtime_session_policy",
+    "description": "[advanced/internal] Attach allow rules on an already-open raw session (allow_slugs / allow_ops). Policy overlay — not open and not exec. Identity remains Aziel Eliab. Use this when an already-open session needs tighter allow_slugs / allow_ops before exec. Do not use it for executing an op or opening a session; use runtime_session_exec or runtime_session_open (prefer fraggate_call, which applies defaults) instead. Write: mutates session policy only. A sealed session refuses session_closed (409). Expired sessions refuse session_expired (410). Missing both session_id and id fails before the door runs. Does not exec and does not mint a new id. session_id or id (aliases) required. allow_slugs / allow_ops replace the allow overlay when sent; omit them to leave the current lists. max_payload_bytes and kv_increment are optional overlays, not exec payload. Nested policy{} is accepted as the same overlay. Mutation requires confirm=true (runtime gate) or dry_run=true (preview only, no write). confirm and dry_run stay optional on inputSchema.required. dry_run still returns FG-HALLUC-TOOL, FG-STUB, FG-UNKNOWN-OP, or FG-LOCAL-ONLY when a confirm call would refuse. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation. Returns updated session policy plus a policy receipt.",
+    "arguments": [
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": "Required. Raw session id from runtime_session_open (sess_ + 32 lowercase hex). Alias: id. Missing both fails with session_id required; unknown id returns session_not_found."
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Alias of session_id. The door accepts either key; do not send two different values."
+      },
+      {
+        "name": "allow_slugs",
+        "type": "array",
+        "desc": "Optional replacement allowlist of catalog slugs this session may exec. Omit to keep the current list."
+      },
+      {
+        "name": "allow_ops",
+        "type": "array",
+        "desc": "Optional replacement allowlist of ops this session may exec. Omit to keep the current list."
+      },
+      {
+        "name": "max_payload_bytes",
+        "type": "integer",
+        "desc": "Optional max payload size in bytes for later exec (integer 1..1048576). Overlay only; not the exec body. Out of range refuses bad_policy."
+      },
+      {
+        "name": "kv_increment",
+        "type": "boolean",
+        "desc": "Optional. When true, allow KV increment side effects on later exec. Not an increment itself."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Documented confirmation flag. Optional in inputSchema.required (connector refresh must not break). tools/call still refuses MCP-CONFIRM-REQUIRED when confirm is missing or false unless dry_run=true. confirm is consent to run the call. It is not tenant auth and it does not upgrade shared public-demo isolation."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Optional preview flag. When true, do not write and do not stamp a ledger tip. Allowlist, hallucination, stub, and local-only checks still run and return the same FragGate refuse code a confirm call would get. MCP-DRY-RUN is returned only when that call would have been allowed to proceed. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation."
+      }
+    ]
+  },
+  {
+    "name": "runtime_session_exec",
+    "description": "[advanced/internal] Raw session exec on an already-open session_id (FragGate-admitted). Not fraggate_call and not runtime_run auto-open. Use this when you already have a session_id and were asked for raw session exec. Do not use it for the default agent exec path or opening a session; use fraggate_call or runtime_session_open instead. Side effects are operation-dependent (read, write, or refuse). Does not mint a session_id — missing id fails before admit. Sealed sessions refuse session_closed (409); TTL 6h refuses session_expired (410); receipt cap 64 refuses receipt_cap (409). Rate-limited (exec). Binding-only ops stay per-op proxy_fallback. Prefer fraggate_call. session_id or id, plus slug and op, are required for an explicit exec. A question in q, question, or text with slug omitted asks the mesh router to pick one live Softwares slug and op. That pick does not exec unless confirm=true. dry_run=true returns the pick and writes nothing. payload is optional and engine-specific; leftover keys are not auto-payload the way fraggate_call leftover keys are. Unknown slugs refuse FG-HALLUC-TOOL; stubs refuse FG-STUB. Mutation requires confirm=true (runtime gate) or dry_run=true (preview only, no write). confirm and dry_run stay optional on inputSchema.required. dry_run still returns FG-HALLUC-TOOL, FG-STUB, FG-UNKNOWN-OP, or FG-LOCAL-ONLY when a confirm call would refuse. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation. Returns exec result with engine_slug, engine_op, engine_digest, ran_in, receipt, and refusal when gated.",
+    "arguments": [
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": "Required. Raw session id from runtime_session_open (sess_ + 32 lowercase hex). Alias: id. Missing both fails with session_id required; unknown id returns session_not_found."
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Alias of session_id. The door accepts either key; do not send two different values."
+      },
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "Required catalog slug to exec. Alias: product. Unknown slugs refuse FG-HALLUC-TOOL. This tool does not auto-open."
+      },
+      {
+        "name": "product",
+        "type": "string",
+        "desc": "Alias of slug. Do not send two different values."
+      },
+      {
+        "name": "op",
+        "type": "string",
+        "desc": "Required allowlisted op. Stubs refuse FG-STUB. UI aliases still forward only after FragGate admit."
+      },
+      {
+        "name": "payload",
+        "type": "object",
+        "desc": "Optional op payload object. Engine-specific. Unlike fraggate_call, leftover top-level keys are not used as payload."
+      },
+      {
+        "name": "request_id",
+        "type": "string",
+        "desc": "Optional logical request id shared by retries of one action. Same value across attempts. Omitted mints a new id for this exec."
+      },
+      {
+        "name": "attempt_n",
+        "type": "integer",
+        "desc": "Optional 1-based attempt number. Omitted increments from the prior session receipt with the same request_id, or 1."
+      },
+      {
+        "name": "parent_receipt_id",
+        "type": "string",
+        "desc": "Optional prior attempt receipt hash. Null on the first attempt. Omitted links to the prior session receipt with the same request_id. Not FragGate ledger prev."
+      },
+      {
+        "name": "correlation_id",
+        "type": "string",
+        "desc": "Optional client correlation id. Sealed on the session receipt. Null when omitted."
+      },
+      {
+        "name": "outcome",
+        "type": "string",
+        "desc": "Optional sealed status. completed marks the attempt that finished the action. retry and failed are earlier attempts. Defaults from HTTP status when omitted."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Documented confirmation flag. Optional in inputSchema.required (connector refresh must not break). tools/call still refuses MCP-CONFIRM-REQUIRED when confirm is missing or false unless dry_run=true. confirm is consent to run the call. It is not tenant auth and it does not upgrade shared public-demo isolation."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Optional preview flag. When true, do not write and do not stamp a ledger tip. Allowlist, hallucination, stub, and local-only checks still run and return the same FragGate refuse code a confirm call would get. MCP-DRY-RUN is returned only when that call would have been allowed to proceed. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation."
+      }
+    ]
+  },
+  {
+    "name": "runtime_session_receipt",
+    "description": "[advanced/internal] Read the last receipt only for a raw session — not the full chain. Use this when the user asked for the latest receipt on an open or sealed session. Do not use it for the full receipt chain or product output the user did not ask to audit; use runtime_session_receipts (full chain) or the product display from fraggate_call instead. Does not mutate the session. Unknown id returns session_not_found. An empty receipt list returns receipt=null rather than inventing one. Prefer product output (display) unless the user asked for the chain. session_id or id (aliases) required. No view/limit — this is always the last receipt plus a chain verified flag. Returns the last receipt object (or null) and verified.",
+    "arguments": [
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": "Required. Raw session id from runtime_session_open (sess_ + 32 lowercase hex). Alias: id. Missing both fails with session_id required; unknown id returns session_not_found."
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Alias of session_id. The door accepts either key; do not send two different values."
+      }
+    ]
+  },
+  {
+    "name": "runtime_session_receipts",
+    "description": "[advanced/internal] Read the full receipt chain for a raw session — not the last receipt only. Use this when the user asked for the whole receipt chain. Do not use it for only the last receipt or ordinary product output; use runtime_session_receipt or the product display from fraggate_call instead. Does not mutate the session. Unknown id returns session_not_found. List is the stored chain (cap 64), oldest to newest, plus verified. Prefer product output unless the user asked for the chain. session_id or id (aliases) required. No pagination — the cap is the runtime receipt cap, not a cursor. Returns the receipt list (capped at 64) and verified.",
+    "arguments": [
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": "Required. Raw session id from runtime_session_open (sess_ + 32 lowercase hex). Alias: id. Missing both fails with session_id required; unknown id returns session_not_found."
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Alias of session_id. The door accepts either key; do not send two different values."
+      }
+    ]
+  },
+  {
+    "name": "runtime_session_close",
+    "description": "[advanced/internal] Seal a raw session so further exec or policy on that session_id is rejected. End of the raw lifecycle — not a LOCKSET seal and not a FragGate call. Use this when the user asked to close the session. Do not use it for ordinary completion, writing a ChainLock LOCKSET, or default product work; use leaving the session to TTL expire (6h), chainlock_seal for a lockset, or fraggate_call for new work instead. Destructive to further exec/policy on that session_id only (session_closed 409). Does not delete receipts. A second close does not reopen — it returns session_closed (409) while the session stays sealed. Missing session returns session_not_found. Prefer leaving sessions to expire unless asked. session_id or id (aliases) required. No force flag on the public tool — TTL expiry is the automatic close path. Mutation requires confirm=true (runtime gate) or dry_run=true (preview only, no write). confirm and dry_run stay optional on inputSchema.required. dry_run still returns FG-HALLUC-TOOL, FG-STUB, FG-UNKNOWN-OP, or FG-LOCAL-ONLY when a confirm call would refuse. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation. Returns sealed session status, close receipt, and verified.",
+    "arguments": [
+      {
+        "name": "session_id",
+        "type": "string",
+        "desc": "Required. Raw session id from runtime_session_open (sess_ + 32 lowercase hex). Alias: id. Missing both fails with session_id required; unknown id returns session_not_found."
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Alias of session_id. The door accepts either key; do not send two different values."
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Documented confirmation flag. Optional in inputSchema.required (connector refresh must not break). tools/call still refuses MCP-CONFIRM-REQUIRED when confirm is missing or false unless dry_run=true. confirm is consent to run the call. It is not tenant auth and it does not upgrade shared public-demo isolation."
+      },
+      {
+        "name": "dry_run",
+        "type": "boolean",
+        "desc": "Optional preview flag. When true, do not write and do not stamp a ledger tip. Allowlist, hallucination, stub, and local-only checks still run and return the same FragGate refuse code a confirm call would get. MCP-DRY-RUN is returned only when that call would have been allowed to proceed. confirm is consent, not tenant auth, and it does not upgrade shared public-demo isolation."
+      }
+    ]
+  }
+]
