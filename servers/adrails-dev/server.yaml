@@ -1,0 +1,35 @@
+name: adrails-dev
+image: mcp/adrails-dev
+type: server
+meta:
+  category: marketing
+  tags:
+    - marketing
+    - advertising
+    - google-ads
+    - local-seo
+    - aeo
+about:
+  title: AdRails
+  description: Run Google Ads, Google Local Services Ads, ChatGPT Ads and AEO (answer engine optimization) for a business from your AI assistant, behind guardrails. Ad changes go plan, validate-only, then commit, inside spend caps you set, with an append-only audit log. With no config mounted it starts in an offline demo that needs no credentials.
+  icon: https://adrails.dev/assets/mark.svg
+source:
+  project: https://github.com/antonioac1/adrails
+  commit: f29412c16536053a698ed30cc05768305bca2e73
+run:
+  volumes:
+    - "{{adrails-dev.config_dir}}:/data"
+config:
+  description: Mount a directory holding your AdRails config.json (see config.example.json in the repository). Paths inside the config, such as the Google service-account key file, must point under /data. If the directory has no config.json, the server starts in the offline demo.
+  env:
+    - name: ADSOPS_CONFIG
+      example: /data/config.json
+      value: /data/config.json
+  parameters:
+    type: object
+    properties:
+      config_dir:
+        type: string
+        description: Host directory containing config.json and the files it references. It is mounted at /data.
+    required:
+      - config_dir
