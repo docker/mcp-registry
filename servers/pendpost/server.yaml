@@ -1,0 +1,39 @@
+name: pendpost
+image: mcp/pendpost
+type: server
+meta:
+  category: communication
+  tags:
+    - social-media
+    - scheduling
+    - approval
+    - local-first
+about:
+  title: Pendpost
+  description: Social media planner where an AI agent drafts and schedules posts and a person approves each one before it publishes. Covers Instagram, Facebook, LinkedIn, YouTube, X, Telegram, Discord, Mastodon, Nostr, WordPress and Ghost.
+  icon: https://raw.githubusercontent.com/pendpost/pendpost/develop/packaging/logo/pendpost-400.png
+source:
+  project: https://github.com/pendpost/pendpost
+  branch: develop
+  commit: fed44dc5afa966dc8cab3b49d65f875b809d50dc
+run:
+  command:
+    - node
+    - bin/pendpost.mjs
+    - --stdio
+  volumes:
+    - "{{pendpost.workspace}}:/workspace"
+config:
+  description: Pick a folder for your pendpost workspace. It holds your plans and the .env with your platform credentials, so they survive container restarts.
+  env:
+    - name: PENDPOST_ROOT
+      example: /workspace
+      value: /workspace
+  parameters:
+    type: object
+    properties:
+      workspace:
+        type: string
+        description: Host folder for the pendpost workspace (.env, config.json, state.json, data/).
+    required:
+      - workspace
