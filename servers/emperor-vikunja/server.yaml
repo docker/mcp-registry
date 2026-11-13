@@ -1,0 +1,44 @@
+name: emperor-vikunja
+image: mcp/emperor-vikunja
+type: server
+meta:
+  category: productivity
+  tags:
+    - vikunja
+    - tasks
+    - todo
+    - project-management
+    - productivity
+about:
+  title: Vikunja
+  description: List and read tasks and list projects in a Vikunja instance; with Allow changes on, also create and update tasks and comment on them. Read-only by default. Task text reaches the model framed as messages for the user.
+  icon: https://avatars.githubusercontent.com/u/666125?v=4
+source:
+  project: https://github.com/yarenty/emperor-vikunja
+  commit: e75b8fc7dde9f81e908be6429eca5cf54c33ede7
+config:
+  description: Configure the connection to your Vikunja instance
+  secrets:
+    - name: emperor-vikunja.token
+      env: VIKUNJA_TOKEN
+      example: <your Vikunja API token>
+      description: Create one in Vikunja under Settings > API Tokens
+  env:
+    - name: VIKUNJA_URL
+      example: https://vikunja.example.com
+      value: "{{emperor-vikunja.url}}"
+    - name: VIKUNJA_WRITABLE
+      example: "false"
+      value: "{{emperor-vikunja.writable}}"
+  parameters:
+    type: object
+    properties:
+      url:
+        type: string
+      writable:
+        type: boolean
+        title: Allow changes
+        description: Also offer create_task, update_task and comment. If false, the server is read-only.
+        default: false
+    required:
+      - url
