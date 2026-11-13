@@ -1,0 +1,3092 @@
+[
+  {
+    "name": "reference_checker",
+    "description": "Verify an existing bibliography against Crossref: flags fake (AI-hallucinated), miscited and retracted references, one row per reference. Unlike citation_formatter, it judges whether a reference is real and accurate; it does not produce formatted styles. Use when you must audit a reference list, DOIs or titles before submission or review. Do not use to discover new papers (use literature_search or pubmed_evidence_table) or to restyle citations (use citation_formatter). Parameters: give bibliography, dois or titles (at least one). Lowering minMatchScore finds more but risks false matches; includeCandidates adds audit detail without extra charge. mode=monitor re-checks the DOIs/ORCID works against the state saved under monitorName and reports only new problems, so reuse the same monitorName on scheduled runs. Each reference checked is billed, so maxReferences/run_max_items cap cost on long lists. Returns per item: summary, status (OK/CHECK/FIX), verdict, matchedDoi, matchScore, mismatches (cited vs actual), integrity.status (retracted, corrected, expression-of-concern), openAccessUrl, warnings.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/reference-checker (https://apify.com/pandadad0214/reference-checker) on your own Apify account. Price: $0.01 per reference checked. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxReferences when you leave it unset, so it also limits what is billed; setting maxReferences higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "bibliography",
+        "type": "string",
+        "desc": "Bibliography / reference list. Paste a reference list in any common style (APA, MLA, Chicago, Vancouver, IEEE, Harvard). One reference per line, numbered ([1], 1.), or separated by blank lines.",
+        "optional": true
+      },
+      {
+        "name": "dois",
+        "type": "array",
+        "desc": "DOIs. DOIs to check (bare 10.xxxx/..., doi: prefix or https://doi.org/ URLs).",
+        "optional": true
+      },
+      {
+        "name": "titles",
+        "type": "array",
+        "desc": "Paper titles. Article titles to look up when you have no full reference.",
+        "optional": true
+      },
+      {
+        "name": "minMatchScore",
+        "type": "integer",
+        "desc": "Minimum match score (0-100). How close a Crossref record must be (title, authors, year) to count as found. Lower finds more but risks false matches. Whole number, 50 to 100; default 80.",
+        "optional": true
+      },
+      {
+        "name": "checkOpenAccess",
+        "type": "boolean",
+        "desc": "Find open-access links. Look up free legal full-text links via OpenAlex. Default: on.",
+        "optional": true
+      },
+      {
+        "name": "includeCandidates",
+        "type": "boolean",
+        "desc": "Include candidate matches. Also output the top Crossref candidates and their scores for each reference (useful for auditing). Default: off.",
+        "optional": true
+      },
+      {
+        "name": "maxReferences",
+        "type": "integer",
+        "desc": "Max references per run. Safety cap on references checked (each is billed). Whole number, 1 to 20,000 references; default 1,000.",
+        "optional": true
+      },
+      {
+        "name": "contactEmail",
+        "type": "string",
+        "desc": "Contact email for Crossref (optional). Optional. Sent to Crossref as the mailto contact so requests use its faster 'polite' pool. Never shared elsewhere.",
+        "optional": true
+      },
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": "Mode. 'check' = the normal one-off check. 'monitor' = re-check the DOIs (and/or ORCID works) and compare with the previous run's saved state. Choices: check = Check references (one-off); monitor = Monitor DOIs / ORCID for new retractions (schedule it).",
+        "optional": true
+      },
+      {
+        "name": "orcid",
+        "type": "string",
+        "desc": "ORCID iD (monitor mode). Optional. Monitor every DOI on this researcher's public ORCID record (plus Crossref works tagged with it), e.g. 0000-0002-1825-0097. Combined with the DOIs list.",
+        "optional": true
+      },
+      {
+        "name": "monitorName",
+        "type": "string",
+        "desc": "Monitor name (monitor mode). Optional. Name of the key-value store in your account that keeps state between runs (letters, digits, hyphens). Use a different name for each list you monitor. Default: refcheck-monitor-, or refcheck-monitor.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "citation_formatter",
+    "description": "Convert DOIs, ISBNs, PMIDs, arXiv IDs, titles or messy reference strings into checked citations in APA 7, MLA 9, Chicago, Harvard, IEEE, Vancouver, BibTeX and RIS. Unlike reference_checker, it formats rather than audits: unresolved items are listed, not diagnosed as fake or retracted. Use when you need a clean bibliography or .bib/.ris export. Do not use to find papers (use literature_search) or to prove references are genuine (use reference_checker first). Parameters: pass references (one per line) or paste a whole list or .bib/.ris contents in text. All styles are one price, so request every style you might need in one call rather than calling again. Text lookups below minMatchScore stay unresolved; DOIs and IDs resolve exactly. Only formatted citations are billed. Returns per item: summary, status, one field per style (apa, mla, ...), inText, bibtex, ris, doi, title, authors, year, containerTitle; combined bibliography files stay in the run's Apify key-value store.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/citation-formatter (https://apify.com/pandadad0214/citation-formatter) on your own Apify account. Price: $0.003 per citation formatted. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxReferences when you leave it unset, so it also limits what is billed; setting maxReferences higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "references",
+        "type": "array",
+        "desc": "References (one per line). DOIs, DOI links, ISBNs, arXiv IDs, PMIDs (\"PMID: 123\"), paper titles, or messy reference strings in any style. Each one is looked up and formatted.",
+        "optional": true
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "Paste a reference list or file contents. Optional. Paste a whole bibliography (numbered, one per line, or blank-line separated), or the contents of a .bib (BibTeX) or .ris file. BibTeX/RIS entries are converted directly without a lookup.",
+        "optional": true
+      },
+      {
+        "name": "styles",
+        "type": "array",
+        "desc": "Citation styles. Styles to output. All six are included in the price, so pick as many as you like.",
+        "optional": true
+      },
+      {
+        "name": "includeBibtex",
+        "type": "boolean",
+        "desc": "BibTeX export. Add a BibTeX entry per reference and a combined .bib file (LaTeX, Overleaf, JabRef). Default: on.",
+        "optional": true
+      },
+      {
+        "name": "includeRis",
+        "type": "boolean",
+        "desc": "RIS export. Add an RIS entry per reference and a combined .ris file (Zotero, Mendeley, EndNote, Rayyan). Default: on.",
+        "optional": true
+      },
+      {
+        "name": "sentenceCaseTitles",
+        "type": "boolean",
+        "desc": "Sentence-case article and book titles. APA, Harvard, IEEE and Vancouver use sentence case (\"Deep residual learning for image recognition\"). Registries often store Title Case, so we convert it; acronyms like CVPR, mRNA and COVID-19 are kept. MLA and Chicago re-capitalise automatically. Check proper nouns (names, places) in converted titles. Default: on.",
+        "optional": true
+      },
+      {
+        "name": "fixAllCapsTitles",
+        "type": "boolean",
+        "desc": "Fix ALL-CAPS titles. Some registry records store titles in capitals. Convert them to sentence case. Default: on.",
+        "optional": true
+      },
+      {
+        "name": "listUnresolvedInFiles",
+        "type": "boolean",
+        "desc": "List unresolved references in the bibliography files. Append references we could not find to the end of each bibliography file, marked [UNRESOLVED - check manually], so nothing silently disappears. They are never charged. Default: on.",
+        "optional": true
+      },
+      {
+        "name": "minMatchScore",
+        "type": "integer",
+        "desc": "Minimum match score for text lookups (50-100). How closely a search result must match a free-text reference (title, authors, year) to be used. DOIs and ISBNs are exact lookups and are not affected. Whole number, 50 to 100; default 80.",
+        "optional": true
+      },
+      {
+        "name": "maxReferences",
+        "type": "integer",
+        "desc": "Max references per run. Safety cap. Only formatted citations are billed. Whole number, 1 to 20,000 references; default 1,000.",
+        "optional": true
+      },
+      {
+        "name": "contactEmail",
+        "type": "string",
+        "desc": "Contact email for Crossref (optional). Optional. Sent to Crossref and NCBI as the contact so requests use their faster 'polite' pools. Never shared elsewhere.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "literature_search",
+    "description": "Search 250M+ scholarly works (OpenAlex) by topic query or seed DOIs and return ranked papers with DOI, citation count, free PDF link, retraction flag and a ready citation. Unlike pubmed_evidence_table (PubMed biomedical records with study design and PRISMA counts), this covers every discipline and supports citation-network expansion. Use when you need real papers on a topic, a reading list, or papers citing/cited by known DOIs. Do not use for systematic biomedical screening (use pubmed_evidence_table) or to find people (use researcher_expert_finder). Parameters: seedDois with no query walks the citation network per seedMode (citing = forward, references = backward); with a query it searches inside that network. searchIn=fullText broadens recall but lowers precision. retractedPapers=flag returns and bills retracted papers marked FIX; exclude drops them unbilled. sortBy changes dataset order only; readingListSize does not affect cost. Returns per item: summary, status, title, authors, year, venue, doi, citations, readingRank, readingScore, isOpenAccess, pdfUrl, retracted, citation, bibtex, ris, abstract.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/literature-search (https://apify.com/pandadad0214/literature-search) on your own Apify account. Price: $0.003 per paper found. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Search query. Topic or Boolean query. Use quotes for phrases and AND / OR / NOT in capitals, e.g. \"retrieval augmented generation\" AND (clinical OR medicine) NOT survey. Leave empty to explore around seed papers only.",
+        "optional": true
+      },
+      {
+        "name": "searchIn",
+        "type": "string",
+        "desc": "Search in. Title and abstract is the most precise (like a database search). Full text also matches papers that only mention your terms in the body. Choices: titleAbstract = Title and abstract (recommended); title = Title only; fullText = Full text (broadest).",
+        "optional": true
+      },
+      {
+        "name": "seedDois",
+        "type": "array",
+        "desc": "Seed papers (DOIs). Optional. Start from papers you already trust. Combine with a query to search inside that network, or use alone. Up to 50 DOIs.",
+        "optional": true
+      },
+      {
+        "name": "seedMode",
+        "type": "string",
+        "desc": "Seed mode. Which papers around the seeds to return. Choices: citing = Papers that cite the seeds (forward); references = Papers the seeds cite (backward); related = Related papers (OpenAlex similarity).",
+        "optional": true
+      },
+      {
+        "name": "yearFrom",
+        "type": "integer",
+        "desc": "From year. Earliest publication year (inclusive). Whole number, 1500 to 2100.",
+        "optional": true
+      },
+      {
+        "name": "yearTo",
+        "type": "integer",
+        "desc": "To year. Latest publication year (inclusive). Whole number, 1500 to 2100.",
+        "optional": true
+      },
+      {
+        "name": "openAccessOnly",
+        "type": "boolean",
+        "desc": "Open access only. Only return papers with a free, legal full-text copy. Default: off.",
+        "optional": true
+      },
+      {
+        "name": "minCitations",
+        "type": "integer",
+        "desc": "Minimum citations. Only return papers cited at least this many times (OpenAlex counts). Whole number, 0 or more citations; default 0.",
+        "optional": true
+      },
+      {
+        "name": "types",
+        "type": "array",
+        "desc": "Document types. Leave empty for all paper types (peer reviews, errata, retraction notices and abstracts-only records are always left out unless you pick them here).",
+        "optional": true
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "Language. Optional two-letter language code, e.g. en, de, es.",
+        "optional": true
+      },
+      {
+        "name": "retractedPapers",
+        "type": "string",
+        "desc": "Retracted papers. Flag keeps retracted papers in the results, marked FIX, so you know to avoid them (they are charged as returned papers). Exclude drops them before they are returned (not charged). Choices: flag = Flag them (FIX); exclude = Exclude them.",
+        "optional": true
+      },
+      {
+        "name": "sortBy",
+        "type": "string",
+        "desc": "Sort results by. Order of the dataset. The reading list is always ranked by reading score (relevance plus field-normalised citation impact). Choices: relevance = Relevance; citations = Most cited; newest = Newest first; oldest = Oldest first.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum papers. You pay per returned paper, so this also caps the cost ($0.003 x papers). Whole number, 1 to 2,000 results; default 100.",
+        "optional": true
+      },
+      {
+        "name": "readingListSize",
+        "type": "integer",
+        "desc": "Reading list length. How many top papers go into the ranked READING_LIST file. All papers are still in the dataset and exports. Whole number, 5 to 500 papers; default 25.",
+        "optional": true
+      },
+      {
+        "name": "citationStyle",
+        "type": "string",
+        "desc": "Citation style. Style for the citation column and the CITATIONS file. Formatted by citeproc-js with the official CSL style. Choices: apa = APA 7th edition; mla = MLA 9th edition; chicago = Chicago author-date; harvard = Harvard (Cite Them Right); ieee = IEEE; vancouver = Vancouver (NLM).",
+        "optional": true
+      },
+      {
+        "name": "includeAbstracts",
+        "type": "boolean",
+        "desc": "Include abstracts. Add the abstract where OpenAlex has one (some publishers withhold them). Default: on.",
+        "optional": true
+      },
+      {
+        "name": "checkUnpaywall",
+        "type": "boolean",
+        "desc": "Find open-access PDFs (Unpaywall). Look up the best legal open-access copy of each paper. Default: on.",
+        "optional": true
+      },
+      {
+        "name": "contactEmail",
+        "type": "string",
+        "desc": "Contact email for API etiquette (optional). Sent to Crossref and Unpaywall as the polite-pool contact. Leave empty to use ours.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "pubmed_evidence_table",
+    "description": "Run one or more PubMed queries and return a screening-ready evidence table: one row per article with PMID, journal, study design, sample size, retraction status and citation, plus PRISMA-style counts for the whole search. Unlike literature_search (all disciplines, OpenAlex ranking, citation-network walks), this uses native PubMed syntax and MeSH and is built for systematic-review screening. Use when the question is biomedical/clinical and you need reproducible PubMed queries or design filters (RCT, meta-analysis, cohort). Do not use for non-biomedical topics (use literature_search), for trial registrations (use clinical_trial_leads) or to verify a reference list (use reference_checker). Parameters: queries accept PubMed field tags ([tiab], [mh], [pt]) and Boolean operators; several queries are de-duplicated into one table. Filters (studyDesigns, excludeAnimalOnly, hasAbstract, freeFullTextOnly, excludePreprints) run before billing, and PRISMA counts still report what they removed. retractedArticles=flag bills retracted rows marked FIX; exclude drops them unbilled. sampleSize is parsed from the abstract and comes with sampleSizeConfidence; treat low confidence as unverified. Returns per item: summary, status, pmid, title, year, journal, studyDesign, sampleSize, sampleSizeConfidence, retractionStatus, retracted, citation. Excel, PRISMA and RIS/Rayyan import files stay in the run's Apify key-value store.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/pubmed-evidence-table (https://apify.com/pandadad0214/pubmed-evidence-table) on your own Apify account. Price: $0.004 per article found. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "queries",
+        "type": "array",
+        "desc": "PubMed search strings. One or more PubMed queries, written exactly as you would in PubMed (field tags like [tiab], [mh], [pt] and AND / OR / NOT work). Records found by more than one query are counted once and reported as duplicates.",
+        "optional": false
+      },
+      {
+        "name": "dateFrom",
+        "type": "string",
+        "desc": "Published from. Optional. 2020, 2020-06 or 2020-06-30 (publication date).",
+        "optional": true
+      },
+      {
+        "name": "dateTo",
+        "type": "string",
+        "desc": "Published to. Optional. 2025, 2025-12 or 2025-12-31.",
+        "optional": true
+      },
+      {
+        "name": "studyDesigns",
+        "type": "array",
+        "desc": "Study designs. Keep only these designs (PubMed publication types / MeSH). Leave empty for all.",
+        "optional": true
+      },
+      {
+        "name": "excludeAnimalOnly",
+        "type": "boolean",
+        "desc": "Exclude animal-only studies. Removes records indexed with Animals but not Humans. Records not yet indexed are kept. Default: off.",
+        "optional": true
+      },
+      {
+        "name": "languages",
+        "type": "array",
+        "desc": "Languages. Optional, e.g. english, spanish. Leave empty for all.",
+        "optional": true
+      },
+      {
+        "name": "hasAbstract",
+        "type": "boolean",
+        "desc": "Only records with an abstract. Removes records without an abstract (often letters, editorials and older records). Default: off.",
+        "optional": true
+      },
+      {
+        "name": "freeFullTextOnly",
+        "type": "boolean",
+        "desc": "Free full text only. Keep only records PubMed links to a free full text. Default: off.",
+        "optional": true
+      },
+      {
+        "name": "excludePreprints",
+        "type": "boolean",
+        "desc": "Exclude preprints. Removes records with the Preprint publication type. Default: off.",
+        "optional": true
+      },
+      {
+        "name": "retractedArticles",
+        "type": "string",
+        "desc": "Retracted articles. Flag keeps them in the table, marked FIX (charged as returned articles). Exclude removes them before they are returned (not charged) and counts them in PRISMA. Choices: flag = Flag them (FIX); exclude = Exclude them.",
+        "optional": true
+      },
+      {
+        "name": "sortBy",
+        "type": "string",
+        "desc": "Order. Order of the table. PubMed best match or most recent first. Choices: relevance = Best match (PubMed relevance); newest = Most recent.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum articles. You pay per returned article ($0.004 each), so this also caps the cost. Counts for everything not included are still reported. Whole number, 1 to 10,000 results; default 200.",
+        "optional": true
+      },
+      {
+        "name": "citationStyle",
+        "type": "string",
+        "desc": "Citation style. Style for the citation column and the CITATIONS file. Formatted by citeproc-js with the official CSL style. Choices: vancouver = Vancouver (NLM); apa = APA 7th edition; ieee = IEEE; harvard = Harvard (Cite Them Right); chicago = Chicago author-date; mla = MLA 9th edition.",
+        "optional": true
+      },
+      {
+        "name": "includeAbstracts",
+        "type": "boolean",
+        "desc": "Include abstracts. Include the abstract in the table and import files (recommended for screening). Default: on.",
+        "optional": true
+      },
+      {
+        "name": "contactEmail",
+        "type": "string",
+        "desc": "Contact email for NCBI / Crossref (optional). Sent to NCBI and Crossref as the contact for this tool. Leave empty to use ours.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "grants_finder",
+    "description": "Search US federal funding in one call: open and forecasted Grants.gov opportunities plus already-funded NIH RePORTER and NSF awards, one row per grant with agency, dates, amount (USD), eligibility and link. Unlike sbir_sttr_topic_radar (SBIR/STTR solicitation topics with deadlines and DoD Q&A) and federal_contract_finder (procurement contracts on USAspending), this covers assistance grants and research awards. Use when you need grants to apply for or want to see who was funded for a topic. Do not use for contracts (use federal_contract_finder) or small-business R&D topics (use sbir_sttr_topic_radar). Parameters: sources picks the mix; grants_gov is apply-able funding, nih/nsf are past awards. maxResultsPerSource applies to each source, so worst-case billed rows = maxResultsPerSource x number of sources; run_max_items does not set it, so keep it small first and rely on run_max_charge_usd. minAmount drops rows whose source publishes no amount. includeGrantsGovDetails adds award ceiling and eligibility but slows the run; turn it off for quick scans. Returns per item: agentSummary, source, recordType, status, title, agency, number, openDate, closeDate, amount, eligibility, summary, url.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/grants-finder (https://apify.com/pandadad0214/grants-finder) on your own Apify account. Price: $0.003 per grant found. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned but does not limit what the Actor bills; use the tool's own limits and run_max_charge_usd. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "keywords",
+        "type": "string",
+        "desc": "Keywords. What the funding is for, e.g. artificial intelligence, rural broadband, opioid prevention. Use quotes for exact phrases (\"machine learning\"). NIH also understands AND / OR / NOT.",
+        "optional": false
+      },
+      {
+        "name": "sources",
+        "type": "array",
+        "desc": "Sources. Grants.gov = open and upcoming funding opportunities you can apply to. NIH RePORTER and NSF = awards already made (who got funded, how much, by which program).",
+        "optional": true
+      },
+      {
+        "name": "maxResultsPerSource",
+        "type": "integer",
+        "desc": "Maximum results per source. You pay per returned result, so this also caps the cost. Up to 1,000 per source. Whole number, 1 to 1,000 results per source; default 50.",
+        "optional": true
+      },
+      {
+        "name": "agencies",
+        "type": "array",
+        "desc": "Agencies. Optional. Grants.gov agency codes or names (HHS-NIH11, NSF, DOE, USDA, ED, Geological Survey; a code prefix like HHS matches all HHS sub-agencies). NIH institutes (NCI, NIAID, NIMH… or NIH for all). NSF directorates (CSE, BIO, GEO, MPS, SBE, EDU, ENG, TIP, or NSF for all). A source is skipped when none of its agencies are listed.",
+        "optional": true
+      },
+      {
+        "name": "dateFrom",
+        "type": "string",
+        "desc": "From date. Optional. 2025, 2025-06 or 2025-06-30. Applies to the Grants.gov posted date, the NIH project start date and the NSF award date.",
+        "optional": true
+      },
+      {
+        "name": "dateTo",
+        "type": "string",
+        "desc": "To date. Optional. 2026, 2026-12 or 2026-12-31.",
+        "optional": true
+      },
+      {
+        "name": "minAmount",
+        "type": "integer",
+        "desc": "Minimum amount (USD). Optional. Grants.gov award ceiling, NIH fiscal-year award or NSF estimated total. When set, rows whose source publishes no amount are left out (and counted in the summary). Whole number, 0 or more USD.",
+        "optional": true
+      },
+      {
+        "name": "maxAmount",
+        "type": "integer",
+        "desc": "Maximum amount (USD). Optional. Whole number, 0 or more USD.",
+        "optional": true
+      },
+      {
+        "name": "grantsGovStatuses",
+        "type": "array",
+        "desc": "Grants.gov opportunity status. Default: forecasted and posted (still open or coming soon).",
+        "optional": true
+      },
+      {
+        "name": "grantsGovFundingCategories",
+        "type": "array",
+        "desc": "Grants.gov funding categories. Optional Grants.gov category codes, e.g. ST (science and technology), HL (health), ED (education), AG (agriculture), ENV (environment), CD (community development).",
+        "optional": true
+      },
+      {
+        "name": "nihFiscalYears",
+        "type": "array",
+        "desc": "NIH fiscal years. Optional, e.g. 2025, 2026. Each NIH project appears once (its latest matching year).",
+        "optional": true
+      },
+      {
+        "name": "nihActiveOnly",
+        "type": "boolean",
+        "desc": "NIH: active projects only. Only return NIH projects that are currently active. Default: off.",
+        "optional": true
+      },
+      {
+        "name": "sortBy",
+        "type": "string",
+        "desc": "Sort. Relevance (default) or newest first (by posted / start date). Choices: relevance = Relevance; newest = Newest first.",
+        "optional": true
+      },
+      {
+        "name": "includeGrantsGovDetails",
+        "type": "boolean",
+        "desc": "Grants.gov details (amount, eligibility, summary). Fetch each opportunity's detail page for award ceiling, eligibility and summary. Turn off for a faster title-and-deadline list. Default: on.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "researcher_expert_finder",
+    "description": "Rank the academic experts and key opinion leaders on a research topic from OpenAlex, with institution, ORCID, h-index, topic paper counts and their recent topic papers. Unlike literature_search (returns papers) this returns people; unlike company_team_finder (staff listed on a company website) it covers academics by publication record. Use when you need reviewers, KOLs, collaborators or speakers for a topic, optionally by country or institution. Do not use for company contacts (use company_team_finder) or for papers themselves (use literature_search). Parameters: the ranked pool is the 200 authors with the most matching papers, so maxResults above 200 adds nothing. maxAuthorsPerPaper ignores mega-collaboration papers that would inflate everyone on them; raise it only for physics-style fields. yearFrom/yearTo limit which papers count, while activeSince filters people. includeOrcid adds employment and bio at no extra charge. Returns per item: expert score, name, ORCID, current institution and country, h-index, total and topic works/citations, recent topic papers (title, year, DOI, citations), summary.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/researcher-expert-finder (https://apify.com/pandadad0214/researcher-expert-finder) on your own Apify account. Price: $0.0025 per expert found. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "topic",
+        "type": "string",
+        "desc": "Research topic. What the experts work on, e.g. perovskite solar cells, antimicrobial resistance, large language models in healthcare. Matched against paper titles and abstracts. Use quotes for exact phrases (\"machine learning\") and AND / OR / NOT for Boolean searches.",
+        "optional": false
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum experts. You pay per expert returned, so this also caps the cost. Up to 200 (the ranked pool is the 200 authors with the most matching papers). Whole number, 1 to 200 results; default 25.",
+        "optional": true
+      },
+      {
+        "name": "countries",
+        "type": "array",
+        "desc": "Countries. Optional 2-letter ISO country codes (US, GB, DE, IN, AU…). Keeps experts whose current institution is in one of these countries, and counts only papers with an author in them.",
+        "optional": true
+      },
+      {
+        "name": "institution",
+        "type": "string",
+        "desc": "Institution. Optional. University, hospital, lab or company name (e.g. Stanford University), a ROR ID or an OpenAlex institution ID (I…). Sub-units count too: a university includes its schools and hospitals. The matched institution is shown in the search log.",
+        "optional": true
+      },
+      {
+        "name": "yearFrom",
+        "type": "integer",
+        "desc": "Papers from year. Optional. Only count matching papers published in or after this year, e.g. 2020 for people active in the field recently. Whole number, 1900 or more.",
+        "optional": true
+      },
+      {
+        "name": "yearTo",
+        "type": "integer",
+        "desc": "Papers to year. Optional. Only count matching papers published up to this year. Whole number, 1900 or more.",
+        "optional": true
+      },
+      {
+        "name": "activeSince",
+        "type": "integer",
+        "desc": "Active since (year). Optional. Only keep people who published anything in or after this year (uses OpenAlex yearly counts for the last ~10 years). Whole number, 1900 or more.",
+        "optional": true
+      },
+      {
+        "name": "minTopicWorks",
+        "type": "integer",
+        "desc": "Minimum matching papers. Each expert must have at least this many papers on your topic. Whole number, 1 or more papers; default 2.",
+        "optional": true
+      },
+      {
+        "name": "minWorks",
+        "type": "integer",
+        "desc": "Minimum total works. Optional. Total works on the person's OpenAlex profile. Whole number, 0 or more works.",
+        "optional": true
+      },
+      {
+        "name": "minCitations",
+        "type": "integer",
+        "desc": "Minimum total citations. Optional. Whole number, 0 or more citations.",
+        "optional": true
+      },
+      {
+        "name": "minHIndex",
+        "type": "integer",
+        "desc": "Minimum h-index. Optional. Whole number, 0 or more.",
+        "optional": true
+      },
+      {
+        "name": "sortBy",
+        "type": "string",
+        "desc": "Sort. Expert score (default) blends matching papers, their citations and h-index. Or sort by a single number. Choices: expertScore = Expert score; topicWorks = Matching papers; topicCitations = Citations of top matching papers; citations = Total citations; hIndex = h-index.",
+        "optional": true
+      },
+      {
+        "name": "papersPerExpert",
+        "type": "integer",
+        "desc": "Recent papers per expert. How many of each expert's newest matching papers to list (title, year, DOI, citations). 0 to skip. Whole number, 0 to 10 papers; default 3.",
+        "optional": true
+      },
+      {
+        "name": "includeOrcid",
+        "type": "boolean",
+        "desc": "Add ORCID details. For experts with an ORCID iD, add current employment and role, keywords, websites and a short biography from the public ORCID record. Default: on.",
+        "optional": true
+      },
+      {
+        "name": "maxAuthorsPerPaper",
+        "type": "integer",
+        "desc": "Ignore papers with more authors than. Large collaboration papers (hundreds of authors) would make everyone on them look like an expert. Papers with more authors than this are not counted. Whole number, 1 or more authors; default 50.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "pdf_table_extractor",
+    "description": "Extract every table from PDF files (by URL or from an Apify key-value store) into structured rows, Excel and CSV, with optional OCR for scanned pages. Unlike sec_financials_excel (standardized XBRL financials straight from SEC filings), this reads whatever tables a PDF contains. Use when the data you need is locked in PDF tables: reports, statements, government releases. Do not use for SEC-listed company financials (use sec_financials_excel, which is exact) or to find papers (use literature_search). Parameters: billing is per page analysed plus per table extracted, so pages and maxPagesPerPdf are the real cost levers; run_max_items does not cap pages. ocrScannedPages=false skips and lists scanned pages; turning it on adds the per-OCR-page price up to maxOcrPagesPerPdf, and is much slower. detection=auto tries ruled-grid then whitespace detection; force lattice or stream only if auto merges or splits columns. Files over 150 MB fail and are not charged. Returns per item (one per table): summary, pages, header, row and column counts and cell data; Excel/CSV files stay in the run's Apify key-value store.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/pdf-table-extractor (https://apify.com/pandadad0214/pdf-table-extractor) on your own Apify account. Price: $0.001 per page analysed; $0.003 per table extracted; $0.02 per scanned page ocr. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned but does not limit what the Actor bills; use the tool's own limits and run_max_charge_usd. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "pdfUrls",
+        "type": "array",
+        "desc": "PDF URLs. Direct links to PDF files. Google Drive and Dropbox share links are converted to direct downloads automatically. Up to 150 MB per file.",
+        "optional": true
+      },
+      {
+        "name": "pdfStore",
+        "type": "string",
+        "desc": "Key-value store with PDFs. Optional. Pick a key-value store in your account that holds PDFs. The Actor gets read access to this store only.",
+        "optional": true
+      },
+      {
+        "name": "pdfStoreKeys",
+        "type": "array",
+        "desc": "Record keys in that store. Optional. Keys of the PDFs to process (e.g. REPORT.pdf). Leave empty to process every PDF record in the store (up to 50).",
+        "optional": true
+      },
+      {
+        "name": "pages",
+        "type": "string",
+        "desc": "Pages. Optional. Only these pages, e.g. 1-5, 8, 12-end. Leave empty for all pages (up to the page limit below).",
+        "optional": true
+      },
+      {
+        "name": "maxPagesPerPdf",
+        "type": "integer",
+        "desc": "Maximum pages per PDF. Caps cost and run time on very long documents. You pay per page analysed. Whole number, 1 to 2,000 pages; default 100.",
+        "optional": true
+      },
+      {
+        "name": "detection",
+        "type": "string",
+        "desc": "Table detection. Auto tries ruled-grid detection first and switches to whitespace (column alignment) detection when that recovers more of the table. Pick one mode if you know your PDF's style. Choices: auto = Auto (recommended); lattice = Ruled tables only (cell borders); stream = Whitespace tables only (no borders).",
+        "optional": true
+      },
+      {
+        "name": "headerDetection",
+        "type": "string",
+        "desc": "Header row. Auto finds header rows above the first data row (multi-line headers are joined). First row = always use row 1. None = generic Column 1, Column 2… names. Choices: auto = Auto-detect; firstRow = Always the first row; none = No header.",
+        "optional": true
+      },
+      {
+        "name": "mergeWrappedRows",
+        "type": "boolean",
+        "desc": "Merge wrapped rows. Join labels that wrap onto a second line back into one row, so numbers stay on the right line. Default: on.",
+        "optional": true
+      },
+      {
+        "name": "mergeAcrossPages",
+        "type": "boolean",
+        "desc": "Join tables that continue on the next page. When a table carries on over a page break with the same columns, output it as one table with a page range. Default: on.",
+        "optional": true
+      },
+      {
+        "name": "numbersAsNumbers",
+        "type": "boolean",
+        "desc": "Numbers as numbers in Excel. Write 1,234 / (56) / 4.2% as real Excel numbers (parentheses = negative) so you can sum and chart them. CSV and dataset keep the text exactly as printed. Default: on.",
+        "optional": true
+      },
+      {
+        "name": "ocrScannedPages",
+        "type": "boolean",
+        "desc": "OCR scanned pages (beta). Pages with no text layer (scans, photos) are always detected. Off (default): they are skipped, listed in SUMMARY and on the Index sheet, and cost nothing. On: they are read with Tesseract OCR (English) and their tables are marked 'verify'. OCR is slow (about a minute per page) and can misread digits and dot leaders, so use it for clean scans and check the numbers.",
+        "optional": true
+      },
+      {
+        "name": "maxOcrPagesPerPdf",
+        "type": "integer",
+        "desc": "Maximum OCR pages per PDF. OCR has its own cap because it is slow and priced per page. Extra scanned pages are flagged, not charged. Whole number, 0 to 100 pages; default 10.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "npi_provider_lists",
+    "description": "Build de-duplicated lists of US healthcare providers (individuals and organizations) from the official CMS NPI Registry by specialty and territory, with NPI, name, specialty, practice address and phone. Unlike clinical_trial_leads (trial sites and investigators) or local_business_leads (any business category from OpenStreetMap), this is the authoritative US provider registry. Use when you need doctors, dentists, therapists, pharmacies or clinics in states, cities or ZIPs. Do not use for non-US providers or for email addresses (NPI publishes none; follow up with company_website_enricher on practice domains). Parameters: specialties take plain words, mapped to NPI taxonomies. Large states are split by ZIP automatically, so you are not limited by the registry's 1,200-result ceiling. cities and zipCodes narrow the states given. maxResults is shared across all specialty x area combinations. primarySpecialtyOnly=true removes providers who list the specialty only as secondary; includeSecondaryLocations=false drops providers whose main office is outside the territory. Returns per item: summary, NPI, provider type, name, specialty/taxonomy, practice address, phone.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/npi-provider-lists (https://apify.com/pandadad0214/npi-provider-lists) on your own Apify account. Price: $0.0015 per provider in list. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "specialties",
+        "type": "array",
+        "desc": "Specialties. Plain names work: dentist, orthodontist, family doctor, pediatrician, cardiologist, dermatologist, psychiatrist, chiropractor, physical therapist, nurse practitioner, psychologist, mental health counselor, social worker, pharmacy, home health, hospice, nursing home, urgent care, hospital, FQHC and more (full list in the README). Any NPPES taxonomy description also works, e.g. \"Family Medicine\" or \"Nurse Practitioner, Pediatrics\".",
+        "optional": true
+      },
+      {
+        "name": "states",
+        "type": "array",
+        "desc": "States. 2-letter codes, e.g. VT, TX. Big states are split automatically by ZIP code, so you are not stuck at the registry's 1,200-result ceiling. If you also list cities without a state, these states are used for them.",
+        "optional": true
+      },
+      {
+        "name": "cities",
+        "type": "array",
+        "desc": "Cities. Optional. Write \"Austin, TX\". Saint/St, Fort/Ft and Mount/Mt spellings are searched together. When cities are given, the list is limited to those cities (states only fill in a missing state).",
+        "optional": true
+      },
+      {
+        "name": "zipCodes",
+        "type": "array",
+        "desc": "ZIP codes. Optional. 5-digit ZIPs (05401) or prefixes of 2-4 digits (941 = San Francisco area, 05 = Vermont/New Hampshire). Added to the territory on top of states or cities.",
+        "optional": true
+      },
+      {
+        "name": "providerType",
+        "type": "string",
+        "desc": "Provider type. Individuals (NPI-1: doctors, nurses, therapists) or organizations (NPI-2: practices, clinics, pharmacies, agencies). Choices: all = Both; individual = Individuals only; organization = Organizations only.",
+        "optional": true
+      },
+      {
+        "name": "lastName",
+        "type": "string",
+        "desc": "Last name. Optional, individuals only. A trailing * is a wildcard after at least 2 letters (Sm*).",
+        "optional": true
+      },
+      {
+        "name": "firstName",
+        "type": "string",
+        "desc": "First name. Optional, individuals only. Wildcards as above.",
+        "optional": true
+      },
+      {
+        "name": "organizationName",
+        "type": "string",
+        "desc": "Organization name. Optional, organizations only, e.g. \"Kaiser*\" or \"Walgreen*\".",
+        "optional": true
+      },
+      {
+        "name": "primarySpecialtyOnly",
+        "type": "boolean",
+        "desc": "Primary specialty only. On: keep only providers whose primary taxonomy is the specialty you asked for. Off (default): keep anyone who lists it among their taxonomies.",
+        "optional": true
+      },
+      {
+        "name": "includeSecondaryLocations",
+        "type": "boolean",
+        "desc": "Include providers with an additional practice location in the territory. On (default): a provider whose main office is elsewhere but who also practices in your territory is included, and the in-territory address is shown. Off: primary practice address only.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum providers. You pay per provider in the list, so this also caps the cost. Up to 50,000. With several specialties or areas the limit is shared fairly between them. Whole number, 1 to 50,000 results; default 500.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "federal_contract_finder",
+    "description": "Find US federal prime contract awards on USAspending.gov by keyword, NAICS, PSC, agency, place of performance, set-aside or recipient, or switch to recompete mode to list contracts whose period of performance ends soon. Unlike grants_finder (assistance grants and research awards) and sbir_sttr_topic_radar (open SBIR/STTR topics), this returns procurement contracts with incumbent, UEI and end date. Use when you need incumbents, competitor contract history, market sizing by NAICS/agency, or recompete pipeline leads. Do not use for grants (use grants_finder) or for open solicitations you can bid on today (USAspending holds awards, not SAM.gov notices). Parameters: mode=awards honors sortBy and dateFrom/dateTo (activity window, default last 24 months); mode=recompete ignores sortBy, sorts by soonest end date and uses recompeteMonths as the window. NAICS prefixes cover all child codes. recipientNames accepts company names or UEIs for competitor lookups. Keywords under 3 characters are rejected. Returns per item: agentSummary, awardId, recipientName, recipientUei, amount, awardingAgency, awardingSubAgency, naicsCode, pscCode, description, startDate, endDate, monthsLeft, status, performanceState, url.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/federal-contract-finder (https://apify.com/pandadad0214/federal-contract-finder) on your own Apify account. Price: $0.002 per contract found. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": "Mode. Contract awards = awards that match your filters, sorted as you choose. Recompete radar = only contracts whose period of performance ends between today and the number of months below (incumbent contracts likely to be re-solicited), soonest first. Choices: awards = Contract awards; recompete = Recompete radar (contracts ending soon).",
+        "optional": true
+      },
+      {
+        "name": "keywords",
+        "type": "array",
+        "desc": "Keywords. Words to find in the award description, recipient or codes, e.g. cybersecurity, janitorial, drone. Each keyword at least 3 characters; rows matching any keyword are returned. At least one filter (keywords, NAICS, PSC, agency, recipient, state or set-aside) is required.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum results. You pay per returned contract, so this also caps the cost. Whole number, 1 to 5,000; default 100.",
+        "optional": true
+      },
+      {
+        "name": "recompeteMonths",
+        "type": "integer",
+        "desc": "Recompete window (months). Recompete radar only: keep contracts that end within this many months from today. Whole number, 1 to 36; default 12.",
+        "optional": true
+      },
+      {
+        "name": "naicsCodes",
+        "type": "array",
+        "desc": "NAICS codes. Optional. 2 to 6 digit NAICS industry codes; a prefix covers all codes under it (5415 = computer systems design). Examples: 541512 IT services, 561720 janitorial, 236220 commercial construction.",
+        "optional": true
+      },
+      {
+        "name": "pscCodes",
+        "type": "array",
+        "desc": "PSC codes. Optional. Product and Service Codes (what was bought), e.g. D399 other IT, R425 engineering support, S201 custodial.",
+        "optional": true
+      },
+      {
+        "name": "agencies",
+        "type": "array",
+        "desc": "Awarding agencies. Optional. Department or sub-agency by name or abbreviation, e.g. DOD, VA, GSA, DHS, Department of the Army, Missile Defense Agency, Forest Service.",
+        "optional": true
+      },
+      {
+        "name": "performanceStates",
+        "type": "array",
+        "desc": "Place of performance (states). Optional. 2-letter US state codes where the work is done, e.g. AZ, TX, DC.",
+        "optional": true
+      },
+      {
+        "name": "setAsides",
+        "type": "array",
+        "desc": "Set-aside types. Optional. Only awards made under these small-business set-asides.",
+        "optional": true
+      },
+      {
+        "name": "recipientNames",
+        "type": "array",
+        "desc": "Recipient (company) names. Optional. Company names or UEIs to look up a competitor's or partner's contracts, e.g. Booz Allen.",
+        "optional": true
+      },
+      {
+        "name": "contractTypes",
+        "type": "array",
+        "desc": "Contract types. Optional. Default: all four prime contract types.",
+        "optional": true
+      },
+      {
+        "name": "dateFrom",
+        "type": "string",
+        "desc": "Activity from date. Optional. 2024, 2024-06 or 2024-06-30. Awards with a contract action (signed or modified) on or after this date. Default: 24 months ago (36 months in recompete mode). Earliest 2007-10-01.",
+        "optional": true
+      },
+      {
+        "name": "dateTo",
+        "type": "string",
+        "desc": "Activity to date. Optional. 2026, 2026-09 or 2026-09-30. Default: today.",
+        "optional": true
+      },
+      {
+        "name": "minAmount",
+        "type": "integer",
+        "desc": "Minimum award amount (USD). Optional. Whole number, 0 or more USD.",
+        "optional": true
+      },
+      {
+        "name": "maxAmount",
+        "type": "integer",
+        "desc": "Maximum award amount (USD). Optional. Whole number, 0 or more USD.",
+        "optional": true
+      },
+      {
+        "name": "sortBy",
+        "type": "string",
+        "desc": "Sort (contract awards mode). Largest awards first, newest start date first, latest end date first, or most recently modified first. Recompete radar always sorts by end date, soonest first. Choices: amount = Largest amount; newest = Newest start date; endingSoon = Latest end date; recentlyModified = Recently modified.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "email_domain_security_checker",
+    "description": "Audit email authentication for a list of domains: SPF, DKIM (about 40 common selectors), DMARC, MX provider, MTA-STS, TLS-RPT and BIMI, graded A-F with spoofing risk and plain-English fixes. Unlike company_website_enricher (firmographics, tech stack, contacts), this only grades mail security posture from public DNS. Use when you need deliverability or spoofing checks, a security prospect list, or a vendor review. Do not use for website SEO or AI-readiness (use ai_search_seo_audit) or for page-level prompt injection (use hidden_ai_instructions_scanner). Parameters: domains accept bare domains, emails or URLs and are normalized and de-duplicated. DKIM is only confirmed when a selector matches; add dkimSelectors you know are in use, otherwise a missing DKIM may be a false negative. Nonexistent or unresolvable domains are returned with a status and not charged. Returns per item: agentSummary, domain, grade, score (0-100), spoofable, mailProvider, spfRecord, spfAll, spfLookups, dmarcRecord, dmarcPolicy, dmarcReporting, dkimSelectorsFound, mtaSts, tlsRpt, bimi, mxHosts, fixes (prioritized), status.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/email-domain-security-checker (https://apify.com/pandadad0214/email-domain-security-checker) on your own Apify account. Price: $0.002 per domain checked. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxDomains when you leave it unset, so it also limits what is billed; setting maxDomains higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "domains",
+        "type": "array",
+        "desc": "Domains, emails or URLs. One per line: example.com, name@example.com or https://www.example.com/page all work (the domain is extracted, www. removed, duplicates dropped). Leave empty for a 3-domain demo.",
+        "optional": true
+      },
+      {
+        "name": "maxDomains",
+        "type": "integer",
+        "desc": "Maximum domains. You pay per checked domain, so this also caps the cost. Whole number, 1 to 10,000; default 1,000.",
+        "optional": true
+      },
+      {
+        "name": "dkimSelectors",
+        "type": "array",
+        "desc": "Extra DKIM selectors. Optional. About 40 common selectors (google, selector1, selector2, k1, s1, s2, default…) are always tried. Add your own if you sign with a custom one, e.g. 20230601 or mailo.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "ai_search_seo_audit",
+    "description": "Audit web pages for classic SEO and for AI-search readiness (ChatGPT, Perplexity, Claude, Google AI Overviews): titles, meta, schema/FAQ markup, author/date signals, blocked AI crawlers, llms.txt and ranked fixes, with an SEO score and an AI-readiness score per page. Unlike website_change_monitor (diffs pages over time) and hidden_ai_instructions_scanner (finds concealed prompt-injection text), this grades how discoverable and citable a page is. Use when you need an on-page SEO/GEO audit or an llms.txt draft. Do not use for change tracking (use website_change_monitor) or security scanning (use hidden_ai_instructions_scanner or email_domain_security_checker). Parameters: crawlInternalLinks multiplies pages: each URL can add up to that many same-site pages, and every page is billed, so maxPages/run_max_items is the real cost cap. generateLlmsTxt drafts one llms.txt per site lacking it at no extra charge. Pages that block our crawler are returned unbilled. Returns per item: agentSummary, url, seoScore, aiReadinessScore, title, metaDescription, h1, wordCount, schemaTypes, faqSchema, aiSearchBotsBlocked, aiTrainingBotsBlocked, llmsTxt, sitemapFound, canonical, noindex, crawlerBlocked, fixes.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/ai-search-seo-audit (https://apify.com/pandadad0214/ai-search-seo-audit) on your own Apify account. Price: $0.004 per page audited. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxPages when you leave it unset, so it also limits what is billed; setting maxPages higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "urls",
+        "type": "array",
+        "desc": "Page URLs. Pages to audit, one per line. https:// is added if missing (example.com/pricing works). Leave empty for a 2-page demo.",
+        "optional": true
+      },
+      {
+        "name": "crawlInternalLinks",
+        "type": "integer",
+        "desc": "Also audit internal pages (per URL). 0 = audit only the URLs above. 1 to 100 = also audit up to this many same-site pages linked from each URL (good for a quick whole-site check from the homepage).",
+        "optional": true
+      },
+      {
+        "name": "maxPages",
+        "type": "integer",
+        "desc": "Maximum pages. You pay per audited page, so this also caps the cost. Whole number, 1 to 2,000; default 50.",
+        "optional": true
+      },
+      {
+        "name": "generateLlmsTxt",
+        "type": "boolean",
+        "desc": "Draft an llms.txt for sites without one. On by default: for each site with no /llms.txt, writes a ready-to-edit draft (from the audited pages and homepage links) into the LLMS_TXT_DRAFTS record and the Sites sheet. No extra charge.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "podcast_leads_finder",
+    "description": "Find active podcasts to pitch by topic from Apple Podcasts and each show's public RSS feed: host, contact email published in the feed, website, socials, episode count, last episode date and a guest-friendly signal. Unlike local_business_leads or company_team_finder (businesses and staff), this targets shows and their hosts for guest booking or sponsorship outreach. Use when you need a podcast guesting, PR or sponsorship list for a niche. Do not use for audience or download numbers (not public) or for general topic popularity (use topic_trends_tracker). Parameters: each keyword is searched separately and results are de-duplicated; deepSearch=true (default) searches descriptions too for up to 3x more shows but is slower. onlyWithEmail and guestFriendlyOnly filter before billing, so they shrink both list and cost. activeWithinDays=0 includes dormant shows. Emails come only from RSS feeds; nothing is guessed. Returns per item: agentSummary, podcastName, author, email, emailSource, website, socials, appleUrl, feedUrl, primaryGenre, episodeCount, lastEpisodeDate, avgDaysBetweenEpisodes, guestFriendly, guestEpisodeShare, recentEpisodeTitles.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/podcast-leads-finder (https://apify.com/pandadad0214/podcast-leads-finder) on your own Apify account. Price: $0.004 per podcast found. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "keywords",
+        "type": "array",
+        "desc": "Topics / keywords. Podcast topics to search on Apple Podcasts, one per line, e.g. real estate investing, SaaS marketing, women in business. Each keyword returns up to about 600 shows before filters. Leave empty for a 20-podcast demo.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum podcasts. You pay per returned podcast, so this also caps the cost. Whole number, 1 to 3,000; default 100.",
+        "optional": true
+      },
+      {
+        "name": "activeWithinDays",
+        "type": "integer",
+        "desc": "Active within (days). Keep only shows that published an episode in the last N days. 0 = include inactive shows. Default 90.",
+        "optional": true
+      },
+      {
+        "name": "onlyWithEmail",
+        "type": "boolean",
+        "desc": "Only podcasts with a contact email. Keep only shows that publish a contact email in their RSS feed (itunes:owner, managingEditor or the show description).",
+        "optional": true
+      },
+      {
+        "name": "guestFriendlyOnly",
+        "type": "boolean",
+        "desc": "Only podcasts that feature guests. Keep only shows where at least 30% of the last 20 episodes look like interviews (guest names, 'with', 'feat.', or podcast:person guest tags).",
+        "optional": true
+      },
+      {
+        "name": "minEpisodes",
+        "type": "integer",
+        "desc": "Minimum episodes. Optional. Skip shows with fewer episodes (e.g. 20 to skip brand-new shows). Default 0.",
+        "optional": true
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Apple Podcasts country. 2-letter store country to search, e.g. US, GB, CA, AU, IN. Default US.",
+        "optional": true
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "Language. Optional. Keep shows whose feed language starts with this code, e.g. en, es, de.",
+        "optional": true
+      },
+      {
+        "name": "sortBy",
+        "type": "string",
+        "desc": "Sort by. Relevance = Apple's search order. Newest episode = most recently active first. Most episodes = biggest back catalogs first. Choices: relevance = Relevance; newestEpisode = Newest episode; mostEpisodes = Most episodes.",
+        "optional": true
+      },
+      {
+        "name": "deepSearch",
+        "type": "boolean",
+        "desc": "Deep search. On by default: also searches show descriptions and keywords, not just titles, for up to 3x more shows per keyword.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "local_business_leads",
+    "description": "List local businesses by category and place (city, county, ZIP, neighborhood or lat/lon radius) from OpenStreetMap under its open license, with address, phone, email, website, opening hours and socials. Unlike npi_provider_lists (official US healthcare registry) or trucking_company_leads (FMCSA carriers), this covers any business type worldwide, with coverage as good as local OSM mapping. Use when you need a prospect list such as plumbers in Phoenix or cafes in a ZIP. Do not use for US healthcare providers (use npi_provider_lists, which is authoritative) or for reviews/ratings (OSM has none). Parameters: give location, or latitude+longitude (radiusKm defaults to 5); radiusKm with a location searches a circle instead of the official boundary. Whole states or countries are slow, often longer than 60 s, so raise run_timeout_secs to 300 or narrow the area. requireEmail sharply reduces results because few OSM entries list email. Returns per item: agentSummary, name, category, street, city, state, postcode, phone, email, website, openingHours, socials, lat, lon, osmUrl, attribution (ODbL; credit OpenStreetMap when you republish).\n\nBehavior: read-only; runs the Apify Actor pandadad0214/local-business-leads (https://apify.com/pandadad0214/local-business-leads) on your own Apify account. Price: $0.001 per business found. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "categories",
+        "type": "array",
+        "desc": "Business categories. Plain words, one per line: dentist, plumber, restaurant, coffee shop, lawyer, hair salon, gym, real estate, car repair… (about 150 built in). Other words are matched against OpenStreetMap tags and names. Power users can enter a tag like shop=florist or craft=hvac.",
+        "optional": true
+      },
+      {
+        "name": "location",
+        "type": "string",
+        "desc": "Location. City, county, state, ZIP or neighborhood, e.g. \"Tempe, Arizona\", \"Austin, TX\", \"London\", \"90210\". Smaller areas are faster; whole US states or countries may time out (use a radius or a city).",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum businesses. You pay per returned business, so this also caps the cost. Whole number, 1 to 10,000; default 200.",
+        "optional": true
+      },
+      {
+        "name": "requireWebsite",
+        "type": "boolean",
+        "desc": "Only businesses with a website. Keep only businesses that list a website on OpenStreetMap.",
+        "optional": true
+      },
+      {
+        "name": "requirePhone",
+        "type": "boolean",
+        "desc": "Only businesses with a phone number. Keep only businesses that list a phone number.",
+        "optional": true
+      },
+      {
+        "name": "requireEmail",
+        "type": "boolean",
+        "desc": "Only businesses with an email. Keep only businesses that list an email address (fewer results: most businesses publish phone and website, fewer publish email).",
+        "optional": true
+      },
+      {
+        "name": "radiusKm",
+        "type": "integer",
+        "desc": "Radius (km). Optional. Search a circle of this many km around the location's center instead of its official boundary. 1 to 100.",
+        "optional": true
+      },
+      {
+        "name": "latitude",
+        "type": "string",
+        "desc": "Latitude. Optional. Instead of a location name: center latitude, e.g. 33.4255 (used with longitude and radius; radius defaults to 5 km).",
+        "optional": true
+      },
+      {
+        "name": "longitude",
+        "type": "string",
+        "desc": "Longitude. Optional. Center longitude, e.g. -111.9400.",
+        "optional": true
+      },
+      {
+        "name": "sortBy",
+        "type": "string",
+        "desc": "Sort by. Most complete = businesses with phone, email, website, address and hours first. Name = A to Z. Choices: mostComplete = Most complete contact details first; name = Name (A-Z).",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "company_hiring_signals",
+    "description": "Measure hiring intent per company from its public job board (Greenhouse, Lever, Ashby and more): open jobs, new jobs in 7/30 days, teams hiring, leadership openings, a 0-100 hiring score and hot/warm/cold signal. Unlike company_website_enricher (tech stack and contacts) and company_team_finder (current staff), this reads open roles as a buying or growth signal. Use when you need sales triggers, recruiting leads or competitor hiring watch for a known list of companies. Do not use to discover companies from scratch (start from local_business_leads, federal_contract_finder or your own list) or for individual job search. Parameters: companies accept domains, names or direct job-board links; links are exact, names can match the wrong board. checkWebsite=true reads the careers page to find the exact board (more accurate, slower). minOpenJobs filters below-threshold companies out unbilled. titleKeywords only count matches; they do not filter. Companies with no public board are returned free with status. Returns per item: agentSummary, company, domain, signal, hiringScore, openJobs, newJobs7d, newJobs30d, leadershipJobs, leadershipTitles, topFunctions, functionCounts, remoteShare, topLocations, keywordHits, newestJobs, lastPostedAt, ats, boardUrl, matchedBy, status.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/company-hiring-signals (https://apify.com/pandadad0214/company-hiring-signals) on your own Apify account. Price: $0.003 per company analyzed. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxCompanies when you leave it unset, so it also limits what is billed; setting maxCompanies higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "companies",
+        "type": "array",
+        "desc": "Companies. One per line: a company domain (stripe.com), a company name (Notion) or a job-board link (https://jobs.lever.co/spotify, https://boards.greenhouse.io/airbnb, https://jobs.ashbyhq.com/ramp). Leave empty for a 3-company demo.",
+        "optional": true
+      },
+      {
+        "name": "titleKeywords",
+        "type": "array",
+        "desc": "Keywords to count in job titles. Optional. Count open roles whose title (or board department) contains these words, e.g. a tool you sell into (Salesforce, HubSpot, Snowflake) or a role you care about (SDR, Account Executive, DevOps).",
+        "optional": true
+      },
+      {
+        "name": "minOpenJobs",
+        "type": "integer",
+        "desc": "Only return companies with at least this many open jobs. Companies below this are listed in the run summary but not returned and not charged. 0 returns every company with a job board.",
+        "optional": true
+      },
+      {
+        "name": "checkWebsite",
+        "type": "boolean",
+        "desc": "Look for the job board on the company website. When you give a domain, read the home and careers pages (robots.txt respected) to find the exact job-board link. Off = match the board by company name only (faster, less exact).",
+        "optional": true
+      },
+      {
+        "name": "maxCompanies",
+        "type": "integer",
+        "desc": "Maximum companies. You pay per company returned, so this also caps the cost. 1 to 5,000; default 500.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "company_website_enricher",
+    "description": "Enrich company domains from public sources (the company's own site with robots.txt respected, DNS and RDAP): name, description, published emails and phones, LinkedIn and socials, address, tech stack by category, mail provider, SaaS tools seen in DNS and domain age. Unlike company_team_finder (named people and titles) and company_hiring_signals (open jobs), this returns one firmographic row per company. Use when you have domains and need contact points, technographics or a filter like sites running Shopify or HubSpot. Do not use to find people (use company_team_finder) or to grade email security (use email_domain_security_checker). Parameters: onlyWithTech, onlyWithEmail and onlyWithPhone filter before billing, so filtered-out domains are free. extraPages (0-4) reads contact/about/team pages: more found contacts, slower runs, same price. Only published contacts are returned; no guessed emails. Unreachable sites are free. Returns per item: agentSummary, companyName, description, primaryEmail, emails, phones, linkedinUrl, socials, address, cms, techStack, techByCategory, mailProvider, emailSendingTools, verifiedServices, domainCreated, domainAgeYears, domainExpires, registrar, copyrightYear, status.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/company-website-enricher (https://apify.com/pandadad0214/company-website-enricher) on your own Apify account. Price: $0.003 per domain enriched. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxDomains when you leave it unset, so it also limits what is billed; setting maxDomains higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "domains",
+        "type": "array",
+        "desc": "Company domains, websites or emails. One per line: example.com, https://www.example.com/page or name@example.com all work (the domain is extracted, duplicates dropped). Leave empty for a 3-domain demo.",
+        "optional": true
+      },
+      {
+        "name": "onlyWithTech",
+        "type": "array",
+        "desc": "Only return sites using any of these technologies. Optional. Keep only domains where at least one of these shows up in the tech stack, email tools or DNS-verified services, e.g. Shopify, HubSpot, Klaviyo, WordPress, Salesforce, Microsoft 365. Others are not returned and not charged.",
+        "optional": true
+      },
+      {
+        "name": "onlyWithEmail",
+        "type": "boolean",
+        "desc": "Only return domains with a public email. Domains without an email on their website are not returned and not charged.",
+        "optional": true
+      },
+      {
+        "name": "onlyWithPhone",
+        "type": "boolean",
+        "desc": "Only return domains with a phone number. Domains without a phone link on their website are not returned and not charged.",
+        "optional": true
+      },
+      {
+        "name": "extraPages",
+        "type": "integer",
+        "desc": "Extra pages per site. Besides the home page, read up to this many contact / about / team pages to find emails, phones and the address. 0 to 4; default 2.",
+        "optional": true
+      },
+      {
+        "name": "maxDomains",
+        "type": "integer",
+        "desc": "Maximum domains. You pay per domain returned, so this also caps the cost. 1 to 10,000; default 1,000.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "topic_trends_tracker",
+    "description": "Compare public interest in topics, brands, products or people over time using real Wikipedia pageview counts: daily and monthly views, 30-day and year-over-year change, peaks, spike days, a trend label and a 0-100 interest index. Unlike Google Trends (relative 0-100 only) this reports absolute views; unlike podcast_leads_finder or company_hiring_signals it measures attention, not contacts. Use when you need to size or compare interest, spot spikes, or validate a topic. Do not use for search-keyword volume or social mentions (Wikipedia attention is a proxy), or for topics without a Wikipedia article (returned free as notFound). Parameters: each topic resolves to one article in the chosen language edition; pass a Wikipedia URL to pin an ambiguous name. months sets the window (data from July 2015); year-over-year is always computed. includeDailySeries adds a dailyViews array per row and makes output much larger; leave off unless charting. Returns per item: agentSummary, topic, article, url, interestIndex, trend (surging/rising/flat/falling), totalViews, avgDailyViews, last30dViews, change30dPct, yoyChangePct, peakDate, peakViews, spikes, monthlyViews, optional dailyViews.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/topic-trends-tracker (https://apify.com/pandadad0214/topic-trends-tracker) on your own Apify account. Price: $0.002 per topic tracked. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxTopics when you leave it unset, so it also limits what is billed; setting maxTopics higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "topics",
+        "type": "array",
+        "desc": "Topics. One per line: a topic, brand, product, person, place or a Wikipedia link (https://en.wikipedia.org/wiki/ChatGPT). Each is matched to its Wikipedia article (redirects followed, e.g. Ozempic → Semaglutide). For ambiguous words like Mercury, paste the exact article link. Leave empty for a 3-topic demo.",
+        "optional": true
+      },
+      {
+        "name": "months",
+        "type": "integer",
+        "desc": "How many months back. Period to analyze, ending yesterday. 1 to 120 months (data starts July 2015); default 12. Year-over-year change is always computed when a year of history exists.",
+        "optional": true
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "Wikipedia language. Language code of the Wikipedia edition to measure: en, de, fr, es, ja, pt, it, nl, pl… Default en. A full Wikipedia link overrides this per topic.",
+        "optional": true
+      },
+      {
+        "name": "device",
+        "type": "string",
+        "desc": "Device. All devices (default), desktop only, or mobile web only. The mobile apps are included under All devices. Choices: all = All devices; desktop = Desktop only; mobile = Mobile web only.",
+        "optional": true
+      },
+      {
+        "name": "excludeBots",
+        "type": "boolean",
+        "desc": "Count people only (exclude bots and crawlers). On by default. Off counts every request, including automated ones.",
+        "optional": true
+      },
+      {
+        "name": "includeDailySeries",
+        "type": "boolean",
+        "desc": "Include the daily series in each dataset row. Adds a dailyViews array to every topic row (handy for charts via API). The daily numbers are always in the Excel and DAILY_CSV files either way.",
+        "optional": true
+      },
+      {
+        "name": "maxTopics",
+        "type": "integer",
+        "desc": "Maximum topics. You pay per topic tracked, so this also caps the cost. 1 to 1,000; default 100.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "company_team_finder",
+    "description": "Find the named people at a company from its own public website (team, leadership, about and staff pages): name, title, seniority, department, decision-maker flag, published email, LinkedIn link and the company's email pattern. Unlike company_website_enricher (one firmographic row per company) and researcher_expert_finder (academics ranked by publications), this returns one row per person; it never scrapes LinkedIn. Use when you need decision makers or staff contacts at known companies. Do not use for academic experts (use researcher_expert_finder), for company-level contacts or tech stack (use company_website_enricher), or when the site has no team page. Parameters: billing is per person, not per company, so maxPeoplePerCompany (most senior first) and decisionMakersOnly are the main cost levers; run_max_items sets maxCompanies only. Pasting the exact team page URL is faster and more reliable than a bare domain. maxPagesPerCompany trades coverage for speed. emailGuess is inferred (pattern from published emails, else unverified first.last) and comes with emailConfidence; verify before sending. Companies with no readable team page are free. Returns per item: agentSummary, company, domain, name, firstName, lastName, title, seniority, department, isDecisionMaker, email, emailGuess, emailConfidence, linkedinUrl, profileUrl, sourceUrl, foundVia.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/company-team-finder (https://apify.com/pandadad0214/company-team-finder) on your own Apify account. Price: $0.002 per person found. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned but does not limit what the Actor bills; use the tool's own limits and run_max_charge_usd. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "companies",
+        "type": "array",
+        "desc": "Company websites. One per line: a domain (acme.com), a website URL, or a work email (the domain is used). Paste the exact team page URL when you know it. Leave empty for a 2-company demo.",
+        "optional": true
+      },
+      {
+        "name": "decisionMakersOnly",
+        "type": "boolean",
+        "desc": "Decision makers only. Keep only C-level, founders/owners, presidents, partners, VPs and directors/heads. Everyone else is skipped and not charged.",
+        "optional": true
+      },
+      {
+        "name": "titleKeywords",
+        "type": "array",
+        "desc": "Title contains (any of). Optional. Keep people whose title contains one of these words.",
+        "optional": true
+      },
+      {
+        "name": "departments",
+        "type": "array",
+        "desc": "Departments. Optional. Keep only these departments (guessed from the title).",
+        "optional": true
+      },
+      {
+        "name": "maxPeoplePerCompany",
+        "type": "integer",
+        "desc": "Max people per company. Most senior people first. Caps cost on companies with huge staff pages.",
+        "optional": true
+      },
+      {
+        "name": "maxPagesPerCompany",
+        "type": "integer",
+        "desc": "Max pages per company. Home page plus team, leadership, about and staff pages. Default 6.",
+        "optional": true
+      },
+      {
+        "name": "maxCompanies",
+        "type": "integer",
+        "desc": "Maximum companies. You pay per person found; companies with nobody found are free.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "trucking_company_leads",
+    "description": "Pull US and Canadian motor carrier, broker and freight-forwarder records from official FMCSA data, with phone, email, officers, fleet size, drivers, cargo, operating authority and safety rating. It runs in three modes: new USDOT registrations, filtered search of the registry, or lookup by USDOT number. Unlike local_business_leads (any category from OpenStreetMap) or npi_provider_lists (healthcare registry), this is the authoritative FMCSA registry for transportation companies. Use when you need new-entrant carrier leads (insurance, factoring, ELD, dispatch, fuel cards), carriers by lane/state/fleet/cargo, or to enrich known DOT numbers. Do not use for shipment tracking, load boards or rates. Parameters: mode=new uses daysBack and sorts newest first; mode=search ignores daysBack and uses the filters plus activeOnly; mode=lookup uses only dotNumbers. powerUnits/drivers bounds, carrierClass=forHire and requireEmail/requirePhone are the strongest narrowers and filter before billing. Phone and email are what carriers file with FMCSA and may be personal or stale. Runs that match nothing are free. Returns per item: agentSummary, dotNumber, mcNumber, legalName, dbaName, status, addedDate, daysSinceAdded, officers, phone, cellPhone, email, street, city, state, zip, powerUnits, drivers, fleetBand, cargo, hazmat, operation, carrierClasses, entityTypes, safetyRating, lastFilingDate, saferUrl.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/trucking-company-leads (https://apify.com/pandadad0214/trucking-company-leads) on your own Apify account. Price: $0.002 per carrier returned. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": "What to find. New carriers = fresh USDOT registrations (the classic trucking-leads list for insurance, factoring, ELD, dispatch and fuel cards). Search = any carrier matching your filters. Lookup = details for a list of USDOT numbers. Choices: new = New carriers (registered in the last N days); search = Search all carriers by filters; lookup = Look up USDOT numbers.",
+        "optional": true
+      },
+      {
+        "name": "daysBack",
+        "type": "integer",
+        "desc": "Registered in the last (days). New-carriers mode: how far back to look. 7 = this week's new entrants.",
+        "optional": true
+      },
+      {
+        "name": "states",
+        "type": "array",
+        "desc": "States / provinces. 2-letter codes of the physical address (TX, CA, FL, ON…). Empty = all states.",
+        "optional": true
+      },
+      {
+        "name": "cities",
+        "type": "array",
+        "desc": "Cities. Optional. Exact city names, e.g. Houston, Laredo.",
+        "optional": true
+      },
+      {
+        "name": "zipPrefixes",
+        "type": "array",
+        "desc": "ZIP code prefixes. Optional. ZIP codes or prefixes, e.g. 850 for Phoenix, 770 for Houston.",
+        "optional": true
+      },
+      {
+        "name": "minPowerUnits",
+        "type": "integer",
+        "desc": "Min power units (trucks/tractors). Optional. 1 = owner-operators and up; 5 = small fleets and up.",
+        "optional": true
+      },
+      {
+        "name": "maxPowerUnits",
+        "type": "integer",
+        "desc": "Max power units. Optional. 1 = owner-operators only.",
+        "optional": true
+      },
+      {
+        "name": "minDrivers",
+        "type": "integer",
+        "desc": "Min drivers. Optional.",
+        "optional": true
+      },
+      {
+        "name": "maxDrivers",
+        "type": "integer",
+        "desc": "Max drivers. Optional.",
+        "optional": true
+      },
+      {
+        "name": "operation",
+        "type": "string",
+        "desc": "Operation. Interstate carriers cross state lines and usually need MC authority. Choices: any = Any; A = Interstate; B = Intrastate hazmat; C = Intrastate non-hazmat.",
+        "optional": true
+      },
+      {
+        "name": "carrierClass",
+        "type": "string",
+        "desc": "Carrier class. For-hire carriers haul other people's freight (best for brokers, factoring and dispatch). Choices: any = Any; forHire = For-hire (authorized for hire); private = Private (hauls own goods); exempt = Exempt for-hire; passenger = Passenger.",
+        "optional": true
+      },
+      {
+        "name": "entityType",
+        "type": "string",
+        "desc": "Entity type. Find brokers instead of carriers, for example. Choices: any = Any; C = Carrier; B = Broker; F = Freight forwarder; S = Shipper; I = Intermodal equipment provider.",
+        "optional": true
+      },
+      {
+        "name": "cargo",
+        "type": "array",
+        "desc": "Cargo hauled (any of). Optional. Keep carriers that haul at least one of these, e.g. refrigerated food, building materials, livestock.",
+        "optional": true
+      },
+      {
+        "name": "hazmatOnly",
+        "type": "boolean",
+        "desc": "Hazmat carriers only. Only carriers flagged as hazardous materials carriers.",
+        "optional": true
+      },
+      {
+        "name": "requireEmail",
+        "type": "boolean",
+        "desc": "Only carriers with an email. Skip records with no published email.",
+        "optional": true
+      },
+      {
+        "name": "requirePhone",
+        "type": "boolean",
+        "desc": "Only carriers with a phone. Skip records with no published phone.",
+        "optional": true
+      },
+      {
+        "name": "nameContains",
+        "type": "string",
+        "desc": "Name contains. Optional. Word in the legal or DBA name, e.g. logistics, express, transport.",
+        "optional": true
+      },
+      {
+        "name": "updatedWithinDays",
+        "type": "integer",
+        "desc": "Filed an update (MCS-150) in the last (days). Optional. Carriers that updated their FMCSA registration recently (active, reachable companies).",
+        "optional": true
+      },
+      {
+        "name": "dotNumbers",
+        "type": "array",
+        "desc": "USDOT numbers (lookup mode). Lookup mode: one USDOT number per line (up to 1,000).",
+        "optional": true
+      },
+      {
+        "name": "activeOnly",
+        "type": "boolean",
+        "desc": "Active USDOT status only. On by default. Off includes inactive and pending registrations (search mode).",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum carriers. You pay per carrier returned, so this also caps the cost. Newest registrations first.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "website_change_monitor",
+    "description": "Check a watch list of web pages against snapshots saved by your previous run and report added and removed text, change percent, price changes and keyword appear/disappear alerts, with an optional webhook when something changes. Unlike ai_search_seo_audit (one-time quality audit) and hidden_ai_instructions_scanner (concealed AI-directed text), this is stateful diffing over time. Use when you need to track competitor pricing, terms, product or careers pages on a schedule. Do not use for a one-off page read or audit (use ai_search_seo_audit), or for pages behind a login. Parameters: the first run per monitorName only saves baselines (status 'baseline saved'); reuse the same monitorName for every later run, and use a new name for a separate watch list. cssSelector, ignorePatterns and ignoreNumbersAndDates cut false alarms from banners, counters and timestamps. Below minChangePercent the old snapshot is kept, so small edits accumulate. onlyReportChanges shrinks output but every page checked is still billed; unreachable pages are free. webhookUrl posts outside the Apify run; only set it if you control that endpoint. Returns per item: agentSummary, url, label, status, changed, changePercent, addedCount, removedCount, addedLines, removedLines, prices, priceChanges, keywordsPresent, keywordsAppeared, keywordsDisappeared, titleBefore, titleAfter, previousCheckAt.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/website-change-monitor (https://apify.com/pandadad0214/website-change-monitor) on your own Apify account. Price: $0.0015 per page checked. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxPages when you leave it unset, so it also limits what is billed; setting maxPages higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "urls",
+        "type": "array",
+        "desc": "Pages to watch. One URL per line. Optional label after ' | ' (e.g. https://acme.com/pricing | Acme pricing). Leave empty for a 2-page demo.",
+        "optional": true
+      },
+      {
+        "name": "monitorName",
+        "type": "string",
+        "desc": "Monitor name. Snapshots are saved in your account under this name (key-value store panda-change-monitor-). Use different names for separate watch lists; each run compares with the last run of the same name.",
+        "optional": true
+      },
+      {
+        "name": "watchKeywords",
+        "type": "array",
+        "desc": "Alert keywords. Optional. Reports when any of these words appear on or disappear from a page.",
+        "optional": true
+      },
+      {
+        "name": "cssSelector",
+        "type": "string",
+        "desc": "Only watch this part (CSS selector). Optional. Compare only the matching elements, e.g. main or #pricing. Ignores headers, footers and banners.",
+        "optional": true
+      },
+      {
+        "name": "ignorePatterns",
+        "type": "array",
+        "desc": "Ignore text matching (regex). Optional regular expressions removed before comparing (counters, timestamps, rotating promos).",
+        "optional": true
+      },
+      {
+        "name": "ignoreNumbersAndDates",
+        "type": "boolean",
+        "desc": "Ignore dates and times. Strip dates and clock times before comparing, to avoid noise from 'updated today' widgets.",
+        "optional": true
+      },
+      {
+        "name": "minChangePercent",
+        "type": "number",
+        "desc": "Minimum change to report (%). Changes smaller than this are reported as 'unchanged (below threshold)' and the old snapshot is kept, so small edits add up.",
+        "optional": true
+      },
+      {
+        "name": "onlyReportChanges",
+        "type": "boolean",
+        "desc": "Dataset: changed pages only. Skip unchanged pages in the dataset (handy for alerts and integrations). Every page checked is still billed; failed pages never are.",
+        "optional": true
+      },
+      {
+        "name": "webhookUrl",
+        "type": "string",
+        "desc": "Webhook URL for changes (optional). Optional https URL (Slack/Zapier/Make/n8n webhook). Gets a JSON POST listing changed pages, only when something changed.",
+        "optional": true
+      },
+      {
+        "name": "maxPages",
+        "type": "integer",
+        "desc": "Maximum pages. You pay per page checked, so this also caps the cost.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sbir_sttr_topic_radar",
+    "description": "Find SBIR and STTR solicitation topics across agencies (DoD branches, NIH, NASA, NSF, DOE, USDA, DHS and more) by keyword, with full topic text, close dates, days left, topic numbers, official links, and DoD Q&A status and technical points of contact. Unlike grants_finder (general Grants.gov opportunities and past NIH/NSF awards) and federal_contract_finder (awarded contracts), this lists small-business R&D topics you can propose to. Use when a small business or research partner needs open SBIR/STTR topics, deadlines or a TPOC to contact. Do not use for general grants (use grants_finder) or for past contract winners (use federal_contract_finder). Parameters: empty keywords lists every topic matching the other filters, which can be large, so keep maxResults low. status=closed returns past topics to show what an agency keeps funding. includeDetails and includeDodQa each fetch extra pages per topic: richer rows, slower runs, same price; turn them off for a fast scan. Searches with no results are free. Returns per item: agentSummary, topicId, topicNumber, title, agency, branch, program, phase, status, openDate, closeDate, daysLeft, description, technicalPointOfContact, dodQaStatus, dodPublishedQuestions, officialSolicitationUrl, url.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/sbir-sttr-topic-radar (https://apify.com/pandadad0214/sbir-sttr-topic-radar) on your own Apify account. Price: $0.003 per topic found. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "keywords",
+        "type": "string",
+        "desc": "Keywords. Words to find in topic titles and text, e.g. autonomy, battery, machine learning, wound care. Leave empty to list every topic with the chosen status.",
+        "optional": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Topic status. Open = topics you can still propose to. Closed = past topics, useful to see what an agency keeps asking for. Choices: open = Open (accepting proposals); closed = Closed (past topics, for research).",
+        "optional": true
+      },
+      {
+        "name": "agencies",
+        "type": "array",
+        "desc": "Agencies. Optional agency or branch codes: DOD (all DoD/DoW), USAF, ARMY, NAVY, DARPA, DHA, DTRA, MDA, SOCOM, SDA, OSD, CBD, HHS, NIH, FDA, CDC, NASA, NSF, DOE, USDA, NIFA, DHS, DOT, ED, EPA, DOC, NIST, NOAA, DOI, NRC. Empty = all agencies.",
+        "optional": true
+      },
+      {
+        "name": "program",
+        "type": "string",
+        "desc": "Program. Topics tagged for both programs are kept either way. Choices: any = SBIR or STTR; SBIR = SBIR only; STTR = STTR only (needs a research-institution partner).",
+        "optional": true
+      },
+      {
+        "name": "closeDateFrom",
+        "type": "string",
+        "desc": "Closes on or after. Optional, e.g. 2026-12 or 2026-12-15.",
+        "optional": true
+      },
+      {
+        "name": "closeDateTo",
+        "type": "string",
+        "desc": "Closes on or before. Optional, e.g. 2027-03-31.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum topics. You pay per topic returned, so this also caps the cost. 1 to 1,000; default 50.",
+        "optional": true
+      },
+      {
+        "name": "includeDetails",
+        "type": "boolean",
+        "desc": "Read full topic pages. Adds topic number, solicitation number, branch, due dates, full description and the official solicitation link (one extra page per topic, no extra charge).",
+        "optional": true
+      },
+      {
+        "name": "includeDodQa",
+        "type": "boolean",
+        "desc": "Add DoD Q&A status and point of contact. For DoD/DoW topics, looks the topic up on the DoD SBIR/STTR Innovation Portal (DSIP) and adds Q&A status, Q&A end date, published-question count and the technical point of contact when published. Needs 'Read full topic pages'.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sec_financials_excel",
+    "description": "Return standardized annual financials for US-listed companies from SEC EDGAR XBRL 10-K data: income statement, balance sheet and cash-flow lines plus EBITDA, free cash flow, net debt, margins and growth, one row per company-year, each number tagged to its source filing. Unlike pdf_table_extractor (any PDF table, best-effort), this reads structured filings and is exact; unlike federal_contract_finder it covers public-company fundamentals, not government spend. Use when you need comps, model inputs or multi-year history for tickers or CIKs. Do not use for private companies, foreign filers without 10-Ks, quarterly data or share prices (not included). Parameters: contactEmail is required by SEC's fair-access rule and is sent only to SEC. Billing is per company-year, so worst case = companies x years; run_max_items does not set years, so cap cost with years and run_max_charge_usd. Unknown tickers are returned free with a status. Returns per item: agentSummary, company, ticker, cik, fiscalYear, periodEnd, form, filed, revenue, grossProfit, operatingIncome, netIncome, epsDiluted, operatingCashFlow, capex, freeCashFlow, ebitda, cash, totalDebt, netDebt, stockholdersEquity, margins, revenueGrowth, epsGrowth, sourceTags. The comps workbook stays in the run's Apify key-value store.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/sec-financials-excel (https://apify.com/pandadad0214/sec-financials-excel) on your own Apify account. Price: $0.002 per company-year of financials. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned but does not limit what the Actor bills; use the tool's own limits and run_max_charge_usd. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "companies",
+        "type": "array",
+        "desc": "Companies (tickers or CIKs). US-listed companies that file 10-Ks with the SEC, e.g. AAPL, MSFT, BRK-B or a CIK like 320193. Up to 200 per run.",
+        "optional": false
+      },
+      {
+        "name": "contactEmail",
+        "type": "string",
+        "desc": "Your contact email (required by SEC). SEC requires every automated request to declare a contact in its User-Agent header. It is sent to SEC only and is never stored in the output.",
+        "optional": false
+      },
+      {
+        "name": "years",
+        "type": "integer",
+        "desc": "Fiscal years per company. Most recent annual (10-K) periods to return. You pay per company-year row, so this also caps the cost.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "hidden_ai_instructions_scanner",
+    "description": "Scan web pages for text hidden from people but read by AI agents (display:none, off-screen, tiny or same-color text, HTML comments, alt/meta/data attributes, zero-width and Unicode tag characters) and classify it as policy notice, manipulation or harmful prompt injection, with location and excerpt. Unlike ai_search_seo_audit (visible SEO and AI-readiness) and website_change_monitor (diffs over time), this is a security check on content an agent is about to read. Use when an agent or workflow will ingest a page and you need to know whether it carries hidden instructions, or when auditing your own site. Do not use for SEO grading (use ai_search_seo_audit) or for email security (use email_domain_security_checker). Parameters: renderJs=true runs a real browser to catch script-injected text (much slower, plus settleSecs per page); off is a fast HTTP read. agentUaDiff adds three fetches per page (GPTBot, ClaudeBot, ChatGPT-User) to detect cloaking. crawlDepth follows same-site links but maxPages always caps the run. Findings are leads for review, not proof of intent. Returns per item: page summaries (type page-summary, url, verdict, findings, categories, topSeverity, techniques, agentSummary) and findings (technique, location, excerpt, category, severity).\n\nBehavior: read-only; runs the Apify Actor pandadad0214/hidden-ai-instructions-scanner (https://apify.com/pandadad0214/hidden-ai-instructions-scanner) on your own Apify account. Price: free (no per-result charge). Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxPages when you leave it unset, so it also limits what is billed; setting maxPages higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "urls",
+        "type": "array",
+        "desc": "Page URLs. Pages to scan, one per line. Each URL is scanned once; links are not followed.",
+        "optional": false
+      },
+      {
+        "name": "renderJs",
+        "type": "boolean",
+        "desc": "Render JavaScript (browser). Off: fast HTTP fetch, reads inline styles, rules, comments, meta, data-* and other attributes, JSON-LD/script data blocks, iframe srcdoc and Unicode tricks. On: loads each page in headless Chromium, waits for network idle plus the settle time (catches delayed injections), checks the computed style of every element, and walks open shadow roots and same-origin iframes.",
+        "optional": true
+      },
+      {
+        "name": "agentUaDiff",
+        "type": "boolean",
+        "desc": "Check AI-agent cloaking. Also fetch each page as GPTBot, ClaudeBot and ChatGPT-User and flag AI-addressed text served to those agents but not to a normal browser.",
+        "optional": true
+      },
+      {
+        "name": "crawlDepth",
+        "type": "integer",
+        "desc": "Crawl depth. 0 = only the URLs you give. 1+ = also follow same-site links that many clicks deep (signed-out pages only). Max pages still caps the run.",
+        "optional": true
+      },
+      {
+        "name": "settleSecs",
+        "type": "integer",
+        "desc": "Wait after load (render mode). Extra wait after network idle so text injected on a timer is caught.",
+        "optional": true
+      },
+      {
+        "name": "maxPages",
+        "type": "integer",
+        "desc": "Max pages. Hard cap on pages scanned in one run.",
+        "optional": true
+      },
+      {
+        "name": "minSeverity",
+        "type": "string",
+        "desc": "Minimum severity. Drop findings below this severity. Choices: low = Low (include policy notices); medium = Medium; high = High only.",
+        "optional": true
+      },
+      {
+        "name": "timeoutSecs",
+        "type": "integer",
+        "desc": "Page timeout. Per-page load timeout.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "clinical_trial_leads",
+    "description": "Find clinical trials on the official ClinicalTrials.gov API by condition, intervention, sponsor, phase, status and site location, with sponsor class, enrollment, dates, central contacts, principal investigators and every study site with its contacts. Unlike pubmed_evidence_table (published articles) and npi_provider_lists (all registered providers), this returns registered studies and the people and sites running them. Use when you need recruiting trials near a location, sponsor or site pipelines, or investigator and site-contact leads for CROs, suppliers or patient referral. Do not use for published results (use pubmed_evidence_table) or for funding (use grants_finder). Parameters: statuses default to recruiting and not-yet-recruiting; add COMPLETED etc. for history. countries/states/city keep trials with at least one matching site and report matchingSiteCount. updatedWithinDays suits weekly schedules. requireContact filters out uncontactable trials before billing. Searches with no results are free. Returns per item: agentSummary, nctId, title, status, phase, conditions, interventions, leadSponsor, sponsorClass, collaborators, enrollment, startDate, primaryCompletionDate, centralContactName, centralContactPhone, centralContactEmail, principalInvestigators, sites, matchingSiteCount, url.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/clinical-trial-leads (https://apify.com/pandadad0214/clinical-trial-leads) on your own Apify account. Price: $0.002 per trial returned. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "condition",
+        "type": "string",
+        "desc": "Condition or disease. e.g. obesity, breast cancer, Alzheimer. Uses ClinicalTrials.gov synonyms.",
+        "optional": true
+      },
+      {
+        "name": "intervention",
+        "type": "string",
+        "desc": "Drug or intervention. e.g. semaglutide, CAR-T, device name. Optional.",
+        "optional": true
+      },
+      {
+        "name": "sponsor",
+        "type": "string",
+        "desc": "Sponsor or collaborator. e.g. Pfizer, Mayo Clinic. Optional.",
+        "optional": true
+      },
+      {
+        "name": "keywords",
+        "type": "string",
+        "desc": "Other keywords. Free-text search across the whole record. Optional.",
+        "optional": true
+      },
+      {
+        "name": "statuses",
+        "type": "array",
+        "desc": "Recruitment status. Default: recruiting + not yet recruiting.",
+        "optional": true
+      },
+      {
+        "name": "phases",
+        "type": "array",
+        "desc": "Phases. Empty = any phase.",
+        "optional": true
+      },
+      {
+        "name": "sponsorType",
+        "type": "string",
+        "desc": "Lead sponsor type. Industry = pharma/biotech/device companies. Choices: any = Any; INDUSTRY = Industry; NIH = NIH; FED = Other federal; OTHER_GOV = Other government; OTHER = Academic / hospital / other; NETWORK = Network.",
+        "optional": true
+      },
+      {
+        "name": "studyType",
+        "type": "string",
+        "desc": "Study type. Interventional = treatment trials.",
+        "optional": true
+      },
+      {
+        "name": "countries",
+        "type": "array",
+        "desc": "Site countries. Keep trials with at least one site here, e.g. United States, Canada.",
+        "optional": true
+      },
+      {
+        "name": "states",
+        "type": "array",
+        "desc": "Site states / regions. Full names as on ClinicalTrials.gov, e.g. Arizona, California, Ontario.",
+        "optional": true
+      },
+      {
+        "name": "city",
+        "type": "string",
+        "desc": "Site city. e.g. Phoenix.",
+        "optional": true
+      },
+      {
+        "name": "updatedWithinDays",
+        "type": "integer",
+        "desc": "Updated in the last N days. Only trials whose record changed recently (good for weekly schedules).",
+        "optional": true
+      },
+      {
+        "name": "requireContact",
+        "type": "boolean",
+        "desc": "Only trials with a contact. Skip trials without a published central or site contact.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum results. You pay per trial returned, so this also caps the cost. Default 100.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "nonprofit_leads_irs",
+    "description": "Build nonprofit and foundation lead lists from the official IRS Exempt Organizations Business Master File, filtered by state, city, ZIP, NTEE cause, 501(c) type, public charity vs private foundation, revenue, assets and ruling year. Unlike local_business_leads (OpenStreetMap shops) and npi_provider_lists (healthcare NPI), this is the IRS EO BMF for tax-exempt orgs. Use when you need charity or foundation prospect lists for fundraising, sponsorship, grants outreach or nonprofit CRM enrichment. Do not use for for-profit businesses (use local_business_leads or company_website_enricher) or for Form 990 full-text analysis. Parameters: states is the usual starting filter; orgType any|publicCharity|privateFoundation; only501c3 defaults true; minAssets/minRevenue and sortBy=assets|revenue|newest|name rank large prospects first; maxResults caps billed rows. In-care-of and address are what the org filed with the IRS and may be a PO box or attorney. Runs that match nothing are free. Returns per item: agentSummary, ein, name, inCareOf, street, city, state, zip, nteeCode, cause, subsection, orgType, privateFoundation, rulingYear, revenue, income, assets, sizeBand, deductible, propublicaUrl, irsUrl; plus NONPROFITS_XLSX/CSV.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/nonprofit-leads-irs (https://apify.com/pandadad0214/nonprofit-leads-irs) on your own Apify account. Price: $0.001 per nonprofit returned. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "states",
+        "type": "array",
+        "desc": "States. 2-letter codes, up to 15 per run (one IRS file each), e.g. AZ, TX, DC.",
+        "optional": true
+      },
+      {
+        "name": "cities",
+        "type": "array",
+        "desc": "Cities. Optional, exact city names, e.g. Phoenix, Tucson.",
+        "optional": true
+      },
+      {
+        "name": "zipPrefixes",
+        "type": "array",
+        "desc": "ZIP prefixes. Optional, e.g. 850, 85281.",
+        "optional": true
+      },
+      {
+        "name": "nteeCodes",
+        "type": "array",
+        "desc": "Cause (NTEE codes). Optional NTEE letters or codes: A arts, B education, C environment, D animals, E health, F mental health, G diseases, P human services, L housing, O youth, S community, T grantmaking, X religion. E.g. P, B20, E22.",
+        "optional": true
+      },
+      {
+        "name": "nameContains",
+        "type": "string",
+        "desc": "Name contains. Optional, e.g. food bank, YMCA.",
+        "optional": true
+      },
+      {
+        "name": "only501c3",
+        "type": "boolean",
+        "desc": "Only 501(c)(3) charities. Off = include 501(c)(4) social welfare, (c)(6) trade associations and other exempt types.",
+        "optional": true
+      },
+      {
+        "name": "orgType",
+        "type": "string",
+        "desc": "Charity or foundation. Private foundations make grants; public charities raise money. Choices: any = Any; publicCharity = Public charities; privateFoundation = Private foundations.",
+        "optional": true
+      },
+      {
+        "name": "minRevenue",
+        "type": "integer",
+        "desc": "Minimum revenue ($). Latest annual revenue the IRS has on file.",
+        "optional": true
+      },
+      {
+        "name": "maxRevenue",
+        "type": "integer",
+        "desc": "Maximum revenue ($). Optional.",
+        "optional": true
+      },
+      {
+        "name": "minAssets",
+        "type": "integer",
+        "desc": "Minimum assets ($). Optional.",
+        "optional": true
+      },
+      {
+        "name": "rulingYearFrom",
+        "type": "integer",
+        "desc": "Exempt since year (new nonprofits). e.g. 2025 = organizations granted exemption in 2025 or later.",
+        "optional": true
+      },
+      {
+        "name": "requireFinancials",
+        "type": "boolean",
+        "desc": "Only with revenue on file. Skip tiny organizations that file the 990-N postcard.",
+        "optional": true
+      },
+      {
+        "name": "sortBy",
+        "type": "string",
+        "desc": "Sort by. Order before the maximum is applied. Choices: revenue = Revenue (largest first); assets = Assets (largest first); newest = Newest exemption first; name = Name A-Z.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum results. You pay per nonprofit returned, so this also caps the cost. Default 500.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "federal_register_monitor",
+    "description": "Track new US federal rules, proposed rules, notices and presidential documents from the official FederalRegister.gov API, with agency, publication and effective dates, comment deadline and days left, docket IDs, RIN, abstract and comment links. Unlike grants_finder (assistance opportunities) and federal_contract_finder (awarded contracts), this monitors the Federal Register rulemaking feed. Use when compliance, policy, lobbying or capture teams need new rules or open comment periods by keyword or agency. Do not use for grant RFPs (use grants_finder) or for awarded contract data (use federal_contract_finder). Parameters: keywords and agencies narrow the search; commentsOpenOnly=true keeps only open dockets; documentTypes RULE|PRORULE|NOTICE|PRESDOCU; daysBack or publishedFrom/To set the window; significantOnly filters significant rules; maxResults caps billed documents. Empty runs are free. Returns per item: agentSummary, documentNumber, type, title, agencies, publicationDate, effectiveDate, commentsCloseDate, commentDaysLeft, commentOpen, significant, docketIds, rins, citation, abstract, commentUrl, url, pdfUrl, regulationsGovDocketUrl; plus FEDREG_XLSX/CSV.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/federal-register-monitor (https://apify.com/pandadad0214/federal-register-monitor) on your own Apify account. Price: $0.001 per document returned. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "keywords",
+        "type": "string",
+        "desc": "Keywords. Full-text search, e.g. \"artificial intelligence\", PFAS, overtime. Quotes for exact phrases.",
+        "optional": true
+      },
+      {
+        "name": "agencies",
+        "type": "array",
+        "desc": "Agencies. Agency slugs from federalregister.gov/agencies, e.g. environmental-protection-agency, food-and-drug-administration, securities-and-exchange-commission.",
+        "optional": true
+      },
+      {
+        "name": "documentTypes",
+        "type": "array",
+        "desc": "Document types. Empty = all types.",
+        "optional": true
+      },
+      {
+        "name": "daysBack",
+        "type": "integer",
+        "desc": "Published in the last N days. Use 1 or 7 on a daily or weekly schedule. Default 30.",
+        "optional": true
+      },
+      {
+        "name": "publishedFrom",
+        "type": "string",
+        "desc": "Published on or after. Optional YYYY-MM-DD; overrides days back.",
+        "optional": true
+      },
+      {
+        "name": "publishedTo",
+        "type": "string",
+        "desc": "Published on or before. Optional YYYY-MM-DD.",
+        "optional": true
+      },
+      {
+        "name": "commentsOpenOnly",
+        "type": "boolean",
+        "desc": "Only open comment periods. Keep documents you can still comment on, soonest deadline first.",
+        "optional": true
+      },
+      {
+        "name": "significantOnly",
+        "type": "boolean",
+        "desc": "Only significant rules. Rules flagged significant under EO 12866.",
+        "optional": true
+      },
+      {
+        "name": "cfrTitle",
+        "type": "integer",
+        "desc": "CFR title. Optional, e.g. 21 (food and drugs), 40 (environment).",
+        "optional": true
+      },
+      {
+        "name": "cfrPart",
+        "type": "integer",
+        "desc": "CFR part. Optional, with CFR title.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum results. You pay per document returned, so this also caps the cost. Default 100.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "product_recall_monitor",
+    "description": "Pull one feed of US product recalls from openFDA (food, drug, medical device enforcement) and CPSC SaferProducts.gov (consumer products), with product, reason or hazard, recalling firm, FDA class, status, distribution, lots/UPCs, retailers and remedy. Unlike clinical_trial_leads (registered studies) and federal_register_monitor (rulemaking), this is safety recall enforcement. Use when QA, retail, insurance, marketplace or consumer-safety teams need recent recalls by keyword, firm, class, state or date. Do not use for vehicle VIN recalls (use vin_decoder_recalls) or for clinical-trial safety results. Parameters: sources food|drug|device|consumer (default all); keywords and firmContains filter before billing; classifications Class I|II|III (FDA); daysBack or dateFrom; states for distribution; maxResults caps billed recalls. Empty runs are free. Returns per item: agentSummary, source, recallNumber, date, classification, status, product, reason, firm, firmLocation, firmState, distribution, quantity, codes, retailers, remedy, hazard, url; plus RECALLS_XLSX/CSV.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/product-recall-monitor (https://apify.com/pandadad0214/product-recall-monitor) on your own Apify account. Price: $0.0015 per recall returned. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "sources",
+        "type": "array",
+        "desc": "Sources. FDA food, drugs and devices (openFDA, updated weekly) and CPSC consumer products.",
+        "optional": true
+      },
+      {
+        "name": "daysBack",
+        "type": "integer",
+        "desc": "Reported in the last N days. Default 30. Use 7 on a weekly schedule.",
+        "optional": true
+      },
+      {
+        "name": "dateFrom",
+        "type": "string",
+        "desc": "Reported on or after. Optional YYYY-MM-DD; overrides days back.",
+        "optional": true
+      },
+      {
+        "name": "keywords",
+        "type": "string",
+        "desc": "Keywords (all must match). Comma-separated, matched in product, reason, firm, lots and retailers, e.g. peanut, listeria, insulin pump.",
+        "optional": true
+      },
+      {
+        "name": "firmContains",
+        "type": "string",
+        "desc": "Firm name contains. e.g. a supplier or brand.",
+        "optional": true
+      },
+      {
+        "name": "classifications",
+        "type": "array",
+        "desc": "FDA class. Class I = most serious. Setting this leaves out CPSC recalls (they have no class).",
+        "optional": true
+      },
+      {
+        "name": "states",
+        "type": "array",
+        "desc": "Distributed in states. 2-letter codes; keeps nationwide recalls and FDA recalls whose distribution mentions the state, e.g. AZ.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum results. You pay per recall returned, so this also caps the cost. Default 200.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "vin_decoder_recalls",
+    "description": "Bulk-decode vehicle identification numbers with the official NHTSA vPIC API and attach NHTSA recall campaigns and complaint counts for each model year in the same run (year, make, model, trim, body, engine, fuel, drivetrain, plant, safety features). Unlike product_recall_monitor (FDA/CPSC product recalls) and company_website_enricher (firmographics), this is VIN-level vehicle data. Use when dealers, fleets, insurers, marketplaces or repair shops need specs plus open safety recalls for many VINs. Do not use for consumer product or drug recalls (use product_recall_monitor) or for title/lien history. Parameters: vins (list; duplicates removed; up to 10,000); includeRecalls and includeComplaints default true; includeInvalid keeps undecodable VINs as free skipped rows; maxResults caps billed decodes. Undecodable VINs are skipped for free. Returns per item: agentSummary, vin, valid, modelYear, make, model, trim, bodyClass, vehicleType, driveType, engine, fuel, manufacturer, plant, safetyFeatures, recallCount, parkItRecall, recalls, complaintCount, nhtsaRecallUrl; plus VINS_XLSX (Vehicles + Recalls sheets)/CSV.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/vin-decoder-recalls (https://apify.com/pandadad0214/vin-decoder-recalls) on your own Apify account. Price: $0.001 per vin decoded. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "vins",
+        "type": "array",
+        "desc": "VINs. Up to 10,000 17-character VINs. Spaces and dashes are removed, duplicates dropped.",
+        "optional": true
+      },
+      {
+        "name": "includeRecalls",
+        "type": "boolean",
+        "desc": "Add NHTSA recall campaigns. Recall campaigns for each make/model/year, with component, summary, remedy and park-it warnings (no extra charge).",
+        "optional": true
+      },
+      {
+        "name": "includeComplaints",
+        "type": "boolean",
+        "desc": "Add complaint counts. Number of NHTSA owner complaints for the model year (no extra charge).",
+        "optional": true
+      },
+      {
+        "name": "includeInvalid",
+        "type": "boolean",
+        "desc": "Return VINs that do not decode. On = every VIN gets a row (with the decode note) and is charged. Off = VINs NHTSA cannot decode at all are skipped for free.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum results. You pay per VIN returned, so this also caps the cost. Default 1000.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "building_permit_leads",
+    "description": "Pull newly issued building permits from 8 US city open-data portals (NYC, Los Angeles, Chicago, San Francisco, Seattle, Austin, New Orleans, Cambridge) with address, work description, trade category, declared job value, contractor and owner where the city publishes them. Unlike local_business_leads (existing OpenStreetMap shops) and florida_new_business_leads / texas_new_business_leads (new company registrations), this is project-level construction activity. Use when contractors, solar/roofing/HVAC installers, suppliers or lenders need fresh jobs or want to track a competitor's permits. Do not use for cities outside the 8 listed, for property ownership records or for inspection history. Parameters: cities picks portals (contractor names are published by Chicago, NYC, Austin, Seattle, New Orleans and Cambridge only, so requireContractor drops the other cities); categories and keywords narrow by permit type/description; issuedFrom/issuedTo override daysBack; minValue drops permits with no declared value; sortBy=value with maxResults returns the biggest jobs first; maxResults caps billed permits. Runs with no matching permits are free. Returns per item: agentSummary, permitNumber, permitType, workType, description, status, appliedDate, issuedDate, address, zip, city, state, estimatedCost, contractorName, contractorTrade, contractorPhone, ownerName, applicantName, categories, latitude, longitude, permitUrl, sourceDataset; plus PERMITS_XLSX (with Contractors sheet)/CSV.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/building-permit-leads (https://apify.com/pandadad0214/building-permit-leads) on your own Apify account. Price: $0.0015 per permit returned. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "cities",
+        "type": "array",
+        "desc": "Cities. Official city open-data portals to search.",
+        "optional": true
+      },
+      {
+        "name": "categories",
+        "type": "array",
+        "desc": "Trade categories. Keep permits whose type or description matches. Empty = all permits.",
+        "optional": true
+      },
+      {
+        "name": "keywords",
+        "type": "string",
+        "desc": "Keywords (any). Comma-separated words matched in the permit type and description, e.g. generator, kitchen, restaurant, warehouse.",
+        "optional": true
+      },
+      {
+        "name": "daysBack",
+        "type": "integer",
+        "desc": "Issued in the last N days. Default 14. Use 1 or 7 on a daily or weekly schedule.",
+        "optional": true
+      },
+      {
+        "name": "issuedFrom",
+        "type": "string",
+        "desc": "Issued on or after. Optional YYYY-MM-DD; overrides days back.",
+        "optional": true
+      },
+      {
+        "name": "issuedTo",
+        "type": "string",
+        "desc": "Issued on or before. Optional YYYY-MM-DD.",
+        "optional": true
+      },
+      {
+        "name": "minValue",
+        "type": "integer",
+        "desc": "Minimum job value ($). Declared job value on the permit. Permits without a value are left out when set.",
+        "optional": true
+      },
+      {
+        "name": "requireContractor",
+        "type": "boolean",
+        "desc": "Only permits that name a contractor. Contractors are published by Chicago, NYC, Austin, Seattle, New Orleans and Cambridge.",
+        "optional": true
+      },
+      {
+        "name": "contractorContains",
+        "type": "string",
+        "desc": "Contractor name contains. Track one contractor or competitor, e.g. Sunrun.",
+        "optional": true
+      },
+      {
+        "name": "sortBy",
+        "type": "string",
+        "desc": "Sort by. Order before the maximum is applied. Choices: newest = Newest first; value = Highest job value first.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum results. You pay per permit returned, so this also caps the cost. Default 200.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "florida_new_business_leads",
+    "description": "List newly filed Florida LLCs, corporations and nonprofits from the official Sunbiz (Division of Corporations) daily data files, with principal and mailing address, officers/managers, registered agent, FEI/EIN when filed and an industry guess from the name. Unlike texas_new_business_leads (Texas Comptroller franchise taxpayers) and local_business_leads (established shops on OpenStreetMap), this is brand-new Florida formations. Use when you sell to new business owners (bookkeeping, insurance, banking, web design, signage) or monitor new competitors in a Florida city or ZIP. Do not use for other states, for historical entity search or for annual-report status checks. Parameters: daysBack (work days only; max 62 days per run) or dateFrom/dateTo; cities and zipPrefixes match principal or mailing address; industries and nameKeywords match words in the name, excludeKeywords removes holding companies; newFormationsOnly (default true) skips reinstatements and old foreign entities; personAgentOnly keeps filings without an agent company (often owner-filed); maxResults caps billed businesses. Runs with no matches are free. Returns per item: agentSummary, documentNumber, name, filingType, filingTypeLabel, status, formedDate, filedOn, principalAddress, principalCity, principalZip, mailingAddress, mailingCity, mailingState, mailingZip, feiNumber, registeredAgent, registeredAgentType, officers, officerNames, industryGuess, sunbizUrl; plus BUSINESSES_XLSX (with Officers sheet)/CSV.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/florida-new-business-leads (https://apify.com/pandadad0214/florida-new-business-leads) on your own Apify account. Price: $0.0015 per business returned. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "daysBack",
+        "type": "integer",
+        "desc": "Filed in the last N days. Default 7. Files exist for work days only. Use 1 on a daily schedule.",
+        "optional": true
+      },
+      {
+        "name": "dateFrom",
+        "type": "string",
+        "desc": "Filed on or after. Optional YYYY-MM-DD; overrides days back. Up to 62 days per run.",
+        "optional": true
+      },
+      {
+        "name": "dateTo",
+        "type": "string",
+        "desc": "Filed on or before. Optional YYYY-MM-DD.",
+        "optional": true
+      },
+      {
+        "name": "filingTypes",
+        "type": "array",
+        "desc": "Entity types. Empty = all types.",
+        "optional": true
+      },
+      {
+        "name": "cities",
+        "type": "array",
+        "desc": "Cities. Principal or mailing city, e.g. Miami, Orlando, Tampa, Jacksonville.",
+        "optional": true
+      },
+      {
+        "name": "zipPrefixes",
+        "type": "array",
+        "desc": "ZIP prefixes. e.g. 331 (Miami), 328 (Orlando), 336 (Tampa), 33401.",
+        "optional": true
+      },
+      {
+        "name": "industries",
+        "type": "array",
+        "desc": "Industry guess. Guessed from words in the business name (e.g. ROOFING, REALTY, TRUCKING).",
+        "optional": true
+      },
+      {
+        "name": "nameKeywords",
+        "type": "string",
+        "desc": "Name contains (any). Comma-separated, e.g. roofing, cleaning, med spa.",
+        "optional": true
+      },
+      {
+        "name": "excludeKeywords",
+        "type": "string",
+        "desc": "Name excludes. Comma-separated, e.g. holdings, investments.",
+        "optional": true
+      },
+      {
+        "name": "newFormationsOnly",
+        "type": "boolean",
+        "desc": "Only new formations. Skip filings for entities formed more than 45 days before the file date (e.g. reinstatements and old foreign entities). Future effective dates are kept.",
+        "optional": true
+      },
+      {
+        "name": "requireOfficer",
+        "type": "boolean",
+        "desc": "Only with an officer or manager listed. Skip filings with no named officer, manager or member.",
+        "optional": true
+      },
+      {
+        "name": "personAgentOnly",
+        "type": "boolean",
+        "desc": "Only when the registered agent is a person. Skips filings that use a registered-agent company, which usually means the owner filed directly.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum results. You pay per business returned, so this also caps the cost. Default 1000.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "bulk_domain_whois_expiry",
+    "description": "Check many domains at once with official RDAP (WHOIS fallback): registered or available, registrar, created/updated/expiry dates, days to expiry, transfer lock and pending-delete status, nameservers, DNS host and DNSSEC. Unlike email_domain_security_checker (SPF/DKIM/DMARC mail security) and company_website_enricher (site content and contacts), this is registration and expiry data for a domain portfolio. Use when you audit a domain portfolio for renewals, check which names are available, or verify registrar and DNS host for vendors or phishing look-alikes. Do not use for website content, uptime or email-auth checks (use email_domain_security_checker). Parameters: domains accepts URLs (scheme, www and paths stripped; duplicates dropped; up to 10,000); rootDomainOnly (default true) reduces subdomains to the registrable domain; expiringWithinDays sets the expiringSoon flag and only=expiringSoon|available|registered returns (and bills) just that subset; sortBy=expiry puts the soonest renewals first; followRegistrar adds registrant org/country when published but is slower; maxResults caps billed domains. Failed lookups are free. Returns per item: agentSummary, domain, registered, available, registrar, registrarIanaId, createdDate, updatedDate, expiresDate, daysToExpiry, ageYears, expiringSoon, statuses, transferLocked, pendingDelete, nameservers, dnsHost, dnssec, registrantOrg, registrantCountry, abuseEmail, source; plus DOMAINS_XLSX/CSV.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/bulk-domain-whois-expiry (https://apify.com/pandadad0214/bulk-domain-whois-expiry) on your own Apify account. Price: $0.001 per domain checked. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "domains",
+        "type": "array",
+        "desc": "Domains. Up to 10,000 domains or URLs (https://, www. and paths are removed; duplicates dropped).",
+        "optional": true
+      },
+      {
+        "name": "expiringWithinDays",
+        "type": "integer",
+        "desc": "Expiring soon = within N days. Flags domains whose expiry is this close. Default 60.",
+        "optional": true
+      },
+      {
+        "name": "only",
+        "type": "string",
+        "desc": "Only return. Filter the results (you pay only for returned domains). Choices: all = All domains; expiringSoon = Expiring soon only; available = Not registered (likely available) only; registered = Registered only.",
+        "optional": true
+      },
+      {
+        "name": "rootDomainOnly",
+        "type": "boolean",
+        "desc": "Look up the root domain. blog.example.co.uk -> example.co.uk. Off = look up exactly what you typed.",
+        "optional": true
+      },
+      {
+        "name": "followRegistrar",
+        "type": "boolean",
+        "desc": "Ask the registrar's RDAP too. Adds registrant org/country when the registrar publishes them (slower).",
+        "optional": true
+      },
+      {
+        "name": "sortBy",
+        "type": "string",
+        "desc": "Sort by. Order of results. Choices: input = Input order; expiry = Soonest expiry first.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum results. You pay per domain returned, so this also caps the cost. Default 1000.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "wayback_snapshot_finder",
+    "description": "Find Internet Archive Wayback Machine snapshots for pages or whole domains through the official CDX API: capture timestamps, direct archive URLs, HTTP status, MIME type, content digest, and first/last-seen dates. Unlike website_change_monitor (diffs the live page on a schedule) and reference_checker (verifies scholarly citations), this looks up historical archived copies. Use when you need to cite or recover a dead link, prove what a page said on a date, date when a site or page first appeared, or list a domain's archived URLs. Do not use to fetch or diff live pages (use website_change_monitor) or to download full archived page content. Parameters: urls with matchType exact|domain|prefix, or domains (always domain match); from/to bound the date range (YYYY or YYYYMMDD); closestTo sorts by nearness to one date; collapseDigest (default true) keeps one row per unique content; filterStatus=200 drops redirects and errors; maxResultsPerUrl applies before maxResults, which caps billed snapshots (hard max 5000); includeFirstLast adds extra CDX probes and can add latency. Empty or failed lookups are free; the Archive's CDX API can be slow, so allow up to a minute or more. Returns per item: agentSummary, url, timestamp, timestampReadable, originalUrl, archiveUrl, statusCode, mimeType, digest, length, isFirst, isLast, firstSeen, lastSeen; plus SNAPSHOTS_XLSX/CSV.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/wayback-snapshot-finder (https://apify.com/pandadad0214/wayback-snapshot-finder) on your own Apify account. Price: $0.001 per snapshot returned. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "urls",
+        "type": "array",
+        "desc": "URLs. Pages or hosts to look up (https:// and www. are fine). Duplicates are dropped.",
+        "optional": true
+      },
+      {
+        "name": "domains",
+        "type": "array",
+        "desc": "Domains. Whole domains to search (always uses domain match). Combine with URLs if you want.",
+        "optional": true
+      },
+      {
+        "name": "matchType",
+        "type": "string",
+        "desc": "Match type (for URLs). exact = that URL only; domain = any URL on the host; prefix = that path and below. Choices: exact = Exact URL; domain = Whole domain; prefix = URL prefix.",
+        "optional": true
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "From date. Earliest snapshot: YYYY or YYYYMMDD (e.g. 2015 or 20150101).",
+        "optional": true
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "To date. Latest snapshot: YYYY or YYYYMMDD.",
+        "optional": true
+      },
+      {
+        "name": "filterStatus",
+        "type": "string",
+        "desc": "HTTP status filter. Only keep this status code (e.g. 200). Leave empty for all.",
+        "optional": true
+      },
+      {
+        "name": "collapseDigest",
+        "type": "boolean",
+        "desc": "Unique content only (collapse by digest). One row per unique page content. On by default.",
+        "optional": true
+      },
+      {
+        "name": "closestTo",
+        "type": "string",
+        "desc": "Closest to timestamp. Optional. Return snapshots nearest this date/time (YYYYMMDD or YYYY-MM-DD). Sorted by closeness.",
+        "optional": true
+      },
+      {
+        "name": "includeFirstLast",
+        "type": "boolean",
+        "desc": "Mark first and last seen. Probe CDX for the earliest and latest capture of each URL and set isFirst / isLast (and firstSeen / lastSeen).",
+        "optional": true
+      },
+      {
+        "name": "maxResultsPerUrl",
+        "type": "integer",
+        "desc": "Max snapshots per URL. Cap per URL/domain before the global max. Default 100.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum results. You pay per snapshot returned, so this also caps the cost. Default 100 (hard max 5000).",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "texas_new_business_leads",
+    "description": "List new Texas businesses from the Texas Comptroller's active franchise taxpayer open data, matched on Secretary of State charter date or franchise-tax responsibility date, with address, county, organization type, SOS file number and status. Unlike florida_new_business_leads (Sunbiz filings with officers) and local_business_leads (OpenStreetMap shops), this is new Texas LLCs and corporations from state tax data; officers are not included. Use when you sell to newly formed Texas companies or watch new entrants in a Texas city, ZIP or county. Do not use for other states, for officer/owner names or for sole proprietors that do not owe franchise tax. Parameters: daysBack or charterFrom/charterTo (future effective dates are kept, so a recent window can include dates ahead of today); cities, zipPrefixes and countyCodes (Comptroller numbers, e.g. 101 Harris, 227 Travis) narrow the area; orgTypes (e.g. CL LLC, CT corporation) and nameContains filter the entity; activeOnly (default true) keeps right-to-transact active rows; requireSosNumber drops rows with no SOS file number; maxResults caps billed businesses (hard max 5000). Runs with no matches are free. Returns per item: agentSummary, taxpayerNumber, name, address, city, state, zip, countyCode, orgTypeCode, orgType, sosFileNumber, charterDate, responsibilityDate, sosStatus, rightToTransact, naics, sourceUrl, taxpayerUrl; plus TXBIZ_XLSX/CSV.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/texas-new-business-leads (https://apify.com/pandadad0214/texas-new-business-leads) on your own Apify account. Price: $0.0015 per business returned. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "daysBack",
+        "type": "integer",
+        "desc": "Chartered / responsible in the last N days. Default 7. Matches SOS charter date OR franchise-tax responsibility beginning date. Future effective dates are kept. Use 1 on a daily schedule.",
+        "optional": true
+      },
+      {
+        "name": "charterFrom",
+        "type": "string",
+        "desc": "On or after. Optional YYYY-MM-DD; overrides days back. Applied to charter or responsibility date.",
+        "optional": true
+      },
+      {
+        "name": "charterTo",
+        "type": "string",
+        "desc": "On or before. Optional YYYY-MM-DD.",
+        "optional": true
+      },
+      {
+        "name": "cities",
+        "type": "array",
+        "desc": "Cities. Taxpayer city, e.g. Houston, Austin, Dallas, San Antonio, Fort Worth.",
+        "optional": true
+      },
+      {
+        "name": "zipPrefixes",
+        "type": "array",
+        "desc": "ZIP prefixes. e.g. 770 (Houston), 787 (Austin), 752 (Dallas), 782 (San Antonio).",
+        "optional": true
+      },
+      {
+        "name": "countyCodes",
+        "type": "array",
+        "desc": "County codes. Texas Comptroller county codes as numbers, e.g. 101 (Harris), 227 (Travis), 57 (Dallas), 15 (Bexar), 220 (Tarrant).",
+        "optional": true
+      },
+      {
+        "name": "orgTypes",
+        "type": "array",
+        "desc": "Organization types. Empty = all types.",
+        "optional": true
+      },
+      {
+        "name": "nameContains",
+        "type": "string",
+        "desc": "Name contains. Case-insensitive substring, e.g. roofing, realty, trucking.",
+        "optional": true
+      },
+      {
+        "name": "activeOnly",
+        "type": "boolean",
+        "desc": "Only active (right to transact). Keep rows with right-to-transact code A and SOS status A (or blank SOS status).",
+        "optional": true
+      },
+      {
+        "name": "requireSosNumber",
+        "type": "boolean",
+        "desc": "Only with an SOS / COA file number. Skip taxpayers that have no Secretary of State or Certificate of Authority file number.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum results. You pay per business returned, so this also caps the cost. Default 500; hard max 5000.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "h1b_lca_sponsor_leads",
+    "description": "Find employers sponsoring H-1B, H-1B1 and E-3 workers from the US Department of Labor OFLC LCA disclosure data (FY2026 Q3 default), with job title, SOC code, worksite, wage range and unit, case status, dates and worker count, plus a free employer roll-up sheet. Unlike npi_provider_lists (healthcare providers) and federal_contract_finder (federal awards), this is labor-condition-application filings. Use when recruiters, immigration attorneys, payroll/benefits/relocation sellers or wage analysts need sponsor lists by employer, state, city, title or SOC. Do not use for approved-visa outcomes, individual workers or non-LCA visas (PERM, O-1). Parameters: employers, states, cities, titleContains, socContains narrow rows; visaClass defaults H-1B (All widens it); caseStatuses, minWage with wageUnit, receivedFrom/To or daysBack filter further; fiscalYearQuarter or dataUrl pick another disclosure file; demoMode (or empty input) returns a tiny embedded sample without the ~250 MB DOL download; maxResults caps billed cases (hard max 5000). Tight filters finish faster. Runs with no matches are free. Returns per item: agentSummary, caseNumber, status, receivedDate, visaClass, employerName, employerCity, employerState, jobTitle, socCode, socTitle, worksiteCity, worksiteState plus wage, date and worker-count fields; plus LCA_CASES_XLSX (Cases + Employers sheets)/CSV.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/h1b-lca-sponsor-leads (https://apify.com/pandadad0214/h1b-lca-sponsor-leads) on your own Apify account. Price: $0.002 per lca case returned. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "employers",
+        "type": "array",
+        "desc": "Employer name contains. Substring match on employer name (any). e.g. Google, Infosys, Deloitte.",
+        "optional": true
+      },
+      {
+        "name": "states",
+        "type": "array",
+        "desc": "Worksite states. 2-letter worksite state codes, e.g. TX, CA, NY.",
+        "optional": true
+      },
+      {
+        "name": "cities",
+        "type": "array",
+        "desc": "Worksite cities. Worksite city substring match, e.g. Austin, Seattle.",
+        "optional": true
+      },
+      {
+        "name": "titleContains",
+        "type": "string",
+        "desc": "Job title contains. Substring match on job title, e.g. software, data scientist, nurse.",
+        "optional": true
+      },
+      {
+        "name": "socContains",
+        "type": "string",
+        "desc": "SOC code or title contains. Match SOC_CODE or SOC_TITLE, e.g. 15-1252, Software Developers.",
+        "optional": true
+      },
+      {
+        "name": "visaClass",
+        "type": "string",
+        "desc": "Visa class. Default H-1B. Choose All to include H-1B1 and E-3. Choices: H-1B = H-1B; H-1B1 Chile = H-1B1 Chile; H-1B1 Singapore = H-1B1 Singapore; E-3 Australian = E-3 Australian; All = All (H-1B + H-1B1 + E-3).",
+        "optional": true
+      },
+      {
+        "name": "caseStatuses",
+        "type": "array",
+        "desc": "Case statuses. Default: Certified. Add Certified - Withdrawn if useful.",
+        "optional": true
+      },
+      {
+        "name": "minWage",
+        "type": "number",
+        "desc": "Minimum wage (from rate). Keep cases whose wage-from is at least this amount (same unit as Wage unit).",
+        "optional": true
+      },
+      {
+        "name": "wageUnit",
+        "type": "string",
+        "desc": "Wage unit. Only keep this pay unit (Year, Hour, Month, Week, Bi-Weekly). Empty = any. Choices:  = Any; Year = Year; Hour = Hour; Month = Month; Week = Week; Bi-Weekly = Bi-Weekly.",
+        "optional": true
+      },
+      {
+        "name": "receivedFrom",
+        "type": "string",
+        "desc": "Received on or after. Optional YYYY-MM-DD.",
+        "optional": true
+      },
+      {
+        "name": "receivedTo",
+        "type": "string",
+        "desc": "Received on or before. Optional YYYY-MM-DD.",
+        "optional": true
+      },
+      {
+        "name": "daysBack",
+        "type": "integer",
+        "desc": "Received in the last N days. Optional; ignored when Received from is set. Uses decision/received date when available.",
+        "optional": true
+      },
+      {
+        "name": "onlyFullTime",
+        "type": "boolean",
+        "desc": "Full-time positions only. Skip part-time LCAs.",
+        "optional": true
+      },
+      {
+        "name": "fiscalYearQuarter",
+        "type": "string",
+        "desc": "Fiscal year / quarter file. Optional override of the DOL filename stem, e.g. FY2026_Q3 or FY2025_Q4. Default = latest known (FY2026_Q3).",
+        "optional": true
+      },
+      {
+        "name": "dataUrl",
+        "type": "string",
+        "desc": "Custom disclosure file URL. Optional full URL to an LCA_Disclosure_Data_*.xlsx. Overrides fiscal year / quarter.",
+        "optional": true
+      },
+      {
+        "name": "demoMode",
+        "type": "boolean",
+        "desc": "Demo mode (embedded sample). Use the tiny embedded sample instead of downloading the ~250 MB DOL file. For empty-input demos and offline tests only.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum results. You pay per LCA case returned, so this also caps the cost. Default 200 (hard max 5000).",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "new_york_new_business_leads",
+    "description": "List newly filed New York LLCs, corporations and other entities from the official NY Department of State Active Corporations open data (data.ny.gov), with DOS ID, entity type, filing date, county, jurisdiction, process name and address, and CEO and registered agent when filed. Unlike florida_new_business_leads (Sunbiz filings with officers) and texas_new_business_leads (Comptroller franchise taxpayers), this is New York DOS filings. Use when banks, payroll, insurance, accounting, agencies or suppliers want new New York owners in their first weeks. Do not use for other states, for emails or phones (the source has none) or for sole proprietors. Parameters: daysBack (default 7) or filedFrom/filedTo set the window; counties, cities, zipPrefixes, entityTypes (e.g. DOMESTIC LIMITED LIABILITY COMPANY) and nameContains narrow rows; requireCeo and requireProcessAddress drop incomplete rows (CEO is often empty on new LLCs, so the process address is the reliable contact); maxResults caps billed businesses. Runs with no matches are free. Returns per item: agentSummary, dosId, name, entityType, filingDate, county, jurisdiction, processName, processAddress, processCity, processState, processZip, ceoName and CEO address fields, sourceUrl; plus NYBIZ_XLSX/CSV.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/new-york-new-business-leads (https://apify.com/pandadad0214/new-york-new-business-leads) on your own Apify account. Price: $0.0015 per business returned. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "daysBack",
+        "type": "integer",
+        "desc": "Filed with DOS in the last N days. Default 7. Matches initial DOS filing date. Use 1 on a daily schedule.",
+        "optional": true
+      },
+      {
+        "name": "filedFrom",
+        "type": "string",
+        "desc": "Filed on or after. Optional YYYY-MM-DD; overrides days back. Applied to initial DOS filing date.",
+        "optional": true
+      },
+      {
+        "name": "filedTo",
+        "type": "string",
+        "desc": "Filed on or before. Optional YYYY-MM-DD; overrides days back when set with Filed on or after.",
+        "optional": true
+      },
+      {
+        "name": "counties",
+        "type": "array",
+        "desc": "Counties. NYS county of the entity, e.g. New York (Manhattan), Kings (Brooklyn), Queens, Bronx, Richmond (Staten Island), Suffolk, Nassau, Westchester, Erie, Monroe.",
+        "optional": true
+      },
+      {
+        "name": "cities",
+        "type": "array",
+        "desc": "Cities. Match DOS process city OR location city (case-insensitive), e.g. New York, Brooklyn, Queens, Buffalo, Rochester, Albany.",
+        "optional": true
+      },
+      {
+        "name": "zipPrefixes",
+        "type": "array",
+        "desc": "ZIP prefixes. Match DOS process ZIP or location ZIP starts-with, e.g. 100 (Manhattan), 112 (Brooklyn), 113 (Queens), 104 (Bronx), 103 (Staten Island), 117 (Suffolk).",
+        "optional": true
+      },
+      {
+        "name": "entityTypes",
+        "type": "array",
+        "desc": "Entity types. Empty = all types. The open dataset includes domestic and foreign LLCs, corporations, nonprofits, professional entities and partnerships — not only corporations.",
+        "optional": true
+      },
+      {
+        "name": "nameContains",
+        "type": "string",
+        "desc": "Name contains. Case-insensitive substring of the current entity name, e.g. construction, realty, consulting.",
+        "optional": true
+      },
+      {
+        "name": "requireCeo",
+        "type": "boolean",
+        "desc": "Only with a CEO name on file. Keep rows that list a CEO (dataset field CEO Name / chairman_name). Brand-new LLCs often have no CEO on file yet.",
+        "optional": true
+      },
+      {
+        "name": "requireProcessAddress",
+        "type": "boolean",
+        "desc": "Only with a DOS process address. Keep rows that list a DOS process street address (the reliable contact address in this source).",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum results. You pay per business returned, so this also caps the cost. Default 500; hard max 5000.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "eu_ted_tenders",
+    "description": "Search official EU TED (Tenders Electronic Daily) public procurement notices through the TED Search API v3, with English title, publication date, buyer country, NUTS, notice and contract type, procedure, estimated or award value when published, tender deadline, CPV codes and TED HTML/PDF links. Unlike federal_contract_finder (US federal awards) and grants_finder (US assistance grants), this covers European public tenders. Use when BD or capture teams, EU suppliers or researchers need tenders by keyword, CPV code or buyer country. Do not use to submit bids, for US opportunities or for national portals outside TED. Parameters: daysBack (default 7) or publishedFrom/To set the window; keywords and cpvCodes (e.g. 72000000 IT services) match the notice; countries takes ISO-3 buyer codes such as DEU or FRA; maxResults caps billed notices. Value is often missing because many notices omit it. Empty input runs a small IT-services demo. Runs with no matches are free. Returns per item: agentSummary, noticeId, title, publicationDate, countries, nuts, noticeType, contractType, procedure, estimatedValue, deadline, CPV codes, noticeUrl, pdfUrl, htmlUrl; plus TED_XLSX/CSV.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/eu-ted-tenders (https://apify.com/pandadad0214/eu-ted-tenders) on your own Apify account. Price: $0.002 per notice returned. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxResults when you leave it unset, so it also limits what is billed; setting maxResults higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "daysBack",
+        "type": "integer",
+        "desc": "Published in the last N days. Default 7. Searches publication-date >= today minus (N-1) days (UTC). Use 1 on a daily schedule. Ignored when Published from / Published to are set.",
+        "optional": true
+      },
+      {
+        "name": "publishedFrom",
+        "type": "string",
+        "desc": "Published from. Optional YYYY-MM-DD. Overrides days back for the start of the window.",
+        "optional": true
+      },
+      {
+        "name": "publishedTo",
+        "type": "string",
+        "desc": "Published to. Optional YYYY-MM-DD.",
+        "optional": true
+      },
+      {
+        "name": "keywords",
+        "type": "array",
+        "desc": "Keywords. Full-text search. Each keyword becomes FT ~ \"...\" and they are joined with AND. Quotes are stripped. Example: software, cloud.",
+        "optional": true
+      },
+      {
+        "name": "cpvCodes",
+        "type": "array",
+        "desc": "CPV codes. Common Procurement Vocabulary codes, e.g. 72000000 (IT services), 45000000 (construction), 33000000 (medical). Several codes are OR'd.",
+        "optional": true
+      },
+      {
+        "name": "countries",
+        "type": "array",
+        "desc": "Buyer countries. ISO-3 country codes, e.g. DEU, FRA, ITA, ESP, POL, NLD, BEL, IRL, SWE. Two-letter codes (DE, FR, IT) are converted. Filtered server-side with buyer-country.",
+        "optional": true
+      },
+      {
+        "name": "maxResults",
+        "type": "integer",
+        "desc": "Maximum results. You pay per notice returned, so this also caps the cost. Default 200; hard max 2000.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "broken_link_checker",
+    "description": "Crawl one or more start pages and check every unique http(s) link for HTTP status, final URL after redirects, a broken flag (status 400+) and a redirected flag, with external links checked by default. Unlike ai_search_seo_audit (page SEO/GEO scoring) and website_change_monitor (content diffs over time), this finds dead and redirecting links. Use when SEO, content or agency teams need a 404 report for a site or page. Do not use to search the web, to crawl a whole large site in one call or to check private or internal addresses (blocked and never billed). Parameters: startUrls (required in practice) are the pages crawled; maxPages is pages followed per host (1 = only the start pages); maxLinks caps checked links and therefore billing; checkExternal=false stays on-site; timeoutSecs is the per-request timeout (default 15). Billed per link that returns an HTTP status; timeouts, DNS failures and robots-skipped targets are free. Returns per item: agentSummary, originalUrl, finalUrl, statusCode, broken, redirected, external, contentType, sourcePage, error; plus LINKS_XLSX (all links plus a Broken sheet)/CSV.\n\nBehavior: read-only; runs the Apify Actor pandadad0214/broken-link-checker (https://apify.com/pandadad0214/broken-link-checker) on your own Apify account. Price: $0.001 per link checked. Runs that find nothing are not charged per result, and spending is capped per call by run_max_charge_usd (default $0.50). run_max_items (default 50) limits items returned and fills maxLinks when you leave it unset, so it also limits what is billed; setting maxLinks higher can bill more than is returned. Most calls finish in 5-15 s for a few inputs; large inputs or crawls can take minutes, so raise run_timeout_secs (max 300) or shrink the input after a timeout error. Returns JSON {actor, count, items}; long text output is trimmed to whole items, with all items in structuredContent.",
+    "arguments": [
+      {
+        "name": "startUrls",
+        "type": "array",
+        "desc": "Start URLs. Pages to start from. The Actor fetches each page, extracts http(s) links, and checks them. Leave empty for a short demo on example.com. One URL per line.",
+        "optional": true
+      },
+      {
+        "name": "maxPages",
+        "type": "integer",
+        "desc": "Pages to crawl per host. How many HTML pages on the same host as each start URL to fetch for extracting more links. 1 = only the start URL(s). Further same-host pages are queued only when this is greater than 1. robots.txt is respected for crawl sources.",
+        "optional": true
+      },
+      {
+        "name": "maxLinks",
+        "type": "integer",
+        "desc": "Maximum links to check. Maximum unique http(s) URLs to check. This is what you are charged for. Hard max 2,000. (maxResults is accepted as an alias.)",
+        "optional": true
+      },
+      {
+        "name": "checkExternal",
+        "type": "boolean",
+        "desc": "Check outbound (external) links. When on, links to other hosts are checked too. Turn off to check only same-host links.",
+        "optional": true
+      },
+      {
+        "name": "timeoutSecs",
+        "type": "integer",
+        "desc": "Per-request timeout (seconds). How long to wait for each request. Timed-out URLs are recorded but not charged.",
+        "optional": true
+      },
+      {
+        "name": "run_max_items",
+        "type": "integer",
+        "desc": "Optional. Most results to return from this call (default from PANDA_MAX_ITEMS, 50). Also limits how many results the Actor produces and charges for, unless you set its own max field.",
+        "optional": true
+      },
+      {
+        "name": "run_max_charge_usd",
+        "type": "number",
+        "desc": "Optional. Hard spending cap for this call in USD (default from PANDA_MAX_CHARGE_USD, 0.50).",
+        "optional": true
+      },
+      {
+        "name": "run_timeout_secs",
+        "type": "integer",
+        "desc": "Optional. Seconds to wait for results (default from PANDA_TIMEOUT_SECS, 120; max 300).",
+        "optional": true
+      }
+    ]
+  }
+]
