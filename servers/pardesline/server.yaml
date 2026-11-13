@@ -1,0 +1,42 @@
+name: pardesline
+image: mcp/pardesline
+type: server
+meta:
+  category: ai
+  tags:
+    - 3d-vision
+    - medical-imaging
+    - point-cloud
+    - mesh
+    - dicom
+    - datasets
+    - registration
+    - segmentation
+about:
+  title: pardesline
+  description: |
+    3D computer vision and medical imaging for AI agents, run locally (Apache-2.0).
+
+    • Browse and load 43 public 3D and medical datasets (Medical Segmentation Decathlon, TotalSegmentator, AMOS, LUNA16, TCIA collections, OpenNeuro, KITTI, Objaverse, Hugging Face repos) with their licence and citation; archives are read by HTTP Range, so one case costs one case
+    • Run 73 algorithms on point clouds, meshes and CT/MRI volumes (registration, surface reconstruction, segmentation, signed distance fields, LiDAR clustering) with documented defaults
+    • Convert between typed objects that keep frame, units, labels and licence (Open3D, PyVista and SimpleITK preinstalled)
+    • Scan a private folder: questions the package will not guess (licence, units, label meanings) come back to the agent for the human
+    • 20 expert guides (registration, PointNet, DINOv3, JEPA, Gaussian splatting, nnU-Net, 3D metrics)
+  icon: https://avatars.githubusercontent.com/u/340713250?v=4
+source:
+  project: https://github.com/pardesline/pardesline
+  commit: cbeb439de09c38e9dfd2bdebd7c3603cc6ddff2b
+run:
+  volumes:
+    - "{{pardesline.data_path}}:/data"
+config:
+  description: A local folder the agent may scan, load from and export into (mounted at /data).
+  parameters:
+    type: object
+    properties:
+      data_path:
+        type: string
+        description: Folder on your machine shared with the server at /data
+        default: /Users/me/pardesline-data
+    required:
+      - data_path
