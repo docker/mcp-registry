@@ -4,4 +4,4 @@ API reference: https://cloudgpu.app/api/docs
 
 Homepage: https://cloudgpu.app
 
-Source: https://github.com/mrhy7176/cloudgpu-mcp
+Source: https://github.com/cloudgpu-app/cloudgpu-mcp

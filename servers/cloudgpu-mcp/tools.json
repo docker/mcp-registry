@@ -1,16 +1,641 @@
 [
   {
-    "name": "get_account",
-    "description": "Account balance, how many instances this account may run at once, and how many are running now.",
+    "name": "list_task_templates",
+    "description": "Public, local and read-only. Inspect small task recipes and requirements before quoting. Does not call an API, rent a GPU, install dependencies or reserve capacity.",
     "annotations": {
-      "title": "CloudGPU account",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "prepare_task_template",
+    "description": "Local preparation only. Returns a command and optional Workspace/output fields; never submits or spends money. Quote, explicit GPU/budget/time approval and existing storage consent are still required by run_job. No guaranteed application compatibility or automatic retry.",
+    "arguments": [
+      {
+        "name": "template_id",
+        "type": "string",
+        "desc": "template_id"
+      },
+      {
+        "name": "workflow_path",
+        "type": "string",
+        "desc": "workflow_path",
+        "optional": true
+      },
+      {
+        "name": "comfy_port",
+        "type": "number",
+        "desc": "comfy_port",
+        "optional": true
+      },
+      {
+        "name": "timeout_seconds",
+        "type": "number",
+        "desc": "timeout_seconds",
+        "optional": true
+      },
+      {
+        "name": "image_count",
+        "type": "number",
+        "desc": "image_count",
+        "optional": true
+      },
+      {
+        "name": "model_reference",
+        "type": "object",
+        "desc": "model_reference",
+        "optional": true
+      },
+      {
+        "name": "dataset_path",
+        "type": "object",
+        "desc": "dataset_path",
+        "optional": true
+      },
+      {
+        "name": "target_modules",
+        "type": "array",
+        "desc": "target_modules",
+        "optional": true
+      },
+      {
+        "name": "steps",
+        "type": "number",
+        "desc": "steps",
+        "optional": true
+      },
+      {
+        "name": "rank",
+        "type": "number",
+        "desc": "rank",
+        "optional": true
+      },
+      {
+        "name": "sequence_length",
+        "type": "number",
+        "desc": "sequence_length",
+        "optional": true
+      },
+      {
+        "name": "learning_rate",
+        "type": "number",
+        "desc": "learning_rate",
+        "optional": true
+      },
+      {
+        "name": "workspace_version_id",
+        "type": "string",
+        "desc": "workspace_version_id",
+        "optional": true
+      },
+      {
+        "name": "input_path",
+        "type": "string",
+        "desc": "input_path",
+        "optional": true
+      },
+      {
+        "name": "entrypoint",
+        "type": "object",
+        "desc": "entrypoint",
+        "optional": true
+      },
+      {
+        "name": "persist_results",
+        "type": "boolean",
+        "desc": "persist_results",
+        "optional": true
+      },
+      {
+        "name": "output_files",
+        "type": "array",
+        "desc": "output_files",
+        "optional": true
+      },
+      {
+        "name": "accept_storage_charges",
+        "type": "boolean",
+        "desc": "accept_storage_charges",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "compare_compute_costs",
+    "description": "Read-only live quote comparison for up to eight explicit compatible GPU candidates. Accounts for minimum one-hour versus per-minute billing. No capacity reservation, GPU creation, benchmark, automatic selection or approval. Run estimate_cost for the selected rental afterward.",
+    "arguments": [
+      {
+        "name": "gpu_models",
+        "type": "array",
+        "desc": "gpu_models"
+      },
+      {
+        "name": "gpu_count",
+        "type": "number",
+        "desc": "gpu_count",
+        "optional": true
+      },
+      {
+        "name": "hours",
+        "type": "number",
+        "desc": "hours"
+      },
+      {
+        "name": "max_spend_usd",
+        "type": "number",
+        "desc": "max_spend_usd"
+      },
+      {
+        "name": "template",
+        "type": "string",
+        "desc": "template",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "prepare_task_pipeline",
+    "description": "Local read-only preparation of 1–8 reviewed commands for one bounded Job or an approved existing rental. Reuses GPU and disk across steps; stops on the first error. Does not create, retry, install dependencies, approve spending or change an instance lifecycle. Summary persistence is optional and never implies paid-storage consent.",
+    "arguments": [
+      {
+        "name": "steps",
+        "type": "array",
+        "desc": "steps"
+      },
+      {
+        "name": "workspace_version_id",
+        "type": "string",
+        "desc": "workspace_version_id",
+        "optional": true
+      },
+      {
+        "name": "persist_summary",
+        "type": "boolean",
+        "desc": "persist_summary",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_job_batch_receipt",
+    "description": "Read only saved accepted Job IDs and uncertain submission intents for the original batch key, API key and endpoint. No API request or GPU creation. Local state is historical, not live release evidence; a missing entry does not prove non-creation. Commands, tokens and signed URLs are never stored.",
+    "arguments": [
+      {
+        "name": "batch_key",
+        "type": "string",
+        "desc": "batch_key"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "prepare_job_batch",
+    "description": "Local, read-only preparation for up to eight Jobs with fresh per-Job quotes and one aggregate cap. No API requests, reservations, installations or automatic execution retries. Retain the immutable plan hash and batch key.",
+    "arguments": [
+      {
+        "name": "batch_key",
+        "type": "string",
+        "desc": "batch_key"
+      },
+      {
+        "name": "total_budget_usd",
+        "type": "number",
+        "desc": "total_budget_usd"
+      },
+      {
+        "name": "jobs",
+        "type": "array",
+        "desc": "jobs"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_job_batch",
+    "description": "Read-only status and cost summary for explicit Job IDs. Does not retry, cancel, create or claim independent supplier release verification.",
+    "arguments": [
+      {
+        "name": "job_ids",
+        "type": "array",
+        "desc": "job_ids"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "run_job_batch",
+    "description": "Paid: submit an explicitly approved immutable manifest using existing durable Jobs, each with a quote, budget and deadline. Aggregate worst-case budget is capped. Partial success is possible. On lost responses replay the IDENTICAL manifest/key; never create replacement GPUs or retry failed execution automatically. Persist the returned receipt. No transaction rollback or independent batch scheduler.",
+    "arguments": [
+      {
+        "name": "batch_key",
+        "type": "string",
+        "desc": "batch_key"
+      },
+      {
+        "name": "total_budget_usd",
+        "type": "number",
+        "desc": "total_budget_usd"
+      },
+      {
+        "name": "jobs",
+        "type": "array",
+        "desc": "jobs"
+      },
+      {
+        "name": "approved_plan_sha256",
+        "type": "string",
+        "desc": "approved_plan_sha256"
+      },
+      {
+        "name": "user_confirmed",
+        "type": "boolean",
+        "desc": "user_confirmed"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "get_storage",
+    "description": "Storage availability, used bytes, reserved uploads and account quota. No money is spent.",
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "list_files",
+    "description": "Persistent artifacts, model/data files and Workspace files. Availability depends on storage being enabled.",
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "list_workspaces",
+    "description": "Saved project Workspaces; versions are immutable file manifests.",
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "list_workspace_versions",
+    "description": "List saved immutable versions of an owned Workspace.",
+    "arguments": [
+      {
+        "name": "workspace_id",
+        "type": "string",
+        "desc": "workspace_id"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "get_workspace_version",
+    "description": "Read the path-to-file manifest for an owned version.",
+    "arguments": [
+      {
+        "name": "version_id",
+        "type": "string",
+        "desc": "version_id"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "list_workspace_instances",
+    "description": "Lists your running GPUs that this key may access. Budgeted Agent keys only see instances created by the same key.",
+    "annotations": {
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "get_workspace_application",
+    "description": "Check file restoration on an existing GPU. This does not create, stop or restart a GPU. An uncertain result must be checked, never automatically resubmitted.",
+    "arguments": [
+      {
+        "name": "version_id",
+        "type": "string",
+        "desc": "version_id"
+      },
+      {
+        "name": "instance_id",
+        "type": "string",
+        "desc": "instance_id"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "apply_workspace",
+    "description": "Restore project files to a new private directory on your existing running GPU. Does not install dependencies, execute code, overwrite existing files, rent, restart or stop a GPU. GPU rental billing continues; transfer consumes its network and disk. Ask the user before applying. Repeat requests for the same version and instance return the existing result; failures require inspection, not automatic retries.",
+    "arguments": [
+      {
+        "name": "version_id",
+        "type": "string",
+        "desc": "version_id"
+      },
+      {
+        "name": "instance_id",
+        "type": "string",
+        "desc": "instance_id"
+      },
+      {
+        "name": "user_confirmed",
+        "type": "boolean",
+        "desc": "user_confirmed"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "delete_workspace_version",
+    "description": "Deletes a saved version, releasing its file references. Refuses versions pinned by active Jobs. Ask the user first.",
+    "arguments": [
+      {
+        "name": "version_id",
+        "type": "string",
+        "desc": "version_id"
+      },
+      {
+        "name": "user_confirmed",
+        "type": "boolean",
+        "desc": "user_confirmed"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "upload_artifact",
+    "description": "Uploads a local regular file in resumable-sized parts. Consumes storage quota; retention and pricing depend on the account policy. Credential files are refused.",
+    "arguments": [
+      {
+        "name": "local_path",
+        "type": "string",
+        "desc": "local_path"
+      },
+      {
+        "name": "purpose",
+        "type": "string",
+        "desc": "purpose",
+        "optional": true
+      },
+      {
+        "name": "accept_storage_charges",
+        "type": "boolean",
+        "desc": "Read get_storage pricing first. Set true only after the user agrees to paid storage above the included allowance.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "download_artifact",
+    "description": "Streams a persistent file to this computer. Never overwrites an existing local file.",
+    "arguments": [
+      {
+        "name": "file_id",
+        "type": "string",
+        "desc": "file_id"
+      },
+      {
+        "name": "local_path",
+        "type": "string",
+        "desc": "local_path"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "save_workspace",
+    "description": "Saves 1–100 regular project files as an immutable version. Refuses secrets and symlinks; skips .git, node_modules, __pycache__ and .venv. Save dependency manifests, not the operating system. Pass the returned workspace_version_id to run_job.",
+    "arguments": [
+      {
+        "name": "local_dir",
+        "type": "string",
+        "desc": "local_dir"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "name"
+      },
+      {
+        "name": "workspace_id",
+        "type": "string",
+        "desc": "workspace_id",
+        "optional": true
+      },
+      {
+        "name": "accept_storage_charges",
+        "type": "boolean",
+        "desc": "Read get_storage pricing and obtain user agreement before enabling paid storage.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "delete_file",
+    "description": "Permanently deletes a persistent file or cancels an unfinished upload. Files pinned by a Workspace version cannot be deleted.",
+    "arguments": [
+      {
+        "name": "file_id",
+        "type": "string",
+        "desc": "file_id"
+      },
+      {
+        "name": "user_confirmed",
+        "type": "boolean",
+        "desc": "user_confirmed"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "diagnose_job",
+    "description": "Read-only Job diagnosis and observed platform instance state. Never creates, stops or retries a GPU. Does not claim supplier release verification or classify every command failure as user error.",
+    "arguments": [
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "job_id"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "save_job_output",
+    "description": "With approval, persist the ended Job log tail as a small Artifact using existing storage quota and retention. This is not the full log or binary output collection. Refuses recognizable credentials, quoted/aliased fields and bounded escaped representations or queried URLs. This is not a guarantee that arbitrary logs contain no secrets; save only logs you know are sanitized. Never touches GPU resources. Reuses a matching verified snapshot when found; cross-client concurrent calls may create duplicates.",
+    "arguments": [
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "job_id"
+      },
+      {
+        "name": "user_confirmed",
+        "type": "boolean",
+        "desc": "user_confirmed"
+      },
+      {
+        "name": "accept_storage_charges",
+        "type": "boolean",
+        "desc": "accept_storage_charges",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "get_compute_catalog",
+    "description": "GPU catalog, templates and billing without an API key. Does not rent anything.",
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "quote_compute",
+    "description": "Five-minute server quote: separates estimated task cost from required starting balance and marks supports_jobs. No GPU is started. Pass its quote_id to run_job.",
+    "arguments": [
+      {
+        "name": "min_vram_gb",
+        "type": "number",
+        "desc": "min_vram_gb",
+        "optional": true
+      },
+      {
+        "name": "gpu_model",
+        "type": "string",
+        "desc": "gpu_model",
+        "optional": true
+      },
+      {
+        "name": "gpu_count",
+        "type": "number",
+        "desc": "gpu_count",
+        "optional": true
+      },
+      {
+        "name": "template",
+        "type": "string",
+        "desc": "template",
+        "optional": true
+      },
+      {
+        "name": "disk_gb",
+        "type": "number",
+        "desc": "disk_gb",
+        "optional": true
+      },
+      {
+        "name": "estimated_duration_seconds",
+        "type": "number",
+        "desc": "estimated_duration_seconds"
+      },
+      {
+        "name": "max_budget_usd",
+        "type": "number",
+        "desc": "max_budget_usd"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "get_account",
+    "description": "Balance in USD, how many instances this account may run at once, and how many are running now.",
+    "annotations": {
       "readOnlyHint": true,
       "openWorldHint": true
     }
   },
   {
     "name": "list_gpus",
-    "description": "GPU models you can rent, with VRAM per card.",
+    "description": "GPU models you can rent now, with VRAM, live price per GPU-hour in USD and availability (ok / low / none). Prices are live; never assume them.",
     "arguments": [
       {
         "name": "min_vram_gb",
@@ -21,28 +646,26 @@
       {
         "name": "gpu_model",
         "type": "string",
-        "desc": "Filter by model name",
+        "desc": "Filter by name, e.g. 4090, A100, H20",
         "optional": true
       }
     ],
     "annotations": {
-      "title": "List GPUs",
       "readOnlyHint": true,
       "openWorldHint": true
     }
   },
   {
     "name": "list_templates",
-    "description": "Ready-made instance images (for example JupyterLab, Ollama, ComfyUI, LLaMA-Factory) and the GPU each recommends. Templates with has_api_endpoint get a public HTTPS api_url.",
+    "description": "Ready-made instance images (e.g. JupyterLab, Ollama, ComfyUI, LLaMA-Factory) with the GPU each recommends. Templates with has_api_endpoint get a public HTTPS api_url.",
     "annotations": {
-      "title": "List templates",
       "readOnlyHint": true,
       "openWorldHint": true
     }
   },
   {
     "name": "estimate_cost",
-    "description": "Quote a GPU rental for a model and a number of hours. Returns a quote_id that create_instance needs. Show the quote to the user and get an explicit yes before renting.",
+    "description": "Live price and estimated cost for a GPU, plus your balance after it. Returns a quote_id that create_instance needs. Show the quote to the user and get an explicit yes before renting.",
     "arguments": [
       {
         "name": "gpu_model",
@@ -52,7 +675,7 @@
       {
         "name": "gpu_count",
         "type": "number",
-        "desc": "Number of GPUs, from 1 to 8. Defaults to 1",
+        "desc": "gpu_count",
         "optional": true
       },
       {
@@ -63,83 +686,159 @@
       {
         "name": "template",
         "type": "string",
-        "desc": "Template id from list_templates. Omit for a plain GPU with Python and CUDA",
+        "desc": "Template id from list_templates; omit for a plain GPU with Python and CUDA",
         "optional": true
       }
     ],
     "annotations": {
-      "title": "Quote a rental",
       "readOnlyHint": true,
       "openWorldHint": true
     }
   },
   {
     "name": "list_models",
-    "description": "Models on CloudGPU's OpenAI-compatible API, using the same key. Use this when you only need inference and do not need to rent a GPU.",
+    "description": "Models on CloudGPU's OpenAI-compatible API (same key, same balance). Use them from code with base_url https://cloudgpu.app/v1 instead of renting a GPU when you only need inference.",
     "annotations": {
-      "title": "List hosted models",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "connect_account",
+    "description": "Use when there is no API key. Starts an approval request and returns a link. The user opens it, signs in to cloudgpu.app and approves this assistant with a spending limit and a maximum number of GPUs at once; CloudGPU's servers enforce both. Then call finish_connect. No money is spent.",
+    "arguments": [
+      {
+        "name": "agent_name",
+        "type": "string",
+        "desc": "How the user will recognise this assistant, e.g. 'my coding agent on my laptop'"
+      },
+      {
+        "name": "spend_limit_usd",
+        "type": "number",
+        "desc": "Total this key may ever spend, in USD; ask the user"
+      },
+      {
+        "name": "max_concurrent",
+        "type": "number",
+        "desc": "GPUs or jobs this key may run at once",
+        "optional": true
+      },
+      {
+        "name": "expires_in_days",
+        "type": "number",
+        "desc": "expires_in_days",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "finish_connect",
+    "description": "After the user approved the link from connect_account: waits up to about a minute for the approval, then stores the new key on this computer (~/.config/cloudgpu/credentials.json, readable only by the user) and uses it from now on. The key itself is never shown.",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "get_job",
+    "description": "Status of a job (queued / provisioning / running / stopping / succeeded / failed / cancelled / needs_attention), exit code, cost so far, the last ~4 KB of the command's output and the job's event history.",
+    "arguments": [
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "job_id"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "list_jobs",
+    "description": "Recent jobs on this account with status and cost.",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "limit",
+        "optional": true
+      }
+    ],
+    "annotations": {
       "readOnlyHint": true,
       "openWorldHint": true
     }
   },
   {
     "name": "get_status",
-    "description": "Status (creating, running, stopped, or failed), minutes run, whether SSH is ready, the public api_url if the template has one, and the auto-shutdown limits.",
+    "description": "Status (creating / running / stopped / failed), minutes run, cost so far, whether SSH is ready, the public api_url if the template has one, and the auto-shutdown limits.",
     "arguments": [
       {
         "name": "instance_id",
         "type": "string",
-        "desc": "Id of the instance"
+        "desc": "instance_id"
       }
     ],
     "annotations": {
-      "title": "Instance status",
       "readOnlyHint": true,
       "openWorldHint": true
     }
   },
   {
     "name": "list_instances",
-    "description": "Instances on this account: running, starting, and those stopped in the last 7 days.",
+    "description": "Instances on this account: running, starting, and those stopped in the last 7 days, with cost.",
     "annotations": {
-      "title": "List instances",
       "readOnlyHint": true,
       "openWorldHint": true
     }
   },
   {
     "name": "create_instance",
-    "description": "Rents the GPU from a quote. Requires a quote_id from estimate_cost that the user has approved. max_spend_usd and max_hours are enforced by CloudGPU: the instance is destroyed when either is reached, even if this assistant has disconnected. idle_minutes destroys it after the GPU sits idle that long (installing packages and downloading data count as idle, so allow for setup).",
+    "description": "Rents the GPU from a quote. Costs money. Requires a quote_id from estimate_cost that the user has approved. max_spend_usd and max_hours are enforced by CloudGPU's servers: the instance is destroyed when either is reached, even if this assistant has disconnected. idle_minutes destroys it after the GPU sits idle that long (installing packages and downloading data count as idle, so allow for setup). setup_script (optional bash) runs once as root after the instance is handed over; its output is in /root/cloudgpu-setup.log.",
     "arguments": [
       {
         "name": "quote_id",
         "type": "string",
-        "desc": "quote_id returned by estimate_cost"
+        "desc": "quote_id"
       },
       {
         "name": "user_confirmed",
         "type": "boolean",
-        "desc": "True only if the user explicitly approved this quote in the conversation"
+        "desc": "true only if the user explicitly approved this quote in the conversation"
       },
       {
         "name": "max_spend_usd",
         "type": "number",
-        "desc": "Spend ceiling for this instance, at most the CLOUDGPU_MAX_SPEND_USD cap"
+        "desc": "Budget for this instance in USD (at most 50)"
       },
       {
         "name": "max_hours",
         "type": "number",
-        "desc": "Hard time limit in hours, at most the CLOUDGPU_MAX_HOURS cap"
+        "desc": "Hard time limit in hours (at most 24)"
       },
       {
         "name": "idle_minutes",
         "type": "number",
-        "desc": "Destroy after the GPU has been idle this long. 0 turns the idle limit off; otherwise at least 10. Defaults to 60",
+        "desc": "Destroy after the GPU has been idle this long; 0 turns it off; otherwise at least 10",
+        "optional": true
+      },
+      {
+        "name": "setup_script",
+        "type": "string",
+        "desc": "Optional bash script run once as root in the background after the instance is handed over; output in /root/cloudgpu-setup.log",
         "optional": true
       }
     ],
     "annotations": {
-      "title": "Rent a GPU",
       "readOnlyHint": false,
       "destructiveHint": true,
       "idempotentHint": false,
@@ -147,40 +846,215 @@
     }
   },
   {
+    "name": "resolve_model_reference",
+    "description": "Read-only. Resolve a public Hugging Face model revision and explicit file list to immutable commit, sizes and available LFS SHA-256 checksums. Does not download weights, rent a GPU or authenticate to Hugging Face. Review model license and application compatibility separately.",
+    "arguments": [
+      {
+        "name": "repo_id",
+        "type": "string",
+        "desc": "repo_id"
+      },
+      {
+        "name": "revision",
+        "type": "string",
+        "desc": "revision",
+        "optional": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "name"
+      },
+      {
+        "name": "files",
+        "type": "array",
+        "desc": "files"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "prepare_model_deployment",
+    "description": "Preparation only; no GPU is started. Create a reviewed setup script for the existing ComfyUI template. Downloads go from the public model host directly to the rented GPU, never through CloudGPU storage. Use model names as categories (checkpoints, loras, vae, diffusion_models, text_encoders, clip, controlnet, upscale_models). Does not install custom nodes, execute workflows, accept licenses for the user, or promise compatibility. Pass the setup_script only after explicit approval to the existing deployment flow.",
+    "arguments": [
+      {
+        "name": "model_references",
+        "type": "array",
+        "desc": "model_references"
+      },
+      {
+        "name": "workflow",
+        "type": "object",
+        "desc": "workflow",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "prepare_job_rerun",
+    "description": "Read-only. Retrieve the original command, pinned model references and Workspace without starting anything. Request a fresh quote, check Workspace expiry and obtain explicit budget approval before calling run_job with a NEW idempotency key. Never reuse the old quote or key.",
+    "arguments": [
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "job_id"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "run_job",
+    "description": "Costs money. CloudGPU starts a GPU, runs one bash command on it, then destroys the GPU, all on its servers, so it finishes even if this assistant disconnects. max_spend_usd and max_hours are enforced by the servers. Retrying with the same idempotency_key never starts a second GPU; this tool generates one if you leave it out and returns it. The disk is erased when the job ends. When automatic_output_collection is available, declare outputs and write only those files under $CLOUDGPU_OUTPUT_DIR for persistent storage before release. Otherwise upload results yourself or print them. Storage retention and fees follow the account policy; collection consumes the same GPU budget and may fail. Requires the user's explicit yes on the GPU, budget and time limit.",
+    "arguments": [
+      {
+        "name": "command",
+        "type": "string",
+        "desc": "bash command or script to run on the GPU"
+      },
+      {
+        "name": "gpu_model",
+        "type": "string",
+        "desc": "GPU model exactly as list_gpus returns it",
+        "optional": true
+      },
+      {
+        "name": "template",
+        "type": "string",
+        "desc": "Template id from list_templates",
+        "optional": true
+      },
+      {
+        "name": "gpu_count",
+        "type": "number",
+        "desc": "gpu_count",
+        "optional": true
+      },
+      {
+        "name": "disk_gb",
+        "type": "number",
+        "desc": "Larger system disk: 100, 200 or 500; omit for the standard disk",
+        "optional": true
+      },
+      {
+        "name": "workspace_version_id",
+        "type": "string",
+        "desc": "Immutable Workspace version to restore before the command; requires enabled persistent storage",
+        "optional": true
+      },
+      {
+        "name": "model_references",
+        "type": "array",
+        "desc": "Pinned public model references from resolve_model_reference. Downloads into $CLOUDGPU_MODEL_DIR/<name> before the command; download time consumes the same GPU budget. No R2 cache or remote repository code execution.",
+        "optional": true
+      },
+      {
+        "name": "outputs",
+        "type": "object",
+        "desc": "Explicit relative output files under $CLOUDGPU_OUTPUT_DIR; no globs, symlinks, hidden or credential files. Default total limit 10 MiB, maximum 100 MiB. Only set accept_storage_charges=true after the user agrees to existing paid storage terms. Inspect output_collection after completion; the GPU is released even if saving fails.",
+        "optional": true
+      },
+      {
+        "name": "quote_id",
+        "type": "string",
+        "desc": "Server quote from quote_compute, starting quote_; binds configuration and checks price at submission",
+        "optional": true
+      },
+      {
+        "name": "max_spend_usd",
+        "type": "number",
+        "desc": "Budget for this job in USD (at most 50)"
+      },
+      {
+        "name": "max_hours",
+        "type": "number",
+        "desc": "Hard time limit in hours (at most 24)"
+      },
+      {
+        "name": "user_confirmed",
+        "type": "boolean",
+        "desc": "true only if the user explicitly approved the GPU, budget and time limit"
+      },
+      {
+        "name": "idempotency_key",
+        "type": "string",
+        "desc": "Reuse the same value when retrying the same job",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "cancel_job",
+    "description": "Stops a job: if a GPU was started it is destroyed and billing stops. Output not yet uploaded by the command is lost.",
+    "arguments": [
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "job_id"
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
     "name": "run_command",
-    "description": "Runs a bash command on the instance as root, in an interactive-style shell so conda and venv setup from ~/.bashrc are active. Foreground returns the exit code and the last 20k characters of output. For anything longer than a few minutes, such as training or large downloads, use background=true, then tail_logs.",
+    "description": "Runs a bash command on the instance as root, in an interactive-style shell so conda/venv from ~/.bashrc are active. Foreground returns the exit code and the last 20k characters of output. For anything longer than a few minutes (training, big downloads) use background=true, then tail_logs.",
     "arguments": [
       {
         "name": "instance_id",
         "type": "string",
-        "desc": "Id of the instance"
+        "desc": "instance_id"
       },
       {
         "name": "command",
         "type": "string",
-        "desc": "Bash command or script"
+        "desc": "bash command or script"
       },
       {
         "name": "background",
         "type": "boolean",
-        "desc": "Run in the background. Defaults to false",
+        "desc": "background",
         "optional": true
       },
       {
         "name": "timeout_sec",
         "type": "number",
-        "desc": "Foreground timeout in seconds, from 5 to 3600. Defaults to 600",
+        "desc": "Foreground only",
         "optional": true
       },
       {
         "name": "workdir",
         "type": "string",
-        "desc": "Directory to run in. Defaults to ~",
+        "desc": "Directory to run in",
         "optional": true
       }
     ],
     "annotations": {
-      "title": "Run a command on the instance",
       "readOnlyHint": false,
       "destructiveHint": true,
       "openWorldHint": true
@@ -188,32 +1062,31 @@
   },
   {
     "name": "upload",
-    "description": "Copies a local file or directory (this computer) to the instance over SFTP. node_modules, .git, and __pycache__ are skipped. Credential files (.ssh, .env, keys) are refused unless allow_sensitive is true and the user asked for it.",
+    "description": "Copies a local file or directory (this computer) to the instance over SFTP. node_modules, .git and __pycache__ are skipped. Credentials files (.ssh, .env, keys) are refused unless allow_sensitive is true and the user asked for it.",
     "arguments": [
       {
         "name": "instance_id",
         "type": "string",
-        "desc": "Id of the instance"
+        "desc": "instance_id"
       },
       {
         "name": "local_path",
         "type": "string",
-        "desc": "Local file or directory on this computer"
+        "desc": "local_path"
       },
       {
         "name": "remote_path",
         "type": "string",
-        "desc": "Destination on the instance, for example /root/project or /root/data/"
+        "desc": "Destination on the instance, e.g. /root/project or /root/data/"
       },
       {
         "name": "allow_sensitive",
         "type": "boolean",
-        "desc": "Allow credential files such as .ssh, .env, or keys. Defaults to false. Only when the user asked for it",
+        "desc": "allow_sensitive",
         "optional": true
       }
     ],
     "annotations": {
-      "title": "Upload to the instance",
       "readOnlyHint": false,
       "destructiveHint": false,
       "openWorldHint": true
@@ -226,21 +1099,20 @@
       {
         "name": "instance_id",
         "type": "string",
-        "desc": "Id of the instance"
+        "desc": "instance_id"
       },
       {
         "name": "remote_path",
         "type": "string",
-        "desc": "File or directory on the instance"
+        "desc": "remote_path"
       },
       {
         "name": "local_path",
         "type": "string",
-        "desc": "Local destination file or directory, for example ./outputs/"
+        "desc": "Local destination file or directory, e.g. ./outputs/"
       }
     ],
     "annotations": {
-      "title": "Download from the instance",
       "readOnlyHint": false,
       "destructiveHint": false,
       "openWorldHint": true
@@ -253,51 +1125,49 @@
       {
         "name": "instance_id",
         "type": "string",
-        "desc": "Id of the instance"
+        "desc": "instance_id"
       },
       {
         "name": "job_id",
         "type": "string",
-        "desc": "Job id from run_command with background=true",
+        "desc": "job_id",
         "optional": true
       },
       {
         "name": "path",
         "type": "string",
-        "desc": "Log file path on the instance",
+        "desc": "path",
         "optional": true
       },
       {
         "name": "lines",
         "type": "number",
-        "desc": "Number of log lines, from 1 to 2000. Defaults to 100",
+        "desc": "lines",
         "optional": true
       }
     ],
     "annotations": {
-      "title": "Job logs and GPU use",
       "readOnlyHint": true,
       "openWorldHint": true
     }
   },
   {
     "name": "stop_instance",
-    "description": "Destroys the instance and ends the rental. Its disk is erased. If commands were run on it in this session and nothing was downloaded, this refuses unless force=true, and only after the user confirms the results are not needed.",
+    "description": "Destroys the instance and stops billing. Its disk is erased. If commands were run on it in this session and nothing was downloaded, this refuses unless force=true (only after the user confirms the results are not needed).",
     "arguments": [
       {
         "name": "instance_id",
         "type": "string",
-        "desc": "Id of the instance"
+        "desc": "instance_id"
       },
       {
         "name": "force",
         "type": "boolean",
-        "desc": "Destroy even if results have not been downloaded. Defaults to false",
+        "desc": "force",
         "optional": true
       }
     ],
     "annotations": {
-      "title": "Destroy an instance",
       "readOnlyHint": false,
       "destructiveHint": true,
       "idempotentHint": true,
