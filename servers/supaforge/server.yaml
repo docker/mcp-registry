@@ -1,0 +1,41 @@
+name: supaforge
+image: ghcr.io/akalsoftware/supaforge
+type: server
+meta:
+  category: database
+  tags:
+    - database
+    - supabase
+    - postgres
+    - migrations
+about:
+  title: SupaForge
+  description: Find and fix drift between Supabase environments. Compares schema, RLS policies, roles, auth, storage, webhooks, cron, vault and reference data, previews the SQL that would fix it, and applies it on request, with an optional proof against a throwaway copy first.
+  icon: https://raw.githubusercontent.com/akalsoftware/supaforge/main/packages/vscode/icon.png
+source:
+  project: https://github.com/akalsoftware/supaforge
+  commit: 947cc1604671179cd46e91e7f58e0d119fb61870
+run:
+  command:
+    - mcp
+  volumes:
+    - "{{supaforge.project_dir}}:/work"
+config:
+  description: The project folder that holds supaforge.config.json (create one with `npx @akal/supaforge init`). To keep connection strings out of that file, write "$SOURCE_DATABASE_URL" and "$TARGET_DATABASE_URL" as its dbUrl values and set them here.
+  secrets:
+    - name: supaforge.source_database_url
+      env: SOURCE_DATABASE_URL
+      example: postgresql://postgres:password@db.example.supabase.co:5432/postgres
+      required: false
+    - name: supaforge.target_database_url
+      env: TARGET_DATABASE_URL
+      example: postgresql://postgres:password@db.example.supabase.co:5432/postgres
+      required: false
+  parameters:
+    type: object
+    properties:
+      project_dir:
+        type: string
+        description: The folder that holds supaforge.config.json
+    required:
+      - project_dir
