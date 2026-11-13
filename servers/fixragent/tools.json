@@ -1,0 +1,54 @@
+[
+  {
+    "name": "assess_property_photo",
+    "description": "Assesses a photo of something in a building — an appliance, a boiler, a pipe, a water heater, an electrical panel, a fitting, a leak, damage — and reports what it is, how urgent it is and which trade it needs. Returns the fixed contract: what the asset is, whether a fault is visible, one of four urgency words (EMERGENCY, TODAY, THIS WEEK, WHENEVER), which trade to call, a line to say to the resident, and how many independent reads agreed. One call reads the photo on fixragent.com and spends one request from the key's daily allowance. Sent with NO key, it reads the real photo up to 3 times per connection in a rolling 24 hours (a small free allowance, shared across every keyless caller up to a daily ceiling); past either limit it returns fixRAgent's stored sample result, labelled SAMPLE, and says how to get a free key with no such limit. Scope: photos of building assets and faults. It does not assess people, pets, injuries, rashes, medical or veterinary questions, vehicles, food, documents, screenshots or photos of screens. It is not an emergency service: a fire, a gas smell or hissing gas, a carbon-monoxide alarm sounding, water pouring onto live electrics or anyone hurt needs the local emergency number (911 in the US), not a photo assessment. It does not price repairs, book contractors or decide insurance claims; it routes the job, it does not quote or dispatch it.",
+    "arguments": [
+      {
+        "name": "image_base64",
+        "type": "string",
+        "desc": "The photo, base64-encoded. A data:image/jpeg;base64, prefix is accepted and stripped. JPEG, PNG or WebP, at most 3 MB once decoded, at least 1 KB. Location metadata is removed on our server before the photo is hashed, read or stored; it is NOT removed before it leaves the caller. Give either image_base64 (with mime_type) or image, not both."
+      },
+      {
+        "name": "image",
+        "type": "object",
+        "desc": "The photo as a file reference: an object whose download_url is an https URL of a JPEG, PNG or WebP image (at most 3 MB, at least 1 KB). fixragent.com downloads it once, under the same limits and the same location-metadata removal as image_base64. Give either image or image_base64, not both."
+      },
+      {
+        "name": "mime_type",
+        "type": "string",
+        "desc": "The photo's type: needed with image_base64, optional with image. Must match the bytes; a mismatch is refused, not guessed."
+      },
+      {
+        "name": "problem_text",
+        "type": "string",
+        "desc": "What the person reported, in their own words (\"no hot water since Tuesday\"). Optional. Treated as a reported symptom to be checked against the photo, never as ground truth: the reply says whether the report and the photo agree."
+      },
+      {
+        "name": "reporter",
+        "type": "string",
+        "desc": "Who took the photo. Changes how the explanation is worded, not the verdict."
+      },
+      {
+        "name": "depth",
+        "type": "string",
+        "desc": "fast reads the photo three times, deep five, and the reply reports how many agreed. deep is slower and spends more of the day's budget."
+      }
+    ]
+  },
+  {
+    "name": "get_triage_profile",
+    "description": "Returns a saved fixRAgent assessment by its diagnosis_id (from an assessment, or the last part of a fixragent.com/c/<id> link). Read only: it never re-reads the photo, never calls the model and spends nothing from the daily allowance. It takes one id and returns one assessment with no contact details of any kind. It needs a fixRAgent key (a free demo key is issued at https://fixragent.com/docs#key); without one it returns an error and no data.",
+    "arguments": [
+      {
+        "name": "diagnosis_id",
+        "type": "string",
+        "desc": "The UUID of a saved assessment, or the last path segment of a fixragent.com/c/<id> link."
+      }
+    ]
+  },
+  {
+    "name": "try_sample",
+    "description": "Returns a stored fixRAgent assessment of a sample photo from fixRAgent's test set (an HVAC air handler and furnace), labelled SAMPLE, plus how to get a free key. Needs no key and no input, reads no photo and spends nothing. The result is a sample, not an assessment of anyone's own photo.",
+    "arguments": []
+  }
+]
