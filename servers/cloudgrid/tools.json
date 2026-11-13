@@ -1,0 +1,511 @@
+[
+  {
+    "name": "grid_pickup",
+    "description": "Copies an app you can see into your own grid as a new app.",
+    "arguments": [
+      {
+        "name": "entity_id",
+        "type": "string",
+        "desc": "The source app to copy: a canonical UUID or <grid-slug>/<entity-slug>."
+      },
+      {
+        "name": "grid",
+        "type": "string",
+        "desc": "Grid to create your copy in. Required only when you belong to more than one grid.",
+        "optional": true
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Legacy alias of entity_id.",
+        "optional": true
+      },
+      {
+        "name": "into_org_slug",
+        "type": "string",
+        "desc": "Legacy alias of grid.",
+        "optional": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Slug for your copy. Omit to derive one from the source.",
+        "optional": true
+      },
+      {
+        "name": "source_version_id",
+        "type": "string",
+        "desc": "Copy an older version instead of HEAD, e.g. v_a1b2c3d.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Copy an app into your grid",
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "grid_pull",
+    "description": "Fetches an app you can push to, so the next plug updates it.",
+    "arguments": [
+      {
+        "name": "claim_token",
+        "type": "string",
+        "desc": "Claiming a drop plugged outside a grid: its owner token, which claims that drop into your grid. Only the drop's owner can claim it.",
+        "optional": true
+      },
+      {
+        "name": "claim_url",
+        "type": "string",
+        "desc": "Alternative to claim_token: the claim_url from the plug result; the token is read from it.",
+        "optional": true
+      },
+      {
+        "name": "entity_id",
+        "type": "string",
+        "desc": "The entity id to pull. Defaults to the drop made outside a grid in this session, if any.",
+        "optional": true
+      },
+      {
+        "name": "grid",
+        "type": "string",
+        "desc": "Grid to resolve a bare slug in. Required only when you belong to more than one grid.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Pull an app to edit in place",
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "grid_collab",
+    "description": "Asks for, or grants, push access to an app someone else owns.",
+    "arguments": [
+      {
+        "name": "entity_id",
+        "type": "string",
+        "desc": "The app to get push access to: a canonical UUID or <grid-slug>/<entity-slug>."
+      },
+      {
+        "name": "grid",
+        "type": "string",
+        "desc": "Grid to resolve a bare slug in. Required only when a bare slug is ambiguous across grids you belong to.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Get push access to an app you don't own",
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "grid_create_grid",
+    "description": "Creates a grid (workspace) after the user confirms its name.",
+    "arguments": [
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "The grid slug: 3-40 lowercase letters, digits, or hyphens, starting with a letter. Permanent: it appears in every app URL in the grid."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Display name (defaults to the slug).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Create a new grid",
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "grid_note",
+    "description": "Sends a build note the user asked for to the CloudGrid team.",
+    "arguments": [
+      {
+        "name": "summary",
+        "type": "string",
+        "desc": "A short plain-language note on what was built and why. This text is sent."
+      }
+    ],
+    "annotations": {
+      "title": "Send a build note to the CloudGrid team",
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "grid_plug",
+    "description": "Plugs a page or an app and returns its live URL; with a target it updates that app in place.",
+    "arguments": [
+      {
+        "name": "anon",
+        "type": "boolean",
+        "desc": "Deprecated and ignored: it does not publish. A new plug needs sign-in: without it the result is needs_auth and nothing is published, even with anon: true. Editing a drop that was plugged outside a grid takes target_entity_id + owner_token.",
+        "optional": true
+      },
+      {
+        "name": "artifact_files",
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "desc": "The source inline, one entry per file, for hosted/no-filesystem transports (a multi-file app). A single HTML page fits `html`. Sent INLINE (copied through this call), so large files (lockfiles, binaries) can truncate and fail the build; for a real framework, a lockfile, or binary assets, the disk-based CLI (`npx -y @cloudgrid-io/cli plug` where it is already signed in) is more reliable. Mutually exclusive with `html` and `path`.",
+        "optional": true
+      },
+      {
+        "name": "cloudgrid_yaml",
+        "type": "string",
+        "desc": "Inline cloudgrid.yaml (the entity manifest). Optional; server auto-detection applies when omitted. On re-plug, a name: change is a warning only; the entity keeps its name and URL.",
+        "optional": true
+      },
+      {
+        "name": "confirm_new_app",
+        "type": "boolean",
+        "desc": "Set true to confirm plugging a source that already contains a cloudgrid.yaml as a NEW runtime app. On a create, if the source has a cloudgrid.yaml and this is not set, the result is needs_confirmation and nothing is created (target_entity_id re-plugs an existing entity instead).",
+        "optional": true
+      },
+      {
+        "name": "filename",
+        "type": "string",
+        "desc": "Filename for the single-file `html` path. Defaults to index.html.",
+        "optional": true
+      },
+      {
+        "name": "grid",
+        "type": "string",
+        "desc": "On create: the grid slug to plug into, chosen by the user. Omitted for a user with more than one grid, the result is needs_grid with the grid list to choose from; a single-grid user is not asked. The grid sets the new entity's URL, which members can see it, and its datastore tier and namespace. On re-plug the entity stays in its grid grids, but pass its home grid here when it differs from your active grid (the API checks your membership in the entity's grid). A drop plugged outside a grid stays outside until its owner claims it into one.",
+        "optional": true
+      },
+      {
+        "name": "hints",
+        "type": "object",
+        "desc": "Classification hints for the CREATE path (not entity targeting, which is target_entity_id).",
+        "optional": true
+      },
+      {
+        "name": "html",
+        "type": "string",
+        "desc": "A single self-contained HTML document to publish as an inspiration: the fast single-file path, live at a public URL in seconds. Pass the COMPLETE raw HTML inline (CSS+JS inline, images/fonts as data: URIs); a small fragment is wrapped into a full document. Raw text, not base64, and not an `@`-prefixed path or a file path. Mutually exclusive with `path` and `artifact_files`. Materialized as one index.html in the signed-in user's grid.",
+        "optional": true
+      },
+      {
+        "name": "owner_token",
+        "type": "string",
+        "desc": "The owner token of a drop plugged outside a grid; it authorizes its re-plug (with target_entity_id). Re-minted on every such edit; the newest one from the result is the valid one.",
+        "optional": true
+      },
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "Alternative RE-PLUG handle: paired with `grid`, resolves to an existing entity (the pickup contract's replug_handle) and updates it in place, for a client that holds only grid+slug, not the raw entity_id. target_entity_id takes precedence. A grid+slug that does NOT resolve to an existing entity is treated as a CREATE (not a false-positive re-plug).",
+        "optional": true
+      },
+      {
+        "name": "target_entity_id",
+        "type": "string",
+        "desc": "Present → RE-PLUG: update this exact entity in place (same entity_id, slug, URL, plug history). Absent → CREATE a new entity. This is the durable handle a previous plug returned. Re-plugging a drop that was plugged outside a grid also needs its owner_token.",
+        "optional": true
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "Alternative RE-PLUG handle: the entity's public CloudGrid URL (e.g. https://<grid>.cloudgrid.io/<slug>) for editing in place with the URL and no target_entity_id (the common \"change the color of this page\" flow). The grid is read from the host and the entity is resolved via the pickup contract, so no `grid` param is needed. target_entity_id and grid+slug take precedence. A non-CloudGrid host is ignored (it does not redirect the write); a URL that does not resolve is treated as a CREATE.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Plug an app into the grid",
+      "destructiveHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "grid_get_app_source",
+    "description": "Returns the current HTML of a live page so it can be edited and re-plugged.",
+    "arguments": [
+      {
+        "name": "entity_id",
+        "type": "string",
+        "desc": "The drop's durable id, from its plug result. Enough on its own: its URL is looked up. Falls back to this session's last drop.",
+        "optional": true
+      },
+      {
+        "name": "grid",
+        "type": "string",
+        "desc": "Grid slug, used only to construct the URL when neither url nor session state is available.",
+        "optional": true
+      },
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "Entity slug, used with grid to construct the URL when neither url nor session state is available.",
+        "optional": true
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "The public URL of the drop (e.g. https://<grid>.cloudgrid.io/<slug>). Defaults to this session's last drop URL.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Get deployed app source",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "grid_visibility",
+    "description": "Sets who can see a page or app: private, grid, link, or public.",
+    "arguments": [
+      {
+        "name": "entity_id",
+        "type": "string",
+        "desc": "The app's entity_id, from its plug result. Falls back to this session's last drop.",
+        "optional": true
+      },
+      {
+        "name": "grid",
+        "type": "string",
+        "desc": "Grid of the entity. Defaults to the active grid.",
+        "optional": true
+      },
+      {
+        "name": "indexed",
+        "type": "boolean",
+        "desc": "With visibility: link, makes the page search-engine indexable.",
+        "optional": true
+      },
+      {
+        "name": "inside",
+        "type": "string",
+        "desc": "Axis 1, who in the grid can see it: private (only the user), spaces (selected spaces, listed in `spaces`), or grid (everyone in the grid). Use together with `outside`, instead of `visibility`.",
+        "optional": true
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "Entity kind. Omit to auto-detect from this session's last drop (falls back to trying the runtime surface, then the inspiration surface).",
+        "optional": true
+      },
+      {
+        "name": "org",
+        "type": "string",
+        "desc": "Legacy alias of grid.",
+        "optional": true
+      },
+      {
+        "name": "outside",
+        "type": "string",
+        "desc": "Axis 2, reach beyond the grid: none, link (anyone with the link; add require_signin: true for signed-in accounts only), or public (anyone, and findable by search engines).",
+        "optional": true
+      },
+      {
+        "name": "require_signin",
+        "type": "boolean",
+        "desc": "With outside: link (or visibility: link): the link requires a signed-in CloudGrid account.",
+        "optional": true
+      },
+      {
+        "name": "spaces",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Space slugs, for inside: spaces (or the legacy space/grid modes).",
+        "optional": true
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "Legacy alias of entity_id.",
+        "optional": true
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "The app's public URL, when the entity_id is not at hand. Resolved to its entity_id.",
+        "optional": true
+      },
+      {
+        "name": "visibility",
+        "type": "string",
+        "desc": "Simple mode: private | grid | link ('public' is an alias of link; indexed: true makes it search-findable; 'authenticated' is the retired alias for a sign-in-required link; 'space' needs the `spaces` list). Pass either this OR the inside/outside axes.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Change app visibility",
+      "destructiveHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "grid_check_deploy",
+    "description": "Reports whether a runtime app's build has finished and the app is live.",
+    "arguments": [
+      {
+        "name": "entity_id",
+        "type": "string",
+        "desc": "The entity_id from the plug result. It finds the app's latest build. Falls back to this session's last plug.",
+        "optional": true
+      },
+      {
+        "name": "grid",
+        "type": "string",
+        "desc": "Grid of the entity (the grid from the plug result). Defaults to the plug's grid, then the active grid.",
+        "optional": true
+      },
+      {
+        "name": "poll_url",
+        "type": "string",
+        "desc": "The poll_url from a plug result, when it has one.",
+        "optional": true
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "The app's public URL, when the entity_id is not at hand (e.g. https://<slug>--<grid>.cloudgrid.io).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Check deploy status",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "grid_list_grids",
+    "description": "Lists the user's grids with name and role.",
+    "annotations": {
+      "title": "List your grids",
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "grid_start",
+    "description": "Returns a short orientation and the workflow index.",
+    "annotations": {
+      "title": "Orient on CloudGrid",
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "grid_get_template",
+    "description": "Loads a workflow, template, or reference doc by name.",
+    "arguments": [
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "What to fetch."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "The entry name, e.g. 'presentation' or 'deck'."
+      }
+    ],
+    "annotations": {
+      "title": "Load a workflow or template",
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "grid_report",
+    "description": "Sends a failure report to the CloudGrid team, only after the user agrees.",
+    "arguments": [
+      {
+        "name": "message",
+        "type": "string",
+        "desc": "Short summary of what failed (required), not the whole conversation."
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Optional category, e.g. the failing tool name (\"deploy\"). Defaults to \"mcp\".",
+        "optional": true
+      },
+      {
+        "name": "context",
+        "type": "object",
+        "desc": "The failed-request context. Redaction is key-name-only (a value is dropped only when its KEY looks secret) client-side, and the server applies the same key-name filter; a secret embedded in a value is not redacted by either.",
+        "optional": true
+      },
+      {
+        "name": "failed_step",
+        "type": "string",
+        "desc": "The server-side pipeline step that failed, if known.",
+        "optional": true
+      },
+      {
+        "name": "http_status",
+        "type": "number",
+        "desc": "The HTTP status of the final failed request, if applicable.",
+        "optional": true
+      },
+      {
+        "name": "trace_id",
+        "type": "string",
+        "desc": "The server's trace/deploy id from the failed response, if any (helps support pivot to the trace).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Report a failure",
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "grid_hello",
+    "description": "Plugs a minimal hello page to check the account works.",
+    "arguments": [
+      {
+        "name": "grid",
+        "type": "string",
+        "desc": "Grid slug to plug into. Omitted for a user with several grids, the result lists them.",
+        "optional": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Who to greet. Defaults to 'world'.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Plug a hello page",
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "grid_delete",
+    "description": "Takes a page offline; it needs explicit confirmation.",
+    "arguments": [
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "Set to true to confirm; the call is refused without it."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Entity slug to delete (required)."
+      },
+      {
+        "name": "grid",
+        "type": "string",
+        "desc": "Grid slug to delete from. Omitted for a user with several grids, the result lists them.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Delete an inspiration",
+      "destructiveHint": true,
+      "openWorldHint": true
+    }
+  }
+]
