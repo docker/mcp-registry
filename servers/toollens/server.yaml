@@ -1,0 +1,34 @@
+name: toollens
+image: mcp/toollens
+type: server
+meta:
+  category: ai
+  tags:
+    - ai
+    - mcp-gateway
+    - tool-search
+about:
+  title: ToolLens
+  description: One gateway in front of many MCP servers. The agent sees three tools (discover, inspect, invoke) instead of every tool definition, and a policy decides what may run. Fronts the npx and uvx servers listed in your gateway.json.
+  icon: https://avatars.githubusercontent.com/u/31175546?v=4
+source:
+  project: https://github.com/krishnashakula/toollens
+  commit: 24267d19a8bc8a4030a283a22ac94f534809e577
+run:
+  command:
+    - serve
+    - --config
+    - /config/gateway.json
+    - --db
+    - /app/toollens.db
+  volumes:
+    - "{{toollens.config_dir}}:/config:ro"
+config:
+  description: The folder holding your gateway.json, which lists the MCP servers ToolLens fronts (npx and uvx servers run inside the container; see "In Docker" in the README)
+  parameters:
+    type: object
+    properties:
+      config_dir:
+        type: string
+    required:
+      - config_dir
