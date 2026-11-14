@@ -1,1 +1,1 @@
-Docs: https://zambo.dev
+Docs: https://github.com/zambodotdev/zambo-mcp
