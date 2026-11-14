@@ -1,1 +1,3 @@
 Liliphant joins your meetings and remembers the work across all of them. Most tools stop at one transcript. Liliphant connects every conversation, so you can ask what was decided, who promised what, what changed since the first meeting, or what's still blocked. Every answer comes with the exact quote, the speaker and the meeting it came from, and if something is unclear, Liliphant tells you. Open promises and unanswered questions stay in view until someone marks them done, and your team's recurring questions keep answers that update after every meeting. Set up follow-ups in plain language, review every draft before it goes out, and see your own meetings, your team's, or the whole company's in one place.
+
+For documentation, visit https://liliphant.com/help
