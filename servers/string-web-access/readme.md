@@ -1,1 +1,1 @@
-Docs: https://portal.usestring.ai/docs/mcp/v3
+Docs: https://portal.usestring.ai/docs/mcp/remote
