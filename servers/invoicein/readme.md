@@ -14,7 +14,7 @@ The **InvoiceIn MCP Server** gives an agent the receiving side of European e-inv
 
 ## Authentication
 
-Optional. Without a key the demo quota applies: 20 invoices per IP per day. A key is sent as the `X-Api-Key` header and raises that limit.
+Optional. Without a key the API takes 5 invoices per IP per day. A free key (100 invoices, no card) is issued at once on invoicein.peculiar.systems and is sent as the `X-Api-Key` header.
 
 ## Privacy
 
