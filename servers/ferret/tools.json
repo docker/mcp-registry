@@ -1,7 +1,7 @@
 [
   {
     "name": "search_inventory",
-    "description": "Finds items by words (names, brands, serial numbers, text read from receipts and manuals) and by meaning (\"something to make holes\" finds a drill), best matches first, each with where it's kept; a box's 6-character QR label code finds the box. Start here whenever the person mentions a thing — to answer \"where is…\", and before create_item so you don't add a duplicate. For questions answered from documents (\"what filter does the furnace take?\") use ask_inventory; to browse a room, category or tag use list_items. Leaves out things that are gone or only wanted. Returns items, each with its id, fields, location path and what matched.",
+    "description": "Finds items by words (names, brands, serial numbers, text read from receipts and manuals) and by meaning (\"something to make holes\" finds a drill), best matches first, each with where it's kept; a box's 6-character QR label code finds the box. Also files: documents and photos of a property, a place or a maintenance task (the deed, an inspection report) whose name or text matches. Start here whenever the person mentions a thing — to answer \"where is…\", and before create_item so you don't add a duplicate. For questions answered from documents (\"what filter does the furnace take?\") use ask_inventory; to browse a room, category or tag use list_items. Leaves out things that are gone or only wanted. Returns items, each with its id, fields, location path and what matched.",
     "arguments": [
       {
         "name": "query",
@@ -22,7 +22,7 @@
   },
   {
     "name": "ask_inventory",
-    "description": "Answers a question in words from the household's own items and documents (receipts, manuals, warranty cards), citing the items it used — for \"when does the dishwasher warranty end?\" or \"what filter does the furnace take?\". Use search_inventory instead when the person wants to find a thing rather than learn a fact. Needs the server's AI to be switched on, counts as one AI action, and can take several seconds. With itemId, it answers about that one thing only, from its own manual, receipts, warranties and notes (\"how do I reset it?\").",
+    "description": "Answers a question in words from the household's own items and documents (receipts, manuals, warranty cards) — and its house's, rooms' and maintenance tasks' own documents (an inspection report), found by the question's words — citing the items or documents it used — for \"when does the dishwasher warranty end?\" or \"what filter does the furnace take?\". Use search_inventory instead when the person wants to find a thing rather than learn a fact. Needs the server's AI to be switched on, counts as one AI action, and can take several seconds. With itemId, it answers about that one thing only, from its own manual, receipts, warranties and notes (\"how do I reset it?\").",
     "arguments": [
       {
         "name": "question",
@@ -240,6 +240,32 @@
     ]
   },
   {
+    "name": "list_files",
+    "description": "The documents and photos kept with a property (the deed, the insurance policy), a place (a room's inspection report), a maintenance task (a quote, and the invoices of the times it was done) or one time it was done — each with what was read in it. Give exactly one id. An item's files are in get_item; to find files by words use search_inventory; to see one use get_photo. Changes nothing.",
+    "arguments": [
+      {
+        "name": "propertyId",
+        "type": "string",
+        "desc": "A property's id, from list_locations (optional)"
+      },
+      {
+        "name": "locationId",
+        "type": "string",
+        "desc": "Or a place's id, from list_locations (optional)"
+      },
+      {
+        "name": "taskId",
+        "type": "string",
+        "desc": "Or a maintenance task's id, from list_maintenance (optional)"
+      },
+      {
+        "name": "doneId",
+        "type": "string",
+        "desc": "Or one time a task was done (doneId from complete_maintenance) (optional)"
+      }
+    ]
+  },
+  {
     "name": "list_recalls",
     "description": "U.S. product recalls (from the CPSC) that match things the household owns, each with its id, the item, how sure the match is (barcode or model: almost certainly theirs; possible: same brand and kind of thing — check the model), the hazard, the remedy and who to contact. Without itemId: open recalls only; with itemId: that item's recalls, dealt with ones too. Use it for \"is anything we own recalled?\" or to explain a recall what_needs_attention mentioned; mark one with set_recall_status once the person says. Empty when there are none or the server's admin hasn't switched recall checks on.",
     "arguments": [
@@ -310,17 +336,37 @@
   },
   {
     "name": "add_photo",
-    "description": "Attaches a photo — or a receipt, manual or warranty card as kind \"document\" — to an item that already exists. The vision model reads it in the background; about 20 seconds later get_item shows what it saw and any suggested fields: confirm them with the person before applying them with update_item. To add a new thing from its photo use add_item_from_photo instead. Counts as AI actions when the AI is on.",
+    "description": "Attaches a photo — or a receipt, manual or warranty card as kind \"document\" — to an item that already exists (itemId), or to what isn't one thing: a property (the deed, the insurance policy), a place (a room's inspection report), a house-wide maintenance task (a quote), or one time a task was done (doneId, from complete_maintenance: the invoice). Give exactly one of them. An item's is read by the vision model in the background; about 20 seconds later get_item shows what it saw and any suggested fields: confirm them with the person before applying them with update_item. The others are read for their words only (to find them by: search_inventory's files). To add a new thing from its photo use add_item_from_photo instead. Counts as AI actions when the AI is on.",
     "arguments": [
       {
         "name": "itemId",
         "type": "string",
-        "desc": "The item's id, from search_inventory"
+        "desc": "The item's id, from search_inventory (optional)"
+      },
+      {
+        "name": "propertyId",
+        "type": "string",
+        "desc": "Or a property's id, from list_locations (optional)"
+      },
+      {
+        "name": "locationId",
+        "type": "string",
+        "desc": "Or a place's id, from list_locations (optional)"
+      },
+      {
+        "name": "taskId",
+        "type": "string",
+        "desc": "Or a maintenance task's id, from list_maintenance (an item's task keeps it on the item) (optional)"
+      },
+      {
+        "name": "doneId",
+        "type": "string",
+        "desc": "Or the time a task was done: doneId from complete_maintenance (optional)"
       },
       {
         "name": "kind",
         "type": "string",
-        "desc": "photo: a picture of the thing; document: a receipt, manual or warranty card (photo or PDF) (optional)"
+        "desc": "photo: a picture of the thing; document: a receipt, manual, report or warranty card (photo or PDF) (optional)"
       },
       {
         "name": "data",
@@ -844,7 +890,7 @@
   },
   {
     "name": "complete_maintenance",
-    "description": "Records that a task was done (today, or doneOn), with an optional note and cost in cents — use it whenever the person says they did one (\"changed the furnace filter\"); the id comes from list_maintenance. Credited to the task's usual provider unless providerId says otherwise (null: the household did it), and its part, if it has one, comes out of stock. A repeating task is then due again one interval after that day; a one-off is finished. For maintenance by use, give reading (what the odometer or hour meter says now): the next is due usageEvery after it. Returns the task with its new due date.",
+    "description": "Records that a task was done (today, or doneOn), with an optional note and cost in cents — use it whenever the person says they did one (\"changed the furnace filter\"); the id comes from list_maintenance Returns doneId, the record just made: its invoice or photos go to add_photo with doneId. Credited to the task's usual provider unless providerId says otherwise (null: the household did it), and its part, if it has one, comes out of stock. A repeating task is then due again one interval after that day; a one-off is finished. For maintenance by use, give reading (what the odometer or hour meter says now): the next is due usageEvery after it. Returns the task with its new due date.",
     "arguments": [
       {
         "name": "doneOn",
@@ -885,7 +931,7 @@
   },
   {
     "name": "bulk_update_items",
-    "description": "Makes one change to up to 200 items in one go: move them to a location (action move, locationId; null: no location), give them a category (category, categoryId; null: none), or add or remove a tag (tag / untag, tag). Use it for \"move everything on the garage shelf to the basement\" — get the ids from list_items or search_inventory first, and say what you're about to change before doing it. Things inside a box move with the box; move the box itself. Returns how many were changed and which failed, and why. To delete items use remove, one at a time.",
+    "description": "Makes one change to up to 200 items in one go: move them to a location (action move, locationId; null: no location), give them a category (category, categoryId; null: none), add or remove a tag (tag / untag, tag), or have the AI read their photos and documents that haven't been read yet (analyze: never read, or it failed; each counts as an AI action; their suggestions then show on each item). Use it for \"move everything on the garage shelf to the basement\" — get the ids from list_items or search_inventory first, and say what you're about to change before doing it. Things inside a box move with the box; move the box itself. Returns how many were changed (for analyze, how many files were queued) and which failed, and why. To delete items use remove, one at a time.",
     "arguments": [
       {
         "name": "action",
@@ -1029,7 +1075,7 @@
       {
         "name": "icon",
         "type": "string",
-        "desc": "An icon name for the app (optional)"
+        "desc": "An icon name for the app (optional) (optional)"
       },
       {
         "name": "notes",
@@ -1500,7 +1546,7 @@
   },
   {
     "name": "remove",
-    "description": "Removes one thing from the household's records, by kind and id. Confirm with the person first. What each kind does:\n- item: only when it was added by mistake or should be gone from the records — for something sold, given away, donated, thrown out, lost or stolen use update_item with disposition, which keeps it for insurance. It stays in Recently deleted for 30 days (restore_item brings it back), then goes for good with its photos and documents.\n- warranty: one added by mistake or twice (an ended warranty stays on record as expired); its claims go with it. claim: a warranty claim filed by mistake.\n- maintenance: a task no longer needed — not one just done (that's complete_maintenance); its past times done stay in the item's history. repair: one logged by mistake (its photos and warranty stay the item's).\n- property / location: only when empty (no things anywhere in it, empty rooms inside go with it); otherwise refused — move the things first with bulk_update_items.\n- category: its things and subcategories move up to its parent. provider: their past visits stay, without the name. collection: its owned things stay (out of the collection); its want-list entries go. coverage_limit: a limit that no longer applies.\nOnly remove (item) can be undone. Returns what was removed.",
+    "description": "Removes one thing from the household's records, by kind and id. Confirm with the person first. What each kind does:\n- item: only when it was added by mistake or should be gone from the records — for something sold, given away, donated, thrown out, lost or stolen use update_item with disposition, which keeps it for insurance. It stays in Recently deleted for 30 days (restore_item brings it back), then goes for good with its photos and documents.\n- warranty: one added by mistake or twice (an ended warranty stays on record as expired); its claims go with it. claim: a warranty claim filed by mistake.\n- maintenance: a task no longer needed — not one just done (that's complete_maintenance); its past times done stay in the item's history. repair: one logged by mistake (its photos and warranty stay the item's).\n- property / location: only when empty (no things anywhere in it, empty rooms inside go with it); otherwise refused — move the things first with bulk_update_items.\n- file: a photo or document (an item's from get_item, a property's, place's or task's from list_files).\n- category: its things and subcategories move up to its parent. provider: their past visits stay, without the name. collection: its owned things stay (out of the collection); its want-list entries go. coverage_limit: a limit that no longer applies.\nOnly remove (item) can be undone. Returns what was removed.",
     "arguments": [
       {
         "name": "kind",
