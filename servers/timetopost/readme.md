@@ -1,1 +1,1 @@
-Docs: https://timetopost.co/docs/mcp/
+Docs: https://go.timetopost.co/mkt-docker
