@@ -3,7 +3,7 @@
 The data control plane for AI agents. Agents ask Datris for data; Datris acquires it, validates it, lands it in the stores you already run, and returns it with provenance, without the agent ever holding a credential.
 
 - 90 MCP tools: pipelines, AI-generated taps, plain-English data quality rules, SQL and MongoDB queries, vector search, metadata discovery, secrets, job status and lineage
-- Destinations: PostgreSQL, MongoDB, Snowflake, Databricks, Kafka, S3/MinIO, Qdrant, Weaviate, Milvus, Chroma, pgvector
+- Destinations: PostgreSQL, MongoDB, SQL Server, Snowflake, Databricks, Kafka, S3/MinIO, Qdrant, Weaviate, Milvus, Chroma, pgvector
 - Credentials are brokered by HashiCorp Vault; agents reference secrets by name
 - Self-hosted, open source
 
