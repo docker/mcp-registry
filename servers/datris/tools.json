@@ -17,7 +17,7 @@
   },
   {
     "name": "create_pipeline",
-    "description": "Create a pipeline. THREE destination categories: STRUCTURED (postgres, mongodb, snowflake, databricks) \u2014 send a TINY sample (via content_text) and the schema is auto-detected; snowflake additionally REQUIRES credentialsSecret (a Platform secret with account/user/privateKey or password \u2014 discover via",
+    "description": "Create a pipeline. TAP-FED PIPELINES: when a tap will feed the pipeline, create and test the tap first, call propose_pipeline_schema, confirm the column types with the user, and pass the confirmed list as schema_fields \u2014 no sample content is needed and the destination gets typed columns on the first",
     "arguments": [
       {
         "name": "content",
@@ -27,7 +27,7 @@
       {
         "name": "content_text",
         "type": "string",
-        "desc": "Plain-text sample data (the server base64-encodes it for you) \u2014 the preferred way to pass the sample for structured destinations (postgres, mongodb, snowflake, databricks) and objectstore. Header row "
+        "desc": "Plain-text sample data (the server base64-encodes it for you) \u2014 the fallback for data without a tap (a file in hand, pasted rows) for structured destinations (postgres, mongodb, snowflake, databricks,"
       },
       {
         "name": "filename",
@@ -42,7 +42,7 @@
       {
         "name": "destination",
         "type": "string",
-        "desc": "Destination type (default: postgres for CSV, mongodb for JSON/XML). Use 'objectstore' for Parquet files, ORC files, or an Iceberg table (fileFormat=iceberg) in MinIO (default provider) or AWS S3 (set "
+        "desc": "Destination type (default: postgres for CSV, mongodb for JSON/XML). 'scratch' = Live Read: hand the rows back, land nothing. Use it when nothing should be landed and the rows should come back to the c"
       },
       {
         "name": "table",
@@ -57,7 +57,7 @@
       {
         "name": "schema",
         "type": "string",
-        "desc": "Destination schema. Applies to destination=snowflake (default: PUBLIC) and destination=databricks (default: default). Simple identifiers resolve case-insensitively; names with hyphens/spaces are quote"
+        "desc": "Destination schema. Applies to destination=snowflake (default: PUBLIC), destination=databricks (default: default) and destination=sqlserver (default: dbo). Simple identifiers resolve case-insensitivel"
       },
       {
         "name": "warehouse",
@@ -82,12 +82,12 @@
       {
         "name": "keyFields",
         "type": "array",
-        "desc": "Optional natural-key columns used to dedupe / upsert rows on every run. Applies to postgres, mongodb, snowflake, and databricks destinations, and to objectstore when fileFormat=iceberg and writeMode=m"
+        "desc": "Optional natural-key columns used to dedupe / upsert rows on every run. Applies to postgres, mongodb, snowflake, databricks, and sqlserver destinations, and to objectstore when fileFormat=iceberg and "
       },
       {
         "name": "truncate",
         "type": "boolean",
-        "desc": "Optional. When true, the destination table/collection is truncated before each run, so only the latest run's data is kept. Only applies to postgres, mongodb, snowflake, and databricks destinations (on"
+        "desc": "Optional. When true, the destination table/collection is truncated before each run, so only the latest run's data is kept. Only applies to postgres, mongodb, snowflake, databricks, and sqlserver desti"
       },
       {
         "name": "bucket",
@@ -140,6 +140,31 @@
         "desc": "Optional data quality validation rule as a plain-English instruction. Only add when the user explicitly requests validation. Datris will generate a Python validation script from this instruction and r"
       },
       {
+        "name": "codegen_rule_on_failure",
+        "type": "string",
+        "desc": "Optional. What a row that fails the data-quality rule does: `error` (default) fails the run; `warn` logs the failing row and keeps loading. Only read together with `codegen_rule`. Pass what the user c"
+      },
+      {
+        "name": "schema_fields",
+        "type": "array",
+        "desc": "The column types the user confirmed from propose_pipeline_schema, as [{name, type}]. Pass it for a tap-fed pipeline INSTEAD of content/content_text: the server builds the schema from these names and a"
+      },
+      {
+        "name": "protect",
+        "type": "object",
+        "desc": "OMIT BY DEFAULT. Field name \u2192 protection policy, e.g. {\"account_id\": {\"method\": \"hmac\"}, \"contact_email\": {\"method\": \"mask\", \"preserve\": \"domain\"}}. Each policy is set as `protect` on the matching sch"
+      },
+      {
+        "name": "protect_preset",
+        "type": "string",
+        "desc": "OMIT BY DEFAULT. Keep a field-protection preset enforced on this pipeline (saved as protection.preset; delimited/CSV sources only). Every field the preset classifies, now and in later saves or new col"
+      },
+      {
+        "name": "protect_exempt",
+        "type": "array",
+        "desc": "OMIT BY DEFAULT. Field names the user chose to leave unprotected under protect_preset (saved as protection.presetExempt). Only with protect_preset, and only names the user confirmed."
+      },
+      {
         "name": "codegen_transform",
         "type": "string",
         "desc": "Optional transformation instruction as a plain-English description. Only add when the user explicitly requests transformation. Datris will generate a Python script from this instruction and run it loc"
@@ -153,6 +178,31 @@
         "name": "authoritative",
         "type": "boolean",
         "desc": "OMIT BY DEFAULT. Pass false only when the user says this pipeline lands a derived copy (a rollup, a replica, an index built from another dataset) rather than the system of record. A pipeline's single "
+      },
+      {
+        "name": "unity_catalog",
+        "type": "boolean",
+        "desc": "OMIT BY DEFAULT. Pass true only when the user asks for Unity Catalog. Supported for destination=databricks and for destination=objectstore with fileFormat=iceberg; the server rejects it elsewhere. Obj"
+      },
+      {
+        "name": "unity_catalog_secret",
+        "type": "string",
+        "desc": "Only with unity_catalog=true on destination=objectstore + fileFormat=iceberg (ignored otherwise). Name of an existing PLATFORM secret for the Unity Catalog workspace: field host, plus clientId/clientS"
+      },
+      {
+        "name": "unity_catalog_catalog",
+        "type": "string",
+        "desc": "Only with unity_catalog=true on destination=objectstore + fileFormat=iceberg (ignored otherwise). The Unity Catalog catalog the table is registered under. No default \u2014 ask the user."
+      },
+      {
+        "name": "unity_catalog_schema",
+        "type": "string",
+        "desc": "Only with unity_catalog=true on destination=objectstore + fileFormat=iceberg (ignored otherwise). The Unity Catalog schema the table is registered under. Default: default."
+      },
+      {
+        "name": "unity_catalog_mode",
+        "type": "string",
+        "desc": "Absent means register. Only with unity_catalog=true on destination=objectstore + fileFormat=iceberg (ignored otherwise). managed is the mode for Databricks Unity Catalog: the catalog chooses the table"
       },
       {
         "name": "reason",
@@ -179,6 +229,122 @@
         "name": "catalog",
         "type": "string",
         "desc": "Catalog label. Omit or pass an empty string to clear the label."
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "rename_catalog",
+    "description": "Rename a catalog: every tap and pipeline labelled with `catalog` is relabelled to `new_name` in one server-side operation, and the empty-catalog placeholder moves with it. Call this ONLY when the user has explicitly asked to rename that catalog \u2014 never to emulate a rename by calling set_catalog on e",
+    "arguments": [
+      {
+        "name": "catalog",
+        "type": "string",
+        "desc": "Current catalog name."
+      },
+      {
+        "name": "new_name",
+        "type": "string",
+        "desc": "New catalog name (letters, digits, '_' and '-')."
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "delete_catalog",
+    "description": "Delete a catalog by moving every tap and pipeline in it to Uncataloged and removing the catalog. No tap, pipeline or data is deleted. Call this ONLY when the user has explicitly asked to delete that catalog. Uncataloged itself cannot be deleted. Items that could not be moved come back under `failed`",
+    "arguments": [
+      {
+        "name": "catalog",
+        "type": "string",
+        "desc": "Catalog name to delete."
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "export_catalog",
+    "description": "Back up a catalog: returns one zip archive of every tap and pipeline in it (definitions, each tap's script and incremental state, referenced validation schemas). Read-only. Secret values are never included; the manifest lists the secret names the catalog needs. Returns `manifest` (catalog, taps, pip",
+    "arguments": [
+      {
+        "name": "catalog",
+        "type": "string",
+        "desc": "Catalog name to export."
+      }
+    ]
+  },
+  {
+    "name": "catalog_enable_order",
+    "description": "Read-only. The order to enable a catalog's taps in: taps grouped into levels, level 1 first (taps that read no other tap's tables), then the taps that read tables produced by level 1, and so on. A tap's dependencies are its declared `dependsOn` or, when it declares none, the taps the platform inferr",
+    "arguments": [
+      {
+        "name": "catalog",
+        "type": "string",
+        "desc": "Catalog name."
+      }
+    ]
+  },
+  {
+    "name": "restore_catalog",
+    "description": "Restore a catalog archive produced by export_catalog as catalog `catalog` (the same or a new name). Call this ONLY when the user has explicitly asked to restore and named the archive to use. A restore never merges: it is refused (with the clashing names) when the catalog already exists or any archiv",
+    "arguments": [
+      {
+        "name": "catalog",
+        "type": "string",
+        "desc": "Catalog name to restore into (letters, digits, '_' and '-')."
+      },
+      {
+        "name": "archive_base64",
+        "type": "string",
+        "desc": "The archive as base64 (the `archiveBase64` value export_catalog returned)."
+      },
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": "new (default): the catalog and every archived name must not exist yet. overwrite: replace items already in this catalog; needs confirm."
+      },
+      {
+        "name": "confirm",
+        "type": "string",
+        "desc": "Required for mode=overwrite: the catalog name, repeated."
+      },
+      {
+        "name": "restore_state",
+        "type": "boolean",
+        "desc": "Optional, default true. false skips each tap's incremental state (for a copy that should start from scratch)."
+      },
+      {
+        "name": "regenerate_scripts",
+        "type": "boolean",
+        "desc": "Optional, default false. true regenerates each pipeline's AI scripts on this install instead of restoring the archived ones."
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "enable_catalog_ordered",
+    "description": "Start one server-side job that enables a catalog's taps in their enable order (see catalog_enable_order): level by level, each tap is tested if it has no passing test, enabled, given one real run, and the job waits until that run's data has landed before moving on. A tap whose source did not land da",
+    "arguments": [
+      {
+        "name": "catalog",
+        "type": "string",
+        "desc": "Catalog name."
       },
       {
         "name": "reason",
@@ -273,7 +439,7 @@
   },
   {
     "name": "profile_data",
-    "description": "Send data and use AI to generate a comprehensive data profile: summary statistics per column, data quality issues detected, and suggested validation rules. Use the suggested aiRule when building a pipeline's dataQuality section.",
+    "description": "Send data and use AI to generate a comprehensive data profile: summary statistics per column, data quality issues detected, and suggested validation rules. Use the suggested aiRule when building a pipeline's dataQuality section. The server may withhold row values from the model (DATRIS_AI_SAMPLE_VAL",
     "arguments": [
       {
         "name": "content",
@@ -314,8 +480,29 @@
     ]
   },
   {
+    "name": "suggest_field_protection",
+    "description": "Suggest per-field protection (hmac, mask with an optional preserve, redact, drop, or none, each with a one-line reason) for a pipeline's source fields, computed by the configured CodeGen model from field NAMES and TYPES ONLY: no row value is sent to the model. Stateless: nothing is saved or changed.",
+    "arguments": [
+      {
+        "name": "preset",
+        "type": "string",
+        "desc": "Optional preset to classify against instead of the model (delimited/CSV sources only). The result can be enforced on create_pipeline with protect_preset."
+      },
+      {
+        "name": "pipeline",
+        "type": "string",
+        "desc": "Existing pipeline name (use this OR fields)"
+      },
+      {
+        "name": "fields",
+        "type": "array",
+        "desc": "Fields to classify (use this OR pipeline): [{\"name\": ..., \"type\": ...}]"
+      }
+    ]
+  },
+  {
     "name": "apply_dest_types",
-    "description": "Apply destination column types to an all-string pipeline. REQUIRES explicit user approval first. Landed data is migrated before the config changes (postgres retypes in place; snowflake/databricks validate then swap the table) \u2014 the migration locks or replaces the table, so do NOT apply while a run i",
+    "description": "Apply destination column types to an all-string pipeline. REQUIRES explicit user approval first. Landed data is migrated before the config changes (postgres retypes in place; sqlserver validates with TRY_CONVERT then retypes in place with ALTER COLUMN in one transaction, leaving `_json`/`_xml` docum",
     "arguments": [
       {
         "name": "pipeline",
@@ -336,7 +523,7 @@
   },
   {
     "name": "get_version",
-    "description": "Get the Datris server version.",
+    "description": "Get the Datris server version and the tap budgets in force on this install: `pipelineMaxPayloadMB` (MB, 0 = unlimited), `tapScriptTimeoutSeconds` and `tapRunTimeoutSeconds`, each with a `...Source` field (`env`, `deprecated-alias`, `derived` or `default`). Cheap to call: call it before sizing a larg",
     "arguments": []
   },
   {
@@ -346,7 +533,7 @@
   },
   {
     "name": "run_doctor",
-    "description": "Run the platform's operational self-check and return a report: Vault token expiry, AI slot secrets complete, embedding model actually loaded, disk usage, component version skew, and (opt-in) whether each AI model answers. Each non-ok check carries a remediation command for the operator; nothing is c",
+    "description": "Run the platform's operational self-check and return a report: Vault token expiry, AI slot secrets complete, embedding model actually loaded, disk usage, the payload staging area (writable, room for one run, no orphaned run directories), component version skew, and (opt-in) whether each AI model ans",
     "arguments": [
       {
         "name": "include_ai_probes",
@@ -515,6 +702,27 @@
         "name": "sql",
         "type": "string",
         "desc": "Read-only statement: SELECT/WITH, SHOW, or DESCRIBE. Omit to preview the pipeline's destination table."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum rows to return (default: 100). Pass -1 for unlimited."
+      }
+    ]
+  },
+  {
+    "name": "query_sqlserver",
+    "description": "Run a read-only query against the SQL Server or Azure SQL database a pipeline loads into. Pass the pipeline name; the server resolves the host, database, and credentials (any authMethod) from the pipeline's config \u2014 same connection the loader uses, credentials never leave the server. Only works for ",
+    "arguments": [
+      {
+        "name": "pipeline",
+        "type": "string",
+        "desc": "Pipeline name (from list_pipelines). Must have a SQL Server destination."
+      },
+      {
+        "name": "sql",
+        "type": "string",
+        "desc": "Read-only T-SQL statement: SELECT or WITH. Omit to preview the pipeline's destination table."
       },
       {
         "name": "limit",
@@ -869,7 +1077,7 @@
       {
         "name": "cron_expression",
         "type": "string",
-        "desc": "Quartz CRON expression for recurring runs (e.g., '0 0 * * * ?' for hourly, '0 30 5 ? * MON-FRI' for weekdays 5:30am). SET THIS whenever the user describes a recurrence \u2014 nightly, daily, hourly, market"
+        "desc": "Quartz CRON expression for recurring runs: 6 fields \u2014 seconds minutes hours day-of-month month day-of-week, plus an optional year (e.g., '0 0 * * * ?' for hourly, '0 30 5 ? * MON-FRI' for weekdays 5:3"
       },
       {
         "name": "secret_name",
@@ -900,6 +1108,11 @@
         "name": "source",
         "type": "string",
         "desc": "Where the data really comes from, as a short provider name or host, for lineage and provenance. Optional: when omitted it is derived from the endpoint host or the host the script references most. Neve"
+      },
+      {
+        "name": "depends_on",
+        "type": "array",
+        "desc": "Optional: names of other taps in the same catalog whose destination tables this tap reads. Omit to let the platform infer them from the script's queries; pass an empty list to declare that it has none"
       },
       {
         "name": "reason",
@@ -947,6 +1160,32 @@
         "name": "pipeline_token",
         "type": "string",
         "desc": "UUID for a single ingestion job. Returns status rows for that one job."
+      }
+    ]
+  },
+  {
+    "name": "get_pipeline_result",
+    "description": "Read the rows a Live Read (`scratch`) pipeline produced. Only Live Read pipelines (destination scratch) have a result \u2014 anything else is a 404 (an error body of `Not Found` / `status: 404` \u2014 rather than the endpoint's own `Only Live Read (scratch) pipelines have a result` message, or `Only scratch p",
+    "arguments": [
+      {
+        "name": "publisher_token",
+        "type": "string",
+        "desc": "UUID returned from run_tap. Reads the result of the Live Read (`scratch`) pipeline job that run submitted."
+      },
+      {
+        "name": "pipeline_token",
+        "type": "string",
+        "desc": "UUID of a single ingestion job (from upload_data or rollup.jobs[].pipelineToken)."
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Row offset to start from (default 0). Use the previous page's offset + returnedCount (not + limit \u2014 limit is clamped server-side)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Requested rows for this page. The server clamps it to its inline cap; read returnedCount for what actually came back."
       }
     ]
   },
@@ -1048,12 +1287,43 @@
   },
   {
     "name": "test_tap",
-    "description": "Test-run a tap without pushing data to the pipeline. Executes the tap's script and returns results, record count, and any errors. Use this to validate a script before running it for real. If this Datris instance's agent policy requires a person to approve this action, the call does NOT perform it: i",
+    "description": "Test-run a tap without pushing data to the pipeline. Executes the tap's script and returns results, record count, and any errors. Use this to validate a script before running it for real. By default a test pulls the first 20 records and returns; `recordCount` from a test is the preview size, not wha",
     "arguments": [
       {
         "name": "name",
         "type": "string",
         "desc": "Name of the tap to test"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max records to pull for the preview (default 20). 0 = no cap: streams the whole source \u2014 only when the user explicitly asks for a full test."
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
+    "name": "propose_pipeline_schema",
+    "description": "Preview a tested tap's rows and recommend a destination column type for each column, BEFORE the pipeline exists. Uses the rows from the tap's last successful test (nothing is pushed) and runs the tap again only when none are held or a higher `limit` asks for more, then infers a type per column from ",
+    "arguments": [
+      {
+        "name": "tap",
+        "type": "string",
+        "desc": "Name of the tap whose rows define the schema (create and test it first)"
+      },
+      {
+        "name": "destination",
+        "type": "string",
+        "desc": "The destination the pipeline will use. Vector destinations and mongodb get a preview only (no type grid)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Rows to preview and infer from (default 20). Raise it when the user wants more evidence."
       },
       {
         "name": "reason",
@@ -1079,7 +1349,7 @@
       {
         "name": "cron_expression",
         "type": "string",
-        "desc": "Quartz CRON expression for recurring runs (e.g., '0 0 * * * ?' for hourly, '0 30 5 ? * MON-FRI' for weekdays 5:30am). SET THIS whenever the user describes a recurrence \u2014 nightly, daily, hourly, market"
+        "desc": "Quartz CRON expression for recurring runs: 6 fields \u2014 seconds minutes hours day-of-month month day-of-week, plus an optional year (e.g., '0 0 * * * ?' for hourly, '0 30 5 ? * MON-FRI' for weekdays 5:3"
       },
       {
         "name": "target_pipeline",
@@ -1095,6 +1365,16 @@
         "name": "endpoint_url",
         "type": "string",
         "desc": "For HTTP taps only: new endpoint URL Datris POSTs the run context to. Rejected on Python taps."
+      },
+      {
+        "name": "source",
+        "type": "string",
+        "desc": "Declared source identity for lineage/provenance (provider name or host). Pass an empty string to clear it and fall back to derivation."
+      },
+      {
+        "name": "depends_on",
+        "type": "array",
+        "desc": "Names of other taps in the same catalog whose destination tables this tap reads. Replaces the declared list; pass an empty list to declare that it has none (overrides the platform's inference from the"
       },
       {
         "name": "reason",
@@ -1242,6 +1522,95 @@
     ]
   },
   {
+    "name": "list_script_versions",
+    "description": "List the version HISTORY of the script the pipeline runs for its AI data-quality rule or AI transformation (`kind`), newest first. Each entry has `version`, `createdAt`, `createdBy`, `changeNote`, `origin` (save, regenerate, run, restore-version, restore, repository), `model`, `commitSha` (repositor",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the pipeline"
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "Which script: the AI data-quality rule or the AI transformation"
+      }
+    ]
+  },
+  {
+    "name": "get_script_version",
+    "description": "View one version of a pipeline's AI data-quality rule or AI transformation script: the list fields plus the full `script` text, `fingerprint`, `generatedAt` and `contractVersion`. Read-only; does not change what the pipeline runs. Get version numbers from `list_script_versions`.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the pipeline"
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "Which script: the AI data-quality rule or the AI transformation"
+      },
+      {
+        "name": "version",
+        "type": "integer",
+        "desc": "Script version number to view"
+      }
+    ]
+  },
+  {
+    "name": "diff_script_versions",
+    "description": "Compare two versions of a pipeline's AI data-quality rule or AI transformation script. Returns a server-computed line diff: `script.lines` entries typed `ctx`, `add` or `del`. Read-only. `version` is the newer/selected version; `against` is the baseline.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the pipeline"
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "Which script: the AI data-quality rule or the AI transformation"
+      },
+      {
+        "name": "version",
+        "type": "integer",
+        "desc": "Selected version"
+      },
+      {
+        "name": "against",
+        "type": "integer",
+        "desc": "Baseline version to compare against"
+      }
+    ]
+  },
+  {
+    "name": "restore_script_version",
+    "description": "Make an earlier version of a pipeline's AI data-quality rule or AI transformation script the one the pipeline runs. APPEND-ONLY and SIDE-EFFECTING: the restore writes the chosen text back as a NEW latest version (no model call); the pipeline's definition version does not change. If that text is alre",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the pipeline"
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "Which script: the AI data-quality rule or the AI transformation"
+      },
+      {
+        "name": "version",
+        "type": "integer",
+        "desc": "Script version to restore (becomes a new latest version)"
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Optional one-line reason for this change, recorded in the platform's audit log and shown to anyone asked to approve it."
+      }
+    ]
+  },
+  {
     "name": "wait_seconds",
     "description": "Sleep for a fixed number of seconds, then return. Use this to pace polling against long-running platform work (most often `get_pipeline_status` after `run_tap`, or `get_job_status` after `upload_data`) so you do not burn tool calls hammering an endpoint that is still in progress. ALWAYS poll once BE",
     "arguments": [
@@ -1286,7 +1655,7 @@
   },
   {
     "name": "list_incidents",
-    "description": "List the platform's recovery-agent incidents, newest first. An incident is opened by the platform itself when a scheduled tap finally fails, a pipeline job errors, a tap goes stale, or a pipeline's volume swings; the recovery agent diagnoses it and \u2014 within the agent policy's recovery mode \u2014 repairs",
+    "description": "List the platform's recovery-agent incidents, newest first. An incident is opened by the platform itself when a scheduled tap finally fails, a pipeline job errors, a tap goes stale, a pipeline's volume swings, or a source changed its columns after a successful run (schema drift); the recovery agent ",
     "arguments": [
       {
         "name": "state",
@@ -1302,7 +1671,18 @@
   },
   {
     "name": "get_incident",
-    "description": "Read one recovery-agent incident by id \u2014 its trigger, classification, proposal, step-by-step narrative, approvals it is waiting on, and outcome. When the operator asks about a failure the platform is already working, explain THIS record instead of re-diagnosing from scratch.",
+    "description": "Read one recovery-agent incident by id \u2014 its trigger, classification, proposal, step-by-step narrative, approvals it is waiting on, outcome, and its evidence (before/after profile, diff, blast radius, thresholds, verdict). A pipeline incident's repair is regenerating the stored AI script; the eviden",
+    "arguments": [
+      {
+        "name": "incident_id",
+        "type": "string",
+        "desc": "The incident id (inc_\u2026)."
+      }
+    ]
+  },
+  {
+    "name": "get_incident_evidence",
+    "description": "Read the deterministic evidence the platform computed for one recovery-agent incident: the baseline profile of the last successful run before it broke, the profile of the real run after the fix, the diff between them (columns added or removed, type changes, record-count delta, null-rate deltas, dist",
     "arguments": [
       {
         "name": "incident_id",
@@ -1329,6 +1709,11 @@
         "name": "ai",
         "type": "boolean",
         "desc": "Rerank the top candidates with the platform's primary AI model (default: false \u2014 ranking is deterministic)."
+      },
+      {
+        "name": "include_unity_catalog",
+        "type": "boolean",
+        "desc": "Also search the Unity Catalog tables visible to every Databricks Platform secret your key can read (default: false). Warehouse hits follow the Datris hits, marked `source: \"unity-catalog\"`; `howToQuer"
       }
     ]
   },
@@ -1391,6 +1776,37 @@
         "name": "columns",
         "type": "boolean",
         "desc": "For pipeline and dataset nodes, include column-level lineage: which destination columns pass through from which source fields (exact), which the platform adds (system), and any cached AI-inferred mapp"
+      }
+    ]
+  },
+  {
+    "name": "browse_unity_catalog",
+    "description": "Browse what a Databricks Platform secret can already see in Unity Catalog, one level per call: no `catalog` lists catalogs; `catalog` lists its schemas; `catalog` + `schema` lists tables; adding `table` returns its columns (name, type, comment) and tags. Use it before creating a Databricks pipeline ",
+    "arguments": [
+      {
+        "name": "secret",
+        "type": "string",
+        "desc": "Name of the Databricks Platform secret (from list_platform_secrets)."
+      },
+      {
+        "name": "warehouse",
+        "type": "string",
+        "desc": "SQL warehouse ID to run the metadata queries on (optional; see description for the fallback order)."
+      },
+      {
+        "name": "catalog",
+        "type": "string",
+        "desc": "Unity Catalog catalog to list schemas of (optional)."
+      },
+      {
+        "name": "schema",
+        "type": "string",
+        "desc": "Schema within `catalog` to list tables of (optional; requires catalog)."
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "desc": "Table within `catalog`.`schema` to describe (optional; requires catalog and schema)."
       }
     ]
   }
