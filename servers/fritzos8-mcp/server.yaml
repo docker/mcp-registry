@@ -1,0 +1,53 @@
+name: fritzos8-mcp
+image: mcp/fritzos8-mcp
+type: server
+meta:
+  category: monitoring
+  tags:
+    - networking
+    - router
+    - smart-home
+    - fritzbox
+about:
+  title: FRITZ!Box
+  description: |
+    Manage an AVM FRITZ!Box on FRITZ!OS 8: network diagnostics, security check, device list clean-up, Wi-Fi, telephony and smart home.
+    Starts read-only. Write tools are enabled with allow_write=1, and every change is read back from the box and reported as verified true or false.
+    The container must reach the box on your network (TR-064 and the web UI, default fritz.box).
+  icon: https://raw.githubusercontent.com/tomwellnitz/fritzos8-mcp/295e8468c0ad3950e0d613cb9679f0d8bc8a4b6a/mcpb/icon.png
+source:
+  project: https://github.com/tomwellnitz/fritzos8-mcp
+  commit: 295e8468c0ad3950e0d613cb9679f0d8bc8a4b6a
+config:
+  description: Configure the connection to your FRITZ!Box. Create a dedicated FRITZ!Box user and enable "Allow access for applications" under Home Network > Network > Network Settings.
+  secrets:
+    - name: fritzos8-mcp.password
+      env: FRITZ_PASSWORD
+      example: <FRITZ_BOX_USER_PASSWORD>
+  env:
+    - name: FRITZ_HOST
+      example: fritz.box
+      value: "{{fritzos8-mcp.host}}"
+    - name: FRITZ_USER
+      example: mcp
+      value: "{{fritzos8-mcp.user}}"
+    - name: FRITZ_ALLOW_WRITE
+      example: "0"
+      value: "{{fritzos8-mcp.allow_write}}"
+  parameters:
+    type: object
+    properties:
+      host:
+        type: string
+        description: Hostname or IP address of the FRITZ!Box
+        default: fritz.box
+      user:
+        type: string
+        description: Dedicated FRITZ!Box user for the MCP server
+      allow_write:
+        type: string
+        description: Set to 1 to enable write tools (changes are read back and reported as verified)
+        default: "0"
+    required:
+      - host
+      - user
