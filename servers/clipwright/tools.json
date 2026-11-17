@@ -238,12 +238,17 @@
         "name": "idempotency_key",
         "type": "string",
         "desc": ""
+      },
+      {
+        "name": "max_credits",
+        "type": "integer",
+        "desc": ""
       }
     ]
   },
   {
     "name": "make_ugc",
-    "description": "Input: the same fields as quote_ugc, plus attempt. Start a lip-synced UGC video; the actor is actor_id, image or the default. Format and resolution follow the request and the source, defaulting to 1080x1920. Captions are OPT-IN: ask the user first. A field marked NOT HONORED YET does not reach the renderer. Poll get_run with its poll.arguments; a failed run whose video is still being made can return to queued, named in warnings[]. attempt=2,3,… starts a NEW run. A video like a reference reel: plan_reference_remake with its analysis_id instead. Price: HeyGen presenter: presenter, HeyGen Avatar IV 9 credits per second the presenter is in the video, covered or not; OmniHuman presenter: presenter, OmniHuman 2.0 22 credits per second the presenter is in the video, covered or not; each plus production (voice and render) 1 credits per second of video plus live avatar on a call 400 credits per call still in the video, at least 50. Quote first with quote_ugc.",
+    "description": "Input: the same fields as quote_ugc, plus attempt. Start a lip-synced UGC video; the actor is actor_id, image or the default. Format and resolution follow the request and the source, defaulting to 720x1280. Captions are OPT-IN: ask the user first. A field marked NOT HONORED YET does not reach the renderer. Poll get_run with its poll.arguments; a failed run whose video is still being made can return to queued, named in warnings[]. attempt=2,3,… starts a NEW run. A video like a reference reel: plan_reference_remake with its analysis_id instead. Price: HeyGen presenter: presenter, HeyGen Avatar IV 9 credits per second the presenter is in the video, covered or not; OmniHuman presenter: presenter, OmniHuman 2.0 22 credits per second the presenter is in the video, covered or not; each plus production (voice and render) 1 credits per second of video plus live avatar on a call 400 credits per call still in the video, at least 50. Quote first with quote_ugc.",
     "arguments": [
       {
         "name": "script",
@@ -346,9 +351,24 @@
         "desc": ""
       },
       {
+        "name": "scene",
+        "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "proposal",
+        "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "propose",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
         "name": "person",
         "type": "string",
-        "desc": ""
+        "desc": "NOT HONORED YET: the default actor is used; pick actor_id from list_actors or pass image."
       },
       {
         "name": "actor_id",
@@ -378,7 +398,7 @@
       {
         "name": "name",
         "type": "string",
-        "desc": ""
+        "desc": "NOT HONORED YET: it does not reach the renderer."
       },
       {
         "name": "broll_policy",
@@ -423,7 +443,7 @@
       {
         "name": "look",
         "type": "string",
-        "desc": ""
+        "desc": "NOT HONORED YET: it does not reach the renderer."
       },
       {
         "name": "aspect_ratio",
@@ -476,6 +496,11 @@
         "desc": ""
       },
       {
+        "name": "max_credits",
+        "type": "integer",
+        "desc": ""
+      },
+      {
         "name": "attempt",
         "type": "integer",
         "desc": ""
@@ -500,7 +525,7 @@
   },
   {
     "name": "get_run_shots",
-    "description": "Read the shots of a make_faceless or make_ugc video: frame size and rate, timed words, and each shot's span, kind, words and preview_url (it expires). A field named in `withheld` is null on every shot. planned=false is a normal answer: editable.reason says why. paid_edits.enabled says whether a video can be made from an edit; while it is false, none can. Free.",
+    "description": "Read the shots of a make_faceless or make_ugc video: frame size and rate, timed words, and each shot's span, kind, words and preview_url (it expires). A field named in `withheld` is null on every shot. planned=false is a normal answer: editable.reason says why. paid_edits.enabled says whether a video can be made from an edit; while it is false, none can. For an ad with live shots, live_shots lists each shot's takes with the check's codes, whether it was accepted or refused, and which take the video uses; finished_check names what the check of the finished ad found, each code with its second. Free.",
     "arguments": [
       {
         "name": "run_id",
@@ -543,7 +568,7 @@
   },
   {
     "name": "revise_run",
-    "description": "Input: the same fields as quote_revision, plus attempt. A NEW run rendering a make_faceless video again with changes or document (exactly one). Repeating an identical request returns the run it started, starting nothing new; pass attempt 2 for another one. A revision that delivers is charged its quoted total; one that fails is charged nothing. Limits on revisions running and failed, and a close some days after the original, are named by the refusal. While paid edits are closed it answers editing_disabled and charges nothing. Poll get_run. Price: each shot generated anew: picture 7, clip 49, clip with a new picture 56; plus 13 to render. A revision that generates nothing: 13. A kept candidate adds nothing. Quote first with quote_revision.",
+    "description": "Input: the same fields as quote_revision, plus max_credits, attempt. A NEW run rendering a make_faceless video again with changes or document (exactly one). Repeating an identical request returns the run it started, starting nothing new; pass attempt 2 for another one. A revision that delivers is charged its quoted total; one that fails is charged nothing. Limits on revisions running and failed, and a close some days after the original, are named by the refusal. While paid edits are closed it answers editing_disabled and charges nothing. Poll get_run. Price: each shot generated anew: picture 7, clip 49, clip with a new picture 56; plus 13 to render. A revision that generates nothing: 13. A kept candidate adds nothing. Quote first with quote_revision.",
     "arguments": [
       {
         "name": "run_id",
@@ -558,6 +583,11 @@
       {
         "name": "document",
         "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "max_credits",
+        "type": "integer",
         "desc": ""
       },
       {
@@ -595,7 +625,7 @@
   },
   {
     "name": "create_candidate",
-    "description": "Input: the same fields as quote_candidate. A NEW edit_shot run making one picture or clip for one shot of a make_faceless run, to keep or discard in a revision. A delivered candidate is charged its one unit whether it is kept or discarded; one that fails is charged nothing. Repeating an identical request returns the run it started, starting nothing new; pass take 2 for another one. Limits on candidates running and failed are named by the refusal. While shot candidates are closed it answers editing_disabled and charges nothing. Poll get_run. Price: picture: 7 credits per image; clip: 49 credits per clip; clip with a new picture: 56 credits per clip. Quote first with quote_candidate.",
+    "description": "Input: the same fields as quote_candidate, plus max_credits. A NEW edit_shot run making one picture or clip for one shot of a make_faceless run, to keep or discard in a revision. A delivered candidate is charged its one unit whether it is kept or discarded; one that fails is charged nothing. Repeating an identical request returns the run it started, starting nothing new; pass take 2 for another one. Limits on candidates running and failed are named by the refusal. While shot candidates are closed it answers editing_disabled and charges nothing. Poll get_run. Price: picture: 7 credits per image; clip: 49 credits per clip; clip with a new picture: 56 credits per clip. Quote first with quote_candidate.",
     "arguments": [
       {
         "name": "run_id",
@@ -614,6 +644,11 @@
       },
       {
         "name": "take",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "max_credits",
         "type": "integer",
         "desc": ""
       }
@@ -652,12 +687,17 @@
         "name": "references",
         "type": "array",
         "desc": ""
+      },
+      {
+        "name": "max_credits",
+        "type": "integer",
+        "desc": ""
       }
     ]
   },
   {
     "name": "generate_image",
-    "description": "Input: the same fields as quote_image, plus attempt. Generate one image from a prompt, a NEW run, charged the quoted credits once delivered; its run_id can be a later reference. Poll get_run. A generation that fails is charged nothing. Repeating an identical request returns the run it started, starting nothing new; pass attempt 2 for another one. Price: seedream-5.0-flash: 3 credits per image; flare: 4 credits per image. Quote first with quote_image.",
+    "description": "Input: the same fields as quote_image, plus attempt. Generate one image from a prompt, a NEW run, charged the quoted credits once delivered; its run_id can be a later reference. Poll get_run. A generation that fails is charged nothing. Repeating an identical request returns the run it started, starting nothing new; pass attempt 2 for another one. Price: seedream-5.0-flash: 5 credits per image; flare: 6 credits per image; gemini-3-pro-image: 38 credits per image; gemini-nano-banana-2.1: 21 credits per image. Quote first with quote_image.",
     "arguments": [
       {
         "name": "prompt",
@@ -682,6 +722,11 @@
       {
         "name": "references",
         "type": "array",
+        "desc": ""
+      },
+      {
+        "name": "max_credits",
+        "type": "integer",
         "desc": ""
       },
       {
@@ -754,12 +799,17 @@
         "name": "camera",
         "type": "string",
         "desc": ""
+      },
+      {
+        "name": "max_credits",
+        "type": "integer",
+        "desc": ""
       }
     ]
   },
   {
     "name": "generate_video",
-    "description": "Input: the same fields as quote_video, plus attempt. Generate one silent clip from a prompt or a shot, a NEW run, charged unit_credits per second of duration_s once delivered. Modes: text; first_frame (the requested format within 2%); reference (1 to 4). Poll get_run. A generation that fails is charged nothing. Repeating an identical request returns the run it started, starting nothing new; pass attempt 2 for another one. Price: 3 to 90 credits per second of clip, by model and size. Quote first with quote_video.",
+    "description": "Input: the same fields as quote_video, plus attempt. Generate one silent clip from a prompt or a shot, a NEW run, charged unit_credits per second of duration_s once delivered. Modes: text; first_frame (the requested format within 2%); reference (1 to 4). Poll get_run. A generation that fails is charged nothing. Repeating an identical request returns the run it started, starting nothing new; pass attempt 2 for another one. Price: 5 to 143 credits per second of clip, by model and size. Quote first with quote_video.",
     "arguments": [
       {
         "name": "prompt",
@@ -822,6 +872,11 @@
         "desc": ""
       },
       {
+        "name": "max_credits",
+        "type": "integer",
+        "desc": ""
+      },
+      {
         "name": "attempt",
         "type": "integer",
         "desc": ""
@@ -845,7 +900,7 @@
       {
         "name": "inserts",
         "type": "array",
-        "desc": "Inserts on script words; need long-form qualification, 1080p and broll_policy=anyone."
+        "desc": "Inserts on script words; need long-form qualification and broll_policy=anyone."
       },
       {
         "name": "overlays",
@@ -905,7 +960,7 @@
       {
         "name": "music",
         "type": "string",
-        "desc": "Music under the voice, off unless asked: \"auto\" or { mood }. 60 credits per video, charged only when delivered with it."
+        "desc": "Music under the voice, made by AI (it may carry an invisible watermark), off unless asked: \"auto\" or { mood }. 60 credits per video, charged only when delivered with it."
       },
       {
         "name": "call",
@@ -925,11 +980,26 @@
       {
         "name": "shots",
         "type": "array",
-        "desc": "Live shots of the actor on script words, no overlaps; 9:16, long-form qualification. Acting shots: wide or full, a cast from pictures; action: shot, second by second. Each kind has its presenter-second price in list_prices."
+        "desc": "Live shots of the actor on script words, no overlaps; 9:16, long-form qualification. Acting shots: wide or full, a start frame, a cast from pictures; action: shot, second by second. Each kind has its presenter-second price in list_prices."
       },
       {
         "name": "product_asset_id",
         "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "scene",
+        "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "proposal",
+        "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "propose",
+        "type": "boolean",
         "desc": ""
       },
       {
@@ -1061,12 +1131,17 @@
         "name": "background",
         "type": "string",
         "desc": ""
+      },
+      {
+        "name": "max_credits",
+        "type": "integer",
+        "desc": ""
       }
     ]
   },
   {
     "name": "upload_image",
-    "description": "An upload_id and a signed url for a PNG or JPEG up to 10 MB, from a local `path` (local server only) or a public https `url` (up to 20 seconds and 3 redirects). The url is signed for 24 hours; the upload_id lasts 365 days. Set aspect_ratio to match the picture. Remote server and a file on disk: create_upload. Free; 20 uploads per day, at most 30 url downloads per hour.",
+    "description": "An upload_id and a signed url for a PNG or JPEG up to 10 MB, from a local `path` (local server only) or a public https `url` (up to 20 seconds and 3 redirects). The url is signed for 24 hours; the upload_id lasts 365 days. Set aspect_ratio to match the picture. Remote server and a file on disk: create_upload. Free; 200 uploads per day, at most 30 url downloads per hour.",
     "arguments": [
       {
         "name": "path",
@@ -1082,7 +1157,7 @@
   },
   {
     "name": "create_upload",
-    "description": "Upload a local PNG or JPEG (up to 10 MB) to a remote server: pass media_type, bytes and sha256, then within 15 minutes `curl -X PUT -H 'content-type: <media_type>' --data-binary @<file> '<put_url>'` and call get_upload (upload_not_finished before the PUT). Use the upload_id within 24 hours. Free; 20 uploads per day.",
+    "description": "Upload a local PNG or JPEG (up to 10 MB) to a remote server: pass media_type, bytes and sha256, then within 15 minutes `curl -X PUT -H 'content-type: <media_type>' --data-binary @<file> '<put_url>'` and call get_upload (upload_not_finished before the PUT). Use the upload_id within 24 hours. Free; 200 uploads per day.",
     "arguments": [
       {
         "name": "media_type",
@@ -1130,7 +1205,7 @@
   },
   {
     "name": "create_asset",
-    "description": "Save a picture or clip as an asset until you delete it. source: {run_id} of a succeeded generation, {upload_id}, a public https {url} (kind: \"video\" for an MP4), {base64, media_type} of a PNG or JPEG up to 700000 bytes, or {put: {media_type, bytes, sha256}}, then PUT the file to upload.put_url within 15 minutes; locally also {path}. A clip: MP4, h264 or hevc, up to 120 seconds and 100 MB. Own material takes rights_confirmed: true, stating that you may use the people and works in it; a reference only to analyse takes analysis_only: true and is never rendered. Free. Up to 2000 assets and 1 GB (20 GB once credits were bought), 100 new per day.",
+    "description": "Save a picture or clip as an asset until you delete it. source: {run_id} of a succeeded generation, {upload_id}, a public https {url} (kind: \"video\" for an MP4), {base64, media_type} of a PNG or JPEG up to 700000 bytes, or {put: {media_type, bytes, sha256}}, then PUT the file to upload.put_url within 15 minutes; locally also {path}. A clip: MP4, h264 or hevc, up to 120 seconds and 100 MB. Own material takes rights_confirmed: true, stating that you may use the people and works in it; a reference only to analyse takes analysis_only: true and is never rendered. Free. Up to 2000 assets and 1 GB (20 GB once credits were bought, as a pack or a plan), 100 new per day.",
     "arguments": [
       {
         "name": "source",
@@ -1161,7 +1236,7 @@
   },
   {
     "name": "list_assets",
-    "description": "List assets, newest first, 8 a page unless limit (up to 100), fewer when a page would not fit your tool output; filter by role and kind rather than reading them all; mascot true lists saved mascots with their poses, whose id is make_faceless mascot_id. next_cursor pages. pending lists assets in progress and today's failures; usage counts against 2000 assets and 1 GB, or 20 GB once credits were bought. Free.",
+    "description": "List assets, newest first, 8 a page unless limit (up to 100), fewer when a page would not fit your tool output; filter by role and kind rather than reading them all; mascot true lists saved mascots with their poses, whose id is make_faceless mascot_id. next_cursor pages. pending lists assets in progress and today's failures; usage counts against 2000 assets and 1 GB, or 20 GB once credits were bought, as a pack or a plan. Free.",
     "arguments": [
       {
         "name": "role",
@@ -1251,6 +1326,11 @@
         "name": "mode",
         "type": "string",
         "desc": "full (default, 70 credits): the reference_profile. data (10 credits): duration, size, timed transcript, hook and a 3×3 frame sheet."
+      },
+      {
+        "name": "max_credits",
+        "type": "integer",
+        "desc": ""
       }
     ]
   },
@@ -1271,6 +1351,11 @@
       {
         "name": "mode",
         "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "max_credits",
+        "type": "integer",
         "desc": ""
       }
     ]
@@ -1319,6 +1404,11 @@
         "name": "source_url",
         "type": "string",
         "desc": ""
+      },
+      {
+        "name": "max_credits",
+        "type": "integer",
+        "desc": ""
       }
     ]
   },
@@ -1329,6 +1419,11 @@
       {
         "name": "source_url",
         "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "max_credits",
+        "type": "integer",
         "desc": ""
       }
     ]
@@ -1351,7 +1446,7 @@
   },
   {
     "name": "quote_trends",
-    "description": "Price find_trends: 0 when the same query from the last hour would answer or a free search applies (10 a month; free_searches_left). With search_id and page: a next page, 10 credits, never free. Free.",
+    "description": "Price find_trends: 0 when the same query from the last hour would answer or a free search applies (10 a month; free_searches_left). With search_id and page: a next page, free for 24 hours after the search, up to 10 pages a day per account, else 10 credits; warnings say why. Free.",
     "arguments": [
       {
         "name": "keywords",
@@ -1382,12 +1477,17 @@
         "name": "page",
         "type": "integer",
         "desc": ""
+      },
+      {
+        "name": "max_credits",
+        "type": "integer",
+        "desc": ""
       }
     ]
   },
   {
     "name": "find_trends",
-    "description": "Input: the same fields as quote_trends, plus sort. Reels that took off on a topic: up to 10 per platform, one per creator, TikTok and Instagram ranked by x_median. Charged only on success, a one-platform mix too; 10 per hour. poll repeats this call; sort reorders it free. No keywords: the primary saved niche (trend_niches). gallery_url: a page to share for 7 days. next_page: more places for 10 credits, up to 5 pages, search_id and page alone. Price: 20 credits per call; next page: 10 credits per call. Quote first with quote_trends.",
+    "description": "Input: the same fields as quote_trends, plus sort. Reels that took off on a topic: up to 10 per platform, one per creator, TikTok and Instagram ranked by x_median. Charged only on success, a one-platform mix too; 10 per hour. poll repeats this call; sort reorders it free. No keywords: the primary saved niche (trend_niches). gallery_url: a page to share for 7 days. next_page: more places, free for 24 hours after the search, 10 a day, then 10 credits; up to 5 pages, search_id and page alone. Price: 20 credits per call. Quote first with quote_trends.",
     "arguments": [
       {
         "name": "keywords",
@@ -1416,6 +1516,11 @@
       },
       {
         "name": "page",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "max_credits",
         "type": "integer",
         "desc": ""
       },
@@ -1486,7 +1591,7 @@
   },
   {
     "name": "list_template_sounds",
-    "description": "Sounds make_ugc templates play, by beat; template_sounds swaps or (false) mutes them; the edit beat needs edit_sounds=true. Sounds never change the price. Free.",
+    "description": "Sounds make_ugc templates play, by beat; template_sounds swaps or (false) mutes them; the edit beat needs edit_sounds=true. Also music_beds: render_edit's free music, each with genre, energy, tempo and length. Sounds never change the price. Free.",
     "arguments": []
   },
   {
@@ -1679,6 +1784,11 @@
         "desc": ""
       },
       {
+        "name": "max_credits",
+        "type": "integer",
+        "desc": ""
+      },
+      {
         "name": "quality",
         "type": "string",
         "desc": ""
@@ -1747,6 +1857,11 @@
       {
         "name": "portrait",
         "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "max_credits",
+        "type": "integer",
         "desc": ""
       },
       {
@@ -1871,8 +1986,38 @@
         "desc": ""
       },
       {
+        "name": "keep_anchors",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
         "name": "voice",
         "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "resolution",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "max_credits",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "scene",
+        "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "proposal",
+        "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "propose",
+        "type": "boolean",
         "desc": ""
       },
       {
@@ -1997,9 +2142,39 @@
         "desc": ""
       },
       {
+        "name": "keep_anchors",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
         "name": "voice",
         "type": "string",
         "desc": "A list_voices name with skill=make_faceless; omitted, narrator_en_wise_lady, or the fastest voice for an English explainer. An unknown or make_ugc voice is refused before any charge."
+      },
+      {
+        "name": "resolution",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "max_credits",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "scene",
+        "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "proposal",
+        "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "propose",
+        "type": "boolean",
+        "desc": ""
       }
     ]
   },
@@ -2016,7 +2191,7 @@
   },
   {
     "name": "get_account",
-    "description": "This account's credits. Free. debt_credits above zero refuses make_ugc (debt_outstanding) until credits are bought; else balance_credits is what a run can spend; holds_credits are held by runs in progress. support_replies holds our replies.",
+    "description": "This account's credits. Free. debt_credits above zero refuses make_ugc (debt_outstanding) until credits are bought; else balance_credits is what a run can spend: plan_credits (this month's, spent first) plus pack_credits; plan names the monthly plan. holds_credits are held by runs in progress. support_replies holds our replies.",
     "arguments": []
   },
   {
