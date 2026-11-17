@@ -1,0 +1,412 @@
+[
+  {
+    "name": "create_waitlist",
+    "description": "Create a new waitlist on your Waitlister account (requires an account key, works on every plan within its waitlist cap). Returns the waitlist key and a form_action_url that collects signups immediately. Pass landing_page to also provision the hosted landing page (as a draft — go live with publish_landing_page) in the same call. Note: waitlist names and URL slugs are unique across all of Waitlister — a taken name/slug is rejected with guidance to pick another.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "The product/waitlist name"
+      },
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "URL slug (derived from name when omitted; must be globally unique)"
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Internal description"
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Product category"
+      },
+      {
+        "name": "referral_rewards_enabled",
+        "type": "boolean",
+        "desc": "Enable the referral program (points for signups and referrals)"
+      },
+      {
+        "name": "validate_emails",
+        "type": "boolean",
+        "desc": "Validate email deliverability at signup (default true)"
+      },
+      {
+        "name": "landing_page",
+        "type": "object",
+        "desc": "Also create the hosted landing page (draft) in the same request. headline required. More fields (background, SEO) via update_landing_page afterwards."
+      }
+    ]
+  },
+  {
+    "name": "get_account",
+    "description": "Check the configured API key and what this account may do — the cheapest first call, and the one to make when anything looks misconfigured. Returns the account, the plan name, whether the general API is available, how many waitlists the account has against its cap, whether creating another would succeed right now (can_create — a true dry run, so check it before create_waitlist rather than discovering the cap from an error), remaining AI credits, and the key's name/created/last-used. An invalid or revoked key fails here cleanly, which distinguishes a dead key from a malformed request. Requires an account key (wl_acct_…) and works on every plan. Never returns the key itself.",
+    "arguments": []
+  },
+  {
+    "name": "list_waitlists",
+    "description": "List every waitlist your account owns, with subscriber and view counts (requires an account key).",
+    "arguments": []
+  },
+  {
+    "name": "get_stats",
+    "description": "Get a waitlist's subscriber and view counters. Works on every plan. Counters update asynchronously (within seconds of a signup or delete).",
+    "arguments": [
+      {
+        "name": "waitlist_key",
+        "type": "string",
+        "desc": "The waitlist key (12 characters, from list_waitlists or the dashboard). Optional if WAITLISTER_WAITLIST_KEY is set."
+      }
+    ]
+  },
+  {
+    "name": "add_subscriber",
+    "description": "Add a new subscriber to a waitlist. Returns their position, referral code, and sign-up token. Idempotent per email: an existing email returns is_new_sign_up: false with their current position, not an error. If the waitlist uses double opt-in or welcome emails, the subscriber is emailed, exactly as with a form signup. Works on every plan.",
+    "arguments": [
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "The subscriber's email address"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "The subscriber's name"
+      },
+      {
+        "name": "phone",
+        "type": "string",
+        "desc": "The subscriber's phone number"
+      },
+      {
+        "name": "referred_by",
+        "type": "string",
+        "desc": "Referral code of the person who referred this subscriber"
+      },
+      {
+        "name": "metadata",
+        "type": "object",
+        "desc": "Additional custom fields to store with the subscriber (e.g. company, role)"
+      },
+      {
+        "name": "waitlist_key",
+        "type": "string",
+        "desc": "The waitlist key (12 characters, from list_waitlists or the dashboard). Optional if WAITLISTER_WAITLIST_KEY is set."
+      }
+    ]
+  },
+  {
+    "name": "list_subscribers",
+    "description": "Retrieve a paginated list of a waitlist's subscribers (each with its tags), sortable by position, points, date, referral_count, or email, and optionally filtered to one tag. Requires the Growth plan or higher.",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Number of results to return (1-100, default 20)"
+      },
+      {
+        "name": "page",
+        "type": "number",
+        "desc": "Page number for pagination (default 1)"
+      },
+      {
+        "name": "sort_by",
+        "type": "string",
+        "desc": "Field to sort by (default: date)"
+      },
+      {
+        "name": "sort_dir",
+        "type": "string",
+        "desc": "Sort direction (default: desc)"
+      },
+      {
+        "name": "tag",
+        "type": "string",
+        "desc": "Only subscribers with this tag: a tag name (case-insensitive) or id. See list_tags"
+      },
+      {
+        "name": "waitlist_key",
+        "type": "string",
+        "desc": "The waitlist key (12 characters, from list_waitlists or the dashboard). Optional if WAITLISTER_WAITLIST_KEY is set."
+      }
+    ]
+  },
+  {
+    "name": "get_subscriber",
+    "description": "Retrieve detailed information about a specific subscriber by their ID or email address — position, points, referral info, tags, metadata, location, and more. Requires the Growth plan or higher.",
+    "arguments": [
+      {
+        "name": "id_or_email",
+        "type": "string",
+        "desc": "The subscriber's unique ID or email address"
+      },
+      {
+        "name": "waitlist_key",
+        "type": "string",
+        "desc": "The waitlist key (12 characters, from list_waitlists or the dashboard). Optional if WAITLISTER_WAITLIST_KEY is set."
+      }
+    ]
+  },
+  {
+    "name": "update_subscriber",
+    "description": "Update an existing subscriber's name, phone, points, custom metadata, and/or tags. Only include fields you want to change; updating points triggers a queue position recalculation. Tags are named case-insensitively (or by id): add_tags and remove_tags change some, tags replaces the whole set. A tag name the waitlist doesn't have yet is created, so call list_tags first and reuse an existing name rather than creating a near-duplicate. Requires the Growth plan or higher.",
+    "arguments": [
+      {
+        "name": "id_or_email",
+        "type": "string",
+        "desc": "The subscriber's unique ID or email address"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Updated name"
+      },
+      {
+        "name": "phone",
+        "type": "string",
+        "desc": "Updated phone number"
+      },
+      {
+        "name": "points",
+        "type": "number",
+        "desc": "Updated points value"
+      },
+      {
+        "name": "metadata",
+        "type": "object",
+        "desc": "Custom fields to add or update (merged with existing metadata)"
+      },
+      {
+        "name": "add_tags",
+        "type": "array",
+        "desc": "Tags to add, by name or id. New names create a tag (max 20 per waitlist, 30 characters each)"
+      },
+      {
+        "name": "remove_tags",
+        "type": "string",
+        "desc": "Tags to remove, by name or id. Tags the subscriber doesn't have are ignored"
+      },
+      {
+        "name": "tags",
+        "type": "string",
+        "desc": "Replace the subscriber's tags with exactly this set ([] removes all). Not combinable with add_tags/remove_tags"
+      },
+      {
+        "name": "waitlist_key",
+        "type": "string",
+        "desc": "The waitlist key (12 characters, from list_waitlists or the dashboard). Optional if WAITLISTER_WAITLIST_KEY is set."
+      }
+    ]
+  },
+  {
+    "name": "delete_subscriber",
+    "description": "Permanently delete a subscriber (and their email history) from a waitlist by ID or email address. This cannot be undone. Counters and queue positions update asynchronously within a few seconds. Requires the Growth plan or higher.",
+    "arguments": [
+      {
+        "name": "id_or_email",
+        "type": "string",
+        "desc": "The subscriber's unique ID or email address"
+      },
+      {
+        "name": "waitlist_key",
+        "type": "string",
+        "desc": "The waitlist key (12 characters, from list_waitlists or the dashboard). Optional if WAITLISTER_WAITLIST_KEY is set."
+      }
+    ]
+  },
+  {
+    "name": "list_tags",
+    "description": "List a waitlist's subscriber tags (the dashboard's Tags column) and how many subscribers have each. Use these names with list_subscribers' tag filter and update_subscriber's add_tags/remove_tags. Requires the Growth plan or higher.",
+    "arguments": [
+      {
+        "name": "waitlist_key",
+        "type": "string",
+        "desc": "The waitlist key (12 characters, from list_waitlists or the dashboard). Optional if WAITLISTER_WAITLIST_KEY is set."
+      }
+    ]
+  },
+  {
+    "name": "log_view",
+    "description": "Record a view of a waitlist page — useful for tracking engagement and conversion rates when you host your own landing page.",
+    "arguments": [
+      {
+        "name": "visitor_id",
+        "type": "string",
+        "desc": "Unique identifier for the visitor (prevents duplicate counts)"
+      },
+      {
+        "name": "referring_domain",
+        "type": "string",
+        "desc": "Domain that referred the view"
+      },
+      {
+        "name": "waitlist_key",
+        "type": "string",
+        "desc": "The waitlist key (12 characters, from list_waitlists or the dashboard). Optional if WAITLISTER_WAITLIST_KEY is set."
+      }
+    ]
+  },
+  {
+    "name": "get_landing_page",
+    "description": "Get the structured view of a waitlist's hosted landing page: status (draft/published/unpublished), page_type (standard or ai), copy fields, theme, SEO, the live URL (null until published), and view/signup analytics. AI-built pages also return remaining AI credits. Works on every plan. 404 if the waitlist has no page yet — create one with create_landing_page.",
+    "arguments": [
+      {
+        "name": "waitlist_key",
+        "type": "string",
+        "desc": "The waitlist key (12 characters, from list_waitlists or the dashboard). Optional if WAITLISTER_WAITLIST_KEY is set."
+      }
+    ]
+  },
+  {
+    "name": "create_landing_page",
+    "description": "Create the waitlist's hosted landing page from structured fields, as a draft (nothing goes live until publish_landing_page). One page per waitlist — returns a 409 error if one already exists (use update_landing_page then). headline is required. Works on every plan. Tip: when creating a new waitlist AND its page, use create_waitlist's landing_page parameter instead — one call.",
+    "arguments": [
+      {
+        "name": "headline",
+        "type": "string",
+        "desc": "The page's main title (3-120 characters, plain text — no HTML)"
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Supporting copy under the headline (max 1000 characters, plain text)"
+      },
+      {
+        "name": "button_text",
+        "type": "string",
+        "desc": "Submit-button label (max 40 characters, default \"Join the waitlist\")"
+      },
+      {
+        "name": "collect_name",
+        "type": "boolean",
+        "desc": "Add (true) or remove (false) a name input on the signup form"
+      },
+      {
+        "name": "collect_phone",
+        "type": "boolean",
+        "desc": "Add (true) or remove (false) a phone input on the signup form"
+      },
+      {
+        "name": "background",
+        "type": "object",
+        "desc": "Page background (image backgrounds are dashboard-only)"
+      },
+      {
+        "name": "theme",
+        "type": "string",
+        "desc": "Page theme"
+      },
+      {
+        "name": "seo",
+        "type": "object",
+        "desc": "Search/social metadata for the hosted page"
+      },
+      {
+        "name": "waitlist_key",
+        "type": "string",
+        "desc": "The waitlist key (12 characters, from list_waitlists or the dashboard). Optional if WAITLISTER_WAITLIST_KEY is set."
+      }
+    ]
+  },
+  {
+    "name": "update_landing_page",
+    "description": "Update any subset of the landing page's structured fields. On a published page the change goes live immediately. IMPORTANT: on an AI-built page (page_type \"ai\"), the copy/structure fields (headline, description, button_text, collect_name, collect_phone, background) return a 409 error — edit those with generate_landing_page and is_edit: true; theme and seo still work here on both page types. Works on every plan.",
+    "arguments": [
+      {
+        "name": "headline",
+        "type": "string",
+        "desc": "The page's main title (3-120 characters, plain text — no HTML)"
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Supporting copy under the headline (max 1000 characters, plain text)"
+      },
+      {
+        "name": "button_text",
+        "type": "string",
+        "desc": "Submit-button label (max 40 characters, default \"Join the waitlist\")"
+      },
+      {
+        "name": "collect_name",
+        "type": "boolean",
+        "desc": "Add (true) or remove (false) a name input on the signup form"
+      },
+      {
+        "name": "collect_phone",
+        "type": "boolean",
+        "desc": "Add (true) or remove (false) a phone input on the signup form"
+      },
+      {
+        "name": "background",
+        "type": "object",
+        "desc": "Page background (image backgrounds are dashboard-only)"
+      },
+      {
+        "name": "theme",
+        "type": "string",
+        "desc": "Page theme"
+      },
+      {
+        "name": "seo",
+        "type": "object",
+        "desc": "Search/social metadata for the hosted page"
+      },
+      {
+        "name": "waitlist_key",
+        "type": "string",
+        "desc": "The waitlist key (12 characters, from list_waitlists or the dashboard). Optional if WAITLISTER_WAITLIST_KEY is set."
+      }
+    ]
+  },
+  {
+    "name": "publish_landing_page",
+    "description": "Publish the landing page to its live URL (https://waitlister.me/p/{slug}, or the waitlist's custom domain), making it publicly visible. Publishing validates the page has an email field, a submit button, and a headline of at least 3 characters. API publishes skip the custom social-share (OG) image; publishing once from the dashboard generates it. To take a page offline, use unpublish_landing_page. Works on every plan.",
+    "arguments": [
+      {
+        "name": "unpublish",
+        "type": "boolean",
+        "desc": "Removed in 1.5.0 — use unpublish_landing_page. Passing true is refused and changes nothing."
+      },
+      {
+        "name": "waitlist_key",
+        "type": "string",
+        "desc": "The waitlist key (12 characters, from list_waitlists or the dashboard). Optional if WAITLISTER_WAITLIST_KEY is set."
+      }
+    ]
+  },
+  {
+    "name": "unpublish_landing_page",
+    "description": "Take the published landing page offline (status becomes \"unpublished\"); its URL stops serving the page and stops collecting signups. The page and its subscribers are kept, and publish_landing_page brings it back. Works on every plan.",
+    "arguments": [
+      {
+        "name": "waitlist_key",
+        "type": "string",
+        "desc": "The waitlist key (12 characters, from list_waitlists or the dashboard). Optional if WAITLISTER_WAITLIST_KEY is set."
+      }
+    ]
+  },
+  {
+    "name": "generate_landing_page",
+    "description": "Generate a complete custom landing page from a natural-language prompt with Waitlister's AI builder (same engine as the dashboard), or edit the existing AI page with is_edit: true. COSTS 1 AI CREDIT per call (shared with the dashboard AI builder; errors with the balance when out of credits) — don't call repeatedly for small tweaks a human should review. Synchronous, typically 20-50 seconds. The result is saved as a draft: review in the dashboard or go live with publish_landing_page. The AI conversation is saved, so the dashboard's AI chat continues where this left off. After generating, the page is an AI page — see update_landing_page for what that changes.",
+    "arguments": [
+      {
+        "name": "prompt",
+        "type": "string",
+        "desc": "What to build or change, in natural language (e.g. \"dark, bold, dev-tool aesthetic\")"
+      },
+      {
+        "name": "is_edit",
+        "type": "boolean",
+        "desc": "true edits the existing AI page instead of generating a fresh one (409 if there is no AI page yet)"
+      },
+      {
+        "name": "waitlist_key",
+        "type": "string",
+        "desc": "The waitlist key (12 characters, from list_waitlists or the dashboard). Optional if WAITLISTER_WAITLIST_KEY is set."
+      }
+    ]
+  }
+]
