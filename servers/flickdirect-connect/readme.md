@@ -1,6 +1,6 @@
 Docs: https://flickdirect.com/connect.aspx
 
-FlickDirect Connect is FlickDirect Inc.’s free, public, read-only Movie MCP Server, built on the open Model Context Protocol standard. Current live service: 1.5.9.0, verified November 13, 2026.
+FlickDirect Connect is FlickDirect Inc.’s free, public, read-only Movie MCP Server, built on the open Model Context Protocol standard.
 
 Discover movie and TV facts, available country-specific dates and ratings, production trivia, brief supplied quote excerpts, site-wide news, reviews, CinemaCon coverage and eligible stored interview/show transcripts. Search recent uploads from three published FlickDirect YouTube channels and podcast shows/episodes with bounded FlickRadio archive discovery. Healthy-channel results remain available if another video feed times out, with incomplete coverage reported. Published streaming, soundtrack/player and app destinations retain their supplied parameters. Availability can change. Connect does not run checkout or process payments.
 
