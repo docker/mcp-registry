@@ -1,6 +1,8 @@
-# easyrender
+# Easy Render | Photo to 3D
 
-Turn one photo of furniture, decor or a building exterior into a 3D model: start with a free angle-sheet preview, then build the model and download GLB and USDZ files.
+Turn any Product Photo into a 3D model.
+
+Start with a free angle-sheet preview, then build the model and download GLB and USDZ files.
 
 ## Connect
 
@@ -14,10 +16,10 @@ Turn one photo of furniture, decor or a building exterior into a 3D model: start
 | --- | --- |
 | `create_render` | Start an angle-sheet preview from a photo. |
 | `get_render` | Check progress and retrieve result links. |
-| `get_credits` | Check your credit balance and current build cost. |
-| `render_3d` | Spend credits to build a 3D model from a ready preview. |
+| `get_credits` | Check current account usage. |
+| `render_3d` | Build a 3D model from a ready preview. |
 
-Previews are free, subject to account limits. A finished model costs **64 credits ($0.64)**. Ask your agent to show the preview and check the cost before you approve a paid build. Poll `get_render` until the model is ready; private downloads require authentication.
+Previews are free, subject to account limits. Ask your agent to show the preview before you approve a 3D build. Poll `get_render` until the model is ready; private downloads require authentication.
 
 Docs: https://easyrender.ai/mcp
 
