@@ -31,7 +31,7 @@ restrictions and enables the remaining tools; the plan's own limits apply instea
 
 ## Source
 
-Client source and connection docs: https://github.com/geonodecom/mcp (MIT)
+Client source and connection documentation: https://github.com/geonodecom/mcp
 
 ## Documentation
 
@@ -39,7 +39,6 @@ https://docs.geonode.com
 
 ## Licence
 
-The MCP client integration in https://github.com/geonodecom/mcp is MIT licensed.
-The hosted service behind `https://mcp.geonode.com/mcp` is operated by Geonode;
-access and use are subject to Geonode's Terms of Service:
-https://geonode.com/terms-and-conditions
+Geonode MCP Server is a proprietary, remotely hosted service. Access and use are subject to Geonode’s Terms of Service: https://geonode.com/terms-and-conditions.
+
+This contribution contains catalog metadata and connection documentation only, provided under the Docker MCP Registry’s MIT contribution terms. It does not distribute or grant an open-source licence to the Geonode server implementation.
