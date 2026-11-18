@@ -15,7 +15,7 @@ MCP server URL: https://mcp.geonode.com/mcp
 
 Try limited keyless page extraction through a compatible MCP client. Sign up and connect your Geonode API key to access additional features and the usage limits included in your plan.
 
-Try Geonode for free: https://app.geonode.com/signup
+Try Geonode for free: https://app.geonode.com/sign-up
 
 Learn more: https://geonode.com
 
@@ -23,6 +23,15 @@ Learn more: https://geonode.com
 
 Endpoint: `https://mcp.geonode.com/mcp`
 Transport: Streamable HTTP
+Authentication: optional `X-Api-Key` header
+
+Without an API key, only `extract` runs: synchronous page extraction, no JavaScript
+rendering, and a small per-client rate and daily volume. An API key lifts these
+restrictions and enables the remaining tools; the plan's own limits apply instead.
+
+## Source
+
+Client source and connection docs: https://github.com/geonodecom/mcp (MIT)
 
 ## Documentation
 
@@ -30,6 +39,7 @@ https://docs.geonode.com
 
 ## Licence
 
-Geonode MCP Server is a proprietary, remotely hosted service. Access and use are subject to Geonode’s Terms of Service: https://geonode.com/terms-and-conditions.
-
-This contribution contains catalog metadata and connection documentation only, provided under the Docker MCP Registry’s MIT contribution terms. It does not distribute or grant an open-source licence to the Geonode server implementation.
+The MCP client integration in https://github.com/geonodecom/mcp is MIT licensed.
+The hosted service behind `https://mcp.geonode.com/mcp` is operated by Geonode;
+access and use are subject to Geonode's Terms of Service:
+https://geonode.com/terms-and-conditions
