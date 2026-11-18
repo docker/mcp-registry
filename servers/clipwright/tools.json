@@ -351,16 +351,6 @@
         "desc": ""
       },
       {
-        "name": "scene",
-        "type": "object",
-        "desc": ""
-      },
-      {
-        "name": "proposal",
-        "type": "object",
-        "desc": ""
-      },
-      {
         "name": "propose",
         "type": "boolean",
         "desc": ""
@@ -525,7 +515,7 @@
   },
   {
     "name": "get_run_shots",
-    "description": "Read the shots of a make_faceless or make_ugc video: frame size and rate, timed words, and each shot's span, kind, words and preview_url (it expires). A field named in `withheld` is null on every shot. planned=false is a normal answer: editable.reason says why. paid_edits.enabled says whether a video can be made from an edit; while it is false, none can. For an ad with live shots, live_shots lists each shot's takes with the check's codes, whether it was accepted or refused, and which take the video uses; finished_check names what the check of the finished ad found, each code with its second. Free.",
+    "description": "Read the shots of a make_faceless or make_ugc video: frame size and rate, timed words, and each shot's span, kind, words and preview_url (it expires). A field named in `withheld` is null on every shot. planned=false is a normal answer: editable.reason says why. paid_edits.enabled says whether a video can be made from an edit; while it is false, none can. Free.",
     "arguments": [
       {
         "name": "run_id",
@@ -697,7 +687,7 @@
   },
   {
     "name": "generate_image",
-    "description": "Input: the same fields as quote_image, plus attempt. Generate one image from a prompt, a NEW run, charged the quoted credits once delivered; its run_id can be a later reference. Poll get_run. A generation that fails is charged nothing. Repeating an identical request returns the run it started, starting nothing new; pass attempt 2 for another one. Price: seedream-5.0-flash: 5 credits per image; flare: 6 credits per image; gemini-3-pro-image: 38 credits per image; gemini-nano-banana-2.1: 21 credits per image. Quote first with quote_image.",
+    "description": "Input: the same fields as quote_image, plus attempt. Generate one image from a prompt, a NEW run, charged the quoted credits once delivered; its run_id can be a later reference. Poll get_run. A generation that fails is charged nothing. Repeating an identical request returns the run it started, starting nothing new; pass attempt 2 for another one. Price: 5 to 38 credits per image, by model and size. Quote first with quote_image.",
     "arguments": [
       {
         "name": "prompt",
@@ -801,6 +791,11 @@
         "desc": ""
       },
       {
+        "name": "audio",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
         "name": "max_credits",
         "type": "integer",
         "desc": ""
@@ -809,7 +804,7 @@
   },
   {
     "name": "generate_video",
-    "description": "Input: the same fields as quote_video, plus attempt. Generate one silent clip from a prompt or a shot, a NEW run, charged unit_credits per second of duration_s once delivered. Modes: text; first_frame (the requested format within 2%); reference (1 to 4). Poll get_run. A generation that fails is charged nothing. Repeating an identical request returns the run it started, starting nothing new; pass attempt 2 for another one. Price: 5 to 143 credits per second of clip, by model and size. Quote first with quote_video.",
+    "description": "Input: the same fields as quote_video, plus attempt. Generate one clip from a prompt or a shot, a NEW run, charged unit_credits per second of duration_s once delivered. Modes: text; first_frame (the requested format within 2%); reference (1 to 4). Poll get_run. A generation that fails is charged nothing. Repeating an identical request returns the run it started, starting nothing new; pass attempt 2 for another one. Price: 5 to 143 credits per second of clip, by model and size. Quote first with quote_video.",
     "arguments": [
       {
         "name": "prompt",
@@ -869,6 +864,11 @@
       {
         "name": "camera",
         "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "audio",
+        "type": "boolean",
         "desc": ""
       },
       {
@@ -984,16 +984,6 @@
       },
       {
         "name": "product_asset_id",
-        "type": "object",
-        "desc": ""
-      },
-      {
-        "name": "scene",
-        "type": "object",
-        "desc": ""
-      },
-      {
-        "name": "proposal",
         "type": "object",
         "desc": ""
       },
@@ -1461,7 +1451,7 @@
       {
         "name": "language",
         "type": "string",
-        "desc": "ISO 639-1; filters the TikTok half only."
+        "desc": "ISO 639-1; a reel whose language cannot be told is kept."
       },
       {
         "name": "posted_within_days",
@@ -1533,7 +1523,7 @@
   },
   {
     "name": "trend_niches",
-    "description": "Free. Alone: the saved niches, the first the primary. niches: save the user's confirmed list, at most 3, replacing it; [] clears it.",
+    "description": "Free. Alone: the saved niches, the first the primary, and suggested ones from analysed creators. niches: save the user's confirmed list, at most 3, replacing it; [] clears it.",
     "arguments": [
       {
         "name": "niches",
@@ -1684,7 +1674,7 @@
   },
   {
     "name": "extract_brand",
-    "description": "Free. A site's colours, fonts, logo, corners and name as a proposed design and voice; the user confirms. logo_url: create_asset it for design.logo_asset_id. analysis_id: a style from a reference video's analysis.",
+    "description": "Free. A site's colours, fonts, logo, corners and name as a proposed design, voice, brand_name, prompt_block. logo_url: create_asset it for design.logo_asset_id. analysis_id: a style from a reference video's analysis.",
     "arguments": [
       {
         "name": "url",
@@ -1705,7 +1695,7 @@
   },
   {
     "name": "brand_kit",
-    "description": "Free. Alone: saved design, script voice, styles, our looks and faces. design, voice, style: save the user's confirmed one; voice {} clears it.",
+    "description": "Free. Alone: the saved kit, styles, looks and faces. A field saves the confirmed one; \"\" or {} clears.",
     "arguments": [
       {
         "name": "design",
@@ -1720,6 +1710,21 @@
       {
         "name": "style",
         "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "brand_name",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "look",
+        "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "prompt_block",
+        "type": "string",
         "desc": ""
       }
     ]
@@ -1986,11 +1991,6 @@
         "desc": ""
       },
       {
-        "name": "keep_anchors",
-        "type": "boolean",
-        "desc": ""
-      },
-      {
         "name": "voice",
         "type": "string",
         "desc": ""
@@ -2003,16 +2003,6 @@
       {
         "name": "max_credits",
         "type": "integer",
-        "desc": ""
-      },
-      {
-        "name": "scene",
-        "type": "object",
-        "desc": ""
-      },
-      {
-        "name": "proposal",
-        "type": "object",
         "desc": ""
       },
       {
@@ -2142,11 +2132,6 @@
         "desc": ""
       },
       {
-        "name": "keep_anchors",
-        "type": "boolean",
-        "desc": ""
-      },
-      {
         "name": "voice",
         "type": "string",
         "desc": "A list_voices name with skill=make_faceless; omitted, narrator_en_wise_lady, or the fastest voice for an English explainer. An unknown or make_ugc voice is refused before any charge."
@@ -2159,16 +2144,6 @@
       {
         "name": "max_credits",
         "type": "integer",
-        "desc": ""
-      },
-      {
-        "name": "scene",
-        "type": "object",
-        "desc": ""
-      },
-      {
-        "name": "proposal",
-        "type": "object",
         "desc": ""
       },
       {
