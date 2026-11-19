@@ -24,6 +24,11 @@ home directory. On native Linux, ensure UID/GID 1001 can read inputs and write
 generated output; grant access to this directory only. The image runs as a
 non-root user. Docker Desktop must be able to share the host directory.
 
+Docker MCP Gateway treats bind mounts as read-only unless writable access is
+explicitly allowed. Before starting the Gateway, set
+`MCP_GATEWAY_DOCKER_BIND_ALLOW_WRITABLE_PATHS` to the exact host path used for
+`workspace`; do not allow broad directories.
+
 No credentials are required for local parsing or deterministic resource
 conversion. Operations connecting to Chef, AWX/AAP or other external services
 have their own connection requirements; the basic catalogue configuration
@@ -51,15 +56,18 @@ task catalog -- souschef
 mkdir -p "$HOME/.docker/mcp/catalogs"
 cp ./catalogs/souschef/catalog.yaml "$HOME/.docker/mcp/catalogs/souschef-local.yaml"
 docker mcp config write '{"souschef":{"workspace":"/absolute/path/to/migration-workspace"}}'
+export MCP_GATEWAY_DOCKER_BIND_ALLOW_WRITABLE_PATHS=/absolute/path/to/migration-workspace
 docker mcp gateway run --servers souschef \
   --catalog "$HOME/.docker/mcp/catalogs/souschef-local.yaml"
 ```
 
 These shell commands use a POSIX shell (including WSL). On Windows PowerShell,
 copy the generated catalogue to `$HOME/.docker/mcp/catalogs/souschef-local.yaml`
-and pass that absolute path with `--catalog`. The explicit catalogue works with
-Gateway versions using either legacy catalogues or profiles; it does not depend
-on the removed `catalog import` command.
+and pass that absolute path with `--catalog`. Also set
+`$env:MCP_GATEWAY_DOCKER_BIND_ALLOW_WRITABLE_PATHS` to the exact host path used
+for `workspace`. The explicit catalogue works with Gateway versions using
+either legacy catalogues or profiles; it does not depend on the removed
+`catalog import` command.
 
 Merge the `souschef.workspace` setting into your existing configuration if
 you already use other servers; `config write` replaces the configuration.
