@@ -1,0 +1,1 @@
+https://affogato.ai/mcp
