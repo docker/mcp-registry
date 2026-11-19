@@ -1,0 +1,478 @@
+[
+  {
+    "name": "galaxy_fork",
+    "description": "Fork an existing galaxy partition into a new sovereign galaxy branch (e.g. 'guide' -> 'project-alpha').",
+    "arguments": [
+      {
+        "type": "string",
+        "name": "source",
+        "desc": "Source galaxy name to fork from (e.g. 'guide')",
+        "optional": false
+      },
+      {
+        "type": "string",
+        "name": "target",
+        "desc": "Target galaxy name to establish (e.g. 'project-alpha')",
+        "optional": false
+      }
+    ]
+  },
+  {
+    "name": "galaxy_list",
+    "description": "List all active sovereign memory galaxies, their record counts, sample tags, and starter guide status."
+  },
+  {
+    "name": "memory_get",
+    "description": "Retrieve an exact evidence record from the Substrate by its numeric ID or UUID string.",
+    "arguments": [
+      {
+        "type": "string",
+        "name": "id",
+        "desc": "The unique numerical record ID (u64) or UUID string",
+        "optional": false
+      }
+    ]
+  },
+  {
+    "name": "memory_recall",
+    "description": "Recall memories matching a query from the sovereign Gen3 Substrate using BM25, anchor coherence, and forgotten diamond recovery.",
+    "arguments": [
+      {
+        "type": "string",
+        "name": "query",
+        "desc": "Search query terms or phrase",
+        "optional": false
+      },
+      {
+        "type": "boolean",
+        "name": "historical",
+        "desc": "Include superseded or historical records (default: false)",
+        "optional": true
+      },
+      {
+        "type": "integer",
+        "name": "limit",
+        "desc": "Maximum number of results to return (default: 10)",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "scope",
+        "desc": "Optional recall scope filter",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "memory_remember",
+    "description": "Record a new memory into the sovereign Gen3 Substrate via CommitCapability and sovereign pulse compilation.",
+    "arguments": [
+      {
+        "type": "string",
+        "name": "content",
+        "desc": "Content of the memory to record",
+        "optional": false
+      },
+      {
+        "type": "string",
+        "name": "kind",
+        "desc": "Epistemic kind: reported (default), system, or simulated",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "source",
+        "desc": "Epistemic provenance attribution (default: 'agent:mcp')",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "uuid",
+        "desc": "Optional explicit UUID to bind to the new record",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "memory_stats",
+    "description": "Inspect Substrate statistics, current epoch, record count, and sovereign invariants."
+  },
+  {
+    "name": "mesh_sync",
+    "description": "Synchronize the local Substrate with a remote Mandala P2P mesh peer node over TCP.",
+    "arguments": [
+      {
+        "type": "string",
+        "name": "peer",
+        "desc": "IP:port or host:port address of the remote peer (e.g. '127.0.0.1:7369')",
+        "optional": false
+      },
+      {
+        "type": "integer",
+        "name": "batch_size",
+        "desc": "Maximum records to sync per request (default: 100)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "session_checkpoint",
+    "description": "Record a compounding structured checkpoint for agent session continuity across turns and handoffs.",
+    "arguments": [
+      {
+        "type": "string",
+        "name": "session_id",
+        "desc": "Session identifier (e.g. conversation ID, lane name)",
+        "optional": false
+      },
+      {
+        "type": "string",
+        "name": "summary",
+        "desc": "High-density summary of decisions, state, and findings",
+        "optional": false
+      },
+      {
+        "type": "string",
+        "name": "agent_id",
+        "desc": "Active agent identifier (default: 'agent')",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "checkpoint_type",
+        "desc": "Checkpoint type: 'turn', 'handoff', 'milestone', 'compact'",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "context_token",
+        "desc": "Optional ContextCache token for prefix cache stabilization",
+        "optional": true
+      },
+      {
+        "type": "array",
+        "name": "corrections",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Operator or tool corrections ledger",
+        "optional": true
+      },
+      {
+        "type": "boolean",
+        "name": "crystallize",
+        "desc": "Optional: crystallize converged session decisions into a linked codex memory record (default false)",
+        "optional": true
+      },
+      {
+        "type": "array",
+        "name": "identity_invariants",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Identity and behavioral invariants",
+        "optional": true
+      },
+      {
+        "type": "array",
+        "name": "lessons",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Distilled episodic lessons from this session",
+        "optional": true
+      },
+      {
+        "type": "array",
+        "name": "next_queue",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Queued action items for next turn / next agent",
+        "optional": true
+      },
+      {
+        "type": "array",
+        "name": "open_flags",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Open flags, blockers, or warnings",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "relational_context",
+        "desc": "Longitudinal relational context with the operator or peer agents",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "session_continuity",
+    "description": "Retrieve the latest compounding session continuity state, summary, action queue, and related track crystals for an agent session.",
+    "arguments": [
+      {
+        "type": "string",
+        "name": "current_session_id",
+        "desc": "Optional active session identifier to exclude when selecting a prior session",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "session_id",
+        "desc": "Optional session identifier filter; if omitted, returns the latest checkpoint across all sessions",
+        "optional": true
+      },
+      {
+        "type": "integer",
+        "name": "token_budget",
+        "desc": "Optional cap for compact agent_context.text: UTF-8 byte cap is token_budget × 4; estimated_tokens is a byte-based heuristic, not tokenizer-guaranteed. Zero produces empty context. Newest checkpoint summary and next_queue are reserved first; if they cannot fit, budget_completeness is insufficient and text is empty.",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "track",
+        "desc": "Optional track slug to surface prior crystallized codex memories and select the latest prior session on this track",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "session_list",
+    "description": "List all unique session identifiers recorded in the substrate."
+  },
+  {
+    "name": "session_record",
+    "description": "Record an arbitrary log entry, note, or observation tied to a session.",
+    "arguments": [
+      {
+        "type": "string",
+        "name": "content",
+        "desc": "Log content text",
+        "optional": false
+      },
+      {
+        "type": "string",
+        "name": "session_id",
+        "desc": "Session identifier",
+        "optional": false
+      },
+      {
+        "type": "string",
+        "name": "agent_id",
+        "desc": "Agent identifier (default: 'agent')",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "log_type",
+        "desc": "Log type (e.g. 'note', 'tool_output', 'decision')",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "qualifier",
+        "desc": "Epistemic qualifier for this turn",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "resolves",
+        "desc": "DiAML turn id of an earlier question, proposal, or hypothesis this turn resolves",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "supersedes",
+        "desc": "Turn id of an earlier turn this record replaces",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sutra_canon",
+    "description": "Inspect the canonical 12-glyph logoglyphic Sutra canon, alchemical dual-mappings, Taoist hand seals (印诀), and bound Action Skeletons."
+  },
+  {
+    "name": "sutra_cast",
+    "description": "Evaluate and dispatch a zero-allocation Taoist Hand Seal / Sutra Codon (e.g. '觀 證 行', 'Kek-01-Seal'). Validates preconditions, computes Kekkai sandbox boundaries, and executes bound Action Skeleton cycles or transmits swarm mudra packet to P2P peer.",
+    "arguments": [
+      {
+        "type": "string",
+        "name": "codon",
+        "desc": "Logoglyphic Sutra codon or Taoist hand seal sequence (e.g. '觀 證 行', 'Kek-01-Seal', '根 界 息')",
+        "optional": false
+      },
+      {
+        "type": "boolean",
+        "name": "dry_run",
+        "desc": "Alias for !execute; if true, only validates preconditions and returns deterministic plan",
+        "optional": true
+      },
+      {
+        "type": "boolean",
+        "name": "execute",
+        "desc": "Whether to execute the bound Action Skeleton against the substrate (default: false / dry-run)",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "peer",
+        "desc": "Target peer address (e.g. '152.53.195.47:7369') for remote Swarm Mudra Handoff via Wire Protocol 7369",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "resolves",
+        "desc": "Optional DiAML turn ID resolved by this Sutra execution (defaults to latest open arc when omitted)",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "session_id",
+        "desc": "Optional session ID to record the executed Sutra DiAML turn into",
+        "optional": true
+      },
+      {
+        "type": "boolean",
+        "name": "strict",
+        "desc": "Fails closed if preconditions (read-only, landlock, mesh net) are unsatisfied",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "track",
+        "desc": "Optional track slug for the recorded Sutra turn",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sutra_compile",
+    "description": "Compile high-level natural language intent into an optimal compound Sutra codon and Taoist Mudra formula using static Model2Vec embeddings or lexical centroids.",
+    "arguments": [
+      {
+        "type": "string",
+        "name": "query",
+        "desc": "High-level natural language intent or task description to compile into a Sutra codon",
+        "optional": false
+      }
+    ]
+  },
+  {
+    "name": "sutra_contract",
+    "description": "Resolve or verify bounded caller-asserted temporal assertions. Results describe the supplied metadata; this tool does not authenticate sources or enforce native-store sanctuary access.",
+    "arguments": [
+      {
+        "type": "array",
+        "name": "assertions",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Caller-asserted records with record_id, source_id, subject, predicate, value, valid_from, valid_until, recorded_at, supersedes; exclude when request_json is supplied",
+        "optional": true
+      },
+      {
+        "type": "boolean",
+        "name": "attest",
+        "desc": "Return an unsigned SHA-256 digest binding the operation, exact request bytes and result; not a signature or CPR receipt",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "mode",
+        "desc": "Contract operation: resolve assertions into facts/citations or verify a candidate proposal (default: resolve)",
+        "optional": true
+      },
+      {
+        "type": "object",
+        "name": "proposal",
+        "desc": "Candidate proposal object (for verify mode) with status and claims array",
+        "optional": true
+      },
+      {
+        "type": "object",
+        "name": "question",
+        "desc": "Question object with question_id, query, subject, predicate, valid_at (array of dates), and known_at cutoff",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "request_json",
+        "desc": "Full raw request JSON; mutually exclusive with assertions, question and proposal",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sutra_hexagram",
+    "description": "Inspect or mutate one of the 64 King Wen I Ching Hexagram Macro-Actions. Returns King Wen number, binary symbol, trigrams, Wu Xing element, default codon, nuclear inner, complement (反), reverse (覆), and dynamic line mutation transformations.",
+    "arguments": [
+      {
+        "type": "string",
+        "name": "query",
+        "desc": "Hexagram name, pinyin, King Wen number (1-64), or Unicode symbol (e.g. '既济', 'Qian', '1', '䷾')",
+        "optional": false
+      },
+      {
+        "type": "integer",
+        "name": "mutate_line",
+        "desc": "Optional line number (1 to 6, bottom to top) to mutate (flip yin/yang) and compute resulting hexagram and codon",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sutra_list",
+    "description": "List all recognized canonical compound Taoist Mudras (印诀式), their formulaic compositions, preconditions, and primary execution skeletons."
+  },
+  {
+    "name": "sutra_route",
+    "description": "Route an inquiry or task intent through the Catuṣkoṭi K3 dialectical cognitive router. Employs Kleene 3-valued logic to resolve dialectical tensions (competing action vectors like execute vs dry-run) and matches 64-hexagram macro-actions, returning System 0/1/2 triage tier, resting potential, plasticity, and bound Action Skeleton.",
+    "arguments": [
+      {
+        "type": "string",
+        "name": "inquiry",
+        "desc": "Task description, inquiry, or hexagram name to route",
+        "optional": false
+      },
+      {
+        "type": "number",
+        "name": "utility",
+        "desc": "Expected marginal utility threshold (default: 0.8)",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "wm",
+    "description": "WhiteMagic unified meta-tool — routes natural language (thought), explicit routes (route), or discrete actions over the sovereign Gen3 kernel.",
+    "arguments": [
+      {
+        "type": "string",
+        "name": "action",
+        "desc": "Legacy action selector: recall, remember, get, stats, sync, sweep, inspect, session_checkpoint, session_continuity, session_record, session_list, galaxy_list, galaxy_fork, sutra_cast, sutra_compile, sutra_canon, sutra_list, sangha.claim, sangha.release, sangha.occupied, sangha.rooms, sangha.epoch, sangha.vcs, sangha.fork, sangha.consolidate",
+        "optional": true
+      },
+      {
+        "type": "object",
+        "name": "args",
+        "desc": "Arguments to pass through to target tool",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "route",
+        "desc": "Explicit tool name or route for direct dispatch (e.g. 'memory.search', 'session.continuity', 'sangha.claim', 'sangha.vcs', 'sangha.fork')",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "thought",
+        "desc": "Natural language request auto-routed via TF-IDF NLU",
+        "optional": true
+      }
+    ]
+  }
+]
