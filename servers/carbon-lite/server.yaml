@@ -1,0 +1,38 @@
+name: carbon-lite
+image: mcp/carbon-lite
+type: server
+meta:
+  category: developer-tools
+  tags:
+    - testing
+    - quality
+    - reports
+    - local
+about:
+  title: Testers.ai CARBON Test Harness Lite
+  description: Local AI test workflows, project-scoped evidence, screenshot maps and interactive HTML quality reports. Ten MCP tools and eleven prompts help a host coding agent plan tests and record observed results; the host supplies AI and browser execution. No hosted backend, API key or telemetry is required.
+  icon: https://raw.githubusercontent.com/jarbon/carbon-lite/ba9c750860f7a87dac14b8e2c44424a06b32ecde/assets/icon.png
+source:
+  project: https://github.com/jarbon/carbon-lite
+  commit: ba9c750860f7a87dac14b8e2c44424a06b32ecde
+  dockerfile: Dockerfile
+run:
+  volumes:
+    - "{{carbon-lite.project_directory}}:/workspace"
+  user: "{{carbon-lite.container_user}}"
+  disableNetwork: true
+config:
+  description: Select an existing project directory and its owner's numeric UID. CARBON writes evidence and reports only under that project's .carbon/studio-lite directory. Do not mount unrelated private directories.
+  parameters:
+    type: object
+    properties:
+      project_directory:
+        type: string
+        description: Absolute host path to the existing project directory to test and store reports in.
+      container_user:
+        type: string
+        description: Numeric host UID, optionally followed by GID, with write access to the project (for example 1000 on Linux or 501 on macOS; check id -u).
+        default: "1000"
+    required:
+      - project_directory
+      - container_user
