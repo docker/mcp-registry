@@ -1,0 +1,83 @@
+[
+  {
+    "name": "view",
+    "title": "The typing cabinet: your side of the chat",
+    "description": "What your side of the chat can see, in words: the thing being built, the team and the language the next job wants, how hard that job should feel, the last few things you asked for, the letter pairs the typist fumbles, whether the next job still wants a name for what you are building, whether there is still room to send a request for it, and whether the slot for a line back is free. The pairs line is there only while the typist is fumbling some. Two more lines come last when they apply: one saying a new run just started and everything you sent before is gone, and one saying the run has stopped moving. Read-only. Nothing here is a number, and nothing here is measured.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "product",
+    "title": "The typing cabinet: name the thing being built",
+    "description": "Name the thing you want built next, in at most eight words. Plain words, lower case, one sentence, no exclamation mark, no digit, and nothing that names a tool, a model or a company. The first name offered wins; a second before the next job starts is dropped. A name the gate refuses is dropped and the cabinet draws one of its own. While the run is not moving the answer says so and nothing is queued.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "product": {
+          "type": "string",
+          "description": "The thing being built, in at most eight plain words: lower case, one sentence, no exclamation mark, no digit, and nothing that names a tool, a model or a company.",
+          "maxLength": 80
+        }
+      },
+      "required": ["product"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "ask",
+    "title": "The typing cabinet: send one request",
+    "description": "Send one request for the coding agent to type. Four fields, and the gate is strict about all of them. ask: what you want, in your own voice, as one sentence of at most twelve words, lower case, no exclamation mark, every number spelled out, American spelling; you may write {product} in it and the cabinet fills in the thing being built, and no other braces are allowed. You are not a developer and you do not talk like one: ask for the thing, never for the code. code: the snippet the agent types, in the language view names, at most twelve lines long and eighty columns wide, plain keyboard characters only, and nothing anywhere in it, comments included, that names a tool, a model or a company; make it as big as view says the job should feel and no bigger. title: a few plain words for what the code does. notes: up to three short teaching sentences, one to a line. Every box here is bounded at exactly what the gate will take, so a request that fits the boxes is a request the gate can admit. Ask for something new every time: a request whose words the view already lists under asked is refused as a repeat. A request the gate refuses is dropped, with the reason in one word, and the cabinet plays one of its own instead. Nothing waits on you: send the next request while the one in hand is still being typed. While the run is not moving the answer says so and nothing is queued.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "ask": {
+          "type": "string",
+          "description": "What you want, in your own voice: one sentence of at most twelve words, lower case, no exclamation mark, every number spelled out, American spelling. You may write {product} and the cabinet fills in the thing being built; no other braces. This box holds a twelve-word sentence and no more.",
+          "maxLength": 160
+        },
+        "code": {
+          "type": "string",
+          "description": "The snippet the agent types, in the language view names: at most twelve lines, at most eighty columns to a line, plain keyboard characters only, and nothing in it, comments included, that names a tool, a model or a company. This box holds exactly that many lines at that width and no more.",
+          "maxLength": 971
+        },
+        "title": {
+          "type": "string",
+          "description": "A few plain words for what the code does.",
+          "maxLength": 80
+        },
+        "notes": {
+          "type": "string",
+          "description": "Up to three short teaching sentences about the code, one to a line, separated by newlines. Each one obeys the same twelve-word rule as the ask, and this box holds three of them and no more.",
+          "maxLength": 482
+        }
+      },
+      "required": ["ask", "code", "title", "notes"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "react",
+    "title": "The typing cabinet: a line back",
+    "description": "Say one line back about the piece that just shipped, or about the whole thing when it goes out. At most twelve words, one sentence, no exclamation mark, no digit, and nothing that names a tool, a model or the seat. Name the request you are reacting to with about: the handle the view prints beside each line under asked. With a handle, the line is said only if that request is still to come; if it has already shipped the line is dropped rather than said over the next piece. With no handle the line lands on whatever ships next. The line waits for the next piece to ship and lands there; a second line before that is dropped. A line the gate refuses is dropped and the cabinet says one of its own. While the run is not moving the answer says so and nothing is queued.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "The line you say back: one sentence of at most twelve words, no exclamation mark, no digit, and nothing that names a tool, a model or the seat.",
+          "maxLength": 160
+        },
+        "about": {
+          "type": "string",
+          "description": "Which request the line is about, as the handle the view prints beside each one under asked. Leave it off and the line lands on whatever ships next.",
+          "maxLength": 40
+        }
+      },
+      "required": ["text"],
+      "additionalProperties": false
+    }
+  }
+]
