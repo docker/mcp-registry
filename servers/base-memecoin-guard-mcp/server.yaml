@@ -1,0 +1,47 @@
+name: base-memecoin-guard-mcp
+image: mcp/base-memecoin-guard-mcp
+type: server
+meta:
+  category: finance
+  tags:
+    - finance
+    - crypto
+    - security
+    - x402
+about:
+  title: Base Memecoin Guard
+  description: >-
+    Base token safety for trading agents: honeypot and rug pull checks,
+    buy/sell tax, exit liquidity at your size and smart money signals. A free
+    preview works with no config; paid checks settle per call in USDC on Base
+    over x402 (Guard check $0.05), capped per call and per session.
+    Informational risk data only. Not investment advice.
+  icon: https://guard.facts402.com/icon.png
+source:
+  project: https://github.com/veselin9931/facts402-mcp
+  commit: b0042a7c5513872d94639fd193010ae429b6c615
+  directory: base-memecoin-guard-mcp
+config:
+  description: Optional Base mainnet wallet with a little USDC for the paid checks. The free preview works with an empty config.
+  secrets:
+    - name: base-memecoin-guard-mcp.x402_private_key
+      env: X402_PRIVATE_KEY
+      example: "0xYOUR_DEDICATED_LOW_BALANCE_KEY"
+  env:
+    - name: X402_MAX_PER_CALL_USD
+      example: "0.30"
+      value: "{{base-memecoin-guard-mcp.max_per_call_usd}}"
+    - name: X402_SESSION_BUDGET_USD
+      example: "2.00"
+      value: "{{base-memecoin-guard-mcp.session_budget_usd}}"
+  parameters:
+    type: object
+    properties:
+      max_per_call_usd:
+        title: Most a single tool call may pay, in USD
+        type: string
+        default: "0.30"
+      session_budget_usd:
+        title: Most the server may spend until it restarts, in USD
+        type: string
+        default: "2.00"
