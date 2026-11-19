@@ -1,0 +1,51 @@
+name: actual-mcp-server
+image: mcp/actual-mcp-server
+type: server
+meta:
+  category: finance
+  tags:
+    - finance
+    - budgeting
+    - actual-budget
+about:
+  title: Actual Budget
+  description: Read and write a self-hosted Actual Budget from an AI assistant. 15 tools cover 85 operations on accounts, transactions, categories, payees, rules, schedules, budget months and reports.
+  icon: https://raw.githubusercontent.com/agigante80/actual-mcp-server/main/unraid/actual-mcp-icon-512.png
+source:
+  project: https://github.com/agigante80/actual-mcp-server
+  commit: 216bc48185e78c87498ee1b2e5ba50109b539da3
+run:
+  command:
+    - node
+    - dist/src/index.js
+    - --stdio
+  user: "1001:1001"
+config:
+  description: Connect to your Actual Budget server. Use host.docker.internal instead of localhost when Actual runs on this machine.
+  secrets:
+    - name: actual-mcp-server.password
+      env: ACTUAL_PASSWORD
+      example: <your Actual server password>
+    - name: actual-mcp-server.budget_password
+      env: ACTUAL_BUDGET_PASSWORD
+      example: <budget encryption password, only for end-to-end encrypted budgets>
+      required: false
+  env:
+    - name: ACTUAL_SERVER_URL
+      example: http://host.docker.internal:5006
+      value: "{{actual-mcp-server.server_url}}"
+    - name: ACTUAL_BUDGET_SYNC_ID
+      example: 00000000-0000-0000-0000-000000000000
+      value: "{{actual-mcp-server.budget_sync_id}}"
+  parameters:
+    type: object
+    properties:
+      server_url:
+        type: string
+        description: URL of your Actual Budget server (use http://host.docker.internal:5006 for one running on this machine)
+      budget_sync_id:
+        type: string
+        description: Sync ID of the budget to open (Actual, Settings, Show advanced settings, Sync ID)
+    required:
+      - server_url
+      - budget_sync_id
