@@ -1,0 +1,43 @@
+name: cachly
+image: mcp/cachly
+type: server
+meta:
+  category: ai
+  tags:
+    - memory
+    - developer-tools
+    - coding-agents
+about:
+  title: Cachly
+  description: "Memory for coding agents: stores every fix and finds it again when the problem returns. Hosted in the EU."
+  icon: https://avatars.githubusercontent.com/u/275201945?s=200&v=4
+source:
+  project: https://github.com/cachly-dev/cachly-mcp
+  commit: bced3566fe5af65619d6394120d4c90e1deb52a3
+run:
+  allowHosts:
+    - api.cachly.dev:443
+config:
+  description: Connect cachly with your API key. In a container the browser sign-in cannot open, so the key is required. Create a free key at https://cachly.dev/setup-ai (no card). For a key that reaches only one Brain, use "Key for this Brain only" on the Brain page and set the Brain id too.
+  secrets:
+    - name: cachly.jwt
+      env: CACHLY_JWT
+      example: cky_live_xxxxxxxx
+      description: cachly API key (starts with cky_).
+  env:
+    - name: CACHLY_BRAIN_INSTANCE_ID
+      example: 00000000-0000-0000-0000-000000000000
+      value: "{{cachly.brain_instance_id}}"
+    - name: CACHLY_NO_TELEMETRY
+      example: "1"
+      value: "1"
+    - name: CACHLY_UPDATE_CHECK
+      example: "false"
+      value: "false"
+  parameters:
+    type: object
+    properties:
+      brain_instance_id:
+        type: string
+        description: Brain id (UUID). Needed for a key that reaches only one Brain; leave empty for an account-wide key.
+    required: []
