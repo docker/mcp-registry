@@ -1,0 +1,34 @@
+name: xerj
+image: mcp/xerj
+type: server
+meta:
+  category: search
+  tags:
+    - search
+    - code-search
+    - rag
+    - local-first
+about:
+  title: XERJ
+  description: "The search engine for AI agents: one local Rust binary that indexes your code, docs, specs and logs, plus Corpus Hub packs, and returns cited answers."
+  icon: https://avatars.githubusercontent.com/xerj-org?s=200
+source:
+  project: https://github.com/xerj-org/xerj
+  commit: 1a3fd76c65b00e191e9d6a302bf8faddcced4a90
+  dockerfile: packaging/docker-mcp/Dockerfile
+config:
+  description: Point the server at a running XERJ node.
+  env:
+    - name: XERJ_URL
+      example: http://host.docker.internal:9200
+      value: "{{xerj.xerj_url}}"
+  secrets:
+    - name: xerj.xerj_auth
+      env: XERJ_AUTH
+      example: ApiKey <key from <data-dir>/admin.key>
+  parameters:
+    type: object
+    properties:
+      xerj_url:
+        type: string
+        default: http://host.docker.internal:9200
