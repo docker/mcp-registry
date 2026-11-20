@@ -1,0 +1,302 @@
+[
+  {
+    "name": "select_schema",
+    "description": "Start here for any question about the data. Returns the few tables and views the question needs, as compact DDL to write SQL against, scoped to the caller: objects and columns they may not read are absent, not ranked low. Pass principal and roles whenever you know who is asking. Returns 'ddl' (put it in your SQL prompt), 'objects' (the names chosen), 'explain' (score and reason per object) and 'selected' / 'total_objects'. Reads table structure only, never rows. Next: write one SELECT against 'ddl' and call run_query with the same principal and roles; call describe_object if a table needs more columns than the compact DDL shows. If the right table is missing, raise top_k or rephrase rather than writing SQL against a table that was not returned.",
+    "arguments": [
+      {
+        "name": "question",
+        "type": "string",
+        "desc": "The user's question in plain language, e.g. 'revenue by month' or 'which customers owe us money'."
+      },
+      {
+        "name": "principal",
+        "type": "string",
+        "desc": "Who is asking, as an identity string such as 'okta:jdoe'. Pass it whenever you know the user: visibility is decided for this identity. Omitted = anonymous, which sees only unrestricted objects.",
+        "optional": true
+      },
+      {
+        "name": "roles",
+        "type": "array",
+        "desc": "The caller's roles or groups, e.g. ['finance', 'payroll']. Objects and columns restricted to a role are visible only when it is listed here. Omitted = no roles.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "top_k",
+        "type": "integer",
+        "desc": "How many tables and views to select for the question (default 6). Raise it for questions that span many areas; the caller's visible objects are the upper bound.",
+        "optional": true
+      },
+      {
+        "name": "expand_foreign_keys",
+        "type": "boolean",
+        "desc": "Also pull in tables joined by foreign key to the selected ones (default true), only where the caller may read them. Set false for the bare top matches.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "list_objects",
+    "description": "List every table and view this caller may read: 'objects' holds each one's name, kind (table or view), column count and description, with 'count' visible out of 'total_objects'. Use it to show what data exists, or when select_schema did not return what you expected. It returns no DDL and no rows, and on a large database it is long: to answer a question, call select_schema instead. Pass principal and roles; restricted objects are absent for callers without the role.",
+    "arguments": [
+      {
+        "name": "principal",
+        "type": "string",
+        "desc": "Who is asking, as an identity string such as 'okta:jdoe'. Pass it whenever you know the user: visibility is decided for this identity. Omitted = anonymous, which sees only unrestricted objects.",
+        "optional": true
+      },
+      {
+        "name": "roles",
+        "type": "array",
+        "desc": "The caller's roles or groups, e.g. ['finance', 'payroll']. Objects and columns restricted to a role are visible only when it is listed here. Omitted = no roles.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "describe_object",
+    "description": "Full DDL (all visible columns, keys, comments) for one table or view, if the caller may read it. Use it when select_schema's compact DDL is not enough. A restricted or missing object returns the same 'not available' error, so its existence is not revealed.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Table or view name as returned by select_schema or list_objects, bare ('orders') or schema-qualified ('sales.orders')."
+      },
+      {
+        "name": "principal",
+        "type": "string",
+        "desc": "Who is asking, as an identity string such as 'okta:jdoe'. Pass it whenever you know the user: visibility is decided for this identity. Omitted = anonymous, which sees only unrestricted objects.",
+        "optional": true
+      },
+      {
+        "name": "roles",
+        "type": "array",
+        "desc": "The caller's roles or groups, e.g. ['finance', 'payroll']. Objects and columns restricted to a role are visible only when it is listed here. Omitted = no roles.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "run_query",
+    "description": "Execute one read-only SELECT and return the rows (capped by max_rows). Write the SQL against the DDL select_schema returned for the same caller. Refuses writes, multiple statements, and any table or column the caller may not read, with an error that says so ('not available to this caller'), which you can pass on to the user instead of reporting 'no results'.",
+    "arguments": [
+      {
+        "name": "sql",
+        "type": "string",
+        "desc": "One read-only SELECT (or WITH ... SELECT) written against the DDL select_schema returned. Writes, DDL and multiple statements are refused, as is any table or column this caller may not read."
+      },
+      {
+        "name": "principal",
+        "type": "string",
+        "desc": "Who is asking, as an identity string such as 'okta:jdoe'. Pass it whenever you know the user: visibility is decided for this identity. Omitted = anonymous, which sees only unrestricted objects.",
+        "optional": true
+      },
+      {
+        "name": "roles",
+        "type": "array",
+        "desc": "The caller's roles or groups, e.g. ['finance', 'payroll']. Objects and columns restricted to a role are visible only when it is listed here. Omitted = no roles.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "max_rows",
+        "type": "integer",
+        "desc": "Most rows to return (default 50, at most 200). The result says when it was truncated.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "semantic_query",
+    "description": "For questions about what text says when no column records it, e.g. 'which complaints ask for a refund'. Runs one read-only SELECT through the same checks as run_query, then has the server's model read one text column of the returned rows and either keep the rows that meet a criterion or add a short answer per row. Returns columns, rows, how many rows were judged, and which text was sent to the model. Off unless the server enables it (SCHEMAGATE_MCP_SEMANTIC=1), because the row text goes to the model provider; at most 200 rows are judged. Use plain run_query whenever a column already holds the answer.",
+    "arguments": [
+      {
+        "name": "sql",
+        "type": "string",
+        "desc": "One read-only SELECT (or WITH ... SELECT) written against the DDL select_schema returned. Writes, DDL and multiple statements are refused, as is any table or column this caller may not read."
+      },
+      {
+        "name": "column",
+        "type": "string",
+        "desc": "The result column whose text the model reads, e.g. 'body' or 'complaint_text'. Must be one of the columns the SQL returns."
+      },
+      {
+        "name": "criterion",
+        "type": "string",
+        "desc": "Keep only rows whose text meets this, in plain language, e.g. 'asks for a refund'. Give this or extract, not both.",
+        "optional": true
+      },
+      {
+        "name": "extract",
+        "type": "string",
+        "desc": "Add one short answer per row, e.g. 'which product is mentioned'. Give this or criterion, not both.",
+        "optional": true
+      },
+      {
+        "name": "principal",
+        "type": "string",
+        "desc": "Who is asking, as an identity string such as 'okta:jdoe'. Pass it whenever you know the user: visibility is decided for this identity. Omitted = anonymous, which sees only unrestricted objects.",
+        "optional": true
+      },
+      {
+        "name": "roles",
+        "type": "array",
+        "desc": "The caller's roles or groups, e.g. ['finance', 'payroll']. Objects and columns restricted to a role are visible only when it is listed here. Omitted = no roles.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "max_rows",
+        "type": "integer",
+        "desc": "Most rows to return (default 50, at most 200). The result says when it was truncated.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "answer",
+    "description": "Question in, rows out: selects the schema, writes the SQL with the server's own configured model, and runs it, all scoped to the caller. Only available when the server has a model configured; most clients should use select_schema then run_query with their own model instead.",
+    "arguments": [
+      {
+        "name": "question",
+        "type": "string",
+        "desc": "The user's question in plain language, e.g. 'revenue by month' or 'which customers owe us money'."
+      },
+      {
+        "name": "principal",
+        "type": "string",
+        "desc": "Who is asking, as an identity string such as 'okta:jdoe'. Pass it whenever you know the user: visibility is decided for this identity. Omitted = anonymous, which sees only unrestricted objects.",
+        "optional": true
+      },
+      {
+        "name": "roles",
+        "type": "array",
+        "desc": "The caller's roles or groups, e.g. ['finance', 'payroll']. Objects and columns restricted to a role are visible only when it is listed here. Omitted = no roles.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "top_k",
+        "type": "integer",
+        "desc": "How many tables and views to select for the question (default 6). Raise it for questions that span many areas; the caller's visible objects are the upper bound.",
+        "optional": true
+      },
+      {
+        "name": "max_rows",
+        "type": "integer",
+        "desc": "Most rows to return (default 50, at most 200). The result says when it was truncated.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "deep_answer",
+    "description": "Like answer, but able to work in steps (mode 'adaptive', the default, tries one plain query first and only works in steps when it fails or comes back empty; mode 'deep' always does): the server's model may run small exploring queries to see real values (how a status or country is spelled, a date format, whether a join matches), ask for more tables, and fix a query the database rejected, before running the final query. Every query goes through the same read-only and caller-scope checks as run_query. Returns the rows plus a step-by-step trace (each step's SQL and outcome) and what was sent to the model. Off unless the server enables it (SCHEMAGATE_MCP_DEEP=1), because exploring rows go to the model provider; use it for questions that name values or span several tables, and answer for simple ones.",
+    "arguments": [
+      {
+        "name": "question",
+        "type": "string",
+        "desc": "The user's question in plain language, e.g. 'revenue by month' or 'which customers owe us money'."
+      },
+      {
+        "name": "principal",
+        "type": "string",
+        "desc": "Who is asking, as an identity string such as 'okta:jdoe'. Pass it whenever you know the user: visibility is decided for this identity. Omitted = anonymous, which sees only unrestricted objects.",
+        "optional": true
+      },
+      {
+        "name": "roles",
+        "type": "array",
+        "desc": "The caller's roles or groups, e.g. ['finance', 'payroll']. Objects and columns restricted to a role are visible only when it is listed here. Omitted = no roles.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "top_k",
+        "type": "integer",
+        "desc": "How many tables and views to select for the question (default 6). Raise it for questions that span many areas; the caller's visible objects are the upper bound.",
+        "optional": true
+      },
+      {
+        "name": "max_rows",
+        "type": "integer",
+        "desc": "Most rows to return (default 50, at most 200). The result says when it was truncated.",
+        "optional": true
+      },
+      {
+        "name": "max_steps",
+        "type": "integer",
+        "desc": "Most model calls for this question (default 6, at most 12). Each exploring query, request for more tables, repair and final query is one; a plain question uses one.",
+        "optional": true
+      },
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": "'adaptive' (default): one plain query first, and the step-by-step path only when that one fails, comes back empty or is all zero -- most questions cost one model call. 'deep': always work in steps.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "refresh_catalog",
+    "description": "Re-read the database structure (new tables, changed columns, changed grants) and swap the index in. Call it after a migration or a permission change, or when health shows the catalog is stale; it is not needed before ordinary questions. Takes no arguments, never changes the database, and can take seconds on a large schema. Returns {ok: true, objects, seconds}. If the database is unreachable it returns {ok: false, kept_previous: true, error}: the previous catalog stays in service.",
+    "arguments": [],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "health",
+    "description": "Server status: whether the catalog is loaded, how many objects it holds, the database dialect, and audit-log counts. Takes no arguments; safe to call any time.",
+    "arguments": [],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  }
+]
