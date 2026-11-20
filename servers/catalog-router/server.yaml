@@ -1,0 +1,45 @@
+name: catalog-router
+image: mcp/catalog-router
+type: server
+meta:
+  category: data-analytics
+  tags:
+    - business-intelligence
+    - semantic-layer
+    - data-governance
+    - dbt
+    - looker
+    - tableau
+    - bigquery
+about:
+  title: BI Catalog Router
+  description: |
+    Decides which BI system should answer a data question (dbt, Looker, Tableau, Superset, BigQuery, or any MCP server you describe), and explains why.
+
+    You describe your stack once in a YAML semantic catalog graph: the systems, the metrics, dashboards, models and tables each one owns, the lineage between them, and which ones carry PII. For each question the router returns the system to call, the system-specific reference to use there, ranked fallbacks, a confidence score, and a step-by-step trace.
+
+    • Definition and lineage questions go to the source of truth, not every tool that displays a metric
+    • Questions touching PII are restricted to systems allowed to serve PII and flagged for approval
+    • Deterministic and explainable: no LLM calls, no API keys, no network access
+
+    Works out of the box with a bundled example catalog. Point it at your own catalog file to route questions for your real stack.
+  icon: https://github.com/sangaraju1988.png
+source:
+  project: https://github.com/sangaraju1988/catalog-router
+  commit: e4ab8e73756544b52d2c0f96c67180087ddc58c1
+run:
+  volumes:
+    - "{{catalog-router.catalog_path}}:/user-catalog/catalog.yaml:ro"
+  disableNetwork: true
+config:
+  description: Optionally choose your own catalog YAML file. Without one, the server uses its bundled example catalog.
+  env:
+    - name: CATALOG_PATH
+      example: /user-catalog/catalog.yaml
+      value: /user-catalog/catalog.yaml
+  parameters:
+    type: object
+    properties:
+      catalog_path:
+        type: string
+        description: Path to your catalog YAML file (for example /Users/you/.catalog-router/catalog.yaml)
