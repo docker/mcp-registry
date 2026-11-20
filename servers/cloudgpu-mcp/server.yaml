@@ -1,0 +1,55 @@
+name: cloudgpu-mcp
+image: mcp/cloudgpu-mcp
+type: server
+meta:
+  category: devops
+  tags:
+    - devops
+    - gpu
+    - cloud
+    - ai
+    - agents
+about:
+  title: CloudGPU
+  description: Compute infrastructure for AI agents. Your agent finds GPUs and open models on CloudGPU, quotes and runs jobs within the budget you approve, saves results, and shuts the GPU down.
+  icon: https://raw.githubusercontent.com/cloudgpu-app/cloudgpu-mcp/d85ff539c39366be0b4a491f1d90b04bd9632322/assets/logo-400.png
+source:
+  project: https://github.com/cloudgpu-app/cloudgpu-mcp
+  branch: main
+  commit: d85ff539c39366be0b4a491f1d90b04bd9632322
+config:
+  description: Configure the connection to CloudGPU
+  secrets:
+    - name: cloudgpu-mcp.api_key
+      env: CLOUDGPU_API_KEY
+      example: <CLOUDGPU_API_KEY>
+      description: API key from https://cloudgpu.app/api
+      required: true
+  env:
+    - name: CLOUDGPU_MAX_SPEND_USD
+      example: "50"
+      value: "{{cloudgpu-mcp.cloudgpu_max_spend_usd}}"
+    - name: CLOUDGPU_MAX_HOURS
+      example: "24"
+      value: "{{cloudgpu-mcp.cloudgpu_max_hours}}"
+    - name: CLOUDGPU_READ_ONLY
+      example: "0"
+      value: "{{cloudgpu-mcp.cloudgpu_read_only}}"
+    - name: CLOUDGPU_BASE_URL
+      example: https://cloudgpu.app
+      value: "{{cloudgpu-mcp.cloudgpu_base_url}}"
+  parameters:
+    type: object
+    properties:
+      cloudgpu_max_spend_usd:
+        type: string
+        description: Highest budget the agent may set for one instance. Leave empty to use the server default.
+      cloudgpu_max_hours:
+        type: string
+        description: Longest time limit the agent may set for one instance, in hours. Leave empty to use the server default.
+      cloudgpu_read_only:
+        type: string
+        description: Set to 1 to register only the look-up tools. Leave empty or 0 for the full tool list.
+      cloudgpu_base_url:
+        type: string
+        description: API host. Leave empty to use https://cloudgpu.app.
