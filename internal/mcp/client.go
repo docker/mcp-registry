@@ -26,6 +26,7 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/docker/mcp-registry/pkg/servers"
@@ -33,24 +34,28 @@ import (
 )
 
 type client struct {
-	image   string
-	pull    bool
-	env     []servers.Env
-	secrets []servers.Secret
-	args    []string
-	command []string
+	image      string
+	pull       bool
+	env        []servers.Env
+	secrets    []servers.Secret
+	args       []string
+	command    []string
+	serverName string
+	parameters servers.Schema
 
 	c *stdioMCPClient
 }
 
-func newClient(image string, pull bool, env []servers.Env, secrets []servers.Secret, args []string, command []string) *client {
+func newClient(image string, pull bool, env []servers.Env, secrets []servers.Secret, args []string, command []string, serverName string, parameters servers.Schema) *client {
 	return &client{
-		image:   image,
-		pull:    pull,
-		env:     env,
-		secrets: secrets,
-		args:    args,
-		command: command,
+		image:      image,
+		pull:       pull,
+		env:        env,
+		secrets:    secrets,
+		args:       args,
+		command:    command,
+		serverName: serverName,
+		parameters: parameters,
 	}
 }
 
@@ -76,7 +81,7 @@ func (cl *client) Start(ctx context.Context, debug bool) error {
 	}
 	args = append(args, cl.image)
 	for _, arg := range cl.command {
-		args = append(args, replacePlaceholders(arg, cl.env, cl.secrets))
+		args = append(args, replacePlaceholders(arg, cl.env, cl.secrets, cl.serverName, cl.parameters))
 	}
 	c := newMCPClient("docker", toEnviron(cl.env, cl.secrets), args...)
 	cl.c = c
@@ -166,7 +171,7 @@ func (cl *client) Close(deleteImage bool) error {
 	return nil
 }
 
-func replacePlaceholders(arg string, env []servers.Env, secrets []servers.Secret) string {
+func replacePlaceholders(arg string, env []servers.Env, secrets []servers.Secret, serverName string, parameters servers.Schema) string {
 	// TODO(dga): Temporary fix
 	if arg == "{{filesystem.paths|volume-target|into}}" {
 		return "."
@@ -180,6 +185,12 @@ func replacePlaceholders(arg string, env []servers.Env, secrets []servers.Secret
 	for _, secret := range secrets {
 		if arg == "$"+secret.Env {
 			return secret.Example
+		}
+	}
+	for _, property := range parameters.Properties {
+		if property.Schema.Default != nil {
+			placeholder := "{{" + serverName + "." + property.Name + "}}"
+			arg = strings.ReplaceAll(arg, placeholder, fmt.Sprint(property.Schema.Default))
 		}
 	}
 

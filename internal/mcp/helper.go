@@ -71,7 +71,7 @@ func Tools(ctx context.Context, server servers.Server, pull, cleanup, debug bool
 		})
 	}
 
-	c := newClient(server.Image, pull, env, server.Config.Secrets, args, server.Run.Command)
+	c := newClient(server.Image, pull, env, server.Config.Secrets, args, server.Run.Command, server.Name, server.Config.Parameters)
 	if err := c.Start(ctx, debug); err != nil {
 		return nil, err
 	}
