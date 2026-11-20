@@ -1,0 +1,179 @@
+[
+  {
+    "name": "noticer_commercial_setup",
+    "description": "Start here when an action you sent or delegated needs its result confirmed, your own tools can't confirm it, and the result is one field in public HTTPS JSON. Shows setup state and the published USD 1 price. Creates nothing. Returns local setup state, canonical terms location and published USD 1 receipt price without creating an account, order or payment. A missing local configuration does not prevent tool discovery. This is setup guidance, not a verified outcome or a guarantee of free eligibility."
+  },
+  {
+    "name": "noticer_commercial_account",
+    "description": "After enrollment, read how many free checks remain. No charge. Use this to understand eligibility before preparing a public JSON check. Preparation reserves no allowance, and the finalized order entitlement remains authoritative. No payment is made and no credential is returned."
+  },
+  {
+    "name": "noticer_prepare_receipt",
+    "description": "Describe the destination state to check: the exact public JSON record (claim_id_path) that should show the result of the handed-off action, the expected value, and a known-good control on the same site. Only after owner authorization for public reads. Doesn't observe, charge or reserve an allowance. Only after owner authorization for these public reads. Inputs: a stable check_label and scope with claim_ref; questioned {url, extract, claim_id_path}; control {url, extract}; deadline_seconds; authorized_public_read=true. Both URLs must be public HTTPS JSON on the same host, with distinct paths and no credentials, query or fragment. The claim_ref must occur as a questioned path segment and not in the control path. Use a genuinely known-good control. Dotted paths support equality to a JSON scalar, for example extract '$.status == \"shipped\"' and claim_id_path '$.id'; this is not general JSONPath or code. deadline_seconds must be an integer from 20 through 120. Server validation is final. Returns the frozen scope, obligation hash, price and confirmation notice. No observation or payment occurs here; free allowance is not reserved. Show those terms and obtain separate explicit run approval. Reuse check_label with the identical scope after interruption; never create a new label to recover ambiguous preparation. No receipt is guaranteed for every failed request.",
+    "arguments": [
+      {
+        "name": "check_label",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "scope",
+        "type": "object",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "noticer_run_receipt",
+    "description": "Observe the saved public JSON condition only after approval of the exact frozen scope and confirmation notice. Reads only; it never pays or performs or repeats the original action. Supply its saved obligation_hash. Both booleans must reflect explicit owner approval, including possible free-check consumption; they are caller assertions, not independent proof of consent. Starts observation and returns a check identifier. It never pays or performs the downstream action. Evidence access may later require separate USD 1 approval. Poll status no more frequently than 3 seconds.",
+    "arguments": [
+      {
+        "name": "check_label",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "obligation_hash",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "confirmed",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
+        "name": "no_spend_terms_confirmed",
+        "type": "boolean",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "noticer_receipt_status",
+    "description": "Poll (at least 3 s apart). A verdict shown here is unverified; don't continue a workflow on status alone. Wait at least 3 seconds between polls. Any displayed verdict is unverified: do not continue a workflow based on status alone. The response reports entitlement and next-step guidance, not authorization to act. For an uncertain saved payment it can inspect that same attempt; it never submits another payment.",
+    "arguments": [
+      {
+        "name": "check_label",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "noticer_get_verified_receipt",
+    "description": "Verify the signed receipt locally. Only fresh, valid PROVED (control matched) supports continuing. DISPROVED or INCONCLUSIVE means the result isn't confirmed. The signature authenticates the issuer, not source honesty. Use a stable caller-local decision_ref for that intended next action. Verifies two byte-identical retrievals against the independently pinned key, order, saved scope, freshness and package binding. Returns a verified receipt verdict and locally derived decision: fresh valid PROVED/ALLOW may yield continue/0; DISPROVED yields block/20; INCONCLUSIVE yields hold/21 and a blocking server gate. Invalid, stale, mismatched or untrusted evidence is rejected, never converted to continue. Raw evidence and capabilities remain encrypted locally. The local decision is unsigned and does not grant permission or execute a downstream action. A signature authenticates the issuer, not source honesty.",
+    "arguments": [
+      {
+        "name": "check_label",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "decision_ref",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "noticer_enroll_commerce",
+    "description": "Enroll once when the owner chooses commercial public-JSON checks and needs commerce-only access. First show https://noticer-mpp-ee54698-production.up.railway.app/start. Obtain host action-time approval for persistent commerce access and acceptance of terms before setting the consent booleans true. New self-service buyers receive five eligible free checks; later eligible receipts cost USD 1 with separate wallet approval. Enrollment itself never charges. Returns account-setup metadata while the credential and recovery secret remain in encrypted local custody. Booleans assert consent, not proof.",
+    "arguments": [
+      {
+        "name": "owner_authorized",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
+        "name": "commerce_scope_accepted",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
+        "name": "terms_accepted",
+        "type": "boolean",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "noticer_payment_challenge",
+    "description": "Get exact one-order payment terms only after the owner approves USD 1 for an eligible saved receipt. This prepares a public challenge, never a charge, and needs no wallet. Merchant and network must come from independently verified provider configuration. Returns bound challenge/endpoint metadata; order capability stays private. The separate optional existing-Link payment tool requires wallet approval. Never put SPTs, payment credentials or keys into tool arguments, chat, model output or logs.",
+    "arguments": [
+      {
+        "name": "check_label",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "merchant_account",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "network_id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "amount",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "confirmed",
+        "type": "boolean",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "noticer_pay_with_existing_link",
+    "description": "Pay for one eligible saved receipt only after separate exact USD 1 consent using an existing authorized Link wallet. Show the merchant, network, one-time amount and saved challenge first. Present any returned Link approval_url; resume only the SAME check_label/request. Both local consent and the wallet's approval are required. This tool can submit a real payment; approval alone is not settlement and settlement is not verified evidence. Never install software, log in, switch payment methods, or create a replacement request after denial, expiry or an uncertain payment. Credentials remain private subprocess memory; only sanitized status and approval URL are returned. After settlement, use noticer_get_verified_receipt. No downstream action runs.",
+    "arguments": [
+      {
+        "name": "check_label",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "amount",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "confirmed",
+        "type": "boolean",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "noticer_initialize_local",
+    "description": "Set up local private custody after the owner chooses Noticer and explicitly consents to local setup. Creates owner-only POSIX state/config and a random custody key with the canonical origin and independently pinned public signing key; no trust-on-first-use. Returns setup status, never secrets. Does not enroll, contact a server, pay, install software or sign in. Optionally discover an already installed trusted Link CLI only after consent. The key and encrypted records share one OS-user boundary; this does not protect against compromise of that same user.",
+    "arguments": [
+      {
+        "name": "owner_authorized",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
+        "name": "enable_existing_link",
+        "type": "boolean",
+        "desc": "",
+        "optional": true
+      }
+    ]
+  }
+]
