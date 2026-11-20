@@ -1,0 +1,90 @@
+[
+  {
+    "name": "list_industries",
+    "description": "Read-only. Lists every industry and sub-vertical ExitValue.ai tracks, with their ids and display names, and flags which sub-verticals have published multiples (has_published_multiples). Takes no input. Use it first when you are unsure of an id; the other tools accept these ids or plain-English names.",
+    "arguments": []
+  },
+  {
+    "name": "get_valuation_multiples",
+    "description": "Read-only. Answers 'what multiple does a business in industry X sell for?' for ONE industry. Returns median EV/EBITDA and EV/Revenue multiples with the middle 50% (25th-75th percentile) and deal count n, broken down by enterprise-value bracket (disclosed deals 2018-2026, n>=10 per cell) plus an all-deal-sizes figure (n>=5). Figures below those thresholds are withheld, never estimated. Passing an industry group id (e.g. 'home-services') returns one all-sizes median per sub-vertical. Use compare_industries to put several industries side by side and get_multiples_trend for year-by-year history. Population medians only: it does not value a specific business.",
+    "arguments": [
+      {
+        "name": "industry",
+        "type": "string",
+        "desc": "Sub-vertical id from list_industries (e.g. 'hvac', 'dental-practice'), or a plain-English name ('HVAC', 'dentist', 'plumber', 'MSP'); plain names are mapped to the closest tracked category and the answer says which one was used. An industry group id such as 'healthcare' or 'home-services' is also accepted."
+      },
+      {
+        "name": "size_bracket",
+        "type": "string",
+        "desc": "Optional enterprise-value (deal size) bracket: under_5m_ev = under $5M, 5m_25m_ev = $5M-$25M, 25m_100m_ev = $25M-$100M, 100m_500m_ev = $100M-$500M, over_500m_ev = $500M and up. Omit to get every published bracket.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "compare_industries",
+    "description": "Read-only. Puts 2-6 industries side by side for one metric: median multiple, middle 50% (25th-75th percentile) and deal count n per industry, using the same data, name matching and thresholds as get_valuation_multiples. Without size_bracket it compares all-deal-size medians (n>=5); with size_bracket it compares that enterprise-value bracket (n>=10). Rows below the threshold are marked INSUFFICIENT DATA rather than estimated; unmatched names and industry-group ids are flagged per row. Use it for 'which sells for more, X or Y?' questions; use get_valuation_multiples for the full breakdown of one industry.",
+    "arguments": [
+      {
+        "name": "industries",
+        "type": "array",
+        "desc": "2 to 6 sub-vertical ids or plain-English industry names to compare, e.g. ['dental-practice', 'veterinary-practice', 'physical therapy'].",
+        "items": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "size_bracket",
+        "type": "string",
+        "desc": "Optional enterprise-value (deal size) bracket: under_5m_ev = under $5M, 5m_25m_ev = $5M-$25M, 25m_100m_ev = $25M-$100M, 100m_500m_ev = $100M-$500M, over_500m_ev = $500M and up. Omit to compare all deal sizes pooled.",
+        "optional": true
+      },
+      {
+        "name": "metric",
+        "type": "string",
+        "desc": "Multiple to compare: ev_ebitda (enterprise value / EBITDA, default) or ev_revenue (enterprise value / revenue).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "get_multiples_trend",
+    "description": "Read-only. Year-by-year history for ONE sub-vertical: for each deal year 2018-2026, the median EV/EBITDA and/or EV/Revenue multiple with middle 50% (25th-75th percentile), deal count n and median deal value. Only years with at least 10 disclosed deals for a metric are shown; missing years are listed as gaps and never interpolated, so many sub-verticals have few or no years. Use it for 'are multiples rising or falling for X?' questions; use get_valuation_multiples for pooled current figures by deal size.",
+    "arguments": [
+      {
+        "name": "industry",
+        "type": "string",
+        "desc": "Sub-vertical id from list_industries (e.g. 'hvac', 'dental-practice'), or a plain-English name ('HVAC', 'dentist', 'plumber', 'MSP'); plain names are mapped to the closest tracked category and the answer says which one was used."
+      },
+      {
+        "name": "metric",
+        "type": "string",
+        "desc": "Optional: ev_ebitda or ev_revenue. Omit to show both where published.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "start_valuation",
+    "description": "Read-only. Use when a user asks what THEIR business is worth. Returns a link to the free ExitValue.ai calculator with the industry, annual revenue and EBITDA pre-filled, so the user only confirms the numbers and answers a few risk questions. It does not return a value itself; use get_valuation_multiples for industry medians.",
+    "arguments": [
+      {
+        "name": "industry",
+        "type": "string",
+        "desc": "Sub-vertical id from list_industries (e.g. 'hvac', 'dental-practice'), or a plain-English name ('HVAC', 'dentist', 'plumber', 'MSP'); plain names are mapped to the closest tracked category and the answer says which one was used."
+      },
+      {
+        "name": "annual_revenue",
+        "type": "number",
+        "desc": "Annual revenue in US dollars, e.g. 4000000.",
+        "optional": true
+      },
+      {
+        "name": "ebitda",
+        "type": "number",
+        "desc": "Annual EBITDA in US dollars, e.g. 900000.",
+        "optional": true
+      }
+    ]
+  }
+]
