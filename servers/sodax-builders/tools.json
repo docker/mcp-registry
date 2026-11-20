@@ -1,0 +1,821 @@
+[
+  {
+    "name": "sodax_get_supported_chains",
+    "description": "List all blockchain networks supported by SODAX for cross-chain swaps and DeFi operations",
+    "arguments": [
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_swap_tokens",
+    "description": "Get available tokens for swapping on SODAX, optionally filtered by chain",
+    "arguments": [
+      {
+        "name": "chainId",
+        "type": "string",
+        "desc": "Filter tokens by spoke chain ID. Use the formal chain ID (e.g., '0x2105.base', 'ethereum', 'sonic', '0x1.icon', '0xa.optimism'). Call sodax_get_supported_chains for the full list.",
+        "optional": true
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_transaction",
+    "description": "Look up a specific transaction by its hash to see status, amounts, and details",
+    "arguments": [
+      {
+        "name": "txHash",
+        "type": "string",
+        "desc": "The transaction hash to look up (e.g., '0x...')"
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_user_transactions",
+    "description": "Get intent/transaction history for a specific wallet address",
+    "arguments": [
+      {
+        "name": "userAddress",
+        "type": "string",
+        "desc": "The wallet address to look up (e.g., '0x...')"
+      },
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Maximum number of transactions to return (1-100)",
+        "optional": true
+      },
+      {
+        "name": "offset",
+        "type": "number",
+        "desc": "Number of transactions to skip for pagination",
+        "optional": true
+      },
+      {
+        "name": "fromBlock",
+        "type": "number",
+        "desc": "Inclusive lower bound on blockNumber (chain-native ordering)",
+        "optional": true
+      },
+      {
+        "name": "toBlock",
+        "type": "number",
+        "desc": "Inclusive upper bound on blockNumber (chain-native ordering)",
+        "optional": true
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_volume",
+    "description": "Get solver volume data showing filled intents with filtering and pagination. Requires inputToken and outputToken. Optional filters: chain, solver, block range OR time range (don't mix both).",
+    "arguments": [
+      {
+        "name": "inputToken",
+        "type": "string",
+        "desc": "REQUIRED: Input token address"
+      },
+      {
+        "name": "outputToken",
+        "type": "string",
+        "desc": "REQUIRED: Output token address"
+      },
+      {
+        "name": "chainId",
+        "type": "number",
+        "desc": "Filter by chain ID (e.g., 146 for Sonic)",
+        "optional": true
+      },
+      {
+        "name": "solver",
+        "type": "string",
+        "desc": "Filter by solver address (0x0...0 for default solver)",
+        "optional": true
+      },
+      {
+        "name": "fromBlock",
+        "type": "number",
+        "desc": "Start block number (don't mix with since/until)",
+        "optional": true
+      },
+      {
+        "name": "toBlock",
+        "type": "number",
+        "desc": "End block number (don't mix with since/until)",
+        "optional": true
+      },
+      {
+        "name": "since",
+        "type": "string",
+        "desc": "Start time ISO format (don't mix with fromBlock/toBlock or fromTs/toTs)",
+        "optional": true
+      },
+      {
+        "name": "until",
+        "type": "string",
+        "desc": "End time ISO format (don't mix with fromBlock/toBlock or fromTs/toTs)",
+        "optional": true
+      },
+      {
+        "name": "fromTs",
+        "type": "number",
+        "desc": "Start timestamp (unix seconds). Don't mix with since/until or fromBlock/toBlock.",
+        "optional": true
+      },
+      {
+        "name": "toTs",
+        "type": "number",
+        "desc": "End timestamp (unix seconds). Don't mix with since/until or fromBlock/toBlock.",
+        "optional": true
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "desc": "Sort order by block number",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Maximum number of filled intents to return (1-100)",
+        "optional": true
+      },
+      {
+        "name": "includeData",
+        "type": "boolean",
+        "desc": "Include raw intent data in response",
+        "optional": true
+      },
+      {
+        "name": "cursor",
+        "type": "string",
+        "desc": "Pagination cursor from previous response's nextCursor",
+        "optional": true
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_volume_stats",
+    "description": "Get aggregate solver volume stats: the approximate total number of filled-intent records (fill documents, not distinct intents). Cached ~60s upstream.",
+    "arguments": [
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_orderbook",
+    "description": "Get current orderbook entries showing pending/open intents",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Max results (default server-side, cap 500)",
+        "optional": true
+      },
+      {
+        "name": "offset",
+        "type": "number",
+        "desc": "Offset for simple pagination",
+        "optional": true
+      },
+      {
+        "name": "srcChain",
+        "type": "number",
+        "desc": "Filter by source chain id",
+        "optional": true
+      },
+      {
+        "name": "dstChain",
+        "type": "number",
+        "desc": "Filter by destination chain id",
+        "optional": true
+      },
+      {
+        "name": "inputToken",
+        "type": "string",
+        "desc": "Filter by input token address",
+        "optional": true
+      },
+      {
+        "name": "outputToken",
+        "type": "string",
+        "desc": "Filter by output token address",
+        "optional": true
+      },
+      {
+        "name": "creator",
+        "type": "string",
+        "desc": "Filter by creator address",
+        "optional": true
+      },
+      {
+        "name": "deadlineBefore",
+        "type": "number",
+        "desc": "Only return intents with deadline < value (Unix seconds)",
+        "optional": true
+      },
+      {
+        "name": "deadlineAfter",
+        "type": "number",
+        "desc": "Only return intents with deadline > value (Unix seconds)",
+        "optional": true
+      },
+      {
+        "name": "excludeZeroDeadline",
+        "type": "boolean",
+        "desc": "Exclude intents where deadline = 0",
+        "optional": true
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_money_market_assets",
+    "description": "List all assets available for lending and borrowing in the SODAX money market",
+    "arguments": [
+      {
+        "name": "chainId",
+        "type": "string",
+        "desc": "Filter by chain ID",
+        "optional": true
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_user_position",
+    "description": "Get a user's lending and borrowing position in the money market",
+    "arguments": [
+      {
+        "name": "userAddress",
+        "type": "string",
+        "desc": "The wallet address to look up"
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_partners",
+    "description": "List all SODAX integration partners including wallets, DEXs, and other protocols",
+    "arguments": [
+      {
+        "name": "chainId",
+        "type": "integer",
+        "desc": "Filter partners by numeric chain ID (e.g. 146 for Sonic)",
+        "optional": true
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_token_supply",
+    "description": "Get SODA token supply information including total, circulating, and burned amounts",
+    "arguments": [
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_all_config",
+    "description": "Get full SODAX configuration including all supported chains, swap tokens, and protocol settings in one call",
+    "arguments": [
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_relay_chain_id_map",
+    "description": "Get mapping between chain IDs and intent relay chain IDs used by the SODAX relay network",
+    "arguments": [
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_all_chains_configs",
+    "description": "Get detailed configuration for all spoke chains including contract addresses, RPCs, and token configs",
+    "arguments": [
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_hub_assets",
+    "description": "Get assets representing spoke tokens on the hub (Sonic) chain, optionally filtered by source chain",
+    "arguments": [
+      {
+        "name": "chainId",
+        "type": "string",
+        "desc": "Filter by source spoke chain ID. Use the formal chain ID (e.g., '0x2105.base', 'ethereum', 'sonic'). Call sodax_get_supported_chains for the full list.",
+        "optional": true
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_money_market_tokens",
+    "description": "Get tokens supported for money market lending/borrowing, optionally filtered by chain",
+    "arguments": [
+      {
+        "name": "chainId",
+        "type": "string",
+        "desc": "Filter by chain ID",
+        "optional": true
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_money_market_reserve_assets",
+    "description": "Get money market reserve assets used as collateral backing",
+    "arguments": [
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_amm_positions",
+    "description": "Get AMM liquidity provider NFT positions, optionally filtered by owner address",
+    "arguments": [
+      {
+        "name": "owner",
+        "type": "string",
+        "desc": "Filter by owner wallet address",
+        "optional": true
+      },
+      {
+        "name": "offset",
+        "type": "number",
+        "desc": "Number of positions to skip for pagination",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Maximum number of positions to return",
+        "optional": true
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_amm_pool_candles",
+    "description": "Get OHLCV candlestick chart data for an AMM pool",
+    "arguments": [
+      {
+        "name": "chainId",
+        "type": "string",
+        "desc": "Chain ID where the pool is deployed (e.g., 'sonic')"
+      },
+      {
+        "name": "poolId",
+        "type": "string",
+        "desc": "The pool contract address or ID"
+      },
+      {
+        "name": "interval",
+        "type": "string",
+        "desc": "REQUIRED: Candle interval"
+      },
+      {
+        "name": "from",
+        "type": "number",
+        "desc": "REQUIRED: Start timestamp (unix seconds)"
+      },
+      {
+        "name": "to",
+        "type": "number",
+        "desc": "REQUIRED: End timestamp (unix seconds)"
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_intent",
+    "description": "Look up a specific intent by its intent hash (different from transaction hash)",
+    "arguments": [
+      {
+        "name": "intentHash",
+        "type": "string",
+        "desc": "The intent hash to look up (66 character hex string starting with 0x)"
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_solver_intent",
+    "description": "Get solver-side details for an intent including fill history. Use includeAll to see all solver documents.",
+    "arguments": [
+      {
+        "name": "intentHash",
+        "type": "string",
+        "desc": "The intent hash to look up"
+      },
+      {
+        "name": "includeAll",
+        "type": "boolean",
+        "desc": "Include all intent documents (history) instead of just the latest",
+        "optional": true
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_money_market_asset",
+    "description": "Get detailed information for a specific money market asset by its reserve address",
+    "arguments": [
+      {
+        "name": "reserveAddress",
+        "type": "string",
+        "desc": "The reserve contract address of the asset"
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_asset_borrowers",
+    "description": "Get borrowers for a specific money market asset by its reserve address",
+    "arguments": [
+      {
+        "name": "reserveAddress",
+        "type": "string",
+        "desc": "The reserve contract address of the asset"
+      },
+      {
+        "name": "offset",
+        "type": "number",
+        "desc": "Number of borrowers to skip for pagination",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Maximum number of borrowers to return (1-100)",
+        "optional": true
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_asset_suppliers",
+    "description": "Get suppliers (lenders) for a specific money market asset by its reserve address",
+    "arguments": [
+      {
+        "name": "reserveAddress",
+        "type": "string",
+        "desc": "The reserve contract address of the asset"
+      },
+      {
+        "name": "offset",
+        "type": "number",
+        "desc": "Number of suppliers to skip for pagination",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Maximum number of suppliers to return (1-100)",
+        "optional": true
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_all_borrowers",
+    "description": "Get all borrowers across all money market assets with pagination",
+    "arguments": [
+      {
+        "name": "offset",
+        "type": "number",
+        "desc": "Number of borrowers to skip for pagination",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Maximum number of borrowers to return (1-100)",
+        "optional": true
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_partner_summary",
+    "description": "Get volume and activity summary for a specific integration partner by their receiver address",
+    "arguments": [
+      {
+        "name": "receiver",
+        "type": "string",
+        "desc": "The partner receiver address"
+      },
+      {
+        "name": "chainId",
+        "type": "string",
+        "desc": "Filter by chain ID",
+        "optional": true
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_total_supply",
+    "description": "Get SODA token total supply as a plain number",
+    "arguments": [
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_circulating_supply",
+    "description": "Get SODA token circulating supply as a plain number",
+    "arguments": [
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_refresh_cache",
+    "description": "Clear both the backend API cache and the solver oracle cache to force fresh fetches on next requests. Reports the number of entries cleared per cache."
+  },
+  {
+    "name": "sodax_get_solver_oracle",
+    "description": "Get the solver's oracle USD prices per (chain, token). For quoting with sodax_get_solver_quote, filter chainId='146': chainId-146 addresses pass the quote service's compatibility check, while spoke-chain (non-146) addresses are rejected with 'not compatible with the quote service'. Caveat: passing that check (being listed/priced) does NOT guarantee a swap route \u2014 canonical bridged *_ASSET hub tokens and major stablecoins route most reliably, while many wrapped/derivative/money-market entries (e.g. WBTC, waLocBTC, SONIC_SODA_ASSET) are priced but frequently return 'No path was found', and routability is pair/amount/liquidity-dependent. Also useful for sanity-checking quote amounts against the USD prices the solver uses.",
+    "arguments": [
+      {
+        "name": "chainId",
+        "type": "string",
+        "desc": "Filter results to a single intent-relay chain ID (decimal string, e.g. '146' for Sonic). Call sodax_get_relay_chain_id_map to translate.",
+        "optional": true
+      },
+      {
+        "name": "symbol",
+        "type": "string",
+        "desc": "Filter by token symbol (case-insensitive exact match, e.g. 'SODA', 'bnUSD')",
+        "optional": true
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_get_solver_quote",
+    "description": "Get a swap quote from the SODAX solver. tokenSrc/tokenDst MUST be hub-chain (Sonic, chainId 146) asset addresses \u2014 look them up with sodax_get_solver_oracle (chainId='146'). Working example: tokenSrc='0xeb0393893b5bf98a50073d6740738b08e575058b' (BTC_BTC_ASSET) \u2192 tokenDst='0xaeafa26e43f46cd83efe89b1e57c858eb5685a24' (ETH_ASSET), amount='99800', quoteType='exact_input' returns a quoted_amount. exact_input quotes the destination amount you'd receive; exact_output quotes the source amount you'd need. There are two distinct HTTP-400 failures, both naming the two addresses: (1) 'not compatible with the quote service' = an address isn't a recognized hub asset (a spoke-chain or otherwise non-chainId-146 address was passed) \u2192 use a chainId-146 address from sodax_get_solver_oracle, and for a reliable pick prefer a canonical bridged *_ASSET hub token or major stablecoin (chainId 146 alone doesn't guarantee a route). (2) 'No path was found between X and Y' = both tokens are valid hub assets but the solver couldn't route this pair for this amount \u2192 routing is pair/amount/liquidity-dependent, so retry with a smaller amount or a more liquid counterparty (a canonical bridged *_ASSET token, or a major stablecoin like SONIC_USDC_ASSET). Many wrapped/derivative entries (e.g. WBTC, waLocBTC, SONIC_SODA_ASSET) are oracle-priced but frequently have no route \u2014 prefer canonical bridged *_ASSET hub tokens.",
+    "arguments": [
+      {
+        "name": "tokenSrc",
+        "type": "string",
+        "desc": "REQUIRED: Source token address (the token you're spending). Hub-chain (Sonic, chainId 146) asset address from sodax_get_solver_oracle. Prefer canonical bridged *_ASSET tokens (e.g. BTC_BTC_ASSET 0xeb0393893b5bf98a50073d6740738b08e575058b); wrapped/derivative entries like WBTC are priced but frequently have no route."
+      },
+      {
+        "name": "tokenDst",
+        "type": "string",
+        "desc": "REQUIRED: Destination token address (the token you want to receive). Hub-chain (Sonic, chainId 146) asset address from sodax_get_solver_oracle (e.g. ETH_ASSET 0xaeafa26e43f46cd83efe89b1e57c858eb5685a24). Prefer canonical bridged *_ASSET tokens or a major stablecoin for a routable pair."
+      },
+      {
+        "name": "amount",
+        "type": "string",
+        "desc": "REQUIRED: Amount in the smallest unit of the input token (for exact_input) or output token (for exact_output). String to preserve precision. Note: a very large amount can exceed available liquidity and return 'No path was found' even for an otherwise-valid pair \u2014 reduce it if that happens."
+      },
+      {
+        "name": "quoteType",
+        "type": "string",
+        "desc": "'exact_input' (default): given input amount, quote output amount. 'exact_output': given output amount, quote input amount required.",
+        "optional": true
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_relay_submit_tx",
+    "description": "Submit a confirmed spoke-chain transaction to the SODAX intent relay so it can be delivered to the destination chain. The tx must already be finalized on the source chain. Re-submitting the same tx is a no-op. For split-tx chains (Solana, Bitcoin) supply the optional `data` argument.",
+    "arguments": [
+      {
+        "name": "chainId",
+        "type": "string",
+        "desc": "REQUIRED: Intent-relay chain ID of the source chain (decimal string, e.g. '146' for Sonic, '2' for Ethereum). Call sodax_get_relay_chain_id_map to translate from a chain key."
+      },
+      {
+        "name": "txHash",
+        "type": "string",
+        "desc": "REQUIRED: The confirmed transaction hash on the source chain"
+      },
+      {
+        "name": "data",
+        "type": "object",
+        "desc": "Required only for split-tx chains (Solana, Bitcoin). Omit for EVM chains.",
+        "optional": true
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_relay_get_transaction_packets",
+    "description": "List every cross-chain packet emitted by a given source transaction. Use this to track relay status \u2014 a packet is complete when status='executed' and dst_tx_hash is populated.",
+    "arguments": [
+      {
+        "name": "chainId",
+        "type": "string",
+        "desc": "REQUIRED: Intent-relay chain ID of the source chain (decimal string, e.g. '146'). Call sodax_get_relay_chain_id_map to translate from a chain key."
+      },
+      {
+        "name": "txHash",
+        "type": "string",
+        "desc": "REQUIRED: The source-chain transaction hash whose packets you want to inspect"
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "sodax_relay_get_packet",
+    "description": "Fetch a single relay packet by its connection serial number (conn_sn). Returns the packet data on success or a `{success:false, message}` shape if the packet isn't found.",
+    "arguments": [
+      {
+        "name": "chainId",
+        "type": "string",
+        "desc": "REQUIRED: Intent-relay chain ID of the source chain (decimal string)"
+      },
+      {
+        "name": "txHash",
+        "type": "string",
+        "desc": "REQUIRED: The source-chain transaction hash"
+      },
+      {
+        "name": "connSn",
+        "type": "string",
+        "desc": "REQUIRED: Connection serial number identifying the packet within the tx. Accepts string or number (numeric values are coerced \u2014 convenient for piping back a previously-fetched packet's `conn_sn` field).",
+        "optional": true
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Response format: 'json' for raw data or 'markdown' for formatted text",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "docs_health",
+    "description": "Check SDK documentation availability. Call this first if docs tools seem unavailable."
+  },
+  {
+    "name": "docs_refresh",
+    "description": "Reconnect to SDK documentation and refresh available tools. Use if docs seem stale or unavailable."
+  },
+  {
+    "name": "docs_list_tools",
+    "description": "List all SDK documentation tools with parameters. Essential for discovering what's available."
+  }
+]
