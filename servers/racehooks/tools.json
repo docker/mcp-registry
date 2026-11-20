@@ -1,0 +1,758 @@
+[
+  {
+    "name": "list_feeds",
+    "description": "List all available RaceHooks data feeds, including which subscription tier each feed requires. The special 'events.race' feed is a synthetic feed that emits structured events (overtakes, pit stops, safety cars, etc.) derived from multiple raw feeds.",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "list_webhooks",
+    "description": "List all webhook subscriptions for the authenticated RaceHooks account.",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_webhook",
+    "description": "Get a single webhook subscription by ID.",
+    "arguments": [
+      {
+        "name": "webhookId",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "create_webhook",
+    "description": "Register a new webhook subscription. Returns the webhook and the HMAC signing secret (shown once \u2014 store it immediately).",
+    "arguments": [
+      {
+        "name": "feedId",
+        "type": "string",
+        "desc": "Feed ID from list_feeds. Use 'events.race' for structured race events."
+      },
+      {
+        "name": "webhookUrl",
+        "type": "string",
+        "desc": "Public HTTPS URL to deliver payloads to."
+      },
+      {
+        "name": "webhookMethod",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "filters",
+        "type": "object",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "update_webhook",
+    "description": "Update an existing webhook subscription. Use active: false to pause delivery, active: true to resume. Can also update the endpoint URL, HTTP method, or filters without deleting and recreating the webhook.",
+    "arguments": [
+      {
+        "name": "webhookId",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "webhookUrl",
+        "type": "string",
+        "desc": "New endpoint URL."
+      },
+      {
+        "name": "webhookMethod",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "filters",
+        "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "desc": "false = pause delivery, true = resume."
+      }
+    ]
+  },
+  {
+    "name": "delete_webhook",
+    "description": "Permanently delete a webhook subscription.",
+    "arguments": [
+      {
+        "name": "webhookId",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "test_webhook",
+    "description": "Send a test payload to a webhook endpoint immediately. Useful for verifying your server is reachable and your HMAC verification code is correct.",
+    "arguments": [
+      {
+        "name": "webhookId",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_webhook_logs",
+    "description": "Retrieve recent delivery logs for a webhook \u2014 shows status codes, retry counts, and payload excerpts.",
+    "arguments": [
+      {
+        "name": "webhookId",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_webhook_secret",
+    "description": "Retrieve the current HMAC signing secret for a webhook.",
+    "arguments": [
+      {
+        "name": "webhookId",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "rotate_webhook_secret",
+    "description": "Rotate the HMAC signing secret for a webhook. The old secret is invalidated immediately \u2014 update your server before calling this. The new secret is shown once.",
+    "arguments": [
+      {
+        "name": "webhookId",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_live_session",
+    "description": "Get the current live session state: flag status, lap number, driver positions, intervals, tyre compounds, and recent race control messages. Returns an empty/inactive context when no session is live. Live per-driver timing requires Developer or higher; Free receives the latest milestone classification (end of a qualifying segment or the final result) instead.",
+    "arguments": []
+  },
+  {
+    "name": "list_events",
+    "description": "List events (race weekends) for the current or a specific season, including session schedules and status.",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "year",
+        "type": "integer",
+        "desc": "Season year, e.g. 2026. Defaults to current season."
+      },
+      {
+        "name": "upcoming",
+        "type": "boolean",
+        "desc": "true = only return events that haven't started yet"
+      }
+    ]
+  },
+  {
+    "name": "get_subscription",
+    "description": "Get the current subscription tier, plan limits (webhooks, deliveries, HMAC, analytics enrichment), and live usage snapshot for this account.",
+    "arguments": []
+  },
+  {
+    "name": "get_usage",
+    "description": "Get delivery usage summary for the current period: total deliveries, failures, tier, and remaining monthly delivery bucket.",
+    "arguments": []
+  },
+  {
+    "name": "get_usage_by_feed",
+    "description": "Get webhook delivery counts broken down by feed for the current period. Useful for identifying which feeds are driving delivery volume.",
+    "arguments": []
+  },
+  {
+    "name": "get_usage_latency",
+    "description": "Get webhook delivery latency percentiles (p50, p95, p99) broken down by feed for the current period.",
+    "arguments": []
+  },
+  {
+    "name": "get_usage_hourly",
+    "description": "Get webhook delivery volume broken down by hour for the last 24 hours. Useful for identifying traffic spikes.",
+    "arguments": []
+  },
+  {
+    "name": "get_usage_history",
+    "description": "Get historical delivery counts and failure rates over past periods.",
+    "arguments": []
+  },
+  {
+    "name": "get_billing_plan",
+    "description": "Get the detailed billing plan including tier, subscription period end date, limits, and current usage.",
+    "arguments": []
+  },
+  {
+    "name": "list_replay_sessions",
+    "description": "List recorded sessions that have archived data and can be replayed. Only completed sessions with archive paths are returned. Self-serve tiers (Free and Developer) list the current season only, plus the curated demo session; the full historical archive is on Custom. `restrictedToSeason` in the response reports the applied limit.",
+    "arguments": [
+      {
+        "name": "year",
+        "type": "string",
+        "desc": "Calendar year, e.g. '2026'."
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "Session type."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max results (default 200)."
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Results to skip (default 0)."
+      }
+    ]
+  },
+  {
+    "name": "get_demo_session",
+    "description": "Get the curated demo session to replay (the canonical ID of a guaranteed-real event).",
+    "arguments": []
+  },
+  {
+    "name": "get_replay_quota",
+    "description": "Get the replay delivery quota for this account: distinct-session lifetime slots for your tier.",
+    "arguments": []
+  },
+  {
+    "name": "prepare_replay",
+    "description": "Prepare a session for recorded playback, generating its playback artifact if not already cached. Check readiness with get_replay_status.",
+    "arguments": [
+      {
+        "name": "sessionId",
+        "type": "string",
+        "desc": "Session ID from list_replay_sessions or get_demo_session."
+      }
+    ]
+  },
+  {
+    "name": "get_replay_status",
+    "description": "Check whether a session's playback artifact is ready to stream.",
+    "arguments": [
+      {
+        "name": "sessionId",
+        "type": "string",
+        "desc": "Session ID from list_replay_sessions or get_demo_session."
+      }
+    ]
+  },
+  {
+    "name": "list_drivers",
+    "description": "List drivers. Available on every plan; page size is capped at 25 on Free and 100 on paid plans.",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "search",
+        "type": "string",
+        "desc": "Partial surname or forename match."
+      },
+      {
+        "name": "nationality",
+        "type": "string",
+        "desc": "Filter by nationality, e.g. 'British'."
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "desc": "true = currently racing, false = retired."
+      }
+    ]
+  },
+  {
+    "name": "get_driver",
+    "description": "Get a driver profile with career statistics (wins, podiums, poles, championships). Available on every plan.",
+    "arguments": [
+      {
+        "name": "driverId",
+        "type": "string",
+        "desc": "Driver slug, e.g. 'max_verstappen'."
+      }
+    ]
+  },
+  {
+    "name": "get_driver_results",
+    "description": "Get race-by-race results for a driver. Available on every plan; timing fields (gap, finish time) are only returned on Developer and above.",
+    "arguments": [
+      {
+        "name": "driverId",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "season",
+        "type": "integer",
+        "desc": "Filter to a specific season year, e.g. 2026."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_driver_standings",
+    "description": "Get championship standings history for a driver across seasons. Available on every plan.",
+    "arguments": [
+      {
+        "name": "driverId",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "season",
+        "type": "integer",
+        "desc": "Filter to a specific season year."
+      }
+    ]
+  },
+  {
+    "name": "list_constructors",
+    "description": "List constructors. Available on every plan.",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "lineage",
+        "type": "string",
+        "desc": "Filter by lineage slug, e.g. 'enstone'."
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_constructor",
+    "description": "Get a constructor profile including its lineage history (predecessor and successor teams). Available on every plan.",
+    "arguments": [
+      {
+        "name": "constructorId",
+        "type": "string",
+        "desc": "Constructor slug, e.g. 'red_bull'."
+      }
+    ]
+  },
+  {
+    "name": "get_constructor_results",
+    "description": "Get race-by-race results for a constructor. Available on every plan; timing fields (gap, finish time) are only returned on Developer and above.",
+    "arguments": [
+      {
+        "name": "constructorId",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "season",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_constructor_standings",
+    "description": "Get championship standings history for a constructor across seasons. Available on every plan.",
+    "arguments": [
+      {
+        "name": "constructorId",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "season",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "list_circuits",
+    "description": "List all F1 circuits with location and coordinates. Available on every plan.",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_circuit",
+    "description": "Get circuit details and analytics (compound priors, historical pace data). Available on every plan.",
+    "arguments": [
+      {
+        "name": "circuitId",
+        "type": "string",
+        "desc": "Circuit slug, e.g. 'monaco'."
+      }
+    ]
+  },
+  {
+    "name": "list_seasons",
+    "description": "List all available F1 seasons with race counts. Available on every plan.",
+    "arguments": []
+  },
+  {
+    "name": "get_season_standings",
+    "description": "Get final driver and constructor championship standings for a season. Available on every plan.",
+    "arguments": [
+      {
+        "name": "year",
+        "type": "integer",
+        "desc": "Season year, e.g. 2025."
+      }
+    ]
+  },
+  {
+    "name": "get_season_races",
+    "description": "List all races in a season with circuit, date, and data quality tier. Available on every plan.",
+    "arguments": [
+      {
+        "name": "year",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_race",
+    "description": "Get race details with full results and qualifying grid. Available on every plan; timing fields (gaps, fastest lap, finish time, Q1/Q2/Q3 times) are only returned on Developer and above.",
+    "arguments": [
+      {
+        "name": "raceId",
+        "type": "string",
+        "desc": "Race ID slug, e.g. '2026-bahrain-r1'."
+      }
+    ]
+  },
+  {
+    "name": "get_race_qualifying",
+    "description": "Get qualifying results for a race. Available on every plan; Q1/Q2/Q3 times are only returned on Developer and above.",
+    "arguments": [
+      {
+        "name": "raceId",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_race_pitstops",
+    "description": "Get all pit stop records for a race (driver, stop number, lap, duration). Available on every plan.",
+    "arguments": [
+      {
+        "name": "raceId",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_race_tyres",
+    "description": "Get tyre stint records for a race (driver, stint number, lap range, compound, tyre age). Available on every plan.",
+    "arguments": [
+      {
+        "name": "raceId",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_race_weather",
+    "description": "Get lap-by-lap weather data for a race. Available on every plan.",
+    "arguments": [
+      {
+        "name": "raceId",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_race_laps",
+    "description": "Get per-lap times and positions for a race. Requires Developer or higher. Optionally filter to a single driver with driverId.",
+    "arguments": [
+      {
+        "name": "raceId",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "driverId",
+        "type": "string",
+        "desc": "Filter to a specific driver, e.g. 'max_verstappen'."
+      }
+    ]
+  },
+  {
+    "name": "get_race_summary",
+    "description": "Get the post-race analytics status and aggregate telemetry metrics for a race. Status is available on every plan; the aggregate metrics are only returned on Developer and above.",
+    "arguments": [
+      {
+        "name": "raceId",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_race_telemetry_laps",
+    "description": "Get per-lap telemetry metrics (speed, throttle, brake, DRS, aggression) from telemetry data. Requires Developer or higher. Optional driverId to filter to one driver.",
+    "arguments": [
+      {
+        "name": "raceId",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "driverId",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_race_telemetry_stints",
+    "description": "Get per-stint telemetry metrics and degradation slopes. Requires a Custom plan (not included in Developer).",
+    "arguments": [
+      {
+        "name": "raceId",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "driverId",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_race_telemetry_aggression",
+    "description": "Get driver aggression index rankings for a race. Requires a Custom plan (not included in Developer).",
+    "arguments": [
+      {
+        "name": "raceId",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_session_analytics",
+    "description": "Get per-lap ML analytics snapshot for a session (pit probability, SC probability, tyre health, LTOE, win probability). Requires Developer or higher.",
+    "arguments": [
+      {
+        "name": "sessionId",
+        "type": "string",
+        "desc": "Session ID, e.g. '2026-bahrain_r'."
+      }
+    ]
+  },
+  {
+    "name": "get_event_pace",
+    "description": "Get practice and qualifying pace summary per driver for an event. Requires Developer or higher.",
+    "arguments": [
+      {
+        "name": "eventId",
+        "type": "string",
+        "desc": "Event ID from list_events."
+      }
+    ]
+  },
+  {
+    "name": "list_insight_races",
+    "description": "List races that have a completed post-race analytics pipeline \u2014 i.e. races where get_race_insights will return data. Available on every plan.",
+    "arguments": [
+      {
+        "name": "season",
+        "type": "integer",
+        "desc": "Filter to a specific season year."
+      }
+    ]
+  },
+  {
+    "name": "get_race_insights",
+    "description": "Get the full post-race ML analytics bundle for a race. Includes per-driver per-lap outputs: pit stop probability, safety car probability, overtake probability, undercut probability, tyre health, cliff risk and lap prediction, fuel-corrected lap time (LTOE), win probability, expected championship points. Also includes pit stops, tyre stints, lap times, and safety-car lap list. Output depends on plan: Free receives the descriptive data plus tyre state only (compound, tyre life, tyre health); the strategic predictions require Developer or higher.",
+    "arguments": [
+      {
+        "name": "raceId",
+        "type": "string",
+        "desc": "Race ID slug, e.g. '2026-bahrain-r1'."
+      }
+    ]
+  },
+  {
+    "name": "get_model_meta",
+    "description": "Get the public model manifest for each RaceHooks predictive model: what it predicts, its model family, a qualitative calibration tier, when it was last trained, and a changelog. Raw evaluation metrics are not exposed. Available on every plan.",
+    "arguments": []
+  },
+  {
+    "name": "get_telemetry_laps",
+    "description": "Get per-lap telemetry aggregates (avg/max speed, throttle, brake, DRS, aggression index). Returns all drivers by default. Filter with driverId or lapNumber. Requires Developer or higher.",
+    "arguments": [
+      {
+        "name": "raceId",
+        "type": "string",
+        "desc": "Race ID slug, e.g. '2026-bahrain-r1'."
+      },
+      {
+        "name": "driverId",
+        "type": "string",
+        "desc": "Filter to a specific driver."
+      },
+      {
+        "name": "lapNumber",
+        "type": "integer",
+        "desc": "Filter to a specific lap number."
+      }
+    ]
+  },
+  {
+    "name": "get_telemetry_driver_laps",
+    "description": "Get per-lap telemetry for a single driver across all laps of a race. Requires Developer or higher.",
+    "arguments": [
+      {
+        "name": "raceId",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "driverId",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_telemetry_lap_comparison",
+    "description": "Get all drivers' telemetry for a single lap \u2014 useful for side-by-side lap comparisons. Requires Developer or higher.",
+    "arguments": [
+      {
+        "name": "raceId",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "lapNumber",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_telemetry_race_summary",
+    "description": "Get race-level telemetry summary: max speed, fastest driver, average throttle/brake percentages, top aggression driver. Requires Developer or higher.",
+    "arguments": [
+      {
+        "name": "raceId",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "get_fantasy_pit_times",
+    "description": "Get the pit-stop time leaderboard for a session: stationary time (seconds stopped in the box) per stop, with driver code and team. Requires Developer or higher.",
+    "arguments": [
+      {
+        "name": "sessionId",
+        "type": "string",
+        "desc": "Session ID from list_events (e.g. a race session)."
+      }
+    ]
+  },
+  {
+    "name": "get_fantasy_scores",
+    "description": "Get estimated F1 Fantasy points per driver for a completed race. Includes full scoring breakdown: race position points, qualifying points, Q2/Q3 bonuses, positions gained, fastest lap, beat-teammate bonuses, and DNF penalty. Requires Developer or higher.",
+    "arguments": [
+      {
+        "name": "raceId",
+        "type": "string",
+        "desc": "Race ID slug, e.g. '2026-bahrain-r1'."
+      }
+    ]
+  }
+]
