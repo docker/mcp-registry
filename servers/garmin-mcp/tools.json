@@ -1,0 +1,269 @@
+[
+  {
+    "name": "garmin_activities",
+    "description": "List workouts in a date range, newest first: type, duration, distance, pace or speed, heart rate, time in HR zones, training load, training effect, VO2max, Body Battery impact, sets/reps. Default last 30 days, up to 100 items.",
+    "arguments": [
+      {
+        "name": "start_date",
+        "type": "string",
+        "desc": "First day, YYYY-MM-DD in the user's local calendar. Default: computed from end_date and days."
+      },
+      {
+        "name": "end_date",
+        "type": "string",
+        "desc": "Last day, YYYY-MM-DD. Default: today."
+      },
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Number of days ending at end_date, used when start_date is omitted."
+      },
+      {
+        "name": "activity_type",
+        "type": "string",
+        "desc": "Garmin parent type key, e.g. running, cycling, swimming, fitness_equipment, walking, hiking."
+      },
+      {
+        "name": "search",
+        "type": "string",
+        "desc": "Text to match in activity names."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum activities to return, 1-100. Default 20."
+      }
+    ]
+  },
+  {
+    "name": "garmin_activity",
+    "description": "Full summary of one workout by activity_id (from garmin_activities): all measurements Garmin computed, including temperature, cadence, power, training effect messages.",
+    "arguments": [
+      {
+        "name": "activity_id",
+        "type": "integer",
+        "desc": "Activity ID from garmin_activities."
+      }
+    ]
+  },
+  {
+    "name": "garmin_api_get",
+    "description": "Raw JSON from a Garmin Personal API endpoint not covered by other tools (SpO2 detail, stress/steps series, hydration, nutrition, menstrual cycle, fitness age history, HRV readings). Responses are large and truncated at 100 KB: prefer the dedicated tools.",
+    "arguments": [
+      {
+        "name": "endpoint",
+        "type": "string",
+        "desc": "Endpoint name (see enum)."
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "YYYY-MM-DD for endpoints with {date}."
+      },
+      {
+        "name": "start_date",
+        "type": "string",
+        "desc": "YYYY-MM-DD for endpoints with {start}."
+      },
+      {
+        "name": "end_date",
+        "type": "string",
+        "desc": "YYYY-MM-DD for endpoints with {end}."
+      },
+      {
+        "name": "activity_id",
+        "type": "integer",
+        "desc": "Activity ID for endpoints with {id}."
+      },
+      {
+        "name": "query",
+        "type": "object",
+        "desc": "Query parameters, e.g. {\"calendarDate\":\"2026-11-11\"}. Only keys documented for the endpoint are accepted."
+      }
+    ]
+  },
+  {
+    "name": "garmin_body_battery",
+    "description": "Per-day Body Battery (Garmin's 0-100 energy estimate): charged, drained, min/max, events that changed it (sleep, activities, naps) and Garmin's feedback. Optional intraday timeline. Range up to 31 days, default last 3.",
+    "arguments": [
+      {
+        "name": "start_date",
+        "type": "string",
+        "desc": "First day, YYYY-MM-DD in the user's local calendar. Default: computed from end_date and days."
+      },
+      {
+        "name": "end_date",
+        "type": "string",
+        "desc": "Last day, YYYY-MM-DD. Default: today."
+      },
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Number of days ending at end_date, used when start_date is omitted."
+      },
+      {
+        "name": "include_timeline",
+        "type": "boolean",
+        "desc": "Include the intraday level series (adds roughly 1-3 KB per day)."
+      }
+    ]
+  },
+  {
+    "name": "garmin_daily_summary",
+    "description": "Per-day wellness totals: steps, distance, calories, resting/min/max heart rate, intensity minutes, stress, Body Battery range, respiration, SpO2. Range up to 366 days, default last 7.",
+    "arguments": [
+      {
+        "name": "start_date",
+        "type": "string",
+        "desc": "First day, YYYY-MM-DD in the user's local calendar. Default: computed from end_date and days."
+      },
+      {
+        "name": "end_date",
+        "type": "string",
+        "desc": "Last day, YYYY-MM-DD. Default: today."
+      },
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Number of days ending at end_date, used when start_date is omitted."
+      }
+    ]
+  },
+  {
+    "name": "garmin_heart_rate",
+    "description": "Intraday heart rate for one day, aggregated into local-time intervals (avg/min/max bpm per interval), plus resting, min, max and 7-day resting average.",
+    "arguments": [
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "Day, YYYY-MM-DD. Default: today."
+      },
+      {
+        "name": "interval_minutes",
+        "type": "integer",
+        "desc": "Aggregation interval in minutes: 5, 10, 15, 20, 30, 60, 120, 180 or 240. Default 60."
+      }
+    ]
+  },
+  {
+    "name": "garmin_hrv",
+    "description": "Per-night heart rate variability (HRV, ms): last-night average, 5-minute high, 7-day average, personal baseline band and Garmin's status (BALANCED, UNBALANCED, LOW, POOR). Range up to 366 days, default last 14.",
+    "arguments": [
+      {
+        "name": "start_date",
+        "type": "string",
+        "desc": "First day, YYYY-MM-DD in the user's local calendar. Default: computed from end_date and days."
+      },
+      {
+        "name": "end_date",
+        "type": "string",
+        "desc": "Last day, YYYY-MM-DD. Default: today."
+      },
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Number of days ending at end_date, used when start_date is omitted."
+      }
+    ]
+  },
+  {
+    "name": "garmin_profile",
+    "description": "User context for interpreting other data: time zone and units, heart rate zones per sport, Fitness Age with its components, latest weight.",
+    "arguments": []
+  },
+  {
+    "name": "garmin_recovery_status",
+    "description": "Readiness snapshot for one day (default today): last night's sleep; HRV, resting HR, sleep HR, breathing rate and yesterday's stress each compared with the user's own previous 28 days (mean, SD, z-score, days of history); Body Battery recharge; training load of the last 7 vs 28 days; plain-language signals with the method used. Use this first for 'how recovered am I' questions.",
+    "arguments": [
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "Day, YYYY-MM-DD. Default: today."
+      }
+    ]
+  },
+  {
+    "name": "garmin_sleep",
+    "description": "Per-night sleep: bedtime, wake time, duration, deep/light/REM/awake minutes, sleep score with sub-scores, average heart rate, sleep stress, SpO2, respiration, sleep need and Garmin's feedback. Filed under the wake-up date. Range up to 366 days, default last 7.",
+    "arguments": [
+      {
+        "name": "start_date",
+        "type": "string",
+        "desc": "First day, YYYY-MM-DD in the user's local calendar. Default: computed from end_date and days."
+      },
+      {
+        "name": "end_date",
+        "type": "string",
+        "desc": "Last day, YYYY-MM-DD. Default: today."
+      },
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Number of days ending at end_date, used when start_date is omitted."
+      }
+    ]
+  },
+  {
+    "name": "garmin_sleep_analysis",
+    "description": "Sleep quality analysis over a period (default 28 days, up to 366): average duration vs Garmin's baseline sleep need and weekly shortfall, regularity (median sleep onset and wake time, spread, weekday-weekend shift), stage shares, sub-score counts, score trend, sleep heart rate, HRV, resting HR, SpO2, respiration, and factors from the previous day (stress above usual, late or hard workouts, low activity, late sleep onset) compared with sleep score, HRV and sleep HR. Use this first for sleep questions and recommendations.",
+    "arguments": [
+      {
+        "name": "start_date",
+        "type": "string",
+        "desc": "First day, YYYY-MM-DD in the user's local calendar. Default: computed from end_date and days."
+      },
+      {
+        "name": "end_date",
+        "type": "string",
+        "desc": "Last day, YYYY-MM-DD. Default: today."
+      },
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Number of days ending at end_date, used when start_date is omitted."
+      }
+    ]
+  },
+  {
+    "name": "garmin_trends",
+    "description": "Weekly or monthly averages over a long period (default 12 weeks, up to 2 years): resting HR, HRV, sleep duration and score, steps, stress, Body Battery peak, intensity minutes, workout count, workout time, training load, weight. Small output; use it for progress and long-term patterns.",
+    "arguments": [
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Length of the period ending today, 14-731 days. Default 84 (12 weeks)."
+      },
+      {
+        "name": "end_date",
+        "type": "string",
+        "desc": "Last day, YYYY-MM-DD. Default: today."
+      },
+      {
+        "name": "period",
+        "type": "string",
+        "desc": "Bucket size: week (Monday-based) or month. Default week."
+      }
+    ]
+  },
+  {
+    "name": "garmin_weight",
+    "description": "Daily weigh-ins: weight (kg), BMI, body fat, muscle mass, body water where available. Range up to 2 years, default last 90 days.",
+    "arguments": [
+      {
+        "name": "start_date",
+        "type": "string",
+        "desc": "First day, YYYY-MM-DD in the user's local calendar. Default: computed from end_date and days."
+      },
+      {
+        "name": "end_date",
+        "type": "string",
+        "desc": "Last day, YYYY-MM-DD. Default: today."
+      },
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Number of days ending at end_date, used when start_date is omitted."
+      }
+    ]
+  }
+]

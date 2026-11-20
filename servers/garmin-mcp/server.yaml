@@ -1,0 +1,37 @@
+name: garmin-mcp
+image: mcp/garmin-mcp
+type: server
+meta:
+  category: productivity
+  tags:
+    - health
+    - fitness
+    - sleep
+    - garmin
+about:
+  title: Garmin Connect (unofficial)
+  description: Unofficial read-only access to your own Garmin Connect data through the official Garmin Connect Personal API - sleep, HRV, heart rate, stress, Body Battery, workouts and weight - with sleep quality and recovery analysis against your personal baseline. Not affiliated with Garmin Ltd.
+  icon: https://avatars.githubusercontent.com/u/96726068?v=4
+source:
+  project: https://github.com/sasha-sup/garmin-mcp
+  commit: e7a627a76fc5e404fdab957d52ed55f5255fa6d7
+run:
+  allowHosts:
+    - personal.connectapi.garmin.com:443
+config:
+  description: Create a Personal API key at https://connect.garmin.com/app/settings/personalApiToken
+  secrets:
+    - name: garmin-mcp.api_key
+      env: GARMIN_API_KEY
+      example: <YOUR_GARMIN_PERSONAL_API_KEY>
+      description: Garmin Connect Personal API key ([create one](https://connect.garmin.com/app/settings/personalApiToken))
+  env:
+    - name: GARMIN_TZ
+      example: Europe/Berlin
+      value: '{{garmin-mcp.time_zone}}'
+  parameters:
+    type: object
+    properties:
+      time_zone:
+        type: string
+        description: Your IANA time zone, e.g. Europe/Berlin (default UTC)
