@@ -1,0 +1,140 @@
+[
+  {
+    "name": "find_walk_in_places",
+    "description": "Find businesses in a US city that take walk-ins, with how long the wait is right now. Open places come first, shortest wait first. Optionally narrow to one kind of business with `trade`: barbershops (barbershop), hair-salons (hair salon), nail-salons (nail salon), brow-and-lash (brow and lash studio), massage-and-spas (massage studio or spa), tattoo-shops (tattoo shop), pet-groomers (pet groomer), vet-clinics (vet clinic), chiropractors (walk-in chiropractor), tax-preparers (tax preparation office), auto-repair (auto repair shop), car-washes (car wash), phone-repair (phone repair shop). Returns at most 10 places, each with a link to join the line.",
+    "arguments": [
+      {
+        "name": "city",
+        "type": "string",
+        "desc": "City name, e.g. Austin",
+        "required": true
+      },
+      {
+        "name": "state",
+        "type": "string",
+        "desc": "Two-letter US state code, e.g. TX",
+        "required": true
+      },
+      {
+        "name": "trade",
+        "type": "string",
+        "desc": "Optional kind of business, one of the slugs listed in the tool description"
+      }
+    ]
+  },
+  {
+    "name": "get_place",
+    "description": "Details for one place from its `slug` (from find_walk_in_places): its address, whether it is open now, today's hours, the current wait and how many people are waiting, whether it takes walk-ins and online bookings, its team members, and the link to join the line.",
+    "arguments": [
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "The place's slug",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "get_services",
+    "description": "The services a place offers publicly, with the prices and lengths it shows to customers (up to 30). Use a service's id with available_times, join_link or booking_link.",
+    "arguments": [
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "The place's slug",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "available_times",
+    "description": "Open start times (up to 12) on one date for one service, when the place takes online bookings. Times are in the place's own time zone.",
+    "arguments": [
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "The place's slug",
+        "required": true
+      },
+      {
+        "name": "serviceId",
+        "type": "string",
+        "desc": "A service id from get_services",
+        "required": true
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "Date as YYYY-MM-DD, in the place's time zone",
+        "required": true
+      },
+      {
+        "name": "memberId",
+        "type": "string",
+        "desc": "Optional team member id from get_place"
+      }
+    ]
+  },
+  {
+    "name": "join_link",
+    "description": "A link the person taps to join the place's line from their phone, optionally with a service and team member filled in. You cannot join for them: they confirm on the place's own page.",
+    "arguments": [
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "The place's slug",
+        "required": true
+      },
+      {
+        "name": "serviceId",
+        "type": "string",
+        "desc": "Optional service id from get_services"
+      },
+      {
+        "name": "memberId",
+        "type": "string",
+        "desc": "Optional team member id from get_place"
+      }
+    ]
+  },
+  {
+    "name": "booking_link",
+    "description": "A link the person taps to book an appointment, with the service (and optionally a team member and date) filled in. You cannot book for them: they pick a time and confirm on the place's own page.",
+    "arguments": [
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "The place's slug",
+        "required": true
+      },
+      {
+        "name": "serviceId",
+        "type": "string",
+        "desc": "A service id from get_services",
+        "required": true
+      },
+      {
+        "name": "memberId",
+        "type": "string",
+        "desc": "Optional team member id from get_place"
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "Optional date as YYYY-MM-DD"
+      }
+    ]
+  },
+  {
+    "name": "purchase_link",
+    "description": "The packages and memberships a place sells online, and the link where the person pays for them. Only for places whose owner turned it on. You cannot pay for them: they open the link and pay on the place's own secure Stripe page. Gift cards aren't sold online.",
+    "arguments": [
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "The place's slug",
+        "required": true
+      }
+    ]
+  }
+]
