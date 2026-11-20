@@ -1,0 +1,153 @@
+[
+  {
+    "name": "list_environments",
+    "description": "List the environments in supaforge.config.json, and which are the default source and target. Says whether each has the Supabase project details the API-based checks need; never returns credentials.",
+    "arguments": [
+      {
+        "name": "configPath",
+        "type": "string",
+        "desc": "Absolute path to supaforge.config.json. Rejected unless the server was started with --allow-config-path; otherwise the config in the server's own working directory is used."
+      }
+    ]
+  },
+  {
+    "name": "diff",
+    "description": "Compare two Supabase environments and report every difference: schema, RLS, roles and grants, auth, storage, Edge Functions, cron and more. Returns the findings with their SQL, a drift score, and the plan: the statements sync would run, in order, and what it would hold back and why. Writes nothing. Show the plan to the user before calling sync.",
+    "arguments": [
+      {
+        "name": "configPath",
+        "type": "string",
+        "desc": "Absolute path to supaforge.config.json. Rejected unless the server was started with --allow-config-path; otherwise the config in the server's own working directory is used."
+      },
+      {
+        "name": "source",
+        "type": "string",
+        "desc": "Source environment name; list_environments shows them. Defaults to the config's source."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "Target environment name. Defaults to the config's target."
+      },
+      {
+        "name": "checks",
+        "type": "array",
+        "desc": "Compare only these checks (e.g. [\"schema\", \"rls\"])."
+      },
+      {
+        "name": "skip",
+        "type": "array",
+        "desc": "Leave these checks out, as the CLI --skip flag does. Added to checks.exclude from the config."
+      },
+      {
+        "name": "only",
+        "type": "array",
+        "desc": "Fix only these findings, by id from diff (globs allowed, e.g. \"rls-*\")."
+      },
+      {
+        "name": "allowDestructive",
+        "type": "boolean",
+        "desc": "Include fixes that drop tables or columns. Off by default: they are reported but held back."
+      }
+    ]
+  },
+  {
+    "name": "sync",
+    "description": "Make the target environment match the source by running the plan diff shows. WRITES TO THE TARGET DATABASE: call diff first, show the user the plan, and call this only once they agree, with the same arguments. SQL fixes run in one transaction and roll back together if any fails. prove=true first rehearses the plan on a throwaway copy of the target and refuses to write if the result would not match the source.",
+    "arguments": [
+      {
+        "name": "configPath",
+        "type": "string",
+        "desc": "Absolute path to supaforge.config.json. Rejected unless the server was started with --allow-config-path; otherwise the config in the server's own working directory is used."
+      },
+      {
+        "name": "source",
+        "type": "string",
+        "desc": "Source environment name; list_environments shows them. Defaults to the config's source."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "Target environment name. Defaults to the config's target."
+      },
+      {
+        "name": "checks",
+        "type": "array",
+        "desc": "Compare only these checks (e.g. [\"schema\", \"rls\"])."
+      },
+      {
+        "name": "skip",
+        "type": "array",
+        "desc": "Leave these checks out, as the CLI --skip flag does. Added to checks.exclude from the config."
+      },
+      {
+        "name": "only",
+        "type": "array",
+        "desc": "Fix only these findings, by id from diff (globs allowed, e.g. \"rls-*\")."
+      },
+      {
+        "name": "allowDestructive",
+        "type": "boolean",
+        "desc": "Include fixes that drop tables or columns. Off by default: they are reported but held back."
+      },
+      {
+        "name": "prove",
+        "type": "boolean",
+        "desc": "Rehearse on a throwaway copy of the target first, and write nothing unless the copy ends up matching the source. Needs permission to create a database on the target's server."
+      }
+    ]
+  },
+  {
+    "name": "take_snapshot",
+    "description": "Capture a point-in-time snapshot of a Supabase environment. Snapshots are stored under .supaforge/snapshots/ and can be used to restore state.",
+    "arguments": [
+      {
+        "name": "configPath",
+        "type": "string",
+        "desc": "Absolute path to supaforge.config.json. Rejected unless the server was started with --allow-config-path; otherwise the config in the server's own working directory is used."
+      },
+      {
+        "name": "environment",
+        "type": "string",
+        "desc": "Environment to snapshot (defaults to config source)."
+      }
+    ]
+  },
+  {
+    "name": "create_migration",
+    "description": "Write the schema difference between source and target as a migration file, as `supaforge migrate create` does: the SQL that brings the target to the source, the grants on what it creates (so it works where new tables are not granted by default), and a DOWN to revert it. Written to the configured migrations directory (supabase/migrations by default). Changes no database.",
+    "arguments": [
+      {
+        "name": "configPath",
+        "type": "string",
+        "desc": "Absolute path to supaforge.config.json. Rejected unless the server was started with --allow-config-path; otherwise the config in the server's own working directory is used."
+      },
+      {
+        "name": "source",
+        "type": "string",
+        "desc": "Source environment name; list_environments shows them. Defaults to the config's source."
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "Target environment name. Defaults to the config's target."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name for the migration, used in the file name (e.g. \"add_rls_to_orders\")."
+      }
+    ]
+  },
+  {
+    "name": "get_check_result",
+    "description": "Retrieve the result for one check from the most recent diff or sync call. Returns issues, status, and duration for the named check.",
+    "arguments": [
+      {
+        "name": "check",
+        "type": "string",
+        "desc": "The check name to retrieve (e.g. \"rls-coverage\")."
+      }
+    ]
+  }
+]
