@@ -1,0 +1,1564 @@
+[
+  {
+    "name": "server_status",
+    "description": "[Stufe: read] Zeigt, welche Sicherheitsstufen aktiv und welche Tools registriert sind, den Box-Schutz je Box (Drosselung, Cache, Schutzschalter) und die Gesundheit je Box: health ok/degraded/down mit Begründung, je Schnittstelle (TR-064, /api/v0, Smart-Home-REST, AHA) letzte erfolgreiche Anfrage und letzter Fehler, Re-Logins und Alter der Web-Sitzung. Ohne probe keine Box-Abfrage (nur bekannter Zustand).",
+    "arguments": [
+      {
+        "name": "probe",
+        "type": "boolean",
+        "desc": "Je Schnittstelle genau EINE billige Leseanfrage an jede Box (über den Box-Schutz)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "setup_check",
+    "description": "[Stufe: read] Einrichtungs-Check (nur lesend): TR-064 erreichbar, Rechte des MCP-Benutzers, anonyme Anmeldung, Standardkennwort, Zusatzbestätigung (2FA), /api/v0, AHA und Smart-Home-REST erreichbar, aktive Stufen – und je fehlendem Recht die Tools, die deshalb nicht funktionieren. Erster Aufruf nach der Installation.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "boxes_overview",
+    "description": "[Stufe: read] Alle konfigurierten FRITZ!Boxen auf einen Blick: Modell, FRITZ!OS, Update verfügbar, Internet verbunden, Kurz-Sicherheitsstatus. Eine nicht erreichbare Box bricht die Übersicht nicht ab.",
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "compare_boxes",
+    "description": "[Stufe: read] Vergleicht einen Aspekt über alle Boxen (dns, security, firmware, wlan, system, wan): Werte je Box und die Felder, in denen sich die Boxen unterscheiden.",
+    "arguments": [
+      {
+        "name": "aspect",
+        "type": "string",
+        "desc": "Was verglichen wird"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "system_info",
+    "description": "[Stufe: read] Modell, FRITZ!OS-Version, Hardware-Version und Laufzeit (TR-064 DeviceInfo:GetInfo).",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "wan_status",
+    "description": "[Stufe: read] Internet-Verbindung: Status, Laufzeit, Zugangsart, Leitungsrate, externe IPv4/IPv6 (TR-064).",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "list_hosts",
+    "description": "[Stufe: read] Bekannte Hosts laut TR-064 (Hosts): Name, IP, MAC, aktiv, Anschlussart.",
+    "arguments": [
+      {
+        "name": "only_active",
+        "type": "boolean",
+        "desc": "Nur aktive Geräte"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "list_landevices",
+    "description": "[Stufe: read] Geräteeinträge der FRITZ!OS-8-REST-API: uid, name (TR-064), friendly_name (Web-UI), mac, ip, static_dhcp, active, online, deleteable.",
+    "arguments": [
+      {
+        "name": "only_active",
+        "type": "boolean",
+        "desc": "Nur aktive/online Geräte"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "get_lan_dns",
+    "description": "[Stufe: read] DNS-Server, die die FRITZ!Box per DHCP an LAN-Clients verteilt (LANHostConfigManagement:GetDNSServer).",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "tr064_list_services",
+    "description": "[Stufe: read] Alle TR-064-Services der Box mit den per tr064_call erlaubten lesenden Actions.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "tr064_describe_action",
+    "description": "[Stufe: read] Argumente (Richtung, Datentyp, erlaubte Werte) einer TR-064-Action aus der SCPD.",
+    "arguments": [
+      {
+        "name": "service_name",
+        "type": "string",
+        "desc": "z. B. Hosts1 oder Hosts:1"
+      },
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "z. B. GetSpecificHostEntry"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "tr064_call",
+    "description": "[Stufe: read] Generischer TR-064-Aufruf – in Stufe 1 nur lesende Actions; Neustart, Reset, Reconnect, Konfig-Import/-Export und Zugangsdaten-Abfragen sind gesperrt. Geheimnisse werden geschwärzt.",
+    "arguments": [
+      {
+        "name": "service_name",
+        "type": "string",
+        "desc": "z. B. WLANConfiguration1"
+      },
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "Nur lesende Actions (Get*, X_AVM-DE_Get*)"
+      },
+      {
+        "name": "arguments",
+        "type": "object",
+        "desc": "Eingabe-Argumente, z. B. {\"NewIndex\": 0}"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "wlan_status",
+    "description": "[Stufe: read] Alle WLANs (TR-064 WLANConfiguration1..n): aktiv, SSID, Band, Kanal, Standard, Verschlüsselung, Anzahl verbundener Clients, Gast ja/nein. Gibt NIE WLAN-Schlüssel aus.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "guest_wifi_status",
+    "description": "[Stufe: read] Gast-WLAN: aktiv, SSID, Verschlüsselung, Clients, Zeitbegrenzung (TR-064). Ohne Schlüssel.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "wlan_settings",
+    "description": "[Stufe: read] WLAN-Einstellungen je Funkband (TR-064 WLANConfiguration): Kanal, Autokanal, mögliche Kanäle, DFS-Kanal ja/nein, Standard; WLAN global an/aus; Nachtschaltung/WLAN-Zeitplan (X_AVM-DE_GetNightControl). Bandsteuerung und Kanalbandbreite sind per TR-064 nicht lesbar (unknown). Keine Schlüssel.",
+    "arguments": [
+      {
+        "name": "include_web_ui",
+        "type": "boolean",
+        "desc": "Zusätzlich Kanal-/Band-/Zeitplan-Felder aus /api/v0 wlan_light (unverifiziert)"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "smarthome_list_devices",
+    "description": "[Stufe: read] Smart-Home-Geräte und -Gruppen (AHA-HTTP getdevicelistinfos): Name, AIN, Typ, Funktionen, erreichbar, Schaltzustand, Temperatur, Leistung/Energie, Thermostat-Soll/Ist. Leere Liste = keine Geräte.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "smarthome_device_stats",
+    "description": "[Stufe: read] Verlaufsstatistik eines Smart-Home-Geräts (AHA getbasicdevicestats): Temperatur, Spannung, Leistung, Energie, Luftfeuchte – in °C/V/W/Wh/% umgerechnet.",
+    "arguments": [
+      {
+        "name": "ain",
+        "type": "string",
+        "desc": "AIN des Smart-Home-Geräts, z. B. \"08761 0000434\""
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "system_log",
+    "description": "[Stufe: read] Ereignisprotokoll der FRITZ!Box (TR-064 DeviceInfo:GetDeviceLog), optional nach Text gefiltert.",
+    "arguments": [
+      {
+        "name": "count",
+        "type": "integer",
+        "desc": "Anzahl Einträge (1–500), neueste zuerst"
+      },
+      {
+        "name": "text_filter",
+        "type": "string",
+        "desc": "Nur Einträge, deren Text das enthält (ohne Groß-/Kleinschreibung)"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "dsl_info",
+    "description": "[Stufe: read] DSL-Leitung (TR-064 WANDSLInterfaceConfig:GetInfo): Sync-Raten, max. Raten, SNR-Marge, Dämpfung, Fehlerzähler. Ohne DSL-Anschluss: available=false.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "firmware_status",
+    "description": "[Stufe: read] Installiertes FRITZ!OS und ob ein Update verfügbar ist (TR-064 UserInterface:GetInfo).",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "security_check",
+    "description": "[Stufe: read] Sicherheits-Check mit Score 0–100 und je Befund ok/warn/unknown + remediation (Menüpfad): Fernzugriff (+2FA), MyFRITZ!, Portfreigaben, UPnP, TR-064, WPS, WPA-Modus, Gast-WLAN (Verschlüsselung, Isolierung), Firmware (aktuell, Auto-Update), DNS over TLS, feste IPs. Nur lesend.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "network_doctor",
+    "description": "[Stufe: read] Netz-Doktor (nur lesend): kombiniert WAN/DSL-Werte (SNR, Dämpfung, Fehler), Ereignisprotokoll (Sync-Verlust, Abbrüche, DNS-Störung, Radar, LAN-Link-Wechsel), WLAN, Mesh, Online-Monitor, LAN-Ports (Link-Flapping, EEE + Raspberry Pi), DNS als Single Point of Failure und optional eine test_my_device- Messung zu Befunden mit Schweregrad, wahrscheinlicher Ursache und Empfehlung. Schwellen = Faustregeln.",
+    "arguments": [
+      {
+        "name": "symptom",
+        "type": "string",
+        "desc": "Optional: Symptom in eigenen Worten, z. B. 'WLAN abends langsam'"
+      },
+      {
+        "name": "flap_check_seconds",
+        "type": "integer",
+        "desc": "0 = aus; sonst LAN-Ports/Geräte so viele Sekunden (≤60) auf Link-Flapping abtasten"
+      },
+      {
+        "name": "client_measurement",
+        "type": "object",
+        "desc": "Optional: Ergebnis von test_my_device (oder dessen for_network_doctor) einbeziehen"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "call_list",
+    "description": "[Stufe: read] Anrufliste (TR-064 X_AVM-DE_OnTel:GetCallList): Datum, Typ, Gegenstelle, Name, Gerät, Dauer. Neueste zuerst; Filter incoming/outgoing/missed/rejected; optional Namen aus den Telefonbüchern. Keine Aufnahmen.",
+    "arguments": [
+      {
+        "name": "days",
+        "type": "integer",
+        "desc": "Nur die letzten N Tage (1–999)"
+      },
+      {
+        "name": "max_entries",
+        "type": "integer",
+        "desc": "Höchstens so viele Anrufe (1–1000)"
+      },
+      {
+        "name": "call_type",
+        "type": "string",
+        "desc": "Filter nach Anruftyp"
+      },
+      {
+        "name": "resolve_names",
+        "type": "boolean",
+        "desc": "Fehlende Namen per Rückwärtssuche in den Telefonbüchern der Box ergänzen"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "tam_list",
+    "description": "[Stufe: read] Anrufbeantworter (TR-064 X_AVM-DE_TAM): Name, aktiv, Anzahl Nachrichten/neue Nachrichten, Speicher. Keine Audio-Downloads.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "phonebook_list",
+    "description": "[Stufe: read] Telefonbücher (TR-064 X_AVM-DE_OnTel): nur ID, Name und optional Anzahl Kontakte.",
+    "arguments": [
+      {
+        "name": "with_counts",
+        "type": "boolean",
+        "desc": "Zusätzlich Anzahl Kontakte je Telefonbuch"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "internet_access_status",
+    "description": "[Stufe: read] Kindersicherung: ist der Internetzugang eines Geräts gesperrt? (TR-064 X_AVM-DE_HostFilter: GetWANAccessByIP). Gerät per mac ODER ip.",
+    "arguments": [
+      {
+        "name": "mac",
+        "type": "string",
+        "desc": "MAC-Adresse des Geräts (alternativ ip)"
+      },
+      {
+        "name": "ip",
+        "type": "string",
+        "desc": "IPv4-Adresse des Geräts (alternativ mac)"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "list_port_forwards",
+    "description": "[Stufe: read] IPv4-Portfreigaben (TR-064 WAN-Portmapping): Protokoll, externer Port, Ziel-IP/-Name, interner Port, aktiv, Bezeichnung. Optional die Freigabe-/IPv6-Firewall-Listen der Web-UI (roh, unverifiziert).",
+    "arguments": [
+      {
+        "name": "include_web_ui_lists",
+        "type": "boolean",
+        "desc": "Zusätzlich /api/v0 forwardrules + ipv6firewall roh (geschwärzt, Struktur unverifiziert)"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "get_dns_settings",
+    "description": "[Stufe: read] DNS-Einstellungen nur lesend: per DHCP verteilter DNS (TR-064), aktuell genutzte Upstream-DNS IPv4/IPv6 (TR-064), eigene DNS-Server, lokaler DNSv6-Server und DoT laut /api/v0 (unverifiziert). Ändern ist nicht möglich.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "devices_cleanup_report",
+    "description": "[Stufe: read] Aufräum-Assistent (nur lesend): Löschkandidaten (Zufalls-MACs, lange offline, ohne MAC, Namens-Duplikate mit Zufalls-MAC, verwaiste feste IPs; gleiche IP nur als Hinweis, Hersteller-MACs nur bei bekanntem 'zuletzt online' ab der Grenze) und Umbenennungsvorschläge (Hersteller per MAC/IEEE-OUI, Schema Typ-Raum bzw. Hersteller-Modell, nur A–Z a–z 0–9 -), jeweils mit Begründung. Nie vorgeschlagen: Box, geschützte und aktive Geräte, VPN-Gegenstellen (IP im entfernten Netz einer VPN-Verbindung), AVM-Geräte/Mesh-Knoten (auch lokal administrierte AVM-MACs, keine Umbenennung); Einträge ohne MAC nur offline und ohne VPN-Bezug.",
+    "arguments": [
+      {
+        "name": "offline_days",
+        "type": "integer",
+        "desc": "Ab so vielen Tagen offline Löschkandidat (nur wenn die Box 'zuletzt online' liefert)"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "mesh_overview",
+    "description": "[Stufe: read] Mesh-Übersicht (TR-064 Hosts:X_AVM-DE_GetMeshListPath): Mesh-Master, Knoten (Box, Repeater, Powerline), Verbindungen zwischen Knoten, je Gerät Zugangspunkt, LAN/WLAN-Band, Linkrate, Signal (dBm aus der Mesh-Liste bzw. Signal-% aus der WLAN-Geräteliste X_AVM-DE_GetWLANDeviceListPath).",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "online_monitor",
+    "description": "[Stufe: read] Aktueller Up-/Down-Durchsatz (TR-064 X_AVM-DE_GetOnlineMonitor) und übertragenes Volumen seit Verbindungsaufbau, mit Einheiten. Tages-/Monatsvolumen ist per TR-064 nicht lesbar.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "vpn_status",
+    "description": "[Stufe: read] MyFRITZ!-, Fernzugriffs- und DynDNS-Status (TR-064) plus WireGuard/IPSec-Verbindungen aus /api/v0/generic/vpn (wie vpn_connections; ohne /api/v0 = unknown). Gibt nie Schlüssel, Passwörter oder VPN-Konfigurationen aus.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "snapshot_create",
+    "description": "[Stufe: read] Konfigurations-Schnappschuss: liest Einstellungen (System/Firmware, WAN-Typ, DNS, WLAN ohne Schlüssel, Gastnetz, Portfreigaben, Fernzugriff/MyFRITZ!/UPnP/WPS, feste IPs, Internetsperren, Smart-Home-Liste, Geräteinventar) und speichert sie NUR LOKAL als JSON (0600). Ändert an der Box nichts; keine Messwerte.",
+    "arguments": [
+      {
+        "name": "label",
+        "type": "string",
+        "desc": "Optionale Bezeichnung, z. B. 'vor Firmware-Update'"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "snapshot_list",
+    "description": "[Stufe: read] Lokal gespeicherte Schnappschüsse dieser Box (neueste zuerst).",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "snapshot_diff",
+    "description": "[Stufe: read] Vergleicht zwei Schnappschüsse bzw. Schnappschuss und Live-Zustand: geändert/neu/entfernt je Kategorie plus Kurzfassung in Klartext (neue Portfreigabe, unbekanntes Gerät, DNSv6 geändert …). Messwerte und Zähler zählen nicht als Änderung.",
+    "arguments": [
+      {
+        "name": "a",
+        "type": "string",
+        "desc": "Schnappschuss-ID (Standard: letzter)"
+      },
+      {
+        "name": "b",
+        "type": "string",
+        "desc": "Schnappschuss-ID oder 'live' (Standard: aktueller Zustand)"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "nas_status",
+    "description": "[Stufe: read] NAS der FRITZ!Box (TR-064 X_AVM-DE_Storage/Filelinks/WebDAVClient/Media): SMB, FTP, FTP aus dem Internet, Online-Speicher, geteilte Links (Name/Pfad/Ablauf/Downloads, ohne Link-Token), Mediaserver, DVB-C. Speicherplatz ist per TR-064 nicht lesbar (unknown). Keine Zugangsdaten, kein Dateizugriff.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "backup_target_check",
+    "description": "[Stufe: read] Bewertet die FRITZ!Box-NAS als Backup-Ziel: SMB aktiv, NAS-Dienst erreichbar, Internet-FTP aus, freier Platz (per TR-064 nicht lesbar → unknown) → overall ok/warn/fail mit Empfehlungen.",
+    "arguments": [
+      {
+        "name": "share",
+        "type": "string",
+        "desc": "Optional: Name der SMB-Freigabe (nur Hinweis)"
+      },
+      {
+        "name": "min_free_gb",
+        "type": "number",
+        "desc": "Mindestens so viel freier Platz in GB"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "myfritz_status",
+    "description": "[Stufe: read] MyFRITZ!-Konto (aktiv/registriert/Adresse), über MyFRITZ! freigegebene Dienste, DynDNS (Anbieter, Domain, Status), Fernzugriff (aktiv, Port, HTTPS, Let's Encrypt), Cloud-Fernverwaltung (USP), Rechte des MCP-Benutzers – plus Bewertungen ok/warn/unknown. Nie Passwörter, Benutzernamen oder E-Mail.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "lan_ports",
+    "description": "[Stufe: read] LAN-Ports der Box (/api/v0/generic/eth_ports): Bezeichnung, Funktion (lan/guest/wan), verbunden, Geschwindigkeit vs. Maximalrate, Power-/Green-Mode, EEE-Modus (auto/off) und ob EEE gerade ausgehandelt ist. Hinweis: EEE wirkt auf manchen Modellen box-weit.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "vpn_connections",
+    "description": "[Stufe: read] VPN-Verbindungen der Box (/api/v0/generic/vpn): Name, Typ WireGuard/IPSec, Zustand, aktiviert, verbunden seit (ISO), Gegenstelle, lokale/entfernte Netze, aktiver Fehler bzw. bei verbundener Verbindung letzter (historischer) Fehler – Codes roh, undokumentiert –, WireGuard-Port. Gibt NIE Schlüssel, Pre-Shared-Keys, Konfigurationen oder Zugangsdaten aus.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "powerline_status",
+    "description": "[Stufe: read] Powerline-Adapter (/api/v0/generic/plc): Modell, Status, Kopplung, Firmware/Update, PHY-Raten (Einheit unverifiziert), Green-Mode, LED, Gegenstellen + Hinweise bei niedriger Rate.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "box_speedtest_info",
+    "description": "[Stufe: read] Speedtest-SERVER der Box (TR-064 X_AVM-DE_Speedtest: GetInfo/GetStatistics): TCP/UDP im Heimnetz bzw. aus dem Internet aktiv, Ports, letzte Messung (Mbit/s). Kein Internet-Speedtest (gibt es per TR-064 nicht); warnt, wenn der Server aus dem Internet erreichbar ist.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "device_connection_quality",
+    "description": "[Stufe: read] Verbindungsqualität je Gerät: WLAN (Signal dBm/%, Band, Kanal, Kanalbreite, aktuelle/max. Rate, Zugangspunkt) bzw. LAN (Port, Speed vs. Maximalrate, EEE) – mit Bewertung gut/ok/schwach und konkreten Tipps. Quellen: Mesh-Liste, TR-064 WLANConfiguration, /api/v0 eth_ports. Schlechteste zuerst.",
+    "arguments": [
+      {
+        "name": "mac",
+        "type": "string",
+        "desc": "Optional: nur dieses Gerät (MAC); sonst alle"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "test_my_device",
+    "description": "[Stufe: read] Testet DIESEN Rechner (auf dem der MCP läuft): Latenz/Jitter/Verlust zur Box (TCP-Connect 80/49000, kein Root), DNS-Antwortzeit gegen den von der Box verteilten und einen öffentlichen DNS, HTTP-Download- Durchsatz (kleine Datenmenge) – und vergleicht mit der Sicht der Box (eigene IP → Gerät → WLAN-Signal/ Band/Rate bzw. LAN-Port). Ergebnis 'for_network_doctor' kann an network_doctor übergeben werden.",
+    "arguments": [
+      {
+        "name": "count",
+        "type": "integer",
+        "desc": "Anzahl Latenz-Messungen je Port (1–50)"
+      },
+      {
+        "name": "dns_name",
+        "type": "string",
+        "desc": "Name für die DNS-Abfrage"
+      },
+      {
+        "name": "public_dns",
+        "type": "string",
+        "desc": "Öffentlicher DNS-Server zum Vergleich ('' = keiner)"
+      },
+      {
+        "name": "download",
+        "type": "boolean",
+        "desc": "HTTP-Download-Durchsatz messen"
+      },
+      {
+        "name": "download_url",
+        "type": "string",
+        "desc": "Download-URL (Standard: FRITZ_TEST_DOWNLOAD_URL oder speed.cloudflare.com)"
+      },
+      {
+        "name": "download_bytes",
+        "type": "integer",
+        "desc": "Höchstens so viele Bytes laden"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": true,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "parental_profiles",
+    "description": "[Stufe: read] Zugangsprofile der Kindersicherung (TR-064 X_AVM-DE_HostFilter:GetFilterProfiles): ID, Name, Typ (Standard/Guest/Unrestricted/Personal), Budget je Wochentag, Budget geteilt, Zeitplan (Wochentag, Uhrzeit, erlauben/sperren). Einheiten teils unverifiziert (siehe units).",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "parental_device_status",
+    "description": "[Stufe: read] Kindersicherung eines Geräts (TR-064 GetHostEntryByIP): Zugangsprofil, genutzte/maximale Online-Zeit (s), Restzeit, Tickets im Voraus, Ticket-Gültigkeit, Internetzugang granted/denied, manuelle Sperre. Gerät per mac ODER ip.",
+    "arguments": [
+      {
+        "name": "mac",
+        "type": "string",
+        "desc": "MAC-Adresse des Geräts (alternativ ip)"
+      },
+      {
+        "name": "ip",
+        "type": "string",
+        "desc": "IPv4-Adresse des Geräts (alternativ mac)"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "parental_ticket_status",
+    "description": "[Stufe: read] Status eines Kindersicherungs-Tickets (TR-064 GetTicketIDStatus): unmarked, marked (ausgegeben, nicht eingelöst) oder invalid (eingelöst/ungültig).",
+    "arguments": [
+      {
+        "name": "ticket_id",
+        "type": "string",
+        "desc": "6-stellige Ticket-ID"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "avm_device_updates",
+    "description": "[Stufe: read] Update-Übersicht aller AVM-Geräte: FRITZ!Box (FRITZ!OS, Update verfügbar, Auto-Update), Repeater/Mesh- Knoten aus der Hostliste, DECT-Mobilteile und DECT-ULE-Geräte (X_AVM-DE_Dect), Powerline (X_AVM-DE_Homeplug) – je Gerät Modell, aktiv, update_available, letztes Update. Nicht lesbare Teile = available false.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "dect_handsets",
+    "description": "[Stufe: read] DECT-Mobilteile: ID, Name, Modell, aktiv, Firmware-Update verfügbar (X_AVM-DE_Dect) und zugeordnetes Telefonbuch (X_AVM-DE_OnTel:GetDECTHandsetInfo).",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "avm_device_detail",
+    "description": "[Stufe: read] Ein AVM-Gerät im Detail, nur über die Box-Schnittstellen: DECT-Eintrag (X_AVM-DE_Dect:GetSpecificDectEntry), Powerline (X_AVM-DE_Homeplug:GetSpecificDeviceEntry), Hostliste (Modell, Mesh-fähig, Update) und Mesh-Knoten (Rolle, Uplink zur Box mit Rate, Anzahl Clients).",
+    "arguments": [
+      {
+        "name": "device",
+        "type": "string",
+        "desc": "MAC (Repeater/Powerline), DECT-ID (1–6, ab 16 ULE) oder Name"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "devices_change_counter",
+    "description": "[Stufe: read] Änderungszähler der Geräteliste (TR-064 Hosts:X_AVM-DE_GetChangeCounter): billiger Indikator, ob sich seit dem letzten Abruf etwas geändert hat (neues Gerät, online/offline) – vor teuren Abfragen nutzen.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "history_collect",
+    "description": "[Stufe: read] Nimmt jetzt einen Messpunkt der Messreihe auf (WAN-Status/Laufzeit, DSL-Raten/SNR/Fehlerzähler, Durchsatz, Geräteanzahl über den Änderungszähler) und speichert ihn NUR LOKAL (SQLite 0600). Ändert an der Box nichts. Für regelmäßige Messung den Collector fritzos8-collector laufen lassen.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "history_query",
+    "description": "[Stufe: read] Zeitreihe einer Messgröße aus der lokalen Messreihe: Punkte (höchstens 500, sonst ausgedünnt), min/max/avg und Messlücken im Zeitraum.",
+    "arguments": [
+      {
+        "name": "metric",
+        "type": "string",
+        "desc": "Messgröße, z. B. dsl.snr_down_db (Liste: history_summary)"
+      },
+      {
+        "name": "hours",
+        "type": "number",
+        "desc": "Zeitraum in Stunden rückwärts ab jetzt (Standard 24)"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "history_summary",
+    "description": "[Stufe: read] Zusammenfassung der lokalen Messreihe: je Messgröße last/min/max/avg (Fehlerzähler mit Zuwachs), Ereignisse (Neuverbindungen, DSL-Resyncs, Geräte online/offline), Messintervall, Lücken, Abdeckung in %.",
+    "arguments": [
+      {
+        "name": "hours",
+        "type": "number",
+        "desc": "Zeitraum in Stunden rückwärts ab jetzt (Standard 24)"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "history_anomalies",
+    "description": "[Stufe: read] Anomalie-Erkennung auf der lokalen Messreihe (keine Box-Abfrage): schleichende Verschlechterung – sinkende DSL-Störabstandsmarge (Trend + Prognose), niedrigere Sync-Rate, schneller wachsende Fehlerzähler, gehäufte Neuverbindungen, häufigere Geräteabbrüche. Vergleicht die letzten recent_hours mit den Tagen davor; zu wenig Daten = 'insufficient_data'. Befunde erscheinen auch in network_doctor und alarms_check.",
+    "arguments": [
+      {
+        "name": "days",
+        "type": "number",
+        "desc": "Betrachteter Zeitraum in Tagen rückwärts (Standard 14)"
+      },
+      {
+        "name": "recent_hours",
+        "type": "number",
+        "desc": "Aktueller Zeitraum in Stunden, der mit den Tagen davor verglichen wird"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "line_diagnostics",
+    "description": "[Stufe: read] Leitungsdiagnose je Anschlussart (nur lesend): DSL (Raten, SNR, Dämpfung, Fehler, Profil, SNR-Spektrum, automatischer Kabeltest mit Fehlerort), Glasfaser (optische Pegel gegen Alarmschwellen, GPON, Resyncs), Mobilfunk (Technik, RSRP-Bewertung, Zellen ohne Standortdaten, Bänder, SIM-Status), Kabel (per TR-064 unknown). Mit Befunden (Schweregrad, Ursache, Empfehlung).",
+    "arguments": [
+      {
+        "name": "include_spectrum",
+        "type": "boolean",
+        "desc": "DSL: SNR je Trägergruppe mit ausgeben (≤ 512 Werte, sonst ausgedünnt)"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "isp_report",
+    "description": "[Stufe: read] Störungsprotokoll für den Provider (Markdown) aus der lokalen Messreihe: Ausfälle mit Dauer, Neuverbindungen, DSL-Resyncs, Fehlerzähler, Sync-Rate vs. Vertragsrate (X_AVM-DE_TariffDataRate), Messlücken, Hinweis auf die Breitbandmessung der BNetzA. Braucht Daten von fritzos8-collector bzw. history_collect.",
+    "arguments": [
+      {
+        "name": "date_from",
+        "type": "string",
+        "desc": "Beginn (ISO, z. B. 2026-11-01); Standard: vor 7 Tagen"
+      },
+      {
+        "name": "date_to",
+        "type": "string",
+        "desc": "Ende (ISO); Standard: jetzt"
+      },
+      {
+        "name": "save",
+        "type": "boolean",
+        "desc": "Zusätzlich lokal als Markdown-Datei speichern (0600)"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "alarms_check",
+    "description": "[Stufe: read] Alarme prüfen (nur lesend an der Box): neue Geräte, Link-Flapping, Leitungs-Grenzwerte, Batterie schwach, Updates verfügbar, Anomalien der Messreihe (schleichende Verschlechterung), optional Konfig-Abweichung; entprellt (Zustand lokal). Mit notify=true gehen NEUE Alarme an die per Umgebung konfigurierten Kanäle – deren URLs/Tokens werden nie ausgegeben.",
+    "arguments": [
+      {
+        "name": "notify",
+        "type": "boolean",
+        "desc": "Neue Alarme an die konfigurierten Kanäle senden (HA-Webhook, ntfy, Telegram)"
+      },
+      {
+        "name": "include_drift",
+        "type": "boolean",
+        "desc": "Auch Konfig-Abweichung zum letzten Schnappschuss prüfen (liest viel)"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": true,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "system_transparency",
+    "description": "[Stufe: read] System-Transparenz (nur lesend): Provider-Fernwartung TR-069 (aktiv, Server, Firmware durch Provider), Zeit/NTP mit Abweichung zur Uhr dieses Rechners, IPv6 (Verbindungsstatus, Präfix + Lebensdauer, DS-Lite, IPv6-Firewall), statische Routen, Verlegung der Zwangstrennung, Auto-Update-Modus.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "phone_numbers_status",
+    "description": "[Stufe: read] Rufnummern der Box (TR-064 X_VoIP:X_AVM-DE_GetNumbers) mit Registrierungsstatus je Internetrufnummer (X_AVM-DE_GetVoIPStatus: registered/not registered/disabled/connected). Ohne SIP-Zugangsdaten.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "alarm_clocks",
+    "description": "[Stufe: read] Weckrufe der Telefonanlage (TR-064 X_VoIP:X_AVM-DE_GetAlarmClock): an/aus, Name, Uhrzeit, Wochentage, Telefon.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "call_deflections",
+    "description": "[Stufe: read] Rufumleitungen (TR-064 X_AVM-DE_OnTel:GetDeflections): an/aus, für welche Anrufe, Ziel, wann.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "call_barring_list",
+    "description": "[Stufe: read] Rufsperren (TR-064 X_AVM-DE_OnTel:GetCallBarringList): gesperrte Nummern mit Name und uid.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "phonebook_search",
+    "description": "[Stufe: read] Sucht Kontakte in den Telefonbüchern der Box nach Name oder Nummer (Rückwärtssuche): Name, Nummern mit Typ, Telefonbuch. Höchstens 20 Treffer.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Name (Teilstring) oder Rufnummer (auch ohne Vorwahl/+49)"
+      },
+      {
+        "name": "phonebook_id",
+        "type": "integer",
+        "desc": "Nur in diesem Telefonbuch (ID aus phonebook_list)"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "family_admin_report",
+    "description": "[Stufe: read] Familien-Admin-Bericht über ALLE Boxen: Ampel je Box mit Gründen, erreichbar, Internet, Modell, FRITZ!OS, Updates aller AVM-Geräte, Sicherheits-Score, aktive Alarme, NAS als Backup-Ziel – strukturiert und als Markdown. Nur lesend; eine nicht erreichbare Box bricht den Bericht nicht ab.",
+    "arguments": [
+      {
+        "name": "check_alarms",
+        "type": "boolean",
+        "desc": "Alarme jetzt neu prüfen statt den letzten Stand zu zeigen"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "smarthome_overview",
+    "description": "[Stufe: read] Smart Home über die REST-API (FRITZ!OS ≥ 8.2): Geräte (Produkt, verbunden, Batterie, Firmware/Update), Einheiten mit Werten (Thermostat Soll/Komfort/Absenk, Boost, Fenster offen, Urlaub/Sommer, nächste Änderung; Temperatur, Luftfeuchte, Schalter, Leistung/Energie, Rollo, Melder), Gruppen, Vorlagen, Routinen, globale Werte (ohne Standort). Ältere Boxen: smarthome_list_devices (AHA).",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "smarthome_unit",
+    "description": "[Stufe: read] Eine Smart-Home-Einheit im Detail (REST overview/units/{UID}): Werte, Zeitschaltung/Heizplan (wie von der Box geliefert) und Statistik (Temperatur, Luftfeuchte, Leistung, Energie je Zeitraum).",
+    "arguments": [
+      {
+        "name": "uid",
+        "type": "string",
+        "desc": "AIN bzw. UID des Smart-Home-Geräts, z. B. \"08761 0000434\""
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "smarthome_energy_report",
+    "description": "[Stufe: read] Heiz- und Energiebericht (REST): je Thermostat Soll/Ist/Abweichung, Fenster offen, Boost, Urlaub/Sommer, Batterie, nächste Schaltzeit; je Messsteckdose Leistung, Energie, Kosten/CO2 aus den Box-Kennzahlen.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "fritz_drift",
+    "description": "[Stufe: read] FRITZ as Code: vergleicht einen Sollzustand (YAML: guest_wifi, wlan_channels, lan_eee, static_ip, internet_access, parental_profile, tam, dns_dhcp, port_forwards) mit der Box und listet Abweichungen (anwendbar bzw. nur Vergleich). Ändert nichts.",
+    "arguments": [
+      {
+        "name": "spec",
+        "type": "string",
+        "desc": "Sollzustand als YAML-Text (alternativ name)"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Dateiname im Verzeichnis FRITZ_CODE_DIR, z. B. heim.yaml"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "fritz_export",
+    "description": "[Stufe: read] FRITZ as Code: erzeugt aus dem aktuellen Stand einen Sollzustand (YAML) als Ausgangspunkt; optional lokal gespeichert (0600). Ändert an der Box nichts.",
+    "arguments": [
+      {
+        "name": "save_as",
+        "type": "string",
+        "desc": "Optional als Datei in FRITZ_CODE_DIR speichern"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "guest_wifi_session",
+    "description": "[Stufe: read] Gast-WLAN-Sitzung: an/aus, SSID, laufende Zeitbegrenzung dieses Servers (bis/Restzeit) und die eigene Zeitbegrenzung der Box (nur lesbar). Ohne Schlüssel.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "network_optimizer_suggest",
+    "description": "[Stufe: read] Netz-Optimierer, Schritt 1 (nur lesend): Vorschläge aus WLAN-Einstellungen, LAN-Ports, Mesh, Ereignisprotokoll und Messreihe – WLAN-Kanal (überlappend/fest bei vielen Abbrüchen), EEE aus (Raspberry Pi, Link-Flapping), Bandsteuerung und Repeater-Standort (nur manuell). actionable = über bestehende Schreib-Tools umsetzbar.",
+    "arguments": [
+      {
+        "name": "days",
+        "type": "number",
+        "desc": "Messreihe der letzten N Tage berücksichtigen"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "network_optimizer_effect",
+    "description": "[Stufe: read] Netz-Optimierer, Schritt 4 (nur lesend, lokale Messreihe): Wirkung einer Änderung im Vorher/nachher- Vergleich – Geräteabbrüche pro Tag (betroffene Geräte), Neuverbindungen, aktive Geräte, Durchsatz; Urteil improved/worse/unchanged/insufficient_data.",
+    "arguments": [
+      {
+        "name": "change_id",
+        "type": "string",
+        "desc": "Änderung (change_id); Standard: die letzte über den Optimierer"
+      },
+      {
+        "name": "hours",
+        "type": "number",
+        "desc": "Fensterlänge vorher/nachher in Stunden"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "firmware_update_status",
+    "description": "[Stufe: read] FRITZ!OS-Update: installiert, verfügbar, Update-Zustand, letztes Update erfolgreich? (TR-064 UserInterface GetInfo + X_AVM-DE_GetInfo). Nach firmware_update_execute zum Prüfen verwenden.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "ipv6_firewall_status",
+    "description": "[Stufe: read] IPv6-Firewall der Box (IGD GetFirewallStatus: an, Pinholes erlaubt) und die über diesen Server angelegten IPv6-Pinholes mit Ablaufzeit (die Box selbst bietet keine Liste).",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "two_factor_status",
+    "description": "[Stufe: read] Zusatzbestätigung (2FA) der Box: aktiv?, aktueller Zustand (wartet/bestätigt/blockiert …) und wie der Mensch an der Box bestätigt (TR-064 X_AVM-DE_Auth GetInfo/GetState). Startet oder umgeht nie etwas.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "smarthome_thermostat_config",
+    "description": "[Stufe: read] Thermostat-Konfiguration (Smart-Home-REST configuration/units): Komfort/Absenk, Urlaubszeiträume mit Temperatur, Sommerzeit, Fenster-offen-Einstellungen. Datumsangaben jährlich (TT.MM.).",
+    "arguments": [
+      {
+        "name": "uid",
+        "type": "string",
+        "desc": "AIN bzw. UID des Smart-Home-Geräts, z. B. \"08761 0000434\""
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "smarthome_pairing_status",
+    "description": "[Stufe: read] Status der Geräteanmeldung (REST connect/subscriptionState bzw. AHA getsubscriptionstate); ohne subscription_uid die Funkbasen mit laufender Anmeldung. Gibt nie Pairing-/Install-Codes aus.",
+    "arguments": [
+      {
+        "name": "subscription_uid",
+        "type": "string",
+        "desc": "subscription_uid aus dem Execute"
+      },
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "smarthome_tr064_devices",
+    "description": "[Stufe: read] Smart-Home-Geräte über TR-064 (X_AVM-DE_Homeauto, ohne Web-Anmeldung) – Fallback, wenn REST/AHA nicht nutzbar sind: AIN, Name, Produkt, verbunden, Schalter, Leistung/Energie, Temperatur, Thermostat.",
+    "arguments": [
+      {
+        "name": "box",
+        "type": "string",
+        "desc": "Name der FRITZ!Box bei Mehrbox-Betrieb (Standard: erste Box, siehe server_status)"
+      }
+    ],
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  }
+]
