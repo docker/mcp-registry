@@ -1,0 +1,38 @@
+name: agentmetal
+image: mcp/agentmetal
+type: server
+meta:
+  category: devops
+  tags:
+    - devops
+    - cloud
+    - vps
+    - ssh
+    - x402
+about:
+  title: AgentMetal
+  description: Rent a Linux VPS from an AI agent. Provision, SSH in, run commands, extend or destroy it, paid per day in USDC (x402 on Base) or by card, with no signup.
+  icon: https://avatars.githubusercontent.com/u/293653002?v=4
+source:
+  project: https://github.com/agentmetal/mcp
+  commit: 6db3a6277ae646ab7b8f64f40cf3ed4d76ec78eb
+config:
+  description: Browsing plans and servers needs no configuration. Add a wallet key to pay for servers in USDC, or an account key to manage an existing fleet.
+  secrets:
+    - name: agentmetal.wallet_private_key
+      env: WALLET_PRIVATE_KEY
+      example: "0x1111111111111111111111111111111111111111111111111111111111111111"
+    - name: agentmetal.api_key
+      env: AGENTMETAL_API_KEY
+      example: <am_live_ACCOUNT_KEY>
+  env:
+    - name: AGENTMETAL_MAX_USDC
+      example: "50"
+      value: "{{agentmetal.max_usdc}}"
+  parameters:
+    type: object
+    properties:
+      max_usdc:
+        type: string
+        description: Per-request USDC spend cap. A payment above it is refused before signing.
+        default: "50"
