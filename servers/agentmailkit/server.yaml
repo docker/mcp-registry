@@ -1,0 +1,34 @@
+name: agentmailkit
+image: mcp/agentmailkit
+type: server
+meta:
+  category: productivity
+  tags:
+    - email
+    - automation
+    - digest
+    - scheduling
+    - plugins
+about:
+  title: AgentMailKit
+  description: Scheduled, LLM-written email digests that an agent can drive as tools. Each job declares its sources, model, render and delivery in one JSON file; list_jobs shows what is configured, preview_job renders exactly what a job would send without sending it, and run_job executes one. run_job defaults to dry_run=true and only sends real mail when explicitly called with dry_run=false, so an agent can explore the whole surface without touching an inbox.
+  icon: https://avatars.githubusercontent.com/u/113392746?s=200&v=4
+source:
+  project: https://github.com/ariaxhan/agentmailkit
+  branch: main
+  commit: 0c660c71a433b8a1a95f01cad6d91217c347c1d2
+run:
+  volumes:
+    - "{{agentmailkit.config_path}}:/data"
+config:
+  description: The directory holding your agentmailkit.json and its jobs. It is mounted at /data, which is also the container's working directory, so config discovery finds it with no extra flags.
+  parameters:
+    type: object
+    properties:
+      config_path:
+        type: string
+        title: Config directory
+        description: Host directory containing agentmailkit.json and the jobs it references
+        default: agentmailkit-data
+    required:
+      - config_path
