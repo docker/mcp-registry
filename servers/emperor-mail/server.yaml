@@ -1,0 +1,105 @@
+name: emperor-mail
+image: mcp/emperor-mail
+type: server
+meta:
+  category: communication
+  tags:
+    - email
+    - imap
+    - smtp
+    - communication
+    - secrets
+about:
+  title: emperor-mail
+  description: "Your mailbox over IMAP and SMTP. Read-only by default: four tools list folders, search, and read messages and attachments (PDF, Word, spreadsheets). Turn on writable to also save drafts for you to review and send. Turn on allow_send to add a send tool (and drafts), which writes only to the recipients listed in send_allow (addresses or @domain); with none listed every recipient is refused. A tool that is switched off is not offered at all. Reading never marks mail as read; message bodies are framed as untrusted content. Use an app password or an OAuth 2.0 access token (Gmail, Microsoft 365)."
+  icon: https://avatars.githubusercontent.com/u/666125?v=4
+source:
+  project: https://github.com/yarenty/emperor-mail
+  commit: 26d6e6c13e50ccba07613609f6578499d2e4d2ea
+config:
+  description: "Configure one mailbox. Set the password (or app password), or an OAuth 2.0 access token instead; IMAP and SMTP use implicit TLS on ports 993 and 465 unless you set the ports or security. The server is read-only unless writable is true (adds drafts) or allow_send is true (adds drafts and send, only to the recipients in send_allow)."
+  secrets:
+    - name: emperor-mail.password
+      env: MAIL_PASSWORD
+      example: <your-app-password>
+    - name: emperor-mail.oauth_token
+      env: MAIL_OAUTH_TOKEN
+      example: <optional-oauth-access-token>
+  env:
+    - name: MAIL_USER
+      example: you@example.com
+      value: "{{emperor-mail.user}}"
+    - name: MAIL_FROM
+      example: you@example.com
+      value: "{{emperor-mail.from}}"
+    - name: IMAP_HOST
+      example: imap.example.com
+      value: "{{emperor-mail.imap_host}}"
+    - name: IMAP_PORT
+      example: "993"
+      value: "{{emperor-mail.imap_port}}"
+    - name: IMAP_SECURITY
+      example: tls
+      value: "{{emperor-mail.imap_security}}"
+    - name: SMTP_HOST
+      example: smtp.example.com
+      value: "{{emperor-mail.smtp_host}}"
+    - name: SMTP_PORT
+      example: "465"
+      value: "{{emperor-mail.smtp_port}}"
+    - name: SMTP_SECURITY
+      example: tls
+      value: "{{emperor-mail.smtp_security}}"
+    - name: MAIL_WRITABLE
+      example: "false"
+      value: "{{emperor-mail.writable}}"
+    - name: MAIL_ALLOW_SEND
+      example: "false"
+      value: "{{emperor-mail.allow_send}}"
+    - name: MAIL_SEND_ALLOW
+      example: "@example.org"
+      value: "{{emperor-mail.send_allow}}"
+  parameters:
+    type: object
+    properties:
+      user:
+        type: string
+        description: Login name, usually your email address
+      from:
+        type: string
+        description: From address when the login name is not an address (optional)
+      imap_host:
+        type: string
+        description: IMAP server host name
+      imap_port:
+        type: string
+        description: IMAP port (optional; 993, or 143 with starttls)
+      imap_security:
+        type: string
+        description: tls or starttls (optional; follows the port)
+      smtp_host:
+        type: string
+        description: SMTP server host name (needed only for send)
+      smtp_port:
+        type: string
+        description: SMTP port (optional; 465, or 587 with starttls)
+      smtp_security:
+        type: string
+        description: tls or starttls (optional; follows the port)
+      writable:
+        type: boolean
+        title: Allow drafts
+        description: "Offer the draft tool, which saves messages in the Drafts folder for you to send. Off (the default): read-only."
+        default: false
+      allow_send:
+        type: boolean
+        title: Allow send
+        description: "Offer the send tool, and draft with it. Off (the default): send is not offered."
+        default: false
+      send_allow:
+        type: string
+        title: Allowed recipients
+        description: "Comma-separated recipients send may write to: addresses or whole domains, e.g. @example.org. Empty: every recipient is refused."
+    required:
+      - user
+      - imap_host
