@@ -1,0 +1,3 @@
+MSG91 is a cloud communication platform that helps businesses improve customer engagement, streamline communication workflows, and increase operational efficiency through reliable, multi-channel communication solutions. Our platform provides APIs and tools for SMS, WhatsApp, email, voice calls, and OTP verification, enabling businesses to integrate communication directly into their websites, mobile applications, and products. This MCP connector enables compatible AI assistants to access the MSG91 API operations supported by the integration, making communication workflows easier to manage through natural-language requests.
+
+For documentation, visit https://github.com/walkover-mcp/msg91#readme
