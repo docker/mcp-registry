@@ -1,0 +1,147 @@
+name: tandoor-recipes
+image: mcp/tandoor-recipes
+type: server
+meta:
+  category: productivity
+  tags:
+    - tandoor
+    - recipes
+    - meal-planning
+    - shopping-list
+    - self-hosted
+about:
+  title: Tandoor Recipes
+  description: "Turn 'plan the week and make me a grocery list' into one prompt. Recipes, meal plans, shopping lists and more for your local or self-hosted Tandoor instance."
+  icon: https://raw.githubusercontent.com/Cliftonz/tandoor-recipe-mcp/main/assets/icon-400.png
+source:
+  project: https://github.com/Cliftonz/tandoor-recipe-mcp
+  commit: ab59c5d9ef52d1ea42ec05a998d10adf4094796a
+run:
+  env:
+    TANDOOR_MCP_TRANSPORT: stdio
+    XDG_CONFIG_HOME: /data
+  volumes:
+    - tandoor-recipes-data:/data
+config:
+  description: Configure the connection to your Tandoor instance
+  secrets:
+    - name: tandoor-recipes.api_token
+      env: TANDOOR_TOKEN
+      example: <your Tandoor API token>
+      description: Create a token with write access in Tandoor under Settings > API Tokens.
+  env:
+    - name: TANDOOR_URL
+      example: https://tandoor.example.com
+      value: "{{tandoor-recipes.url}}"
+    - name: TANDOOR_MCP_RECIPES
+      example: simple
+      value: "{{tandoor-recipes.recipes}}"
+    - name: TANDOOR_MCP_MEAL_PLAN
+      example: simple
+      value: "{{tandoor-recipes.meal_plan}}"
+    - name: TANDOOR_MCP_SHOPPING
+      example: simple
+      value: "{{tandoor-recipes.shopping}}"
+    - name: TANDOOR_MCP_INVENTORY
+      example: simple
+      value: "{{tandoor-recipes.inventory}}"
+    - name: TANDOOR_MCP_FOODS
+      example: simple
+      value: "{{tandoor-recipes.foods}}"
+    - name: TANDOOR_MCP_COOKLOG
+      example: "off"
+      value: "{{tandoor-recipes.cooklog}}"
+    - name: TANDOOR_MCP_RECIPE_BOOKS
+      example: "off"
+      value: "{{tandoor-recipes.recipe_books}}"
+    - name: TANDOOR_MCP_AI
+      example: "off"
+      value: "{{tandoor-recipes.ai}}"
+    - name: TANDOOR_MCP_IMPORT_EXPORT
+      example: "off"
+      value: "{{tandoor-recipes.import_export}}"
+    - name: TANDOOR_MCP_HOUSEHOLD_SPACE
+      example: "off"
+      value: "{{tandoor-recipes.household_space}}"
+    - name: TANDOOR_MCP_ADMIN
+      example: "off"
+      value: "{{tandoor-recipes.admin}}"
+  parameters:
+    type: object
+    properties:
+      url:
+        type: string
+        description: Base URL of your Tandoor instance. Use http://host.docker.internal:PORT when Tandoor runs on this machine.
+      recipes:
+        type: string
+        description: Recipes tools (off, simple or full). Leave empty to use the saved setting, otherwise simple.
+        enum:
+          - "off"
+          - simple
+          - full
+      meal_plan:
+        type: string
+        description: Meal plan tools (off, simple or full). Leave empty to use the saved setting, otherwise simple.
+        enum:
+          - "off"
+          - simple
+          - full
+      shopping:
+        type: string
+        description: Shopping tools (off, simple or full). Leave empty to use the saved setting, otherwise simple.
+        enum:
+          - "off"
+          - simple
+          - full
+      inventory:
+        type: string
+        description: Inventory tools (off, simple or full). Leave empty to use the saved setting, otherwise simple.
+        enum:
+          - "off"
+          - simple
+          - full
+      foods:
+        type: string
+        description: Foods tools (off, simple or full). Leave empty to use the saved setting, otherwise simple.
+        enum:
+          - "off"
+          - simple
+          - full
+      cooklog:
+        type: string
+        description: Cook log tools (off or on). Leave empty to use the saved setting, otherwise off.
+        enum:
+          - "off"
+          - "on"
+      recipe_books:
+        type: string
+        description: Recipe books tools (off or on). Leave empty to use the saved setting, otherwise off.
+        enum:
+          - "off"
+          - "on"
+      ai:
+        type: string
+        description: AI tools (off or on). Leave empty to use the saved setting, otherwise off.
+        enum:
+          - "off"
+          - "on"
+      import_export:
+        type: string
+        description: Import and export tools (off or on). Leave empty to use the saved setting, otherwise off.
+        enum:
+          - "off"
+          - "on"
+      household_space:
+        type: string
+        description: Household and space tools (off or on). Leave empty to use the saved setting, otherwise off.
+        enum:
+          - "off"
+          - "on"
+      admin:
+        type: string
+        description: Admin tools (off or on). Leave empty to use the saved setting, otherwise off.
+        enum:
+          - "off"
+          - "on"
+    required:
+      - url
