@@ -1,0 +1,439 @@
+[
+  {
+    "name": "publicrecords--govcon-opportunity-feed",
+    "description": "Federal Contract Opportunities: SAM.gov + Grants.gov in one. Which federal contract opportunities were posted today? Returns SAM.gov and Grants.gov notices in one feed, new-since-last-run deltas, and source links.\n\nWhen to use: Use when you need new US federal contract opportunities (SAM.gov) and grants (Grants.gov) in one feed, optionally only items new since the last run.\n\nReturns: the run's dataset rows as structured JSON (one row per result), plus the run and dataset IDs for paging the full dataset.\n\nBehavior: starts one run of the Apify Actor \"publicrecords/govcon-opportunity-feed\" through Apify's hosted MCP gateway (mcp.apify.com) with your own APIFY_TOKEN; the run uses your Apify account. Read-only: it only reads public web data and changes nothing on the source site. Docs: https://apify.com/publicrecords/govcon-opportunity-feed",
+    "arguments": [
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": "Mode",
+        "optional": true
+      },
+      {
+        "name": "sources",
+        "type": "array",
+        "desc": "Allowed values: sam, grants. SAM defaults to daily Data Services CSV (samBulk=true, no key). Grants.gov needs no key.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "samApiKey",
+        "type": "string",
+        "desc": "Optional when samBulk=true. Required only for API enrich (resourceLinks) / monitor checks / samBulk=false. Personal public API key from sam.gov (Account Details → Request API Key). Free. Stored encrypted; never logged.",
+        "optional": true
+      },
+      {
+        "name": "naics",
+        "type": "array",
+        "desc": "6-digit or prefix, e.g. 541512 or 5415.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "agencies",
+        "type": "array",
+        "desc": "Names or codes, e.g. Department of Defense, DHS, EPA.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "keywords",
+        "type": "array",
+        "desc": "Free-text keywords matched against opportunity titles.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "setAside",
+        "type": "array",
+        "desc": "SB, 8A, HUBZone, SDVOSB, WOSB, NONE",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "states",
+        "type": "array",
+        "desc": "Two-letter US state codes for place of performance (contracts).",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "noticeTypes",
+        "type": "array",
+        "desc": "Filter by notice type, e.g. solicitation, award_notice, grant_posted.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "postedWithinDays",
+        "type": "integer",
+        "desc": "Only include opportunities posted within the last N days. Declared product default is **14 days** (Thursday product window).",
+        "optional": true
+      },
+      {
+        "name": "deadlineAfter",
+        "type": "string",
+        "desc": "Defaults to today; excludes expired opportunities.",
+        "optional": true
+      },
+      {
+        "name": "since",
+        "type": "string",
+        "desc": "ET calendar date (YYYY-MM-DD) or RFC3339. Selects HF delta shards with eventDate >= since. Optional for snapshot (serves latest snapshot). For monitor, defaults to a 7-day lookback ending at the latest published delta date. Example: \"2026-09-21\"",
+        "optional": true
+      },
+      {
+        "name": "includeDescriptions",
+        "type": "boolean",
+        "desc": "When true, fetch full grant synopses (slower).",
+        "optional": true
+      },
+      {
+        "name": "includeContacts",
+        "type": "boolean",
+        "desc": "When true, include SAM point-of-contact fields.",
+        "optional": true
+      },
+      {
+        "name": "enrichTopN",
+        "type": "integer",
+        "desc": "Category leaders (or predecessors) per opportunity in enrich mode.",
+        "optional": true
+      },
+      {
+        "name": "maxItems",
+        "type": "integer",
+        "desc": "Hard cap on opportunity rows returned (and billed) after sort by postedDate desc → Sol#. Default 10000. Under the default 14d window, Active matches often exceed 10k — runs emit CAP_TRUNCATED + CAP_COVERAGE.covered/total (never silent). Cap always drops the oldest rows.",
+        "optional": true
+      },
+      {
+        "name": "samBulk",
+        "type": "boolean",
+        "desc": "Ignored on the public Actor (v1.2 HF serve). Retained for input compatibility; private producer uses SAM Data Services CSV.",
+        "optional": true
+      },
+      {
+        "name": "samEnrichLimit",
+        "type": "integer",
+        "desc": "Ignored on the public Actor (v1.2 HF serve). Retained for input compatibility.",
+        "optional": true
+      },
+      {
+        "name": "incumbentMode",
+        "type": "string",
+        "desc": "category_leaders (default): top USASpending recipients by agency×NAICS. predecessor: true prior-awardee/recompete join (stub until PREDECESSOR_JOIN.md ships). Proof schedules must keep default.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "publicrecords--grants-gov-scraper",
+    "description": "Grants.gov Search API: federal grants list with deadlines. Which federal grants are open right now? Searches Grants.gov and returns opportunity, agency, deadline, eligibility and the source link.\n\nWhen to use: Use when you need open US federal grant opportunities from Grants.gov with agency, deadline and eligibility.\n\nReturns: the run's dataset rows as structured JSON (one row per result), plus the run and dataset IDs for paging the full dataset.\n\nBehavior: starts one run of the Apify Actor \"publicrecords/grants-gov-scraper\" through Apify's hosted MCP gateway (mcp.apify.com) with your own APIFY_TOKEN; the run uses your Apify account. Read-only: it only reads public web data and changes nothing on the source site. Docs: https://apify.com/publicrecords/grants-gov-scraper",
+    "arguments": [
+      {
+        "name": "keyword",
+        "type": "string",
+        "desc": "Search keyword (e.g. education, cybersecurity). Leave empty for all.",
+        "optional": true
+      },
+      {
+        "name": "agency",
+        "type": "string",
+        "desc": "Mapped to API body agencies (e.g. HHS, EPA, NSF).",
+        "optional": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Mapped to API oppStatuses. Use forecasted|posted|closed|archived or pipe-joined.",
+        "optional": true
+      },
+      {
+        "name": "postedWithinDays",
+        "type": "integer",
+        "desc": "Server-side filter mapped to search2 dateRange (posted-date lookback). Verified values: 3,7,14,21,28,35,42,49,56,90,180,365. Omit for no posted-date filter.",
+        "optional": true
+      },
+      {
+        "name": "openDateFrom",
+        "type": "string",
+        "desc": "Client-side filter on openDate. Accepts MM/DD/YYYY or YYYY-MM-DD. Inclusive.",
+        "optional": true
+      },
+      {
+        "name": "openDateTo",
+        "type": "string",
+        "desc": "Client-side filter on openDate. Inclusive.",
+        "optional": true
+      },
+      {
+        "name": "closeDateFrom",
+        "type": "string",
+        "desc": "Client-side filter on closeDate. Inclusive. Useful for 'still open' windows.",
+        "optional": true
+      },
+      {
+        "name": "closeDateTo",
+        "type": "string",
+        "desc": "Client-side filter on closeDate. Inclusive.",
+        "optional": true
+      },
+      {
+        "name": "maxItems",
+        "type": "integer",
+        "desc": "Cap on opportunity rows (deduped by opportunityId).",
+        "optional": true
+      },
+      {
+        "name": "fetchDetails",
+        "type": "boolean",
+        "desc": "Hydrate synopsis via fetchOpportunity.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "publicrecords--usaspending-awards-scraper",
+    "description": "USAspending API Awards: federal contract and grant awards. Who won federal contracts and grants, and for how much? Pulls USAspending awards by agency, recipient, NAICS and period, with award IDs and source links.\n\nWhen to use: Use when you need who won US federal contracts and grants and for how much (USAspending), by agency, recipient, NAICS or period.\n\nReturns: the run's dataset rows as structured JSON (one row per result), plus the run and dataset IDs for paging the full dataset.\n\nBehavior: starts one run of the Apify Actor \"publicrecords/usaspending-awards-scraper\" through Apify's hosted MCP gateway (mcp.apify.com) with your own APIFY_TOKEN; the run uses your Apify account. Read-only: it only reads public web data and changes nothing on the source site. Docs: https://apify.com/publicrecords/usaspending-awards-scraper",
+    "arguments": [
+      {
+        "name": "keywords",
+        "type": "array",
+        "desc": "Mapped to filters.keywords. Leave empty for broad recent awards; prefer agency/recipient/date.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "naics",
+        "type": "array",
+        "desc": "Mapped to filters.naics_codes.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "agency",
+        "type": "string",
+        "desc": "Toptier awarding agency name → filters.agencies[{type:awarding,tier:toptier,name}]. Example: Department of Defense.",
+        "optional": true
+      },
+      {
+        "name": "recipient",
+        "type": "string",
+        "desc": "Mapped to filters.recipient_search_text (array). Example: Boeing. Verified shape requires an array of strings.",
+        "optional": true
+      },
+      {
+        "name": "awardTypes",
+        "type": "array",
+        "desc": "Default A,B,C,D (contracts/IDVs). Avoid assistance codes that may list individuals.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "startDate",
+        "type": "string",
+        "desc": "YYYY-MM-DD. Default: today − 30 days (recent awards window).",
+        "optional": true
+      },
+      {
+        "name": "endDate",
+        "type": "string",
+        "desc": "YYYY-MM-DD. Default: today.",
+        "optional": true
+      },
+      {
+        "name": "subawards",
+        "type": "boolean",
+        "desc": "Pass subawards flag to search (default false).",
+        "optional": true
+      },
+      {
+        "name": "fetchDetails",
+        "type": "boolean",
+        "desc": "Hydrate via GET /awards/{generated_internal_id}/.",
+        "optional": true
+      },
+      {
+        "name": "maxItems",
+        "type": "integer",
+        "desc": "Cap on award rows (deduped by awardId|generatedInternalId).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "publicrecords--uk-find-a-tender-scraper",
+    "description": "Find a Tender & Contracts Finder: UK government tenders. Which UK government tenders were published today? Returns Find a Tender and Contracts Finder notices with buyer, value, deadline and source link.\n\nWhen to use: Use when you need UK public-sector tenders from Find a Tender and Contracts Finder with buyer, value and deadline.\n\nReturns: the run's dataset rows as structured JSON (one row per result), plus the run and dataset IDs for paging the full dataset.\n\nBehavior: starts one run of the Apify Actor \"publicrecords/uk-find-a-tender-scraper\" through Apify's hosted MCP gateway (mcp.apify.com) with your own APIFY_TOKEN; the run uses your Apify account. Read-only: it only reads public web data and changes nothing on the source site. Docs: https://apify.com/publicrecords/uk-find-a-tender-scraper",
+    "arguments": [
+      {
+        "name": "keywords",
+        "type": "array",
+        "desc": "Case-insensitive match on tender title, description, or buyer name (client-side).",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "cpv",
+        "type": "array",
+        "desc": "Match when tender.items[].classification.id starts with any code (client-side).",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "noticeType",
+        "type": "array",
+        "desc": "Mapped to API stages: planning | tender | award. Omit for all.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "updatedFrom",
+        "type": "string",
+        "desc": "ISO datetime. Default: 7 days ago.",
+        "optional": true
+      },
+      {
+        "name": "updatedTo",
+        "type": "string",
+        "desc": "ISO datetime. Default: now.",
+        "optional": true
+      },
+      {
+        "name": "maxItems",
+        "type": "integer",
+        "desc": "Cap on notice rows.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "publicrecords--eu-ted-notices-scraper",
+    "description": "TED Tenders Daily: EU procurement notices from Tenders. Which EU tenders were published today? Returns TED (Tenders Electronic Daily) notices with buyer, CPV, value, deadline and source link.\n\nWhen to use: Use when you need EU procurement notices from TED (Tenders Electronic Daily) with buyer, CPV code, value and deadline.\n\nReturns: the run's dataset rows as structured JSON (one row per result), plus the run and dataset IDs for paging the full dataset.\n\nBehavior: starts one run of the Apify Actor \"publicrecords/eu-ted-notices-scraper\" through Apify's hosted MCP gateway (mcp.apify.com) with your own APIFY_TOKEN; the run uses your Apify account. Read-only: it only reads public web data and changes nothing on the source site. Docs: https://apify.com/publicrecords/eu-ted-notices-scraper",
+    "arguments": [
+      {
+        "name": "keywords",
+        "type": "string",
+        "desc": "Optional. Mapped to TED expert-search FT~\"…\" full-text. Ignored if expertQuery is set.",
+        "optional": true
+      },
+      {
+        "name": "expertQuery",
+        "type": "string",
+        "desc": "Optional raw TED Expert Search expression. When set, overrides keywords / dates / noticeType / cpv / buyerCountry filters (you must include SORT BY yourself if desired). Example: buyer-country=DEU AND PD>=20260101 SORT BY publication-date DESC",
+        "optional": true
+      },
+      {
+        "name": "publicationDateFrom",
+        "type": "string",
+        "desc": "Optional. Default: 14 days ago. Converted to TED PD>=YYYYMMDD. Ignored if expertQuery is set.",
+        "optional": true
+      },
+      {
+        "name": "publicationDateTo",
+        "type": "string",
+        "desc": "Optional. Converted to TED PD<=YYYYMMDD. Ignored if expertQuery is set.",
+        "optional": true
+      },
+      {
+        "name": "noticeType",
+        "type": "string",
+        "desc": "Optional eForms notice-type filter (e.g. cn-standard, can-standard, pin-only, pin-cfc-standard). Ignored if expertQuery is set.",
+        "optional": true
+      },
+      {
+        "name": "cpv",
+        "type": "string",
+        "desc": "Optional Common Procurement Vocabulary code (e.g. 72000000). Mapped to classification-cpv. Ignored if expertQuery is set.",
+        "optional": true
+      },
+      {
+        "name": "buyerCountry",
+        "type": "string",
+        "desc": "Optional ISO 3166-1 alpha-3 buyer country (e.g. DEU, FRA, NLD). Mapped to buyer-country. Ignored if expertQuery is set.",
+        "optional": true
+      },
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": "TED scope: ALL (archive) or ACTIVE (currently open). Default ALL.",
+        "optional": true
+      },
+      {
+        "name": "maxItems",
+        "type": "integer",
+        "desc": "Maximum notice rows to push to the default dataset.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "publicrecords--legistar-meetings-scraper",
+    "description": "Legistar City Council Minutes & Agendas: meetings, items. What did a city council decide? Returns Legistar meetings, agenda items, votes and documents for any city on Legistar, with the source link.\n\nWhen to use: Use when you need city council or county board meetings, agenda items, votes and documents from a Legistar client (e.g. 'seattle', 'chicago').\n\nReturns: the run's dataset rows as structured JSON (one row per result), plus the run and dataset IDs for paging the full dataset.\n\nBehavior: starts one run of the Apify Actor \"publicrecords/legistar-meetings-scraper\" through Apify's hosted MCP gateway (mcp.apify.com) with your own APIFY_TOKEN; the run uses your Apify account. Read-only: it only reads public web data and changes nothing on the source site. Docs: https://apify.com/publicrecords/legistar-meetings-scraper",
+    "arguments": [
+      {
+        "name": "clients",
+        "type": "array",
+        "desc": "Legistar client codes. Use the hostname label of {slug}.legistar.com. Working examples: seattle, milwaukee, madison, oakland, sanjose, boston, denver, columbus.",
+        "items": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "dateFrom",
+        "type": "string",
+        "desc": "Inclusive YYYY-MM-DD (EventDate / MatterIntroDate). Default: 30 days ago.",
+        "optional": true
+      },
+      {
+        "name": "dateTo",
+        "type": "string",
+        "desc": "Inclusive YYYY-MM-DD. Default: today + 14 days.",
+        "optional": true
+      },
+      {
+        "name": "maxItems",
+        "type": "integer",
+        "desc": "Cap on dataset rows (events + matters combined).",
+        "optional": true
+      },
+      {
+        "name": "resource",
+        "type": "string",
+        "desc": "Which Legistar collection to pull. Options: events = Meetings (events); matters = Matters (legislation); both = Both.",
+        "optional": true
+      },
+      {
+        "name": "includeEventItems",
+        "type": "boolean",
+        "desc": "Extra HTTP call per event. Titles flattened into eventItemTitles (pipe-separated). Default off.",
+        "optional": true
+      }
+    ]
+  }
+]
