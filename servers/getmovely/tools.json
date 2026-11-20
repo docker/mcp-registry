@@ -1,0 +1,691 @@
+[
+  {
+    "name": "search_addresses",
+    "description": "Find homes in England and Wales by street, postcode, town or address.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Street, postcode, outcode, town or full address, as a person would type it: 'Merton Road, SW19', 'BS7 8', 'Ash Street, Salford M6', '41 Denning Road NW3'."
+      },
+      {
+        "name": "sale_pairs",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Filter to homes whose sale history contains these sales, each as 'price:year', e.g. ['450000:2019'].",
+        "optional": true
+      },
+      {
+        "name": "response_likelihood",
+        "type": "string",
+        "desc": "Only homes with this response likelihood.",
+        "optional": true
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "desc": "'recent' newest sale first (default); 'likelihood' High first, then Medium, then the rest; 'price_desc' / 'price_asc' by last sale price; 'addr' by address.",
+        "optional": true
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "desc": "Page number; `limit` addresses per page.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Addresses per page: 20 by default, up to 60.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "get_address",
+    "description": "One home's card, the quick answer to \"is this house for sale\" and \"does the owner live there\": full address, last sale, freehold or leasehold, whether it is owner-occupied (from its Energy Performance Certificate), whether it is listed for sale (with the portal, the agent and the link to the advert), its response likelihood (High = listed for sale and owner-occupied), and the link that opens a letter to its owner on GetMovely.",
+    "arguments": [
+      {
+        "name": "akey",
+        "type": "string",
+        "desc": "Address key from search_addresses (hex string)."
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "address_report",
+    "description": "Everything GetMovely knows about one home in one call.",
+    "arguments": [
+      {
+        "name": "akey",
+        "type": "string",
+        "desc": "Address key from search_addresses (hex string)."
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "street_price_per_m2",
+    "description": "Recent Land Registry sales near one home with their EPC floor area, as pounds per square metre and per square foot by year.",
+    "arguments": [
+      {
+        "name": "akey",
+        "type": "string",
+        "desc": "Address key from search_addresses (hex string)."
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "price_trends",
+    "description": "What freehold or leasehold, new build or resale, energy rating and floor area are worth per square metre in one postcode district, for one property type (D detached, S semi-detached, T terraced, F flat), by whole calendar year, against the national picture.",
+    "arguments": [
+      {
+        "name": "outcode",
+        "type": "string",
+        "desc": "Postcode district (outcode) such as 'SW19', 'BS7', 'M6'."
+      },
+      {
+        "name": "property_type",
+        "type": "string",
+        "desc": "Property Type",
+        "optional": true
+      },
+      {
+        "name": "factor",
+        "type": "string",
+        "desc": "Factor",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "whats_nearby",
+    "description": "Train, tram and ferry stops, bus stops, primary and secondary schools, cafes and restaurants, pubs, takeaways, supermarkets, parks and play areas around one home, from official open data, within 100 m to 2 km: for each kind the count, the nearest one and its distance.",
+    "arguments": [
+      {
+        "name": "akey",
+        "type": "string",
+        "desc": "Address key from search_addresses (hex string)."
+      },
+      {
+        "name": "radius_m",
+        "type": "integer",
+        "desc": "Radius in metres, 100 to 2000.",
+        "optional": true
+      },
+      {
+        "name": "closest",
+        "type": "string",
+        "desc": "Instead of counts within the radius, list the N closest places of this one kind (expanding rings up to 16 km).",
+        "optional": true
+      },
+      {
+        "name": "n",
+        "type": "integer",
+        "desc": "N",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "tenure_check",
+    "description": "Whether homes matching an address are freehold or leasehold, from the tenure recorded on the latest Land Registry sale of each exact address, with that sale's date.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Address or street with postcode, e.g. '12 Church Lane, BS7 8AB'."
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "house_age",
+    "description": "The construction age band of homes matching an address, from the Energy Performance Certificate, with what that era means for the construction, plus the first recorded sale year as corroboration and the property type.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Address or street with postcode."
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "sale_history",
+    "description": "Every recorded sale of one home since 1995, from HM Land Registry price paid data: price, month and year, the price per square metre each sale works out at on the home's current EPC floor area, and the change from the first sale to the last.",
+    "arguments": [
+      {
+        "name": "akey",
+        "type": "string",
+        "desc": "Address key from search_addresses (hex string)."
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "energy_performance",
+    "description": "A home's Energy Performance Certificate in plain terms: rating and score now and the rating it could reach, modelled running costs a year for heating, hot water and lighting, carbon dioxide, which parts of the building are weak (walls, roof, windows), and the assessor's own list of improvements with their indicative costs.",
+    "arguments": [
+      {
+        "name": "akey",
+        "type": "string",
+        "desc": "Address key from search_addresses (hex string)."
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "price_check",
+    "description": "Is a price in line? Works out the price per square metre from the home's EPC floor area and sets it against three things: what homes of the same type sold for per square metre in the same postcode district in the latest whole year, with the quartiles; recent sales on the home's own street or postcode; and the home's own last sale moved by the district's change since.",
+    "arguments": [
+      {
+        "name": "akey",
+        "type": "string",
+        "desc": "Address key from search_addresses (hex string)."
+      },
+      {
+        "name": "price_gbp",
+        "type": "integer",
+        "desc": "The price to check, in pounds: an asking price, an offer, a valuation.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "negotiation_brief",
+    "description": "The evidence a buyer brings to an offer on one home that is advertised for sale: the asking price now, every change to it GetMovely has seen on the advert (with dates and the total cut), how long it has been on the market, the asking price per square metre against what the same type of home sold for in the postcode district, against recent sales on the street, and against the home's own last sale moved by the district's change since, then the points that follow, in plain sentences.",
+    "arguments": [
+      {
+        "name": "akey",
+        "type": "string",
+        "desc": "Address key from search_addresses (hex string)."
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "compare_homes",
+    "description": "Two to four homes side by side, one row each: type and floor area, tenure, last sale and its price per square metre, energy rating and modelled running cost, what the street has sold for recently, the district trend, whether it is owner-occupied, whether it is listed for sale and its response likelihood (High = both), the nearest supermarket, primary school, station and park, recorded crime and air quality.",
+    "arguments": [
+      {
+        "name": "akeys",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Two to four address keys from search_addresses."
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "find_address_from_sale_history",
+    "description": "Property portals often hide the house number but show the home's past sale prices.",
+    "arguments": [
+      {
+        "name": "area",
+        "type": "string",
+        "desc": "Where the listing says the home is: a street with its district ('Merton Road, SW19'), a postcode or its first half ('SW19 1'), or a town."
+      },
+      {
+        "name": "sales",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Past sales shown on the listing, each as 'price:year' in pounds, for example ['450000:2019', '310000:2012']."
+      },
+      {
+        "name": "match",
+        "type": "string",
+        "desc": "'any' (default): the home has these sales, possibly among others.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "area_overview",
+    "description": "What homes sell for in one postcode district, for every property type sold there (detached, semi-detached, terraced, flats): the latest whole year's median price per square metre with its quartiles and number of sales, the change since the series began in 2015, and the year in progress against the same months a year earlier.",
+    "arguments": [
+      {
+        "name": "outcode",
+        "type": "string",
+        "desc": "Postcode district such as 'SW19', 'BS7', 'M6'."
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "compare_areas",
+    "description": "Two to six postcode districts side by side for one property type: latest whole year's median price per square metre with quartiles and sales, change since 2015, the year in progress against the same months a year earlier and, when a floor area is given, what that many square metres cost at each district's median.",
+    "arguments": [
+      {
+        "name": "outcodes",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Two to six postcode districts, for example ['SW19', 'BS7', 'M20']."
+      },
+      {
+        "name": "property_type",
+        "type": "string",
+        "desc": "One type, held constant across the districts: D detached, S semi-detached, T terraced, F flat.",
+        "optional": true
+      },
+      {
+        "name": "floor_area_m2",
+        "type": "integer",
+        "desc": "Optional floor area to price at each district's median, for example 100.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "district_statistics",
+    "description": "GetMovely's published research for one local authority district, with England and Wales alongside: the share of homes that are leasehold (houses and flats separately), how many years pass between sales of the same home and the share not sold for 20 years or more, the share of purchases resold within two years, and how big homes are (median floor area, by property type and built form).",
+    "arguments": [
+      {
+        "name": "district",
+        "type": "string",
+        "desc": "A local authority district in England or Wales by name: 'Bristol', 'Camden', 'Merton', 'Leeds', 'Cardiff'."
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "search_homes_for_sale",
+    "description": "Homes currently advertised for sale in an area of England or Wales, by criteria: \"find me a 3-bed under £400k in BS7\", \"flats over 60 m2 in Wimbledon\".",
+    "arguments": [
+      {
+        "name": "area",
+        "type": "string",
+        "desc": "Where to look: a postcode district ('BS7'), a full postcode ('SW19 1AB'), a town ('Wimbledon'), or a street with its district or town ('Elm Road, BS7')."
+      },
+      {
+        "name": "max_price_gbp",
+        "type": "integer",
+        "desc": "Highest asking price in pounds.",
+        "optional": true
+      },
+      {
+        "name": "min_price_gbp",
+        "type": "integer",
+        "desc": "Lowest asking price in pounds.",
+        "optional": true
+      },
+      {
+        "name": "min_bedrooms",
+        "type": "integer",
+        "desc": "Min Bedrooms",
+        "optional": true
+      },
+      {
+        "name": "max_bedrooms",
+        "type": "integer",
+        "desc": "Max Bedrooms",
+        "optional": true
+      },
+      {
+        "name": "property_type",
+        "type": "string",
+        "desc": "From the advert's own words.",
+        "optional": true
+      },
+      {
+        "name": "min_floor_area_m2",
+        "type": "integer",
+        "desc": "Smallest floor area in square metres.",
+        "optional": true
+      },
+      {
+        "name": "tenure",
+        "type": "string",
+        "desc": "As recorded at the home's last sale.",
+        "optional": true
+      },
+      {
+        "name": "epc_ratings",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Energy ratings to keep, for example ['A','B','C'].",
+        "optional": true
+      },
+      {
+        "name": "owner_occupied",
+        "type": "boolean",
+        "desc": "True: only homes whose Energy Performance Certificate records them as owner-occupied (response likelihood High).",
+        "optional": true
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "desc": "'newest' advert first (default), by asking price, by asking price per square metre (lowest first), or largest first.",
+        "optional": true
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "desc": "Page number, 20 homes a page.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "find_homes_not_for_sale",
+    "description": "Homes that are NOT advertised for sale, by criteria: the homes a buyer could write to.",
+    "arguments": [
+      {
+        "name": "area",
+        "type": "string",
+        "desc": "Where to look: a postcode district ('BS7'), a full postcode ('SW19 1AB'), a town ('Wimbledon'), or a street with its district or town ('Elm Road, BS7')."
+      },
+      {
+        "name": "property_type",
+        "type": "string",
+        "desc": "From the home's Energy Performance Certificate, which does not say detached, semi-detached or terraced.",
+        "optional": true
+      },
+      {
+        "name": "min_floor_area_m2",
+        "type": "integer",
+        "desc": "Min Floor Area M2",
+        "optional": true
+      },
+      {
+        "name": "max_floor_area_m2",
+        "type": "integer",
+        "desc": "Max Floor Area M2",
+        "optional": true
+      },
+      {
+        "name": "tenure",
+        "type": "string",
+        "desc": "As recorded at the home's last sale, so homes with no recorded sale are left out.",
+        "optional": true
+      },
+      {
+        "name": "epc_ratings",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Energy ratings to keep, for example ['E','F','G'] for homes that need work.",
+        "optional": true
+      },
+      {
+        "name": "last_sold_before_year",
+        "type": "integer",
+        "desc": "Last sold before this year: long-held homes.",
+        "optional": true
+      },
+      {
+        "name": "last_sold_after_year",
+        "type": "integer",
+        "desc": "Last sold in or after this year.",
+        "optional": true
+      },
+      {
+        "name": "no_recorded_sale",
+        "type": "string",
+        "desc": "Homes with no sale on record since 1995 (held longest of all): 'only' those, or 'exclude' them.",
+        "optional": true
+      },
+      {
+        "name": "min_last_sale_price_gbp",
+        "type": "integer",
+        "desc": "Min Last Sale Price Gbp",
+        "optional": true
+      },
+      {
+        "name": "max_last_sale_price_gbp",
+        "type": "integer",
+        "desc": "Max Last Sale Price Gbp",
+        "optional": true
+      },
+      {
+        "name": "owner_occupied",
+        "type": "boolean",
+        "desc": "True: only homes whose Energy Performance Certificate records them as owner-occupied (response likelihood Medium), where a letter reaches the owner.",
+        "optional": true
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "desc": "'owner_occupied_first' (default, the website's order), 'longest_held' oldest last sale first, 'recent' newest sale first, by last sale price, or largest floor area first.",
+        "optional": true
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "desc": "Page number, 20 homes a page.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "recent_sales",
+    "description": "What sold in an area, newest first: \"what sold near here this year\", \"flats sold in SW19 since January for under £500k\".",
+    "arguments": [
+      {
+        "name": "area",
+        "type": "string",
+        "desc": "Where to look: a postcode district ('BS7'), a full postcode ('SW19 1AB'), a town ('Wimbledon'), or a street with its district or town ('Elm Road, BS7')."
+      },
+      {
+        "name": "property_type",
+        "type": "string",
+        "desc": "D detached, S semi-detached, T terraced, F flat (the Land Registry's own classes).",
+        "optional": true
+      },
+      {
+        "name": "sold_from",
+        "type": "string",
+        "desc": "Earliest sale date, 'YYYY-MM-DD', or a year ('2026' means from 1 January 2026).",
+        "optional": true
+      },
+      {
+        "name": "sold_to",
+        "type": "string",
+        "desc": "Latest sale date, 'YYYY-MM-DD', or a year ('2025' means to 31 December 2025).",
+        "optional": true
+      },
+      {
+        "name": "min_price_gbp",
+        "type": "integer",
+        "desc": "Min Price Gbp",
+        "optional": true
+      },
+      {
+        "name": "max_price_gbp",
+        "type": "integer",
+        "desc": "Max Price Gbp",
+        "optional": true
+      },
+      {
+        "name": "min_floor_area_m2",
+        "type": "integer",
+        "desc": "Only sales of homes at least this big.",
+        "optional": true
+      },
+      {
+        "name": "tenure",
+        "type": "string",
+        "desc": "As recorded on the sale.",
+        "optional": true
+      },
+      {
+        "name": "new_build",
+        "type": "string",
+        "desc": "New-build sales only, or leave them out.",
+        "optional": true
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "desc": "Page number, 20 sales a page.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "stamp_duty",
+    "description": "How much stamp duty: Stamp Duty Land Tax for a home in England, Land Transaction Tax for one in Wales, for a home mover, a first-time buyer or an additional property, with the tax in each band and the other two buyer cases beside it.",
+    "arguments": [
+      {
+        "name": "price_gbp",
+        "type": "integer",
+        "desc": "Purchase price in pounds."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Where the home is.",
+        "optional": true
+      },
+      {
+        "name": "buyer",
+        "type": "string",
+        "desc": "'home_mover': replacing a main home, the standard rates.",
+        "optional": true
+      },
+      {
+        "name": "non_uk_resident",
+        "type": "boolean",
+        "desc": "Buyer is not a UK resident (adds 2% in England).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "draft_letter",
+    "description": "Hand a letter the person has agreed with you to GetMovely.",
+    "arguments": [
+      {
+        "name": "akey",
+        "type": "string",
+        "desc": "Address key from search_addresses (hex string)."
+      },
+      {
+        "name": "letter_text",
+        "type": "string",
+        "desc": "The message the person has agreed, as plain text: what goes in the body of the letter."
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "search_guides",
+    "description": "GetMovely's plain-English guides to buying and selling homes in England and Wales: contacting an owner directly and the law on it, buying or selling without an estate agent, finding who owns a property or the address behind a listing, how often sales fall through, speeding a sale up, best and final offers, stopping unwanted letters.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "What the person wants to know, in plain words: 'is it legal to write to a homeowner', 'who owns the freehold', 'how many house sales fall through'.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  },
+  {
+    "name": "read_guide",
+    "description": "The full text of one GetMovely guide as Markdown, with the questions it answers, the primary sources it cites (GOV.UK, HM Land Registry, the ICO, The Property Ombudsman and others) and the date it was last updated.",
+    "arguments": [
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "Guide slug from search_guides, for example 'is-it-legal-to-write-to-a-homeowner'."
+      }
+    ],
+    "annotations": {
+      "readOnlyHint": true,
+      "idempotentHint": true
+    }
+  }
+]
