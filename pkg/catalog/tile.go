@@ -63,6 +63,17 @@ func ToTile(ctx context.Context, server servers.Server) (Tile, error) {
 		githubStars = repository.GetStargazersCount()
 	}
 
+	// Remote services do not necessarily have a public implementation repository.
+	// Keep legacy defaults when omitted, but honor their declared service metadata.
+	if server.Remote.URL != "" {
+		if server.Meta.Owner != "" {
+			owner = server.Meta.Owner
+		}
+		if server.Meta.License != "" {
+			license = server.Meta.License
+		}
+	}
+
 	if description == "" {
 		return Tile{}, fmt.Errorf("no description found for: %s", server.Name)
 	}
