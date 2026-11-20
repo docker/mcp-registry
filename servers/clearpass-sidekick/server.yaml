@@ -1,0 +1,51 @@
+name: clearpass-sidekick
+image: mcp/clearpass-sidekick
+type: server
+meta:
+  category: devops
+  tags:
+    - aruba
+    - clearpass
+    - network-security
+    - nac
+    - devops
+about:
+  title: ClearPass Sidekick
+  description: Natural language automation of Aruba ClearPass Policy Manager (NAC) with 761 operations across network devices, guest access, certificates, active sessions, and enforcement policies via progressive disclosure.
+  icon: https://www.google.com/s2/favicons?domain=arubanetworks.com&sz=64
+source:
+  project: https://github.com/cheddarking/clearpass-sidekick-mcp
+  commit: bf80bc4bc5a6c85163ca9a4f5534694595f3d28f
+config:
+  description: Configure the connection to Aruba ClearPass Policy Manager
+  secrets:
+    - name: clearpass-sidekick.client_secret
+      env: CLEARPASS_CLIENT_SECRET
+      example: your-oauth-client-secret
+    - name: clearpass-sidekick.api_token
+      env: CLEARPASS_API_TOKEN
+      example: your-api-token
+  env:
+    - name: CLEARPASS_SERVER
+      example: https://clearpass.example.com:443/api
+      value: "{{clearpass-sidekick.clearpass_server}}"
+    - name: CLEARPASS_CLIENT_ID
+      example: your-oauth-client-id
+      value: "{{clearpass-sidekick.clearpass_client_id}}"
+    - name: CLEARPASS_VERIFY_SSL
+      example: "true"
+      value: "{{clearpass-sidekick.clearpass_verify_ssl}}"
+  parameters:
+    type: object
+    properties:
+      clearpass_server:
+        type: string
+        description: ClearPass Policy Manager API URL (e.g. https://clearpass.example.com:443/api)
+      clearpass_client_id:
+        type: string
+        description: OAuth2 API client ID for client credentials authentication
+      clearpass_verify_ssl:
+        type: string
+        description: Verify SSL/TLS certificates when connecting to ClearPass (true or false)
+    required:
+      - clearpass_server
