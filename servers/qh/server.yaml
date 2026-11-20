@@ -1,0 +1,52 @@
+name: qh
+image: ghcr.io/anderson-0/qh
+type: server
+meta:
+  category: database
+  tags:
+    - database
+    - postgres
+    - mysql
+    - mariadb
+    - sqlite
+    - mongodb
+about:
+  title: QH Database Query
+  description: Query PostgreSQL, MySQL, MariaDB, SQLite and MongoDB with two tools (schema and query) built to use few tokens. Results come back as compact TSV, schemas include foreign keys and enum values, and connections are read-only by default.
+source:
+  project: https://github.com/anderson-0/qh
+  commit: d0a85c76fb4f553ec55d3d9365c5a8d44b2fdde7
+run:
+  command:
+    - mcp
+config:
+  description: Connect qh to one database
+  secrets:
+    - name: qh.dsn
+      env: QH_DSN
+      example: postgres://reader:password@db.example.com:5432/shop
+      description: Connection string of the database to query (postgres://, mysql://, mariadb://, mongodb:// or a SQLite file path)
+  env:
+    - name: QH_NAME
+      example: shop
+      value: "{{qh.name}}"
+    - name: QH_DESCRIPTION
+      example: Orders and customers
+      value: "{{qh.description}}"
+    - name: QH_MODE
+      example: ro
+      value: "{{qh.mode}}"
+  parameters:
+    type: object
+    properties:
+      name:
+        type: string
+        description: Name the agent sees for the connection
+        default: db
+      description:
+        type: string
+        description: One line telling the agent what the database holds
+      mode:
+        type: string
+        description: ro (read-only, the default) or rw (allow writes)
+        default: ro
