@@ -1,0 +1,38 @@
+name: okf-wiki-mcp
+image: mcp/okf-wiki-mcp
+type: server
+meta:
+  category: productivity
+  tags:
+    - markdown
+    - obsidian
+    - meeting-notes
+    - knowledge-graph
+    - local-ai
+about:
+  title: OneMira OKF and Obsidian Wiki
+  description: Offline Model Context Protocol server for searching local Google OKF v0.2 and Obsidian Markdown meeting vaults, action items, and relational wiki-links.
+  icon: https://onemira.com/favicon-192x192.png
+source:
+  project: https://github.com/onemira-space/okf-wiki-mcp
+  branch: main
+  commit: 70ca3a0058b68cedc98b8b221a23d212065ec4e8
+run:
+  volumes:
+    - "{{okf-wiki-mcp.vault_path|volume-target}}:/vault:ro"
+  disableNetwork: true
+config:
+  description: Mount your local OKF v0.2 or Obsidian Markdown meeting-notes directory read-only into /vault.
+  env:
+    - name: OKF_VAULT_DIR
+      example: /vault
+      value: /vault
+  parameters:
+    type: object
+    properties:
+      vault_path:
+        type: string
+        description: Host directory path to your local OKF v0.2 or Obsidian Markdown vault
+        default: /Users/username/Documents/Vault
+    required:
+      - vault_path
