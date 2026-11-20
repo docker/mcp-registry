@@ -1,0 +1,802 @@
+[
+  {
+    "name": "get_context",
+    "description": "Read the budget structure or the Actual server details in one call; start here to learn what exists before reading or changing anything. Read-only: it never creates, changes or deletes data. Use list_entities instead to list or look up one kind of entity (accounts, categories, payees, rules, schedules, tags, notes, budget files) or to resolve a name to an id; this tool returns the whole structure at once. Pick one `topic` (default structure). structure: accounts, categories with their groups and payees together, optional include_accounts, include_categories, include_payees, include_closed (closed accounts are left out unless true) and payee_limit (1 to 2000, default 500); a section you exclude is omitted, and at least one of the three include_* flags must stay true. server: the MCP server version, name, Node.js and SDK versions, tool count and uptime, no other fields. version: the Actual server version string, not the MCP server version, no other fields. preferences: the synced display preferences (number format, date format, currency, first day of the week), no other fields; amounts stay integer cents whatever it says. A field given for a topic that does not take it is refused naming the field. Returns the topic's result object: the accounts, category groups with nested categories and payees for structure, the server details for server, the version string for version, and the preference values for preferences.",
+    "arguments": [
+      {
+        "name": "include_accounts",
+        "type": "boolean",
+        "desc": "Include the accounts section (default true). topic structure only."
+      },
+      {
+        "name": "include_categories",
+        "type": "boolean",
+        "desc": "Include the categories and category groups section (default true). topic structure only."
+      },
+      {
+        "name": "include_payees",
+        "type": "boolean",
+        "desc": "Include the payees section (default true). topic structure only."
+      },
+      {
+        "name": "include_closed",
+        "type": "boolean",
+        "desc": "Include closed accounts (default false, they are left out). topic structure only."
+      },
+      {
+        "name": "payee_limit",
+        "type": "integer",
+        "desc": "Maximum payees to return, 1 to 2000 (default 500). topic structure only."
+      },
+      {
+        "name": "topic",
+        "type": "string",
+        "desc": "Which context to return."
+      }
+    ]
+  },
+  {
+    "name": "list_entities",
+    "description": "List, search or look up budget entities of one `type`: account, account_group, category, category_group, payee, tag, rule, schedule, note or budget_file. Read-only: never creates, changes or deletes data. For the whole budget structure, server details or preferences in one call use get_context instead.\nWith only type it lists every entity of that type. A field the type does not take is refused naming the field.\naccount, category, payee: query (string or array) with match_type and limit to search by name, or name to resolve one exact name to its id.\npayee: also sort frequency (most used payees).\nschedule: name to resolve its id, or schedule_id with start, end and count to list the dates it falls on.\nrule: payee_id to list that payee's rules.\nnote: requires id (an entity UUID or budget-YYYY-MM).\nbudget_file: scope configured (default) or server.\nquery and name are mutually exclusive, as are schedule_id and name; match_type and limit need query; start, end and count need schedule_id; sort allows no other field.\nReturns the entity list for the type; a query returns { matches, count }, a name returns the id, a schedule_id returns { schedule_id, name, dates, count, truncated }, and a note returns { found, id, note }.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Name pattern, or an array matching if ANY matches. Only for type account, category, payee."
+      },
+      {
+        "name": "match_type",
+        "type": "string",
+        "desc": "How query matches (default contains; case-insensitive; fuzzy tolerates typos). Needs query."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum matches (default 10). Needs query."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Exact name to resolve to an id. Only for type account, category, payee, schedule; not with query or schedule_id."
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "desc": "frequency: most used payees of recent transactions. Only for type payee, alone."
+      },
+      {
+        "name": "payee_id",
+        "type": "string",
+        "desc": "Payee UUID: list only its rules. Only for type rule."
+      },
+      {
+        "name": "schedule_id",
+        "type": "string",
+        "desc": "Schedule UUID: list its dates. Only for type schedule; not with name."
+      },
+      {
+        "name": "start",
+        "type": "string",
+        "desc": "First date, YYYY-MM-DD (default today). Needs schedule_id."
+      },
+      {
+        "name": "end",
+        "type": "string",
+        "desc": "Last date, YYYY-MM-DD, inclusive. Needs schedule_id."
+      },
+      {
+        "name": "count",
+        "type": "integer",
+        "desc": "How many dates to return, 1 to 366. Needs schedule_id."
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Required for type note: an account, category, category group or payee UUID, or budget-YYYY-MM."
+      },
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": "configured (default): budget files this server is configured with. server: files on the Actual server. Only for type budget_file."
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "Entity type to list."
+      }
+    ]
+  },
+  {
+    "name": "search_transactions",
+    "description": "Find transaction records (id, date, amount, payee, category, notes), not totals; pick one `by`. Read-only. For totals use summarize_transactions; for ids use list_entities; for a custom query use run_query. All fields optional; one the chosen `by` does not take is refused by name. Amounts are integer cents, outflows negative; dates YYYY-MM-DD. account: account_id, start_date, end_date. filter: account_id, start_date, end_date, min_amount, max_amount, category_id, payee_id, notes, cleared, reconciled (off-budget accounts excluded). amount: min_amount and max_amount, or absolute_amount, plus start_date, end_date, account_id, category_name, limit; needs account_id or a date. category: category_name, start_date, end_date, account_id, min_amount, max_amount, limit. month: month, account_id, category_name, payee_name, min_amount, max_amount, limit. payee: payee_name, start_date, end_date, account_id, category_name, min_amount, max_amount, limit. uncategorized: start_date, end_date, account_id, include_transactions, limit, offset. Returns { result: [transaction] } for account and filter; { transactions, count, totalAmount } for amount, category, month and payee (an unknown name gives an error field); { totalCount, totalAmount, byAccount, dateRange } for uncategorized, plus transactions and hasMore with include_transactions.",
+    "arguments": [
+      {
+        "name": "account_id",
+        "type": "string",
+        "desc": "Account id from list_entities. Omit for all accounts."
+      },
+      {
+        "name": "start_date",
+        "type": "string",
+        "desc": "First day, inclusive."
+      },
+      {
+        "name": "end_date",
+        "type": "string",
+        "desc": "Last day, inclusive (uncategorized: default today)."
+      },
+      {
+        "name": "min_amount",
+        "type": "integer",
+        "desc": "Smallest amount in cents; outflows negative."
+      },
+      {
+        "name": "max_amount",
+        "type": "integer",
+        "desc": "Largest amount in cents; outflows negative."
+      },
+      {
+        "name": "category_id",
+        "type": "string",
+        "desc": "Category id from list_entities."
+      },
+      {
+        "name": "payee_id",
+        "type": "string",
+        "desc": "Payee id from list_entities."
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "desc": "Notes substring, case-insensitive."
+      },
+      {
+        "name": "cleared",
+        "type": "boolean",
+        "desc": "Only rows with this cleared status."
+      },
+      {
+        "name": "reconciled",
+        "type": "boolean",
+        "desc": "Only rows with this reconciled status."
+      },
+      {
+        "name": "absolute_amount",
+        "type": "integer",
+        "desc": "Amount in cents, either sign; overrides min_amount and max_amount."
+      },
+      {
+        "name": "category_name",
+        "type": "string",
+        "desc": "Category name, case-insensitive."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum rows, up to 1000 (default 100; uncategorized 50)."
+      },
+      {
+        "name": "month",
+        "type": "string",
+        "desc": "Month, YYYY-MM (default current)."
+      },
+      {
+        "name": "payee_name",
+        "type": "string",
+        "desc": "Payee name, case-insensitive."
+      },
+      {
+        "name": "include_transactions",
+        "type": "boolean",
+        "desc": "true also returns the rows (default false: counts only)."
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "First row of the page (default 0)."
+      },
+      {
+        "name": "by",
+        "type": "string",
+        "desc": "How to search."
+      }
+    ]
+  },
+  {
+    "name": "summarize_transactions",
+    "description": "Totals, not records: spending sums, grouped breakdowns, recurring expenses and account balance; pick one `report`. For individual transactions use search_transactions; for ids use list_entities; for budgeted versus spent use list_budget_months; for a custom query use run_query.\nA parameter the chosen `report` does not take is refused by name. Amounts are integer cents, outflows negative; dates YYYY-MM-DD.\nby_category: start_date (default first day of the current month), end_date (default today), account_id, include_income.\nby_payee: start_date, end_date (same defaults), account_id, limit (default 50); largest spending first, limit keeps the top and totalAmount sums the returned rows.\ngrouped: requires start_date, end_date, group_by; optional account_ids, category_ids, category_group_ids, payee_ids, include_income, exclude_transfers (default true).\naccount_flow: requires start_date, end_date, account_ids.\nrecurring: start_date or months, account_ids, min_occurrences, include_inactive.\nbalance: requires account_id; optional cutoff date.\nReturns { summary: [{ categoryGroup, categoryName, totalAmount, transactionCount }], totalAmount, dateRange } for by_category; the same with payeeName for by_payee; aggregated groups with totals for grouped and account_flow; repeating payees for recurring; { balance, accountName } in cents for balance.",
+    "arguments": [
+      {
+        "name": "start_date",
+        "type": "string",
+        "desc": "First day, inclusive. Required for grouped and account_flow."
+      },
+      {
+        "name": "end_date",
+        "type": "string",
+        "desc": "Last day, inclusive. Required for grouped and account_flow."
+      },
+      {
+        "name": "account_id",
+        "type": "string",
+        "desc": "Account id from list_entities. Required for balance."
+      },
+      {
+        "name": "include_income",
+        "type": "boolean",
+        "desc": "true also counts income (default false)."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum payees (default 50)."
+      },
+      {
+        "name": "group_by",
+        "type": "string",
+        "desc": "One grouping, or an array of up to 5. Required for grouped."
+      },
+      {
+        "name": "account_ids",
+        "type": "array",
+        "desc": "Account ids from list_entities. Required for account_flow."
+      },
+      {
+        "name": "category_ids",
+        "type": "array",
+        "desc": "Only these category ids."
+      },
+      {
+        "name": "category_group_ids",
+        "type": "array",
+        "desc": "Only these category group ids."
+      },
+      {
+        "name": "payee_ids",
+        "type": "array",
+        "desc": "Only these payee ids."
+      },
+      {
+        "name": "exclude_transfers",
+        "type": "boolean",
+        "desc": "false keeps transfers (default true)."
+      },
+      {
+        "name": "months",
+        "type": "integer",
+        "desc": "Look back this many months, instead of start_date."
+      },
+      {
+        "name": "min_occurrences",
+        "type": "integer",
+        "desc": "Fewest occurrences to count (default 3)."
+      },
+      {
+        "name": "include_inactive",
+        "type": "boolean",
+        "desc": "true also lists series that have stopped (default false)."
+      },
+      {
+        "name": "cutoff",
+        "type": "string",
+        "desc": "Balance as of this day (default now)."
+      },
+      {
+        "name": "report",
+        "type": "string",
+        "desc": "Which report to run."
+      }
+    ]
+  },
+  {
+    "name": "list_budget_months",
+    "description": "List the budget months, or read one month's budget when `month` is given. Read-only. Use it for budgeted versus spent per category; for actual spending totals use summarize_transactions, for ids use list_entities, for individual transactions use search_transactions. To change a budgeted amount use manage_budget_months.\nmonth: optional, YYYY-MM; the only input, any other property is refused by name.\nReturns { result: [YYYY-MM, ...] }, the budget months and nothing else, when `month` is omitted.\nReturns { result } holding that month's budget when `month` is given: totals (totalIncome, totalBudgeted, totalSpent, toBudget, forNextMonth, totalBalance) and categoryGroups; an expense category carries budgeted, spent and balance, an income category received; amounts are integer cents.",
+    "arguments": [
+      {
+        "name": "month",
+        "type": "string",
+        "desc": "Month as YYYY-MM, one the budget has. Omit it to list every month."
+      }
+    ]
+  },
+  {
+    "name": "run_query",
+    "description": "Run a read-only SQL query against the budget data; the escape hatch when search_transactions, summarize_transactions, list_entities and list_budget_months do not fit (prefer them when they do). A bare table name (e.g. \"transactions\") returns all its records. Form: SELECT [fields] FROM [table] WHERE [conditions] ORDER BY [field] DESC LIMIT [n]. Example: \"SELECT id, date, amount, payee.name FROM transactions WHERE amount < 0 ORDER BY date DESC LIMIT 10\". WHERE supports =, !=, >, >=, <, <=; IN (v1, v2); LIKE / NOT LIKE (case and accent-insensitive, % wildcard, e.g. imported_payee LIKE '%amazon%'); IS NULL / IS NOT NULL; boolean columns as true / false (cleared = false, category.hidden = true); conditions joined with AND. OR, REGEXP, NOT IN and parenthesised groups are not supported and return an error (a query is never silently run unfiltered). Writes, stacked statements and comments are refused. Transactions come back in split-inline mode: \"is_parent = true\" returns nothing, use \"is_parent = false\" to exclude split children. Joins use dot notation: payee.name, category.name, account.name (NOT payee_name). Amounts are in cents: $100.00 = 10000. Dates are quoted YYYY-MM-DD strings: date >= '2025-01-01'. Read-only: it never changes data. Returns { result: rows }; an empty result may carry a \"hint\" naming a category.name, payee.name or account.name value that matches no entity, with the query that lists the exact names. Tables: transactions (id, date, amount, notes, cleared, account, payee, category); accounts (id, name, type, closed, offbudget); categories (id, name, group, is_income); payees (id, name); category_groups (id, name, is_income).",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "The read-only SQL query to run, for example SELECT id, name FROM accounts."
+      }
+    ]
+  },
+  {
+    "name": "manage_transactions",
+    "description": "Create, change, delete, import, merge or transfer transactions; pick one `action`. Writes. To read use search_transactions; ids come from list_entities. Cents are integers, outflows negative; dates YYYY-MM-DD. Other fields are refused. create: account, date, amount; optional payee, payee_name, notes, category, cleared, imported_id, subtransactions. update: id and at least one of account, date, amount, payee, payee_name, imported_payee, category, notes, imported_id, transfer_id, cleared, reconciled, subtransactions; null clears. update_batch: updates (1 to 50), NOT atomic, reported per item, no splits. delete: id; DESTRUCTIVE, permanent, balances change, cannot be undone. import: account_id, txs; matched like a bank import (rules applied; duplicates by imported_id or same amount within 7 days). merge: ids (two); DESTRUCTIVE, keeps one row by the upstream rule, deletes the other, cannot be undone. transfer: from_account, to_account, amount (positive), date; optional notes. Returns { success, id } (create; id often null, success false for an unknown account), { success } or { success, split } (update, delete), { succeeded, failed, total, successCount, failureCount } (update_batch), { result: { added, updated, errors } } (import), { result: { success, keptId, deletedId } } (merge), { result } (transfer; same or unknown account: result.success false).",
+    "arguments": [
+      {
+        "name": "account",
+        "type": "string",
+        "desc": "Account id."
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "YYYY-MM-DD."
+      },
+      {
+        "name": "amount",
+        "type": "number",
+        "desc": "Integer cents, outflow negative."
+      },
+      {
+        "name": "payee",
+        "type": "string",
+        "desc": "Payee id (update: or name)."
+      },
+      {
+        "name": "payee_name",
+        "type": "string",
+        "desc": "Payee name."
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "desc": "Notes."
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Category id."
+      },
+      {
+        "name": "cleared",
+        "type": "boolean",
+        "desc": "Cleared flag."
+      },
+      {
+        "name": "imported_id",
+        "type": "string",
+        "desc": "Source id."
+      },
+      {
+        "name": "subtransactions",
+        "type": "array",
+        "desc": "Split {amount, category?, notes?}; cents sum to amount."
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Transaction id."
+      },
+      {
+        "name": "imported_payee",
+        "type": "string",
+        "desc": "Imported payee."
+      },
+      {
+        "name": "transfer_id",
+        "type": "string",
+        "desc": "Transfer id."
+      },
+      {
+        "name": "reconciled",
+        "type": "boolean",
+        "desc": "Reconciled flag."
+      },
+      {
+        "name": "updates",
+        "type": "array",
+        "desc": "1 to 50 {id, fields}; fields as update, minus imported_id, transfer_id, reconciled, subtransactions."
+      },
+      {
+        "name": "account_id",
+        "type": "string",
+        "desc": "Account id."
+      },
+      {
+        "name": "txs",
+        "type": "array",
+        "desc": "Rows {date, amount, imported_id?, payee_name?, category?, notes?}."
+      },
+      {
+        "name": "ids",
+        "type": "array",
+        "desc": "Two transaction ids."
+      },
+      {
+        "name": "from_account",
+        "type": "string",
+        "desc": "Source account id."
+      },
+      {
+        "name": "to_account",
+        "type": "string",
+        "desc": "Target account id."
+      },
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "Operation to perform; the tool description lists the allowed values."
+      }
+    ]
+  },
+  {
+    "name": "manage_accounts",
+    "description": "Create, change, close, reopen, delete, bank-sync or annotate accounts and account groups; pick one `action`. Writes. To read or find ids use list_entities; month notes belong to manage_budget_months. Other fields are refused. entity (account or account_group) is required for create, update and delete; close takes account or nothing. create: entity, name; optional balance (account, integer cents, on-budget only) or sort_order (account_group). update: entity, id and at least one of name, offbudget, closed (account) or name, sort_order (account_group); to close or reopen prefer those actions. close: id; optional transfer_account_id (required for a non-zero balance, not id itself), transfer_category_id; an account with no transactions is REMOVED, not closed. reopen: id. delete: entity, id; DESTRUCTIVE, cannot be undone: an account takes its transactions with it (a closed one cannot be deleted), a group leaves its accounts ungrouped. bank_sync: optional account_id (omit for every linked open account); reaches the bank providers. set_note: id, note (\"\" clears); id is any entity UUID, not budget-YYYY-MM; for a category or payee note prefer manage_categories or manage_payees, so each note is set by the tool of its entity kind. Returns { result: id } (create account), { result: { id, name } } (create group), { success, accountId, updatedFields } (update account), { result: { success, id, updated } } (update group), { success, closed | alreadyClosed | removed } (close), { success, reopened | alreadyOpen } (reopen), { success } (delete account), { result: { success, id } } (delete group), { result, newTransactions, matchedTransactions, updatedAccounts, truncated } (bank_sync), { result: { success, id, note, cleared } } (set_note).",
+    "arguments": [
+      {
+        "name": "entity",
+        "type": "string",
+        "desc": "account or account_group."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name, 1 to 255 characters."
+      },
+      {
+        "name": "balance",
+        "type": "number",
+        "desc": "Opening balance, integer cents."
+      },
+      {
+        "name": "sort_order",
+        "type": "number",
+        "desc": "Sidebar position; lower first."
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Account id (account group id with entity account_group)."
+      },
+      {
+        "name": "offbudget",
+        "type": "boolean",
+        "desc": "Off-budget flag."
+      },
+      {
+        "name": "closed",
+        "type": "boolean",
+        "desc": "Closed flag."
+      },
+      {
+        "name": "transfer_account_id",
+        "type": "string",
+        "desc": "Account that receives the remaining balance."
+      },
+      {
+        "name": "transfer_category_id",
+        "type": "string",
+        "desc": "Category for the balancing transaction."
+      },
+      {
+        "name": "account_id",
+        "type": "string",
+        "desc": "Account id; omit to sync every linked account."
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "Note text; \"\" clears it."
+      },
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "Operation to perform; the tool description lists the allowed values."
+      }
+    ]
+  },
+  {
+    "name": "manage_categories",
+    "description": "Create, change, delete or annotate budget categories and category groups; pick one `action`. Writes. To read or find ids use list_entities; budget amounts and month notes belong to manage_budget_months. Other fields are refused. entity (category or category_group) is required for create, update and delete. create: entity, name; a category also needs group_id and may set is_income; a category_group may set is_income and hidden. update: entity, id and at least one of name, group_id (category only), is_income, hidden; prefer hidden true over delete to retire a category. delete: entity, id; DESTRUCTIVE, cannot be undone: a category is removed and its transactions are not moved (recategorize them first); deleting a group ALSO deletes every category in it (move them out first with update group_id). set_note: id (a category or category group UUID), note (\"\" clears); not budget-YYYY-MM; an account note goes through manage_accounts and a payee note through manage_payees. Returns { success, categoryId, message } (create category), { id, success } (create group), { success } (update, delete), { result: { success, id, note, cleared } } (set_note).",
+    "arguments": [
+      {
+        "name": "entity",
+        "type": "string",
+        "desc": "category or category_group."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name, 1 to 255 characters."
+      },
+      {
+        "name": "group_id",
+        "type": "string",
+        "desc": "Category group id."
+      },
+      {
+        "name": "is_income",
+        "type": "boolean",
+        "desc": "Income flag; default expense."
+      },
+      {
+        "name": "hidden",
+        "type": "boolean",
+        "desc": "Hidden flag."
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Category id (category group id with entity category_group)."
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "Note text; \"\" clears it."
+      },
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "Operation to perform; the tool description lists the allowed values."
+      }
+    ]
+  },
+  {
+    "name": "manage_payees",
+    "description": "Create, change, delete, merge or annotate payees; pick one `action`. Writes. To read or find ids use list_entities. Other fields are refused. create: name; optional notes. update: id and at least one of name, transfer_acct, category (a default category, stored as a payee rule that may cover other payees; null deletes that whole rule). delete: id; DESTRUCTIVE, cannot be undone: transactions lose the payee; a transfer payee is refused. merge: target_id, merge_ids (1 to 50, never target_id itself); DESTRUCTIVE, cannot be undone: the sources' transactions move to target_id and the sources are deleted; transfer payees are refused. set_note: id (a payee UUID), note (\"\" clears); not budget-YYYY-MM; an account note goes through manage_accounts and a category note through manage_categories. Returns { result: id } (create), { success, payeeId, updatedFields } (update), { success } (delete), { success, mergedIds, message } (merge), { result: { success, id, note, cleared } } (set_note).",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name, 1 to 255 characters."
+      },
+      {
+        "name": "notes",
+        "type": "string",
+        "desc": "Notes, up to 1000 characters."
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Payee id."
+      },
+      {
+        "name": "transfer_acct",
+        "type": "string",
+        "desc": "Account id when the payee stands for a transfer."
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Default category id; null clears it."
+      },
+      {
+        "name": "target_id",
+        "type": "string",
+        "desc": "Payee that is kept."
+      },
+      {
+        "name": "merge_ids",
+        "type": "array",
+        "desc": "1 to 50 payee ids merged into target_id."
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "Note text; \"\" clears it."
+      },
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "Operation to perform; the tool description lists the allowed values."
+      }
+    ]
+  },
+  {
+    "name": "manage_tags",
+    "description": "Create, change or delete tags; pick one `action`. Writes. To read tags or find ids use list_entities with type tag. Other fields are refused. create: tag (the word without \"#\"); optional color, description. An existing name, even a deleted one, is updated and its id returned. update: id and at least one of tag, color, description; an unknown id is refused. delete: id; DESTRUCTIVE: the tag is soft-deleted and no longer listed; an unknown id is refused. Returns { result: id } (create), { result: { success: true } } (update, delete).",
+    "arguments": [
+      {
+        "name": "tag",
+        "type": "string",
+        "desc": "Tag word without a leading \"#\", at least 1 character."
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "desc": "Color string, by convention CSS hex such as \"#33aa33\"."
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "desc": "Tag description."
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Tag id."
+      },
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "Operation to perform; the tool description lists the allowed values."
+      }
+    ]
+  },
+  {
+    "name": "manage_rules",
+    "description": "Create, upsert, change or delete budget rules; pick one `action`. Writes. To read rules use list_entities with type rule. Other fields are refused. Conditions match by field and op: text fields (imported_payee, notes, description) take contains, matches, doesNotContain, is, isNot; id fields (payee, account, category) take is, isNot; amount takes is, gte, lte, gt, lt, isapprox; date takes is, gte, lte, gt, lt. Ids must exist or the call is refused and nothing is written (ids in link-schedule actions are not checked). create: conditions, actions; optional stage, conditions_op. create_batch: rules (1 to 50, items with camelCase keys); NOT atomic, no rollback: a failing rule is reported in failed and the rest are still attempted; if the call itself fails, read the rules back before retrying. upsert: conditions, actions; optional stage, conditions_op; a rule with the same conditions and conditions_op (any order) has its actions replaced and its stage replaced only if sent, else a rule is created. update: id and at least one of stage, conditions_op, conditions, actions; unsent fields stay. delete: id; DESTRUCTIVE, cannot be undone; a rule owned by a schedule is refused (use manage_schedules delete); an unknown id is refused. Returns { id, success } (create), { result: { succeeded, failed, total, successCount, failureCount } } (create_batch), { id, created } (upsert), { success: true } (update, delete).",
+    "arguments": [
+      {
+        "name": "stage",
+        "type": "string",
+        "desc": "null or omitted: normal stage. \"pre\" runs before the normal stage, \"post\" after. On update, omit to keep the current stage."
+      },
+      {
+        "name": "conditions_op",
+        "type": "string",
+        "desc": "How conditions combine; default and."
+      },
+      {
+        "name": "conditions",
+        "type": "array",
+        "desc": "Items {field, op, value[, type]}; value is a string or number."
+      },
+      {
+        "name": "actions",
+        "type": "array",
+        "desc": "Items {op, field, value[, type, options]}; op defaults to set on create and upsert, required on update."
+      },
+      {
+        "name": "rules",
+        "type": "array",
+        "desc": "1 to 50 rules, each {stage?, conditionsOp?, conditions, actions} with camelCase keys."
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Rule id."
+      },
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "Operation to perform; the tool description lists the allowed values."
+      }
+    ]
+  },
+  {
+    "name": "manage_schedules",
+    "description": "Create, change or delete schedules (one-off or recurring); pick one `action`. Writes. To read schedules use list_entities with type schedule; to preview occurrence dates use list_entities with type schedule and schedule_id. Cents are integers, outflows negative. Other fields are refused. create: date; optional name, payee, account, amount, amount_op, posts_transaction. amount_op isbetween needs amount {num1, num2}; an object amount needs isbetween. update: id and at least one of name, payee, account (null clears), amount, amount_op, date, posts_transaction, reset_next_date; unsent fields stay; a new date replaces the stored recurrence; completed and next_date cannot be set. delete: id; DESTRUCTIVE, cannot be undone; removes the schedule and the rule that drives it; transactions it already created stay; an unknown id is refused. Returns { id } (create), { success: true } (update, delete).",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Unique display name."
+      },
+      {
+        "name": "payee",
+        "type": "string",
+        "desc": "Payee id; update: null clears."
+      },
+      {
+        "name": "account",
+        "type": "string",
+        "desc": "Account id; update: null clears."
+      },
+      {
+        "name": "amount",
+        "type": "number",
+        "desc": "Integer cents, outflow negative; with amount_op isbetween an object {num1, num2}."
+      },
+      {
+        "name": "amount_op",
+        "type": "string",
+        "desc": "How to match the amount; default is on create."
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "One-off \"YYYY-MM-DD\", or a recurrence {frequency daily|weekly|monthly|yearly, start, endMode?, interval?, patterns?, skipWeekend?, weekendSolveMode?, endOccurrences?, endDate?}."
+      },
+      {
+        "name": "posts_transaction",
+        "type": "boolean",
+        "desc": "Auto-post a transaction on each occurrence; default false on create."
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Schedule id."
+      },
+      {
+        "name": "reset_next_date",
+        "type": "boolean",
+        "desc": "Recalculate next_date; set true when changing date."
+      },
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "Operation to perform; the tool description lists the allowed values."
+      }
+    ]
+  },
+  {
+    "name": "manage_budget_months",
+    "description": "Change the budget of a month: amounts, carryover, the hold for next month, transfers between categories, the month note; pick one `action`. Writes. To read months use list_budget_months; to switch, import or export a budget file use manage_budget_files; category notes use manage_categories. Cents are integers. Other fields are refused. set_amount: month, category_id, amount (the month must be one the budget has; an unknown category or month is returned as { success: false, error }). set_amount_batch: operations, 1 to 100 items {month, categoryId, amount?, carryover?} with camelCase keys, each needing amount or carryover; NOT atomic, no rollback, items applied before a failure stay applied; an unknown category, a month out of range or carryover on an income category fails only that item; the last item wins for the same month and category; after a timeout read the months back before retrying. set_carryover: month, category_id, flag. hold: month, amount greater than 0; holds for next month and may hold LESS than asked (clamped to what is left to budget); nothing held is an error; Actual ADDS to the buffer, so on an error read the month before retrying. reset_hold: month; releases the whole hold back to to-budget, safe to repeat. transfer: month, from_category_id, to_category_id (different), amount greater than 0; the source needs that much budgeted; NOT atomic, if the second write fails the source was already lowered. set_note: month, note; sets or clears the note of that budget month. Returns { result } (set_amount), { succeeded, failed, total, successCount, failureCount } (set_amount_batch; failing items are a normal result), { success: true } (set_carryover, reset_hold), { success, held } or { success, partial, requested, held, message } (hold), { result: { success, transferred, fromCategory, toCategory } } (transfer), { result: { success, id, note, cleared } } (set_note).",
+    "arguments": [
+      {
+        "name": "month",
+        "type": "string",
+        "desc": "Budget month as YYYY-MM, one the budget has (list_budget_months lists them)."
+      },
+      {
+        "name": "category_id",
+        "type": "string",
+        "desc": "Category id."
+      },
+      {
+        "name": "amount",
+        "type": "integer",
+        "desc": "Integer cents (5000 is $50.00). set_amount: the new budgeted amount; hold and transfer: greater than 0."
+      },
+      {
+        "name": "operations",
+        "type": "array",
+        "desc": "1 to 100 items {month, categoryId, amount?, carryover?} with camelCase keys; each needs amount or carryover."
+      },
+      {
+        "name": "flag",
+        "type": "boolean",
+        "desc": "true carries the category balance into next month, false does not."
+      },
+      {
+        "name": "from_category_id",
+        "type": "string",
+        "desc": "Source category id."
+      },
+      {
+        "name": "to_category_id",
+        "type": "string",
+        "desc": "Target category id, different from from_category_id."
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "Note text for the month; \"\" clears it. Template directives such as \"#template 250\" work."
+      },
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "Operation to perform; the tool description lists the allowed values."
+      }
+    ]
+  },
+  {
+    "name": "manage_budget_files",
+    "description": "Switch the active budget, import a budget file, or export the active budget to a file; pick one `action`. To list the configured budget names use list_entities with type budget_file; budget months are manage_budget_months. Other fields are refused.\nswitch: budget_name; this session only, other sessions keep their budget; also remembered as the caller's preferred budget; an unconfigured or not permitted name is refused. It loads the target budget, and a load failure can surface on the next call instead; undo it by switching back.\nimport: exactly one of path (a file on the server, max 4096 characters) or base64 (max 67108864 characters); optional type (actual, ynab4, ynab5; default actual), filename (base64 only); a caller limited to some budgets is refused; a long import can time out.\nimport ADDS a budget and replaces nothing: each import makes a new local copy and normally uploads it as a NEW server budget file (a failed upload leaves it local only); the returned budgetId is that local id, not a Sync ID; confirm before importing.\nAfter an import, success or failure, the next call from every session (this one included) reloads that session's own configured budget, so later calls do not reach the imported budget; to use it, an operator adds its Sync ID to the server configuration. Nothing removes the uploaded server file.\nexport: optional filename; writes the whole active budget (every account and transaction) as a .zip into the server's export directory and OVERWRITES a file of the same name; the file contents are not returned; only deleting the file on the server host removes it.\nReturns { success, budgetName, budgetId, serverUrl, message } (switch), { result: { success, budgetId, type, source, message } } (import), { result: { success, path, filename, directory, bytes, sha256, message } } (export).",
+    "arguments": [
+      {
+        "name": "budget_name",
+        "type": "string",
+        "desc": "Exact configured budget name (list with list_entities type budget_file), case-insensitive, max 120 characters."
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "import: path of the export file ON THE SERVER; give exactly one of path and base64."
+      },
+      {
+        "name": "base64",
+        "type": "string",
+        "desc": "import: the export file contents, base64-encoded; give exactly one of path and base64."
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "import: format; omit for actual (an Actual .zip export)."
+      },
+      {
+        "name": "filename",
+        "type": "string",
+        "desc": "import: original file name, only with base64. export: output name without a directory, letters, digits, dot, underscore, hyphen; \".zip\" is appended; omit for a timestamped name. Max 120."
+      },
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "Operation to perform; the tool description lists the allowed values."
+      }
+    ]
+  }
+]
