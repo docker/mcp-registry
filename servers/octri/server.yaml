@@ -1,0 +1,64 @@
+name: octri
+image: mcp/octri
+type: server
+meta:
+  category: documentation
+  tags:
+    - documentation
+    - api
+    - openapi
+    - developer-tools
+about:
+  title: Octri API Docs
+  description: Search an Octri project's API docs, guides, changelog and SDK snippets, and call its endpoints as tools.
+  icon: https://octri.dev/logo/octri_favicon.svg
+source:
+  project: https://github.com/octridev/octri-mcp
+  branch: main
+  commit: da6c528ca5122dcce6a6eb03acf3171acb715e2a
+run:
+  env:
+    MCP_TRANSPORT: stdio
+config:
+  description: Connect to an Octri project. The optional credentials are for the API the project documents, not for Octri.
+  secrets:
+    - name: octri.api_token
+      env: OCTRI_API_TOKEN
+      example: <OCTRI_API_TOKEN>
+      description: Bearer or OAuth2 token for the documented API.
+      required: false
+    - name: octri.api_key
+      env: OCTRI_API_KEY
+      example: <OCTRI_API_KEY>
+      description: API key for the documented API, sent in the header its docs name (X-API-Key by default).
+      required: false
+    - name: octri.api_password
+      env: OCTRI_API_PASSWORD
+      example: <OCTRI_API_PASSWORD>
+      description: Basic-auth password for the documented API.
+      required: false
+  env:
+    - name: OCTRI_PROJECT_ID
+      example: 66f2a1c9e4b0a1b2c3d4e5f6
+      value: "{{octri.project_id}}"
+    - name: OCTRI_API_USERNAME
+      example: api-user
+      value: "{{octri.api_username}}"
+    - name: OCTRI_READ_ONLY
+      example: "true"
+      value: "{{octri.read_only}}"
+  parameters:
+    type: object
+    properties:
+      project_id:
+        type: string
+        description: The Octri project whose docs and endpoints this server exposes.
+      api_username:
+        type: string
+        description: Basic-auth username for the documented API.
+      read_only:
+        type: boolean
+        description: List and run only the endpoint tools that read.
+        default: false
+    required:
+      - project_id
