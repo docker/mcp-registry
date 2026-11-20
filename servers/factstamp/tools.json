@@ -1,0 +1,265 @@
+[
+  {
+    "name": "list_series",
+    "description": "Free. What this engine covers, the publisher and as-of date behind each series, and the no-guess rule.",
+    "arguments": []
+  },
+  {
+    "name": "route_claim",
+    "description": "Free. Shows which series a claim would be routed to, the value and date extracted, and the signals behind the score. Returns NO verdict — pay for check_figure when you want one.",
+    "arguments": [
+      {
+        "name": "claim",
+        "type": "string",
+        "desc": "The assertion to route."
+      }
+    ]
+  },
+  {
+    "name": "list_card_packages",
+    "description": "Free. The one-off card packages as one machine-readable catalogue: the 11 products and their 13 prices in Australian dollars, the unit one payment buys for each SKU, what the package returns, and where the input is sent. One payment each, nothing metered, nothing subscribed. The per-call doors stay open beside them.",
+    "arguments": []
+  },
+  {
+    "name": "buy_card_package",
+    "description": "Free. Opens a Stripe Checkout Session for one card package and returns its payment link and its session id. This tool charges nothing and produces no artefact: on the card rail the thing that taps is a human. The package's work runs only at its redeem path, after Stripe's own record says that session is paid.",
+    "arguments": [
+      {
+        "name": "sku",
+        "type": "string",
+        "desc": "The SKU of the package, as list_card_packages publishes it, e.g. document_fact_audit."
+      }
+    ]
+  },
+  {
+    "name": "check_figure",
+    "description": "Submit the dated figure you are about to act on. Returns verified, stale, contradicted or unknown, cited to the publisher's own series with its as-of date. Relevant wherever a number is going onto a page, deck or decision. Not advice. Comes with an Ed25519-signed receipt covering the question, the verdict, the sources and the time, checkable offline against the published key at /.well-known/factstamp-issuer.json — so the check itself can be audited later by someone who was not here.",
+    "arguments": [
+      {
+        "name": "claim",
+        "type": "string",
+        "desc": "The assertion to check, e.g. 'The RBA cash rate is 4.35% as at August 2026'."
+      },
+      {
+        "name": "series_id",
+        "type": "string",
+        "desc": "Optional. Name the series to bypass the rule-based router (see list_series). Use when you already know which series owns the number, or when routing was ambiguous.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "check_entity",
+    "description": "Verify a legal entity: does this company exist, under which identifier and jurisdiction, and is its registration current? Cited to open primary registers (the GLEIF LEI index and US SEC EDGAR). Returns found, ambiguous, not_found or unknown; a near name match is never reported as a match. Not advice, not a credit check, not a sanction screen. Comes with an Ed25519-signed receipt covering the question, the verdict, the sources and the time, checkable offline against the published key at /.well-known/factstamp-issuer.json — so the check itself can be audited later by someone who was not here.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "The entity to verify: a legal name such as 'Shopify Inc.', an LEI, or a CIK. An identifier resolves exactly."
+      },
+      {
+        "name": "jurisdiction",
+        "type": "string",
+        "desc": "Optional jurisdiction code to break ties, e.g. 'CA-ON', 'US-DE', 'AU'.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "check_entity_file",
+    "description": "The entity file: ONE paid answer holding everything we hold about one company: the whole picture in ONE call rather than four separate facts stitched together, at the point of signing, onboarding, paying or acquiring a counterparty. It holds identity and standing, the registered office, SIC activity and previous names, the filing position, a sanctions screen across our six lists, and the ownership the registers publish (the persons with significant control where a register publishes them, and the declared parent relationships where a company has an LEI, with beneficial ownership stated as not public in nearly every country we cover) — each cited to the register it came from with its retrieval time — plus ONE coverage block naming every register consulted and every one NOT consulted. Returns found, ambiguous, not_found or unknown for the company itself; a register that was not read is named as not read, never guessed. 33p UK-facing, settled in USDC at the dated rate. Not advice, not a credit check. Comes with an Ed25519-signed receipt covering the question, the verdict, the sources and the time, checkable offline against the published key at /.well-known/factstamp-issuer.json — so the check itself can be audited later by someone who was not here.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "The company to file: a UK company number (which resolves exactly to the company), a legal name, or an LEI or CIK."
+      },
+      {
+        "name": "jurisdiction",
+        "type": "string",
+        "desc": "Optional jurisdiction code to break ties, e.g. 'GB', 'CA-ON', 'US-DE', 'AU'.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "check_sanctions",
+    "description": "Sanctions screening of a name, for whether a person or company is on a sanctions list — and which one. Reads OFAC SDN, the UN consolidated list, the EU Financial Sanctions File and the UK Sanctions List, and returns listed, mismatch, not_found or unknown. The answer names the lists that were consulted with each one's retrieval date (and the UK list's own report date); a list that was not consulted is named as not consulted, and unknown is the answer when we cannot tell. A near name is never reported as the same party, and a listed verdict stands even when another list was not consulted. Not advice, not a legal determination. Comes with an Ed25519-signed receipt covering the question, the verdict, the sources and the time, checkable offline against the published key at /.well-known/factstamp-issuer.json — so the check itself can be audited later by someone who was not here.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "The person or company name to screen, as it is published on the list or in your document."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "desc": "Optional country to break ties. A listed country that disagrees with the one you give is a mismatch, never a match.",
+        "optional": true
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "Optional: whether the name is a company or a person. A similar name across the person/entity line is a different party.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "check_vat",
+    "description": "An EU VAT number check — VAT validity, and the VAT registration behind it. Reads the official VIES service (European Commission), keyless. Returns valid, invalid or unknown — an outage is NEVER reported as invalid — with the member state, the register's own request date, and the trader identity only where that member state discloses it. Some member states disclose nothing; the answer says so rather than showing an empty string. GB is out of scope after Brexit (XI, Northern Ireland, is covered). Not tax advice, not a credit check. Comes with an Ed25519-signed receipt covering the question, the verdict, the sources and the time, checkable offline against the published key at /.well-known/factstamp-issuer.json — so the check itself can be audited later by someone who was not here.",
+    "arguments": [
+      {
+        "name": "country_code",
+        "type": "string",
+        "desc": "The member state's two-letter code: an EU member state, or XI for Northern Ireland. GB is out of scope."
+      },
+      {
+        "name": "vat_number",
+        "type": "string",
+        "desc": "The VAT number, with or without the country prefix (e.g. '6388047V' or 'IE6388047V')."
+      }
+    ]
+  },
+  {
+    "name": "verify_citation",
+    "description": "Says whether a citation can be repeated. Submit a DOI, an arXiv ID or a paper title: returns whether it exists, what it is (title, authors, year, container) and whether it has been retracted, cited to Crossref and arXiv. Optionally send what your document claims (title, authors, year, journal) and every field is compared one by one — a disagreement is reported as mismatch, never as verified. A near title match is never reported as verified; a title that is absent from both returns not_found. Not advice. Comes with an Ed25519-signed receipt covering the question, the verdict, the sources and the time, checkable offline against the published key at /.well-known/factstamp-issuer.json — so the check itself can be audited later by someone who was not here.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "A DOI such as '10.1038/nature12373', an arXiv ID such as '1706.03762', or a paper title."
+      },
+      {
+        "name": "claimed_title",
+        "type": "string",
+        "desc": "The title exactly as your document quotes it, to have it compared against the record.",
+        "optional": true
+      },
+      {
+        "name": "claimed_authors",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "The authors as your document lists them. Surnames are compared.",
+        "optional": true
+      },
+      {
+        "name": "claimed_year",
+        "type": "integer",
+        "desc": "The year as your document states it. A difference of one year is tolerated.",
+        "optional": true
+      },
+      {
+        "name": "claimed_journal",
+        "type": "string",
+        "desc": "The journal or container as your document names it.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "verify_package",
+    "description": "Reports on a dependency at the point of installation. Submit a package and version plus its ecosystem: returns whether that exact version exists, whether it is yanked or deprecated, and every advisory OSV lists against it. An invented version returns not_found with the real versions nearest to it, and an invented name returns the published names that look like it — which is the point, because that is how slopsquatting gets installed. Not a security audit. Comes with an Ed25519-signed receipt covering the question, the verdict, the sources and the time, checkable offline against the published key at /.well-known/factstamp-issuer.json — so the check itself can be audited later by someone who was not here.",
+    "arguments": [
+      {
+        "name": "package",
+        "type": "string",
+        "desc": "The package to check, e.g. 'express', 'express@4.18.2' or '@scope/name'."
+      },
+      {
+        "name": "ecosystem",
+        "type": "string",
+        "desc": "Which registry to ask. Defaults to npm.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "watch_add",
+    "description": "Watch ONE citation or ONE package version instead of checking it once. Send kind ('citation' or 'package') and the subject (a DOI, an arXiv ID or a title; or npm:express@4.18.2). The first check is answered immediately and signed, then re-checked daily for 30 days; every real change (a retraction, a new advisory, a yanked version) is recorded with its own signed receipt. Returns a read URL and a token shown once; optionally send an https webhook and each change is POSTed to it. For a whole list of references under one purchase use watch_portfolio; for a one-off answer that does not need watching, use verify_citation or verify_package. Comes with an Ed25519-signed receipt covering the question, the verdict, the sources and the time, checkable offline against the published key at /.well-known/factstamp-issuer.json — so the check itself can be audited later by someone who was not here.",
+    "arguments": [
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "What kind of subject this is."
+      },
+      {
+        "name": "subject",
+        "type": "string",
+        "desc": "The DOI, arXiv ID or title to watch; for a package, 'express@4.18.2' or 'npm:express@4.18.2'."
+      },
+      {
+        "name": "webhook",
+        "type": "string",
+        "desc": "Optional https URL: each recorded change is POSTed there as JSON.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "watch_portfolio",
+    "description": "Watch a whole list instead of one reference at a time: up to 25 citations or package versions re-checked every day for 30 days under one token. US$5 a portfolio — 20 cents a reference, under a cent a check — and the first check on every reference is answered and signed immediately. Each real change carries its own signed receipt, and nothing is sent when nothing changed. ONE purchase covers the whole list: for a single subject on its own, use watch_add. Returns a read URL and a token shown once. Comes with an Ed25519-signed receipt covering the question, the verdict, the sources and the time, checkable offline against the published key at /.well-known/factstamp-issuer.json — so the check itself can be audited later by someone who was not here.",
+    "arguments": [
+      {
+        "name": "items",
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "desc": "Up to 25 references. A repeated reference is charged once."
+      },
+      {
+        "name": "webhook",
+        "type": "string",
+        "desc": "Optional https URL: each recorded change on any reference is POSTed there as JSON.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "verify_bulk",
+    "description": "Check a whole list in one call: a bibliography or a dependency manifest. Send items[] of {tool, input} or the citations[]/packages[] shorthand. Up to 12 items at a flat US$0.12 on this door; longer lists pay 0.016667 an item on the pack-funded HTTP door (POST /bulk, up to 25 items). Every item is answered by the same door that answers a single call, so the verdicts cannot disagree. This door takes a LIST of references or package versions, not prose: to check the claims inside a document, use check_document, and to check one reference use verify_citation or verify_package. Comes with an Ed25519-signed receipt covering the question, the verdict, the sources and the time, checkable offline against the published key at /.well-known/factstamp-issuer.json — so the check itself can be audited later by someone who was not here.",
+    "arguments": [
+      {
+        "name": "items",
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "desc": "Explicit form: each item names its door and its input.",
+        "optional": true
+      },
+      {
+        "name": "citations",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Shorthand: DOIs, arXiv IDs or titles, each checked as a citation.",
+        "optional": true
+      },
+      {
+        "name": "packages",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Shorthand: package versions such as 'express@4.18.2'.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "check_document",
+    "description": "A whole document in one call: the claims that can be verified against a primary source, each answered by the door that owns it with its own signed receipt, plus one receipt over the document. Extraction is mechanical, so the claim list and the count are reproducible from your document alone — nothing is inferred. This rail answers the first 5 claims for a flat US$0.25 (5 cents a claim); a better-funded document goes to the pack-funded HTTP door (POST /document, up to 25 claims at the same 5 cents a claim), whose free preview lists the claims and the price before anything is charged — use it first if you are unsure the document holds anything checkable. This door reads PROSE: to check a bare list of references or package versions, use verify_bulk, and a single claim belongs to check_figure, check_entity, verify_citation or verify_package. Comes with an Ed25519-signed receipt covering the question, the verdict, the sources and the time, checkable offline against the published key at /.well-known/factstamp-issuer.json — so the check itself can be audited later by someone who was not here.",
+    "arguments": [
+      {
+        "name": "document",
+        "type": "string",
+        "desc": "The document text. Only sentences that name something we cover AND carry the value to check become claims; everything else is reported as considered."
+      }
+    ]
+  }
+]
