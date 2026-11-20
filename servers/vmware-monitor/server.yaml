@@ -1,0 +1,35 @@
+name: vmware-monitor
+image: mcp/vmware-monitor
+type: server
+meta:
+  category: devops
+  tags:
+    - vmware
+    - vsphere
+    - monitoring
+    - virtualization
+about:
+  title: VMware Monitor
+  description: Read-only vCenter and ESXi inventory, alarms, events, health triage, and infrastructure investigation
+  icon: https://raw.githubusercontent.com/zw008/cline-marketplace-vmware/33286e2b56b08a9a1e6f994093e57acf8c74032b/registry/mcps/vmware-monitor/icon.png
+source:
+  project: https://github.com/vmware-skills/VMware-Monitor
+  commit: 3603a3ab3f9d340652f7fa88b0d946d062e8a29f
+run:
+  volumes:
+    - "{{vmware-monitor.config_dir}}:/root/.vmware-monitor"
+    - "{{vmware-monitor.audit_dir}}:/root/.vmware"
+config:
+  description: Mount private local target configuration and persistent audit storage; vCenter credentials remain on your machine
+  parameters:
+    type: object
+    properties:
+      config_dir:
+        type: string
+        description: Absolute host directory containing config.yaml and the optional chmod-600 .env file. The directory is writable because the server normalizes local credential-file permissions and encoding.
+      audit_dir:
+        type: string
+        description: Absolute host directory for persistent shared vmware-policy audit data. Must be writable by the container.
+    required:
+      - config_dir
+      - audit_dir
