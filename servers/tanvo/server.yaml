@@ -1,0 +1,39 @@
+name: tanvo
+image: mcp/tanvo
+type: server
+meta:
+  category: media
+  tags:
+    - media
+    - image-generation
+    - video-generation
+    - music-generation
+    - ai
+about:
+  title: Tanvo
+  description: Run Tanvo's 80 ready-made AI photo, video and song apps (pet portraits, figurines, photo restoration, trend videos, birthday songs) on your own photos, and generate images, video and music on Nano Banana, Seedream, GPT Image, Kling, Veo, Seedance and Suno. The house image engine works without an API key.
+  icon: https://tanvo.ai/apple-icon
+source:
+  project: https://github.com/tanvoai/tanvo-mcp
+  commit: 03f079dbfc799b0f9d206903686e0687e23f25c6
+run:
+  volumes:
+    - "{{tanvo.data}}:/data"
+config:
+  description: The API key is optional. Without it the server runs on Tanvo's free tier (house image engine, watermarked); create a key at https://tanvo.ai/settings/apikeys for every model. Results are saved into the data folder, and photos placed there can be passed as /data/<file>.
+  secrets:
+    - name: tanvo.api_key
+      env: TANVO_API_KEY
+      example: <TANVO_API_KEY>
+  env:
+    - name: TANVO_OUTPUT_DIR
+      example: /data
+      value: /data
+  parameters:
+    type: object
+    properties:
+      data:
+        type: string
+        default: $HOME/tanvo
+    required:
+      - data
