@@ -1,0 +1,342 @@
+[
+  {
+    "name": "repair_json_text",
+    "description": "Repair broken or incomplete JSON, including output from language models.",
+    "arguments": [
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "The JSON text to repair. May be one value, or several JSON Lines."
+      },
+      {
+        "name": "json_lines",
+        "type": "boolean",
+        "desc": "If true, treat each non-empty line as its own JSON document."
+      }
+    ]
+  },
+  {
+    "name": "repair_json_file",
+    "description": "Read a local JSON file and repair it if it is broken or incomplete.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Full path to a UTF-8 .json or .jsonl file, up to 5 MB."
+      },
+      {
+        "name": "json_lines",
+        "type": "boolean",
+        "desc": "If true, treat each non-empty line as its own JSON document."
+      }
+    ]
+  },
+  {
+    "name": "shape_text_to_json",
+    "description": "Turn pasted text (key: value notes, CSV/TSV or a Markdown table) into typed JSON.",
+    "arguments": [
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "The text to turn into JSON: key: value lines, CSV/TSV or a Markdown table."
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Input format. \"auto\" picks for you; \"kv\" = key: value lines, \"csv\" = CSV/TSV, \"markdown\" = a pipe table."
+      }
+    ]
+  },
+  {
+    "name": "shape_file_to_json",
+    "description": "Read a local text file (key: value notes, .csv, .tsv or a Markdown table) and return typed JSON.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Full path to a UTF-8 text file (.txt, .csv, .tsv, .md), up to 5 MB."
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Input format. \"auto\" picks for you; \"kv\" = key: value lines, \"csv\" = CSV/TSV, \"markdown\" = a pipe table."
+      }
+    ]
+  },
+  {
+    "name": "base64_convert_text",
+    "description": "Encode pasted text to Base64, or decode Base64 (or a data URI) back to text.",
+    "arguments": [
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "The text to encode, or the Base64 (or data URI) to decode."
+      },
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "What to do. \"auto\" (default) decodes if the input looks like Base64, otherwise it encodes. Use \"encode\" or \"decode\" when you already know the direction."
+      },
+      {
+        "name": "url_safe",
+        "type": "boolean",
+        "desc": "If true, encode with - and _ instead of + and /. Decoding always accepts both."
+      },
+      {
+        "name": "data_uri",
+        "type": "boolean",
+        "desc": "If true, encoded results also include a data: URI."
+      }
+    ]
+  },
+  {
+    "name": "base64_convert_file",
+    "description": "Read a local file and encode its bytes to Base64, or decode a Base64 text file.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Full path to a local file, up to 5 MB. For decode, the file must be UTF-8 text of Base64."
+      },
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "What to do. \"auto\" (default) decodes if the input looks like Base64, otherwise it encodes. Use \"encode\" or \"decode\" when you already know the direction."
+      },
+      {
+        "name": "url_safe",
+        "type": "boolean",
+        "desc": "If true, encode with - and _ instead of + and /. Decoding always accepts both."
+      },
+      {
+        "name": "data_uri",
+        "type": "boolean",
+        "desc": "If true, encoded results also include a data: URI. The MIME type is guessed from the file name when we can."
+      }
+    ]
+  },
+  {
+    "name": "hash_text",
+    "description": "Hash pasted text with SHA-256, SHA-1, MD5, and optional SHA-512.",
+    "arguments": [
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "The text to hash. It is hashed as UTF-8 bytes."
+      },
+      {
+        "name": "algorithms",
+        "type": "string",
+        "desc": "Hash algorithms to compute. Default: sha256, sha1, md5. SHA-512 is optional. MD5 and SHA-1 are provided because people still need them for checks; they are not safe for new security work."
+      },
+      {
+        "name": "include_base64",
+        "type": "boolean",
+        "desc": "If true (default), each hash is returned as hex and as Base64. Hex is always included."
+      }
+    ]
+  },
+  {
+    "name": "hash_file",
+    "description": "Hash a local file's raw bytes with SHA-256, SHA-1, MD5, and optional SHA-512.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Full path to a local file, up to 5 MB. The raw file bytes are hashed, not a decoded string."
+      },
+      {
+        "name": "algorithms",
+        "type": "string",
+        "desc": "Hash algorithms to compute. Default: sha256, sha1, md5. SHA-512 is optional. MD5 and SHA-1 are provided because people still need them for checks; they are not safe for new security work."
+      },
+      {
+        "name": "include_base64",
+        "type": "boolean",
+        "desc": "If true (default), each hash is returned as hex and as Base64. Hex is always included."
+      }
+    ]
+  },
+  {
+    "name": "chunk_markdown",
+    "description": "Split a Markdown file or Markdown text into chunks by heading, for search, embeddings or RAG.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Full path to a local Markdown or text file (UTF-8, up to 10 MB). Leave empty if you pass text."
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "Markdown text to use instead of a file. Leave empty if you pass path."
+      },
+      {
+        "name": "max_chars",
+        "type": "integer",
+        "desc": "Biggest chunk size in characters (not tokens). Default 1500."
+      },
+      {
+        "name": "overlap_chars",
+        "type": "integer",
+        "desc": "Characters repeated from the end of one part at the start of the next, only when a section is split. Must be at most half of max_chars. Default 0."
+      },
+      {
+        "name": "prefix_path",
+        "type": "boolean",
+        "desc": "If true, each chunk text starts with its heading path, like \"Guide > Install\"."
+      },
+      {
+        "name": "start",
+        "type": "integer",
+        "desc": "First chunk number to return (1 = the first). Use next_start from the last call to get more."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Most chunks to return in one call. Default 100."
+      }
+    ]
+  },
+  {
+    "name": "outline_markdown",
+    "description": "List every heading in a Markdown file or text, with its level, path, anchor, line number and size.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Full path to a local Markdown or text file (UTF-8, up to 10 MB). Leave empty if you pass text."
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "Markdown text to use instead of a file. Leave empty if you pass path."
+      }
+    ]
+  },
+  {
+    "name": "get_section",
+    "description": "Return the text of one section of a Markdown file or text, found by heading title or anchor.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Full path to a local Markdown or text file (UTF-8, up to 10 MB). Leave empty if you pass text."
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "Markdown text to use instead of a file. Leave empty if you pass path."
+      },
+      {
+        "name": "heading",
+        "type": "string",
+        "desc": "Heading title to find, like \"Install\". Not case sensitive. Leave empty if you pass anchor."
+      },
+      {
+        "name": "anchor",
+        "type": "string",
+        "desc": "Anchor to find, like \"install\" or \"install-1\" for the second \"Install\". Wins over heading."
+      },
+      {
+        "name": "include_subsections",
+        "type": "boolean",
+        "desc": "If true (default), include the smaller headings under it."
+      }
+    ]
+  },
+  {
+    "name": "save_chunks_jsonl",
+    "description": "Split a Markdown file into chunks and save them as a JSONL file (one chunk per line).",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Full path to the local Markdown file to split (UTF-8, up to 10 MB)."
+      },
+      {
+        "name": "output_path",
+        "type": "string",
+        "desc": "Where to save. Must end in .jsonl. Default: next to the input, as NAME.chunks.jsonl."
+      },
+      {
+        "name": "max_chars",
+        "type": "integer",
+        "desc": "Biggest chunk size in characters (not tokens). Default 1500."
+      },
+      {
+        "name": "overlap_chars",
+        "type": "integer",
+        "desc": "Characters repeated from the end of one part at the start of the next, only when a section is split. Must be at most half of max_chars. Default 0."
+      },
+      {
+        "name": "prefix_path",
+        "type": "boolean",
+        "desc": "If true, each chunk text starts with its heading path, like \"Guide > Install\"."
+      }
+    ]
+  },
+  {
+    "name": "convert_to_markdown",
+    "description": "Turn a local text PDF or saved HTML file into clean Markdown.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path"
+      },
+      {
+        "name": "tables",
+        "type": "string",
+        "desc": "Tables"
+      },
+      {
+        "name": "output_path",
+        "type": "string",
+        "desc": "Output Path"
+      }
+    ]
+  },
+  {
+    "name": "extract_pdf_tables",
+    "description": "Pull the tables out of a local text PDF.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path"
+      },
+      {
+        "name": "pages",
+        "type": "string",
+        "desc": "Pages"
+      },
+      {
+        "name": "strategy",
+        "type": "string",
+        "desc": "Strategy"
+      },
+      {
+        "name": "output_dir",
+        "type": "string",
+        "desc": "Output Dir"
+      }
+    ]
+  },
+  {
+    "name": "check_links",
+    "description": "Check web links and follow their redirects.",
+    "arguments": [
+      {
+        "name": "urls",
+        "type": "array",
+        "desc": "Urls"
+      },
+      {
+        "name": "timeout",
+        "type": "number",
+        "desc": "Timeout"
+      }
+    ]
+  }
+]
