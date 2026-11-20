@@ -1,0 +1,208 @@
+[
+  {
+    "name": "asset_add",
+    "description": "Add an image (PNG, JPEG, SVG) to a scene's assets from url or base64. Returns id and size. Or a video (mp4, mov, webm) or sound (mp3, m4a, wav) by path or url.",
+    "arguments": [
+      {
+        "name": "base64",
+        "type": "string",
+        "desc": "Or the file bytes, base64 (small files only: they pass through the model)."
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Asset id to use in layers; generated if omitted."
+      },
+      {
+        "name": "sceneId",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "Public http(s) URL of a PNG, JPEG or SVG."
+      }
+    ]
+  },
+  {
+    "name": "layer_add",
+    "description": "Add layers, drawn bottom to top. CSS names and values. Any layer: {type, id?, role?, parent? (frame id), x, y (px or \"25%\"), width, height (px, \"hug\", \"fill\", \"40%\"), min/maxWidth, min/maxHeight, aspectRatio, place top-left\u2026bottom-right + margin, constraints {horizontal: left|right|center|stretch|scale, vertical: top|bottom|center|stretch|scale}, hidden, opacity, rotate (deg), blendMode, style (name or list), media {size id or landscape|square|portrait|wide|tall: {fields}}, fill, stroke, shadow (each one or a list), blur, backdropBlur, borderRadius (px, [tl,tr,br,bl], \"full\"), mask, scale, translate [x,y], skew, flipX, flipY, edges {sides, depth, seed}}. frame: children, clipsContent (true). Stack: flexDirection row|column|row-reverse|column-reverse (a list is tried in order), gap, padding, alignItems stretch (default)|flex-start|center|flex-end|baseline, justifyContent flex-start|center|flex-end|space-between|space-around|space-evenly, flexWrap; children: alignSelf, flexGrow (alone, it fills), layoutPriority (number; lower gives way first), position absolute. Grid: gridTemplateColumns/Rows (CSS tracks, repeat(auto-fill, minmax(160px, 1fr))), gridTemplateAreas [\"hero side\", \u2026], gap, padding; children: gridArea, or gridRow/gridColumn (\"1 / span 2\"). spacer: free space in a stack. firstFit: children; draws the first that fits. text: text (markup <b> <i> <u> <s> <sup> <sub> <br>, <span style=\"color:\u2026;font-weight:\u2026\">, style names as tags), fontSize (the max when fitting), fontWeight, color, fontFamily (Inter or any Google Font), textAlign, textAlignVertical, lineHeight (\u00d7 fontSize), letterSpacing (px), fill (paints the letters, wins over color), textTransform, fontStyle, textDecoration, maxLines, textWrap balance|pretty, trim \"cap\", highlight, padding, curve, leader (\".\" fills a tab gap), knockout. Text box: width+height \u2192 shrinks to fit (minimumScaleFactor 0.5) then ellipsis; width \u2192 wraps down; neither \u2192 one line. image: asset, fit cover|contain|fill|tile, focus [x,y], subject [x,y,w,h] 0\u20131 for crops, crop {x,y,width,height} 0\u20131, filter {brightness, contrast, saturate (1 = unchanged), grayscale, sepia, hueRotate, duotone [dark, light], tint, halftone px}. icon: name, set lucide|solid|regular|brands, color (24 px). rect, ellipse (arc {start, end, inner}), polygon (sides, innerRadius \u2192 star), path (d, or shape: ribbon, bubble, arrow, chevron, tag, arch, shield, heart, cloud, wave, burst, blob-1\u20266, brush-stroke). line: from x,y by width,height; drawn by stroke. Fill: CSS color or linear-/radial-gradient(), or {color|gradient|image|pattern|noise, opacity, blendMode}; a list stacks, [] none. gradient {type linear|radial|conic, angle (default 180: top to bottom) or from/to, stops [colors] or [{offset, color}]}. Stroke: \"#000\" or {width (1), color, align inside|center|outside, dash, cap, join, markerStart|markerEnd arrow|triangle|circle|diamond, roughness}. Shadow: {x, y, blur, spread, color, inset}. Mask: a gradient, shape name, {path}, {layer: id} or {image}; mode luminance, invert. Shared: styles {name: {fields}}; tokens {name: value} used as {{name}} in any field or text; components {card: {\u2026, text: \"{{name}}\"}} (props win) placed by {type: use, component: \"card\", each: [{name: \"Dana\"}, \u2026]}. Motion (needs the scene's duration, or shots): enter/exit fade|fade-up|-down|-left|-right (the way it moves)|pop|zoom-in|zoom-out|blur-in or {effect, delay, duration, ease, distance}; animate {opacity|scale|rotate|blur|translate|skew|color|draw (stroke drawn, 0\u20131)|count (text's {{n}}; decimals, separator): [values] or {from,to}, delay, duration, ease, repeat (-1), yoyo, times} or a list; values may be \"random(a,b)\"; ease: GSAP names (power2.out, back.out, elastic.inOut, steps(n), none); stagger (s) on frame, use or split text; split chars|words. Durations are seconds. video: asset (a clip), fit, focus, crop, filter, trimStart (s into the clip), delay, playbackRate, loop, muted. {type: shot, duration, transition} (top level; shots play in turn, their times are their own): transition cut|fade|slide-*|push-*|wipe-* (left|right|up|down: the way the new shot moves)|zoom or {type, duration, ease}.",
+    "arguments": [
+      {
+        "name": "components",
+        "type": "object",
+        "desc": "Named layer trees to add or replace, placed by `use` layers."
+      },
+      {
+        "name": "layers",
+        "type": "array",
+        "desc": ""
+      },
+      {
+        "name": "sceneId",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "styles",
+        "type": "object",
+        "desc": "Named styles to add or replace: layer fields a layer's `style` pulls in."
+      },
+      {
+        "name": "tokens",
+        "type": "object",
+        "desc": "Named values to add or replace, used as {{name}} in any field or text."
+      }
+    ]
+  },
+  {
+    "name": "layer_update",
+    "description": "Change or delete layers atomically. Each op: {target: {id}|{role}|{style}|{component, role?}, set: {fields}} or {target, delete: true} or {target: {id}, detach: true} (a use becomes plain layers). A role targets every layer with it; a style or component target changes it everywhere it's used. tokens {name: value} changes tokens. null resets a field. {target: {scene: true}, set: {background, sizes, duration, fps, loop, audio {asset, volume, trimStart, fadeIn, fadeOut}}} changes the scene.",
+    "arguments": [
+      {
+        "name": "ops",
+        "type": "array",
+        "desc": ""
+      },
+      {
+        "name": "sceneId",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "tokens",
+        "type": "object",
+        "desc": "Tokens to change; every field using one follows."
+      }
+    ]
+  },
+  {
+    "name": "render",
+    "description": "Render each size (PNG, or format jpeg|webp|pdf). Returns each size's path and layout as drawn; maxKB lowers quality to fit; rows renders a variant per row of tokens. preview adds a small image of all sizes. apng, gif, mp4 or webm (mp4/webm need ffmpeg) renders the motion, its preview key moments; time (s) a still; muted drops the sound.",
+    "arguments": [
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "png|jpeg|webp|pdf|apng|gif|mp4|webm"
+      },
+      {
+        "name": "maxKB",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "muted",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
+        "name": "preview",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
+        "name": "quality",
+        "type": "integer",
+        "desc": "0\u2013100 (90)"
+      },
+      {
+        "name": "rows",
+        "type": "array",
+        "desc": "Variants: one render per row of token values, e.g. [{\"headline\": \"Sale\"}]"
+      },
+      {
+        "name": "sceneId",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "sizes",
+        "type": "array",
+        "desc": "Size ids; all if omitted."
+      },
+      {
+        "name": "time",
+        "type": "number",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "scene_create",
+    "description": "Create a scene from sizes, or from a template by url or path with its tokens set. Returns its id.",
+    "arguments": [
+      {
+        "name": "background",
+        "type": "string",
+        "desc": "Any CSS color (#FFFFFF)."
+      },
+      {
+        "name": "duration",
+        "type": "number",
+        "desc": "Seconds: makes it move"
+      },
+      {
+        "name": "fps",
+        "type": "number",
+        "desc": "(30)"
+      },
+      {
+        "name": "height",
+        "type": "number",
+        "desc": ""
+      },
+      {
+        "name": "loop",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
+        "name": "sizes",
+        "type": "array",
+        "desc": "Target sizes: {id, width, height, scale, safeArea}, a preset (instagram-portrait|-square|-story,\nfacebook-feed, linkedin-post, x-post, youtube-thumbnail, iab-medium-rectangle|-leaderboard|-skyscraper|-half-page,\na4-portrait) or \"WxH\". `scale` (default 1) shrinks everything, fonts included, before constraints apply."
+      },
+      {
+        "name": "tokens",
+        "type": "object",
+        "desc": "The template's variables to set: {name: value}"
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "Or start from a template: a scene JSON file by url"
+      },
+      {
+        "name": "width",
+        "type": "number",
+        "desc": "Master size, px; the first size's when omitted."
+      }
+    ]
+  },
+  {
+    "name": "scene_describe",
+    "description": "Problems per size, or ok. Defects: !truncated|!overflow (W\u00d7H) !clipped !hidden !overlaps !covered !unsafe (safeArea). Advisory: warn contrast. full: the layout.",
+    "arguments": [
+      {
+        "name": "full",
+        "type": "boolean",
+        "desc": "Every layer's box, not just warnings."
+      },
+      {
+        "name": "sceneId",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "size",
+        "type": "string",
+        "desc": "One size id; all sizes if omitted."
+      },
+      {
+        "name": "view",
+        "type": "string",
+        "desc": "Image id: the photo, with px rulers."
+      }
+    ]
+  }
+]
