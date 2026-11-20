@@ -1,0 +1,32 @@
+name: portunus
+image: mcp/portunus
+type: server
+meta:
+  category: security
+  tags:
+    - security
+    - secrets
+    - devops
+about:
+  title: Portunus
+  description: Boundary-only secret broker for AI agents. Agents reference a secret by name; the value is injected only into an env var, file, or exec argv and is never returned into the model's context.
+  icon: https://raw.githubusercontent.com/mdostal/portunus/dev/ui/src-tauri/icons/icon.png
+source:
+  project: https://github.com/mdostal/portunus
+  commit: ae9d8a51d217676f7a46d7f65feed49653c7db4b
+run:
+  command:
+    - mcp
+  volumes:
+    - "{{portunus.home}}:/home/portunus/.portunus"
+config:
+  description: Where Portunus keeps its reference registry, audit log and local-encrypted vault.
+  parameters:
+    type: object
+    properties:
+      home:
+        type: string
+        description: Docker volume name or host path for PORTUNUS_HOME (e.g. portunus-home). Keep it persistent; removing it makes local-encrypted secrets unrecoverable.
+        default: portunus-home
+    required:
+      - home
