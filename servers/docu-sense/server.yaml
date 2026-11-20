@@ -1,0 +1,43 @@
+name: docu-sense
+image: mcp/docu-sense
+type: server
+meta:
+  category: productivity
+  tags:
+    - documents
+    - pdf
+    - document-search
+    - citations
+    - rag
+    - versioning
+    - local
+about:
+  title: DocuSense
+  description: |
+    Local document store for AI agents. Reads PDF, DOCX, HTML and Markdown files by section and by claim instead of loading whole files, so agents use far fewer tokens.
+
+    • Hybrid search (BM25 + local embeddings), claim search and definition lookup
+    • Every passage carries a citation and a SHA-256 hash that can be re-verified
+    • Re-adding a changed file creates a new version: diffs, blame and affected documents
+    • Flags contradictions between documents, returning both sides as evidence
+
+    Runs offline: the embedding model is bundled in the image and no network access is needed.
+  icon: https://raw.githubusercontent.com/hksharma2004/docu-sense/main/site/app/icon.png
+source:
+  project: https://github.com/hksharma2004/docu-sense
+  commit: 54cc12e527422d33db6514884e3a7a46a677912d
+run:
+  volumes:
+    - "{{docu-sense.docs_path}}:/docs:ro"
+    - docusense-data:/data
+  disableNetwork: true
+config:
+  description: Folder of documents DocuSense may read (mounted read-only at /docs)
+  parameters:
+    type: object
+    properties:
+      docs_path:
+        type: string
+        default: /Users/local-test/Documents
+    required:
+      - docs_path
