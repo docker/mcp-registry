@@ -1,0 +1,191 @@
+[
+  {
+    "name": "publicrecords--etsy-shop-velocity",
+    "description": "Etsy Shop Sales Tracker & Scraper. Track Etsy shop sales counters with this Etsy shop scraper: measured sales counts with the date each was read.\n\nWhen to use: Use when you need how many sales an Etsy shop has made, or how fast shops are selling, filtered by shop name, title keyword, category or change date. Returns one row per shop with the measured sales counter and the date it was read.\n\nReturns: the run's dataset rows as structured JSON (one row per result), plus the run and dataset IDs for paging the full dataset.\n\nBehavior: starts one run of the Apify Actor \"publicrecords/etsy-shop-velocity\" through Apify's hosted MCP gateway (mcp.apify.com) with your own APIFY_TOKEN; the run uses your Apify account. Read-only: it only reads public web data and changes nothing on the source site. Docs: https://apify.com/publicrecords/etsy-shop-velocity",
+    "arguments": [
+      {
+        "name": "shops",
+        "type": "array",
+        "desc": "Etsy shop names (the part after etsy.com/shop/). Leave empty to use the keyword or category filters. Example: [\"OrelCeramics\",\"Bestickend\"]",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "keywords",
+        "type": "array",
+        "desc": "Case-insensitive words matched against the shop title and headline.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Exact panel category label, matched case-insensitively, e.g. \"kids & baby > toys\", \"home & living > home decor > scatter cushions\", \"art & collectibles > fine art ceramics\". The label is filled for about 0.7% of shops, so a category filter returns only those shops. Empty = all.",
+        "optional": true
+      },
+      {
+        "name": "minSales",
+        "type": "integer",
+        "desc": "Only shops at or above this sales counter.",
+        "optional": true
+      },
+      {
+        "name": "since",
+        "type": "string",
+        "desc": "ISO date. Return only shops whose counters changed since this date. Empty = all matching shops.",
+        "optional": true
+      },
+      {
+        "name": "maxShops",
+        "type": "integer",
+        "desc": "Upper bound on rows returned (and charged).",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "publicrecords--etsy-search-scraper",
+    "description": "Etsy Scraper — Listings, Prices & Best Sellers. Scrape Etsy search results by keyword, category or market page: title, price, rating, reviews, Bestseller and Star Seller badges, ad flag and search rank.\n\nWhen to use: Use when you need what ranks on Etsy for a keyword, category or market page: position, price, rating, review count, Bestseller/Star Seller badges and whether the listing is an ad.\n\nReturns: the run's dataset rows as structured JSON (one row per result), plus the run and dataset IDs for paging the full dataset.\n\nBehavior: starts one run of the Apify Actor \"publicrecords/etsy-search-scraper\" through Apify's hosted MCP gateway (mcp.apify.com) with your own APIFY_TOKEN; the run uses your Apify account. Read-only: it only reads public web data and changes nothing on the source site. Docs: https://apify.com/publicrecords/etsy-search-scraper",
+    "arguments": [
+      {
+        "name": "queries",
+        "type": "array",
+        "desc": "Keywords to search, one per line (e.g. ceramic mug). Each keyword lands on Etsy's /market page, then pages through Etsy's own search API — every listing on the page (rendered and lazy-loaded), in Etsy's rank order. Example: [\"ceramic mug\"]",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "desc": "Order of results, as on Etsy's own sort menu. Applies to search keywords (a market phrase with a sort set runs as a keyword search). Options: relevance = Relevance (Etsy default); newest = Newest; price_asc = Price: low to high; price_desc = Price: high to low; top_reviews = Top customer reviews.",
+        "optional": true
+      },
+      {
+        "name": "minPrice",
+        "type": "integer",
+        "desc": "Leave empty for no minimum.",
+        "optional": true
+      },
+      {
+        "name": "maxPrice",
+        "type": "integer",
+        "desc": "Highest price to include, whole units. Leave empty for no maximum.",
+        "optional": true
+      },
+      {
+        "name": "marketPhrases",
+        "type": "array",
+        "desc": "Phrases for Etsy's /market/ pages (any phrase resolves). Example: personalized dog collar",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "categoryUrls",
+        "type": "array",
+        "desc": "Etsy category pages, e.g. https://www.etsy.com/c/jewelry/necklaces (no query string). Read in Etsy's default order.",
+        "items": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      {
+        "name": "maxPages",
+        "type": "integer",
+        "desc": "Pages per input, 1–20 (Etsy's own cap). On the Standby/MCP endpoint one call stops at 240 s and says so (truncated:true with pagesDone/pagesRequested); big jobs belong in a batch run.",
+        "optional": true
+      },
+      {
+        "name": "maxItems",
+        "type": "integer",
+        "desc": "Stop after this many listing rows across all inputs. Raise it (or set 0 for no cap) to get more pages.",
+        "optional": true
+      },
+      {
+        "name": "maxCacheAgeHours",
+        "type": "integer",
+        "desc": "Serve a keyword from our recent snapshot of the same search when it is at most this many hours old and holds every row you asked for; otherwise fetch live. Snapshot rows say data_source \"cache\", stale true and as_of (when they were read live), and are charged like live rows. 0 = always fetch live.",
+        "optional": true
+      },
+      {
+        "name": "fillLazyCards",
+        "type": "boolean",
+        "desc": "Etsy renders 12 cards and lazy-loads the rest (48 more on page 1). On, the run fetches them the way Etsy's own page does, so you get the whole page in rank order. Off, you get the 12 rendered cards per page only (faster, fewer requests on your proxy).",
+        "optional": true
+      },
+      {
+        "name": "is_best_seller",
+        "type": "boolean",
+        "desc": "Only return listings marked Bestseller.",
+        "optional": true
+      },
+      {
+        "name": "is_star_seller",
+        "type": "boolean",
+        "desc": "Only return listings from Star Seller shops.",
+        "optional": true
+      },
+      {
+        "name": "free_shipping",
+        "type": "boolean",
+        "desc": "Only return listings with free shipping.",
+        "optional": true
+      },
+      {
+        "name": "is_discounted",
+        "type": "boolean",
+        "desc": "Only return listings currently on sale.",
+        "optional": true
+      },
+      {
+        "name": "instant_download",
+        "type": "boolean",
+        "desc": "Only return digital download listings.",
+        "optional": true
+      },
+      {
+        "name": "is_handmade_only",
+        "type": "boolean",
+        "desc": "Only return listings Etsy flags as handmade.",
+        "optional": true
+      },
+      {
+        "name": "is_personalizable",
+        "type": "boolean",
+        "desc": "Only return listings that offer personalization.",
+        "optional": true
+      },
+      {
+        "name": "max_processing_days",
+        "type": "integer",
+        "desc": "Only return listings whose processing time is at most this many days (Etsy's ready-to-ship filter).",
+        "optional": true
+      },
+      {
+        "name": "ship_to",
+        "type": "string",
+        "desc": "Two-letter code, e.g. US, GB, DE.",
+        "optional": true
+      },
+      {
+        "name": "source",
+        "type": "string",
+        "desc": "Optional free-text label for this run (for example the Make template that started it). Copied onto every listing row and onto RUN_SUMMARY so template runs can be filtered. Leave empty if you do not need it.",
+        "optional": true
+      },
+      {
+        "name": "proxyConfiguration",
+        "type": "object",
+        "desc": "Etsy blocks datacenter IPs. Default: Apify Proxy RESIDENTIAL, included in the event prices (no separate proxy or compute charge). Your own residential proxy works too. A blocked page is never charged.",
+        "optional": true
+      }
+    ]
+  }
+]
