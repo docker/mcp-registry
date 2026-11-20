@@ -1,0 +1,46 @@
+name: cometbft-mcp
+image: mcp/cometbft-mcp
+type: server
+meta:
+  category: monitoring
+  tags:
+    - blockchain
+    - cometbft
+    - cosmos
+    - devops
+    - monitoring
+    - sre
+    - validator
+about:
+  title: CometBFT Validator Ops
+  description: |
+    Read-only health checks for CometBFT and Cosmos SDK nodes and validators, judged the way an operator would judge them.
+
+    Tools:
+    • validator_health — is the validator signing, how many misses until downtime jail, and time to jail at the current rate (computed exactly as x/slashing does)
+    • consensus_diagnosis — why blocks stopped: who is not voting in the current round, quorum loss vs. "online but not committing"
+    • node_status, peer_health — sync, lag behind the fleet, peer topology (a validator behind sentries should have no public peers)
+    • upgrade_readiness — the x/upgrade plan with an ETA, upgrade proposals in voting, version skew
+    • fleet_overview — everything at once
+
+    Read-only by construction: GET-only requests to a hard-coded endpoint allowlist, no signing or broadcasting, no key material, and node IPs masked by default. Works with any CometBFT chain; validators can be watched by consensus address alone.
+  icon: https://raw.githubusercontent.com/wookja-0/cometbft-mcp/main/docs/logo/icon-512.png
+source:
+  project: https://github.com/wookja-0/cometbft-mcp
+  commit: 5b4ce7586d5204a6dd992fb117d18784b87540e4
+config:
+  description: |
+    The node list as YAML (flow style fits one line). The default watches Cosmos Hub through public endpoints; replace it with your own nodes' CometBFT RPC URLs and, optionally, a Cosmos SDK REST URL. To reach SSH tunnels or nodes on the host, use host.docker.internal instead of 127.0.0.1. Format: https://github.com/wookja-0/cometbft-mcp/blob/main/config.example.yaml
+  env:
+    - name: COMETBFT_MCP_CONFIG_YAML
+      example: '{cosmos: {rest: "https://cosmos-rest.publicnode.com"}, nodes: [{name: public, role: full, rpc: "https://cosmos-rpc.publicnode.com:443"}]}'
+      value: "{{cometbft-mcp.config_yaml}}"
+  parameters:
+    type: object
+    properties:
+      config_yaml:
+        type: string
+        description: cometbft-mcp config as YAML (nodes, roles, RPC URLs, optional validator_address and cosmos.rest). It never needs keys.
+        default: '{cosmos: {rest: "https://cosmos-rest.publicnode.com"}, nodes: [{name: public, role: full, rpc: "https://cosmos-rpc.publicnode.com:443"}]}'
+    required:
+      - config_yaml
