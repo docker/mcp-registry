@@ -28,6 +28,7 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/docker/mcp-registry/internal/dockerenv"
 	"github.com/docker/mcp-registry/pkg/servers"
 	"github.com/mark3labs/mcp-go/mcp"
 )
@@ -78,7 +79,13 @@ func (cl *client) Start(ctx context.Context, debug bool) error {
 	for _, arg := range cl.command {
 		args = append(args, replacePlaceholders(arg, cl.env, cl.secrets))
 	}
-	c := newMCPClient("docker", toEnviron(cl.env, cl.secrets), args...)
+	// The declared vars are forwarded into the container by name via "-e NAME",
+	// so they have to be present in this process's environment. They are
+	// appended after the Docker CLI's own variables so a server that declares
+	// a colliding name still wins.
+	environ := append(dockerenv.Env(), toEnviron(cl.env, cl.secrets)...)
+
+	c := newMCPClient("docker", environ, args...)
 	cl.c = c
 
 	initRequest := mcp.InitializeRequest{}
