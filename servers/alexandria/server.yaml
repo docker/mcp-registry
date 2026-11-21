@@ -1,0 +1,83 @@
+name: alexandria
+image: mcp/alexandria
+type: server
+meta:
+  category: search
+  tags:
+    - search
+    - research
+    - academic
+    - library
+    - archives
+    - rag
+about:
+  title: Alexandria
+  description: Natural-language search, full-text reading, and cited answers across 138 public digital libraries (academic papers, public domain books, legal records, government archives, software documentation). Most sources need no credentials.
+  icon: https://avatars.githubusercontent.com/u/278549586?s=200&v=4
+source:
+  project: https://github.com/The-40-Thieves/alexandria-mcp
+  branch: main
+  commit: 22fc26745ed7b4445187f1a348df76f9452ecc14
+config:
+  description: Everything is optional. Search and read work with no keys at all; an OpenAI key (or a gateway) enables library_ask, library_answer, library_research, and library_ingest; per-source keys unlock the sources that require one.
+  secrets:
+    - name: alexandria.openai_api_key
+      env: OPENAI_API_KEY
+      example: <OPENAI_API_KEY>
+      description: OpenAI key for routing, synthesis, and embeddings. Not needed for library_search, library_read, library_index, library_recommend, or library_health_check.
+      required: false
+    - name: alexandria.api_key
+      env: ALEXANDRIA_API_KEY
+      example: <ALEXANDRIA_API_KEY>
+      description: API key paired with the gateway base URL. Falls back to OPENAI_API_KEY.
+      required: false
+    - name: alexandria.core_api_key
+      env: CORE_API_KEY
+      example: <CORE_API_KEY>
+      description: Unlocks the CORE open access aggregator (core.ac.uk/services/api).
+      required: false
+    - name: alexandria.courtlistener_api_key
+      env: COURTLISTENER_API_KEY
+      example: <COURTLISTENER_API_KEY>
+      description: Unlocks CourtListener US court opinions (courtlistener.com/profile/tokens).
+      required: false
+    - name: alexandria.govinfo_api_key
+      env: GOVINFO_API_KEY
+      example: <GOVINFO_API_KEY>
+      description: Unlocks GovInfo, and is accepted by congress and regulations (api.data.gov/signup).
+      required: false
+    - name: alexandria.google_books_api_key
+      env: GOOGLE_BOOKS_API_KEY
+      example: <GOOGLE_BOOKS_API_KEY>
+      description: Unlocks Google Books (Google Cloud Console, Books API).
+      required: false
+    - name: alexandria.github_token
+      env: GITHUB_TOKEN
+      example: <GITHUB_TOKEN>
+      description: Unlocks GitHub code search sources; public-repo read scope is enough.
+      required: false
+    - name: alexandria.nasa_ads_api_key
+      env: NASA_ADS_API_KEY
+      example: <NASA_ADS_API_KEY>
+      description: Unlocks NASA ADS (ui.adsabs.harvard.edu/user/settings/token).
+      required: false
+    - name: alexandria.europeana_api_key
+      env: EUROPEANA_API_KEY
+      example: <EUROPEANA_API_KEY>
+      description: Unlocks Europeana cultural heritage records (apis.europeana.eu).
+      required: false
+    - name: alexandria.semantic_scholar_api_key
+      env: SEMANTIC_SCHOLAR_API_KEY
+      example: <SEMANTIC_SCHOLAR_API_KEY>
+      description: Optional; raises the Semantic Scholar rate limit used by library_recommend.
+      required: false
+  env:
+    - name: ALEXANDRIA_BASE_URL
+      example: https://gateway.example.com/v1
+      value: "{{alexandria.base_url}}"
+  parameters:
+    type: object
+    properties:
+      base_url:
+        type: string
+        description: OpenAI-compatible gateway base URL shared by every LLM role. Leave empty to call api.openai.com directly.
