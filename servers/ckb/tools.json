@@ -1,0 +1,1750 @@
+[
+  {
+    "name": "getStatus",
+    "description": "Get CKB system status including backend health, cache stats, repository state, and usage hints for available capabilities.",
+    "arguments": []
+  },
+  {
+    "name": "getWideResultMetrics",
+    "description": "Get aggregated metrics for wide-result tools (findReferences, getCallGraph, etc). Shows truncation rates to inform Frontier mode decisions. Internal/debug tool.",
+    "arguments": []
+  },
+  {
+    "name": "doctor",
+    "description": "Diagnose CKB configuration issues and get suggested fixes",
+    "arguments": []
+  },
+  {
+    "name": "reindex",
+    "description": "Trigger a refresh of the SCIP index without restarting CKB. Returns actionable guidance on how to refresh the index based on current staleness.",
+    "arguments": [
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": "Reindex scope: 'full' for complete reindex, 'incremental' for changed files only (Go only)"
+      },
+      {
+        "name": "async",
+        "type": "boolean",
+        "desc": "Return immediately and poll status (not yet implemented)"
+      }
+    ]
+  },
+  {
+    "name": "expandToolset",
+    "description": "Add more tools for a specific workflow. Available presets: review, refactor, federation, docs, ops, full.",
+    "arguments": [
+      {
+        "name": "preset",
+        "type": "string",
+        "desc": "The preset to expand to"
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Why you need this preset (required to prevent accidental expansion)"
+      }
+    ]
+  },
+  {
+    "name": "getSymbol",
+    "description": "Get symbol metadata and location by stable ID",
+    "arguments": [
+      {
+        "name": "symbolId",
+        "type": "string",
+        "desc": "The stable symbol ID (ckb:<repo>:sym:<fingerprint>)"
+      },
+      {
+        "name": "repoStateMode",
+        "type": "string",
+        "desc": "Whether to use HEAD commit only or full working tree state"
+      }
+    ]
+  },
+  {
+    "name": "searchSymbols",
+    "description": "Semantic code search returning symbol types, locations, and relationships\u2014more accurate than text-based grep/find.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Search query (substring match, case-insensitive)"
+      },
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": "Optional module ID to limit search scope"
+      },
+      {
+        "name": "kinds",
+        "type": "array",
+        "desc": "Optional list of symbol kinds to filter (e.g., 'class', 'function')"
+      },
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Maximum number of results to return"
+      }
+    ]
+  },
+  {
+    "name": "findReferences",
+    "description": "Find all references to a symbol with completeness information",
+    "arguments": [
+      {
+        "name": "symbolId",
+        "type": "string",
+        "desc": "The stable symbol ID"
+      },
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": "Optional module ID to limit search scope"
+      },
+      {
+        "name": "merge",
+        "type": "string",
+        "desc": "Backend merge strategy"
+      },
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Maximum number of references to return"
+      }
+    ]
+  },
+  {
+    "name": "getArchitecture",
+    "description": "Get codebase architecture with module dependencies. For single-module projects, use granularity='directory' or 'file' for meaningful visualization.",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "number",
+        "desc": "Maximum dependency depth to traverse"
+      },
+      {
+        "name": "includeExternalDeps",
+        "type": "boolean",
+        "desc": "Whether to include external dependencies"
+      },
+      {
+        "name": "refresh",
+        "type": "boolean",
+        "desc": "Force refresh of cached architecture"
+      },
+      {
+        "name": "granularity",
+        "type": "string",
+        "desc": "Level of detail: 'module' (packages), 'directory' (folders), 'file' (individual files)"
+      },
+      {
+        "name": "inferModules",
+        "type": "boolean",
+        "desc": "Infer modules from directory structure when no explicit package boundaries exist"
+      },
+      {
+        "name": "targetPath",
+        "type": "string",
+        "desc": "Optional path to focus on (relative to repo root)"
+      },
+      {
+        "name": "includeMetrics",
+        "type": "boolean",
+        "desc": "Include aggregate metrics (complexity, churn) per directory. Only applies to directory granularity."
+      }
+    ]
+  },
+  {
+    "name": "analyzeImpact",
+    "description": "Analyze the impact of changing a symbol. Returns callers, affected modules, and risk score\u2014answers 'what breaks if I change X?'. For comprehensive pre-change analysis, use prepareChange instead.",
+    "arguments": [
+      {
+        "name": "symbolId",
+        "type": "string",
+        "desc": "The stable symbol ID to analyze"
+      },
+      {
+        "name": "depth",
+        "type": "number",
+        "desc": "Maximum depth for transitive impact analysis"
+      },
+      {
+        "name": "includeTelemetry",
+        "type": "boolean",
+        "desc": "Include observed telemetry data in analysis (requires telemetry to be enabled)"
+      },
+      {
+        "name": "telemetryPeriod",
+        "type": "string",
+        "desc": "Time period for telemetry data (7d, 30d, 90d, all)"
+      }
+    ]
+  },
+  {
+    "name": "analyzeChange",
+    "description": "Analyze the impact of a set of code changes from git diff. Answers: What might break? Which tests should run? Who needs to review?",
+    "arguments": [
+      {
+        "name": "diffContent",
+        "type": "string",
+        "desc": "Raw git diff content. If empty, uses current working tree diff"
+      },
+      {
+        "name": "staged",
+        "type": "boolean",
+        "desc": "If true and no diffContent provided, analyze only staged changes (--cached)"
+      },
+      {
+        "name": "baseBranch",
+        "type": "string",
+        "desc": "Base branch for comparison when using git diff"
+      },
+      {
+        "name": "depth",
+        "type": "number",
+        "desc": "Maximum depth for transitive impact analysis (1-4)"
+      },
+      {
+        "name": "includeTests",
+        "type": "boolean",
+        "desc": "Include test files in the analysis"
+      },
+      {
+        "name": "strict",
+        "type": "boolean",
+        "desc": "Fail if SCIP index is stale"
+      }
+    ]
+  },
+  {
+    "name": "explainSymbol",
+    "description": "Get an AI-friendly explanation of a symbol including usage, history, and summary",
+    "arguments": [
+      {
+        "name": "symbolId",
+        "type": "string",
+        "desc": "The stable symbol ID to explain"
+      }
+    ]
+  },
+  {
+    "name": "justifySymbol",
+    "description": "Get a keep/investigate/remove verdict for a symbol based on usage analysis",
+    "arguments": [
+      {
+        "name": "symbolId",
+        "type": "string",
+        "desc": "The stable symbol ID to justify"
+      }
+    ]
+  },
+  {
+    "name": "getCallGraph",
+    "description": "Get a lightweight call graph showing callers and callees of a symbol",
+    "arguments": [
+      {
+        "name": "symbolId",
+        "type": "string",
+        "desc": "The root symbol ID for the call graph"
+      },
+      {
+        "name": "direction",
+        "type": "string",
+        "desc": "Which direction to traverse"
+      },
+      {
+        "name": "depth",
+        "type": "number",
+        "desc": "Maximum depth to traverse (1-4)"
+      }
+    ]
+  },
+  {
+    "name": "getModuleOverview",
+    "description": "Get a high-level overview of a module including size and recent activity",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the module directory"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Optional friendly name for the module"
+      }
+    ]
+  },
+  {
+    "name": "explainFile",
+    "description": "Get lightweight orientation for a file including role, symbols, and key relationships",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "desc": "Path to the file (relative or absolute)"
+      }
+    ]
+  },
+  {
+    "name": "listEntrypoints",
+    "description": "List system entrypoints (API handlers, CLI mains, jobs) with ranking signals",
+    "arguments": [
+      {
+        "name": "moduleFilter",
+        "type": "string",
+        "desc": "Optional filter to specific module"
+      },
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Maximum number of entrypoints to return"
+      }
+    ]
+  },
+  {
+    "name": "traceUsage",
+    "description": "Trace how a symbol is reached from system entrypoints. Returns causal paths, not just neighbors.",
+    "arguments": [
+      {
+        "name": "symbolId",
+        "type": "string",
+        "desc": "The target symbol ID to trace usage for"
+      },
+      {
+        "name": "maxPaths",
+        "type": "number",
+        "desc": "Maximum number of paths to return"
+      },
+      {
+        "name": "maxDepth",
+        "type": "number",
+        "desc": "Maximum path depth to traverse (1-5)"
+      }
+    ]
+  },
+  {
+    "name": "summarizeDiff",
+    "description": "Compress diffs into 'what changed, what might break'. Supports commit ranges, single commits, or time windows. Default: last 30 days.",
+    "arguments": [
+      {
+        "name": "commitRange",
+        "type": "object",
+        "desc": "Commit range selector (base..head)"
+      },
+      {
+        "name": "commit",
+        "type": "string",
+        "desc": "Single commit hash to analyze"
+      },
+      {
+        "name": "timeWindow",
+        "type": "object",
+        "desc": "Time window selector"
+      }
+    ]
+  },
+  {
+    "name": "getHotspots",
+    "description": "Find files that deserve attention based on churn, coupling, and recency. Highlights volatile areas that may need review.",
+    "arguments": [
+      {
+        "name": "timeWindow",
+        "type": "object",
+        "desc": "Time period to analyze (default: 30 days)"
+      },
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": "Module path to focus on"
+      },
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Maximum number of hotspots to return (max 50)"
+      }
+    ]
+  },
+  {
+    "name": "explainPath",
+    "description": "Explain why a path exists and what role it plays. Returns role classification (core, glue, legacy, test-only, config, unknown) with reasoning.",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "desc": "Path to explain (relative or absolute)"
+      },
+      {
+        "name": "contextHint",
+        "type": "string",
+        "desc": "Optional context hint (e.g., 'from traceUsage')"
+      }
+    ]
+  },
+  {
+    "name": "listKeyConcepts",
+    "description": "Discover main ideas/concepts in the codebase through semantic clustering. Helps understand domain vocabulary.",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Maximum number of concepts to return (max 12)"
+      }
+    ]
+  },
+  {
+    "name": "recentlyRelevant",
+    "description": "Find what matters now - files/symbols with recent activity that may need attention.",
+    "arguments": [
+      {
+        "name": "timeWindow",
+        "type": "object",
+        "desc": "Time period to analyze (default: 7 days)"
+      },
+      {
+        "name": "moduleFilter",
+        "type": "string",
+        "desc": "Module path to focus on"
+      },
+      {
+        "name": "limit",
+        "type": "number",
+        "desc": "Maximum results to return"
+      }
+    ]
+  },
+  {
+    "name": "refreshArchitecture",
+    "description": "Rebuild the architectural model from sources. Use this to refresh ownership, modules, hotspots, or responsibilities data. Heavy operation (up to 30s). Use async=true for background processing.",
+    "arguments": [
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": "What to refresh: 'all' (default), 'modules', 'ownership', 'hotspots', or 'responsibilities'"
+      },
+      {
+        "name": "force",
+        "type": "boolean",
+        "desc": "Force refresh even if data is fresh"
+      },
+      {
+        "name": "dryRun",
+        "type": "boolean",
+        "desc": "Preview what would be refreshed without making changes"
+      },
+      {
+        "name": "async",
+        "type": "boolean",
+        "desc": "Run refresh in background and return immediately with a job ID. Use getJobStatus to check progress."
+      }
+    ]
+  },
+  {
+    "name": "getOwnership",
+    "description": "Get ownership information for files or paths. Returns owners from CODEOWNERS and git-blame with confidence scores. Use to identify who to contact for code review or questions.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "File or directory path to get ownership for"
+      },
+      {
+        "name": "includeBlame",
+        "type": "boolean",
+        "desc": "Whether to include git-blame ownership analysis"
+      },
+      {
+        "name": "includeHistory",
+        "type": "boolean",
+        "desc": "Whether to include recent ownership change history"
+      }
+    ]
+  },
+  {
+    "name": "getModuleResponsibilities",
+    "description": "Get responsibilities for modules. Returns what each module does, its capabilities, and how confident we are in this assessment. Extracted from README files, doc comments, and code analysis.",
+    "arguments": [
+      {
+        "name": "moduleId",
+        "type": "string",
+        "desc": "Specific module ID to get responsibilities for. Omit to get all modules."
+      },
+      {
+        "name": "includeFiles",
+        "type": "boolean",
+        "desc": "Whether to include file-level responsibilities"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of modules to return"
+      }
+    ]
+  },
+  {
+    "name": "recordDecision",
+    "description": "Record an architectural decision (ADR). Creates both a markdown file and database entry. Use to document design decisions, rationale, and consequences.",
+    "arguments": [
+      {
+        "name": "title",
+        "type": "string",
+        "desc": "Short title for the decision (e.g., 'Use PostgreSQL for persistence')"
+      },
+      {
+        "name": "context",
+        "type": "string",
+        "desc": "Background and forces driving the decision"
+      },
+      {
+        "name": "decision",
+        "type": "string",
+        "desc": "What was decided and why"
+      },
+      {
+        "name": "consequences",
+        "type": "array",
+        "desc": "List of consequences (positive and negative) of this decision"
+      },
+      {
+        "name": "affectedModules",
+        "type": "array",
+        "desc": "List of module IDs affected by this decision"
+      },
+      {
+        "name": "alternatives",
+        "type": "array",
+        "desc": "List of alternatives that were considered"
+      },
+      {
+        "name": "author",
+        "type": "string",
+        "desc": "Author of the decision"
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Status of the decision"
+      }
+    ]
+  },
+  {
+    "name": "getDecisions",
+    "description": "Get architectural decisions (ADRs). Returns recorded decisions with their status, affected modules, and file paths. Use to understand past architectural choices.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "Specific decision ID (e.g., 'ADR-001'). Returns single decision with full details."
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Filter by status"
+      },
+      {
+        "name": "moduleId",
+        "type": "string",
+        "desc": "Filter by affected module"
+      },
+      {
+        "name": "search",
+        "type": "string",
+        "desc": "Search in title and ID"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of decisions to return"
+      }
+    ]
+  },
+  {
+    "name": "annotateModule",
+    "description": "Add or update module metadata (responsibilities, tags, boundaries). Enhances architectural understanding without modifying code.",
+    "arguments": [
+      {
+        "name": "moduleId",
+        "type": "string",
+        "desc": "Module ID (typically the directory path)"
+      },
+      {
+        "name": "responsibility",
+        "type": "string",
+        "desc": "One-sentence description of what this module does"
+      },
+      {
+        "name": "capabilities",
+        "type": "array",
+        "desc": "List of capabilities provided by this module"
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "desc": "Tags for categorization (e.g., 'core', 'infrastructure', 'api')"
+      },
+      {
+        "name": "publicPaths",
+        "type": "array",
+        "desc": "Paths intended as public API boundaries"
+      },
+      {
+        "name": "internalPaths",
+        "type": "array",
+        "desc": "Paths intended to be internal/private"
+      }
+    ]
+  },
+  {
+    "name": "getJobStatus",
+    "description": "Get the status and result of a background job. Use this to check on async operations like refreshArchitecture.",
+    "arguments": [
+      {
+        "name": "jobId",
+        "type": "string",
+        "desc": "The job ID returned from an async operation"
+      }
+    ]
+  },
+  {
+    "name": "listJobs",
+    "description": "List recent background jobs. Use to find job IDs or check overall job history.",
+    "arguments": [
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Filter by job status"
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "Filter by job type"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of jobs to return"
+      }
+    ]
+  },
+  {
+    "name": "cancelJob",
+    "description": "Cancel a queued or running background job.",
+    "arguments": [
+      {
+        "name": "jobId",
+        "type": "string",
+        "desc": "The job ID to cancel"
+      }
+    ]
+  },
+  {
+    "name": "summarizePr",
+    "description": "Analyze changes between branches and provide a PR summary with risk assessment, affected modules, hotspots touched, and suggested reviewers.",
+    "arguments": [
+      {
+        "name": "baseBranch",
+        "type": "string",
+        "desc": "Base branch to compare against (default: 'main')"
+      },
+      {
+        "name": "headBranch",
+        "type": "string",
+        "desc": "Head branch (default: current HEAD)"
+      },
+      {
+        "name": "includeOwnership",
+        "type": "boolean",
+        "desc": "Include ownership analysis for reviewer suggestions (default: true)"
+      }
+    ]
+  },
+  {
+    "name": "getOwnershipDrift",
+    "description": "Detect ownership drift by comparing CODEOWNERS declarations against actual git-blame ownership. Returns files where the declared owners differ significantly from who actually writes the code.",
+    "arguments": [
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": "Module or directory path to analyze (default: entire repo)"
+      },
+      {
+        "name": "threshold",
+        "type": "number",
+        "desc": "Drift score threshold to report (0-1, default: 0.3)"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum files to return (default: 20)"
+      }
+    ]
+  },
+  {
+    "name": "listFederations",
+    "description": "List all federations (cross-repo collections) available in CKB. A federation is a named collection of repositories that can be queried together.",
+    "arguments": []
+  },
+  {
+    "name": "federationStatus",
+    "description": "Get detailed status of a federation including repos, compatibility checks, and sync state.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Name of the federation to get status for"
+      }
+    ]
+  },
+  {
+    "name": "federationRepos",
+    "description": "List repositories in a federation with their paths, tags, and compatibility status.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Name of the federation"
+      },
+      {
+        "name": "includeCompatibility",
+        "type": "boolean",
+        "desc": "Include schema compatibility status for each repo"
+      }
+    ]
+  },
+  {
+    "name": "federationSearchModules",
+    "description": "Search for modules across all repositories in a federation. Use for cross-repo architectural analysis.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Name of the federation to search"
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Search query (FTS)"
+      },
+      {
+        "name": "repos",
+        "type": "array",
+        "desc": "Optional list of repo IDs to filter to"
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "desc": "Optional tags to filter modules"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum results to return"
+      }
+    ]
+  },
+  {
+    "name": "federationSearchOwnership",
+    "description": "Search for ownership across all repositories in a federation. Find who owns code matching a path pattern.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Name of the federation to search"
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path glob pattern (e.g., '**/auth/**')"
+      },
+      {
+        "name": "repos",
+        "type": "array",
+        "desc": "Optional list of repo IDs to filter to"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum results to return"
+      }
+    ]
+  },
+  {
+    "name": "federationGetHotspots",
+    "description": "Get merged hotspots across all repositories in a federation. Returns the most volatile code areas across the organization.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Name of the federation"
+      },
+      {
+        "name": "repos",
+        "type": "array",
+        "desc": "Optional list of repo IDs to filter to"
+      },
+      {
+        "name": "top",
+        "type": "integer",
+        "desc": "Number of top hotspots to return"
+      },
+      {
+        "name": "minScore",
+        "type": "number",
+        "desc": "Minimum score threshold (0-1)"
+      }
+    ]
+  },
+  {
+    "name": "federationSearchDecisions",
+    "description": "Search for architectural decisions (ADRs) across all repositories in a federation.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Name of the federation to search"
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Search query (FTS)"
+      },
+      {
+        "name": "status",
+        "type": "array",
+        "desc": "Filter by decision status"
+      },
+      {
+        "name": "repos",
+        "type": "array",
+        "desc": "Optional list of repo IDs to filter to"
+      },
+      {
+        "name": "module",
+        "type": "string",
+        "desc": "Filter by affected module"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum results to return"
+      }
+    ]
+  },
+  {
+    "name": "federationSync",
+    "description": "Sync federation index from repository data. This reads modules, ownership, hotspots, and decisions from each repository and stores summaries for cross-repo queries.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Name of the federation to sync"
+      },
+      {
+        "name": "force",
+        "type": "boolean",
+        "desc": "Force sync even if data is fresh"
+      },
+      {
+        "name": "dryRun",
+        "type": "boolean",
+        "desc": "Preview what would be synced without making changes"
+      },
+      {
+        "name": "repos",
+        "type": "array",
+        "desc": "Optional list of repo IDs to sync (default: all)"
+      }
+    ]
+  },
+  {
+    "name": "federationAddRemote",
+    "description": "Add a remote CKB index server to a federation. The remote server will be queried alongside local repositories.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Name of the federation"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name for the remote server"
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "URL of the remote index server"
+      },
+      {
+        "name": "token",
+        "type": "string",
+        "desc": "Auth token (supports ${ENV_VAR} expansion)"
+      },
+      {
+        "name": "cacheTtl",
+        "type": "string",
+        "desc": "Cache TTL (e.g., 15m, 1h)"
+      },
+      {
+        "name": "timeout",
+        "type": "string",
+        "desc": "Request timeout"
+      }
+    ]
+  },
+  {
+    "name": "federationRemoveRemote",
+    "description": "Remove a remote server from a federation.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Name of the federation"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the remote server to remove"
+      }
+    ]
+  },
+  {
+    "name": "federationListRemote",
+    "description": "List remote servers configured in a federation.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Name of the federation"
+      }
+    ]
+  },
+  {
+    "name": "federationSyncRemote",
+    "description": "Sync metadata from remote server(s). If name is provided, syncs that server only; otherwise syncs all enabled servers.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Name of the federation"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Optional server name to sync (default: all)"
+      }
+    ]
+  },
+  {
+    "name": "federationStatusRemote",
+    "description": "Check remote server connectivity and status.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Name of the federation"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the remote server"
+      }
+    ]
+  },
+  {
+    "name": "federationSearchSymbolsHybrid",
+    "description": "Search symbols across local federation and remote servers. Returns results with source attribution.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Name of the federation"
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Search query"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum results to return"
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "Filter by language"
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "Filter by symbol kind"
+      },
+      {
+        "name": "servers",
+        "type": "array",
+        "desc": "Optional list of server names to query (default: all enabled)"
+      }
+    ]
+  },
+  {
+    "name": "federationListAllRepos",
+    "description": "List all repositories from local federation and remote servers.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Name of the federation"
+      }
+    ]
+  },
+  {
+    "name": "daemonStatus",
+    "description": "Get CKB daemon status including health, uptime, and component states. Returns information about the always-on daemon service.",
+    "arguments": []
+  },
+  {
+    "name": "listSchedules",
+    "description": "List scheduled tasks in the daemon. Shows automated refresh schedules, federation syncs, and other recurring tasks.",
+    "arguments": [
+      {
+        "name": "taskType",
+        "type": "string",
+        "desc": "Filter by task type"
+      },
+      {
+        "name": "enabled",
+        "type": "boolean",
+        "desc": "Filter by enabled status"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum schedules to return"
+      }
+    ]
+  },
+  {
+    "name": "runSchedule",
+    "description": "Immediately run a scheduled task. Useful for testing schedules or triggering updates manually.",
+    "arguments": [
+      {
+        "name": "scheduleId",
+        "type": "string",
+        "desc": "ID of the schedule to run"
+      }
+    ]
+  },
+  {
+    "name": "listWebhooks",
+    "description": "List configured webhooks for CKB event notifications. Shows endpoints, events subscribed, and delivery status.",
+    "arguments": []
+  },
+  {
+    "name": "testWebhook",
+    "description": "Send a test event to a webhook endpoint. Useful for verifying webhook configuration.",
+    "arguments": [
+      {
+        "name": "webhookId",
+        "type": "string",
+        "desc": "ID of the webhook to test"
+      }
+    ]
+  },
+  {
+    "name": "webhookDeliveries",
+    "description": "Get delivery history for a webhook. Shows recent delivery attempts, successes, and failures.",
+    "arguments": [
+      {
+        "name": "webhookId",
+        "type": "string",
+        "desc": "ID of the webhook"
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "desc": "Filter by delivery status"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum deliveries to return"
+      }
+    ]
+  },
+  {
+    "name": "listContracts",
+    "description": "List API contracts (protobuf, OpenAPI) in a federation. Returns detected contracts with their visibility classification.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Name of the federation to query"
+      },
+      {
+        "name": "repoId",
+        "type": "string",
+        "desc": "Filter to contracts from this repo"
+      },
+      {
+        "name": "contractType",
+        "type": "string",
+        "desc": "Filter by contract type"
+      },
+      {
+        "name": "visibility",
+        "type": "string",
+        "desc": "Filter by visibility"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum contracts to return"
+      }
+    ]
+  },
+  {
+    "name": "analyzeContractImpact",
+    "description": "Analyze the impact of changing an API contract. Returns direct and transitive consumers, risk assessment, and ownership information.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Name of the federation"
+      },
+      {
+        "name": "repoId",
+        "type": "string",
+        "desc": "Repository containing the contract"
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the contract file"
+      },
+      {
+        "name": "includeHeuristic",
+        "type": "boolean",
+        "desc": "Include tier 3 (heuristic) edges"
+      },
+      {
+        "name": "includeTransitive",
+        "type": "boolean",
+        "desc": "Include transitive consumers"
+      },
+      {
+        "name": "maxDepth",
+        "type": "integer",
+        "desc": "Maximum depth for transitive analysis"
+      }
+    ]
+  },
+  {
+    "name": "getContractDependencies",
+    "description": "Get contract dependencies for a repository. Shows both contracts this repo depends on and consumers of contracts this repo provides.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Name of the federation"
+      },
+      {
+        "name": "repoId",
+        "type": "string",
+        "desc": "Repository to analyze"
+      },
+      {
+        "name": "moduleId",
+        "type": "string",
+        "desc": "Optional module filter"
+      },
+      {
+        "name": "direction",
+        "type": "string",
+        "desc": "Which direction to query"
+      },
+      {
+        "name": "includeHeuristic",
+        "type": "boolean",
+        "desc": "Include tier 3 (heuristic) edges"
+      }
+    ]
+  },
+  {
+    "name": "suppressContractEdge",
+    "description": "Suppress a false positive contract dependency edge. The edge will be hidden from analysis results.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Name of the federation"
+      },
+      {
+        "name": "edgeId",
+        "type": "integer",
+        "desc": "ID of the edge to suppress"
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": "Reason for suppression"
+      }
+    ]
+  },
+  {
+    "name": "verifyContractEdge",
+    "description": "Mark a contract dependency edge as verified. Increases confidence in the edge.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Name of the federation"
+      },
+      {
+        "name": "edgeId",
+        "type": "integer",
+        "desc": "ID of the edge to verify"
+      }
+    ]
+  },
+  {
+    "name": "getContractStats",
+    "description": "Get contract statistics for a federation. Returns counts of contracts, edges, and breakdown by type.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Name of the federation"
+      }
+    ]
+  },
+  {
+    "name": "getFileComplexity",
+    "description": "Get code complexity metrics for a source file using tree-sitter parsing. Returns cyclomatic and cognitive complexity for each function, plus file-level aggregates. Supports Go, JavaScript, TypeScript, Python, Rust, Java, and Kotlin.",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "desc": "Path to the source file (relative or absolute)"
+      },
+      {
+        "name": "includeFunctions",
+        "type": "boolean",
+        "desc": "Include per-function complexity breakdown"
+      },
+      {
+        "name": "sortBy",
+        "type": "string",
+        "desc": "Sort functions by this metric (descending)"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of functions to return (most complex first)"
+      }
+    ]
+  },
+  {
+    "name": "getTelemetryStatus",
+    "description": "Get telemetry system status including coverage metrics, last sync time, and unmapped services. Use this to check if telemetry is enabled and working correctly.",
+    "arguments": []
+  },
+  {
+    "name": "getObservedUsage",
+    "description": "Get runtime observed usage for a symbol. Returns call counts, trend direction, match quality, and optionally caller breakdown. Requires telemetry to be enabled.",
+    "arguments": [
+      {
+        "name": "symbolId",
+        "type": "string",
+        "desc": "The symbol ID to get usage for"
+      },
+      {
+        "name": "period",
+        "type": "string",
+        "desc": "Time period to analyze"
+      },
+      {
+        "name": "includeCallers",
+        "type": "boolean",
+        "desc": "Include caller service breakdown (if enabled)"
+      }
+    ]
+  },
+  {
+    "name": "findDeadCodeCandidates",
+    "description": "Find symbols that may be dead code based on observed runtime telemetry. Returns candidates with confidence scores. Only works with medium+ telemetry coverage.",
+    "arguments": [
+      {
+        "name": "repoId",
+        "type": "string",
+        "desc": "Repository ID to analyze. If omitted, analyzes current repo."
+      },
+      {
+        "name": "minConfidence",
+        "type": "number",
+        "desc": "Minimum confidence threshold (0-1)"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum candidates to return"
+      }
+    ]
+  },
+  {
+    "name": "findDeadCode",
+    "description": "Find dead code using static analysis of the SCIP index. Detects: symbols with zero references, self-only references, test-only references, and over-exported symbols. Works without telemetry.",
+    "arguments": [
+      {
+        "name": "scope",
+        "type": "array",
+        "desc": "Limit analysis to specific packages/paths (e.g., ['internal/legacy', 'pkg/utils'])"
+      },
+      {
+        "name": "includeUnexported",
+        "type": "boolean",
+        "desc": "Include unexported (private) symbols in analysis"
+      },
+      {
+        "name": "minConfidence",
+        "type": "number",
+        "desc": "Minimum confidence threshold (0-1). Higher = fewer false positives"
+      },
+      {
+        "name": "excludePatterns",
+        "type": "array",
+        "desc": "Glob patterns to exclude (e.g., ['*_generated.go', 'mocks/*'])"
+      },
+      {
+        "name": "includeTestOnly",
+        "type": "boolean",
+        "desc": "Report symbols only used by tests as dead code"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum results to return"
+      }
+    ]
+  },
+  {
+    "name": "getAffectedTests",
+    "description": "Find tests affected by current code changes. Uses SCIP symbol analysis and heuristics to trace from changed code to test files. Useful for targeted test runs in CI or local development.",
+    "arguments": [
+      {
+        "name": "staged",
+        "type": "boolean",
+        "desc": "Only analyze staged changes (git add)"
+      },
+      {
+        "name": "baseBranch",
+        "type": "string",
+        "desc": "Base branch/commit to compare against"
+      },
+      {
+        "name": "depth",
+        "type": "integer",
+        "desc": "Maximum depth for transitive impact analysis (1-3)"
+      },
+      {
+        "name": "useCoverage",
+        "type": "boolean",
+        "desc": "Use coverage data if available for more accurate mapping"
+      }
+    ]
+  },
+  {
+    "name": "compareAPI",
+    "description": "Compare API surfaces between two git refs to detect breaking changes. Finds removed symbols, signature changes, visibility changes, and renames. Useful for release planning and API compatibility checks.",
+    "arguments": [
+      {
+        "name": "baseRef",
+        "type": "string",
+        "desc": "Base git ref for comparison (e.g., 'v1.0.0', 'main')"
+      },
+      {
+        "name": "targetRef",
+        "type": "string",
+        "desc": "Target git ref for comparison (e.g., 'HEAD', 'v2.0.0')"
+      },
+      {
+        "name": "scope",
+        "type": "array",
+        "desc": "Limit analysis to specific packages/paths"
+      },
+      {
+        "name": "includeMinor",
+        "type": "boolean",
+        "desc": "Include non-breaking changes (additions) in output"
+      }
+    ]
+  },
+  {
+    "name": "explainOrigin",
+    "description": "Explain why code exists: origin commit, evolution history, co-changes, and warnings. Answers 'why does this code exist?' with full context.",
+    "arguments": [
+      {
+        "name": "symbol",
+        "type": "string",
+        "desc": "Symbol to explain (file path, file:line, or symbol name)"
+      },
+      {
+        "name": "includeUsage",
+        "type": "boolean",
+        "desc": "Include telemetry usage data if available"
+      },
+      {
+        "name": "includeCoChange",
+        "type": "boolean",
+        "desc": "Include co-change analysis"
+      },
+      {
+        "name": "historyLimit",
+        "type": "integer",
+        "desc": "Number of timeline entries to include"
+      }
+    ]
+  },
+  {
+    "name": "analyzeCoupling",
+    "description": "Find files/symbols that historically change together. Reveals hidden coupling that static analysis misses.",
+    "arguments": [
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "File or symbol to analyze"
+      },
+      {
+        "name": "minCorrelation",
+        "type": "number",
+        "desc": "Minimum correlation threshold (0-1)"
+      },
+      {
+        "name": "windowDays",
+        "type": "integer",
+        "desc": "Analysis window in days"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum results to return"
+      }
+    ]
+  },
+  {
+    "name": "exportForLLM",
+    "description": "Export codebase structure in LLM-friendly format. Includes symbols, complexity, usage, and ownership.",
+    "arguments": [
+      {
+        "name": "federation",
+        "type": "string",
+        "desc": "Export entire federation (optional)"
+      },
+      {
+        "name": "includeUsage",
+        "type": "boolean",
+        "desc": "Include telemetry usage data"
+      },
+      {
+        "name": "includeOwnership",
+        "type": "boolean",
+        "desc": "Include owner annotations"
+      },
+      {
+        "name": "includeContracts",
+        "type": "boolean",
+        "desc": "Include contract indicators"
+      },
+      {
+        "name": "includeComplexity",
+        "type": "boolean",
+        "desc": "Include complexity scores"
+      },
+      {
+        "name": "minComplexity",
+        "type": "integer",
+        "desc": "Only include symbols with complexity >= N"
+      },
+      {
+        "name": "minCalls",
+        "type": "integer",
+        "desc": "Only include symbols with calls/day >= N"
+      },
+      {
+        "name": "maxSymbols",
+        "type": "integer",
+        "desc": "Limit total symbols"
+      }
+    ]
+  },
+  {
+    "name": "auditRisk",
+    "description": "Find risky code based on multiple signals: complexity, test coverage, bus factor, staleness, security sensitivity, error rate, coupling, and churn.",
+    "arguments": [
+      {
+        "name": "minScore",
+        "type": "number",
+        "desc": "Minimum risk score to include (0-100)"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum items to return"
+      },
+      {
+        "name": "factor",
+        "type": "string",
+        "desc": "Filter by specific risk factor"
+      },
+      {
+        "name": "quickWins",
+        "type": "boolean",
+        "desc": "Only show quick wins (low effort, high impact)"
+      }
+    ]
+  },
+  {
+    "name": "scanSecrets",
+    "description": "Scan for exposed secrets (API keys, tokens, passwords) in the codebase. Uses builtin patterns and optionally external tools (gitleaks, trufflehog).",
+    "arguments": [
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": "What to scan: workdir (current files), staged (git staged only), history (git commits)"
+      },
+      {
+        "name": "paths",
+        "type": "array",
+        "desc": "Limit scan to these paths (glob patterns)"
+      },
+      {
+        "name": "excludePaths",
+        "type": "array",
+        "desc": "Skip these paths (e.g., vendor/*, node_modules/*)"
+      },
+      {
+        "name": "minSeverity",
+        "type": "string",
+        "desc": "Minimum severity to report"
+      },
+      {
+        "name": "sinceCommit",
+        "type": "string",
+        "desc": "For history scope: scan commits since this ref"
+      },
+      {
+        "name": "maxCommits",
+        "type": "integer",
+        "desc": "For history scope: maximum commits to scan"
+      },
+      {
+        "name": "useGitleaks",
+        "type": "boolean",
+        "desc": "Use gitleaks if available (more comprehensive patterns)"
+      },
+      {
+        "name": "useTrufflehog",
+        "type": "boolean",
+        "desc": "Use trufflehog if available (verified secrets detection)"
+      },
+      {
+        "name": "preferExternal",
+        "type": "boolean",
+        "desc": "Prefer external tools over builtin when available"
+      },
+      {
+        "name": "applyAllowlist",
+        "type": "boolean",
+        "desc": "Apply configured allowlist to filter false positives"
+      }
+    ]
+  },
+  {
+    "name": "getDocsForSymbol",
+    "description": "Find documentation that references a symbol. Returns docs mentioning the symbol with context and line numbers.",
+    "arguments": [
+      {
+        "name": "symbol",
+        "type": "string",
+        "desc": "Symbol name or ID to search for (e.g., 'Engine.Start', 'internal/query.Engine')"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of doc references to return"
+      }
+    ]
+  },
+  {
+    "name": "getSymbolsInDoc",
+    "description": "List all symbol references found in a documentation file. Shows resolution status and line numbers.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to the documentation file (relative to repo root)"
+      }
+    ]
+  },
+  {
+    "name": "getDocsForModule",
+    "description": "Find documentation explicitly linked to a module via directives. Docs link to modules using <!-- ckb:module path/to/module --> directives.",
+    "arguments": [
+      {
+        "name": "moduleId",
+        "type": "string",
+        "desc": "Module ID (directory path) to find docs for"
+      }
+    ]
+  },
+  {
+    "name": "checkDocStaleness",
+    "description": "Check documentation for stale symbol references. A reference is stale if the symbol no longer exists, is ambiguous, or the language is not indexed.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Path to check (optional, omit for all docs)"
+      },
+      {
+        "name": "all",
+        "type": "boolean",
+        "desc": "Check all indexed documentation"
+      }
+    ]
+  },
+  {
+    "name": "indexDocs",
+    "description": "Scan and index documentation for symbol references. By default uses incremental indexing (skips unchanged files).",
+    "arguments": [
+      {
+        "name": "force",
+        "type": "boolean",
+        "desc": "Force re-index all docs even if unchanged"
+      }
+    ]
+  },
+  {
+    "name": "getDocCoverage",
+    "description": "Get documentation coverage statistics. Reports how many symbols are documented and which high-centrality symbols are missing documentation.",
+    "arguments": [
+      {
+        "name": "exportedOnly",
+        "type": "boolean",
+        "desc": "Only count exported/public symbols"
+      },
+      {
+        "name": "topN",
+        "type": "integer",
+        "desc": "Number of top undocumented symbols to return"
+      }
+    ]
+  },
+  {
+    "name": "listRepos",
+    "description": "List all registered repositories with their state and active status. Shows which repos are valid, uninitialized, or missing.",
+    "arguments": []
+  },
+  {
+    "name": "switchRepo",
+    "description": "Switch to a different repository. The repository must be registered and initialized. Use listRepos to see available repos.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "The name of the repository to switch to (from registry)"
+      }
+    ]
+  },
+  {
+    "name": "getActiveRepo",
+    "description": "Get information about the currently active repository including name, path, and state.",
+    "arguments": []
+  },
+  {
+    "name": "explore",
+    "description": "Comprehensive area exploration returning structure, key symbols, and change hotspots in one call. Best starting point for file/directory/module questions. Aggregates: explainFile \u2192 searchSymbols \u2192 getCallGraph \u2192 getHotspots.",
+    "arguments": [
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "File, directory, or module path to explore"
+      },
+      {
+        "name": "depth",
+        "type": "string",
+        "desc": "Exploration thoroughness: shallow (quick overview), standard (balanced), deep (comprehensive)"
+      },
+      {
+        "name": "focus",
+        "type": "string",
+        "desc": "Aspect to emphasize: structure (symbols/types), dependencies (imports/exports), changes (hotspots/history)"
+      }
+    ]
+  },
+  {
+    "name": "understand",
+    "description": "Comprehensive symbol deep-dive returning full context in one call. Ideal for 'what does X do?' or 'how does X work?' questions. Aggregates: searchSymbols \u2192 getSymbol \u2192 explainSymbol \u2192 findReferences \u2192 getCallGraph.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Symbol name or ID to understand"
+      },
+      {
+        "name": "includeReferences",
+        "type": "boolean",
+        "desc": "Include reference information grouped by file"
+      },
+      {
+        "name": "includeCallGraph",
+        "type": "boolean",
+        "desc": "Include callers and callees"
+      },
+      {
+        "name": "maxReferences",
+        "type": "number",
+        "desc": "Maximum references to include"
+      }
+    ]
+  },
+  {
+    "name": "prepareChange",
+    "description": "Pre-change impact analysis showing blast radius, affected tests, coupled files, and risk score. Essential before modifying, renaming, or deleting code to prevent breaking changes.",
+    "arguments": [
+      {
+        "name": "target",
+        "type": "string",
+        "desc": "Symbol ID or file path to analyze"
+      },
+      {
+        "name": "changeType",
+        "type": "string",
+        "desc": "Type of change being planned"
+      }
+    ]
+  },
+  {
+    "name": "batchGet",
+    "description": "Retrieve multiple symbols by ID in a single call. Max 50 symbols.",
+    "arguments": [
+      {
+        "name": "symbolIds",
+        "type": "array",
+        "desc": "Array of symbol IDs to retrieve (max 50)"
+      }
+    ]
+  },
+  {
+    "name": "batchSearch",
+    "description": "Perform multiple symbol searches in a single call. Max 10 queries.",
+    "arguments": [
+      {
+        "name": "queries",
+        "type": "array",
+        "desc": "Array of search queries (max 10)"
+      }
+    ]
+  }
+]
