@@ -1,0 +1,3 @@
+Docs: https://documentation.yatmo.com/mcp
+
+Yatmo (https://yatmo.com) computes neighbourhood data for real estate websites in 25 European and other countries: points of interest around a property with real travel times on foot, by bike, by car and by public transport, and a written description of the surroundings. This remote MCP server exposes four read-only tools (location summary, nearby POIs, nearest place by category, accessibility profile) to AI assistants and agents. A Yatmo licence key is required (https://yatmo.com); client configurations and a dependency-free quick start are in https://github.com/Yatmo/yatmo-mcp.
