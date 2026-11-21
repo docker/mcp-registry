@@ -1,0 +1,56 @@
+name: happy-platform-mcp
+image: mcp/happy-platform-mcp
+type: server
+meta:
+  category: devops
+  tags:
+    - servicenow
+    - itsm
+    - devops
+    - automation
+    - enterprise
+    - cmdb
+about:
+  title: Happy Platform
+  description: ServiceNow platform MCP server with 49 tools for ITSM, CMDB, Service Catalog, update sets, workflows, natural language search, and multi-instance operations.
+  icon: https://happy-tech.biz/images/logo.svg
+source:
+  project: https://github.com/Happy-Technologies-LLC/happy-platform-mcp
+  commit: daabd38f42108eedcddb591343ae17f2ba480ad0
+config:
+  description: Configure the connection to your ServiceNow instance.
+  secrets:
+    - name: happy-platform-mcp.password
+      env: SERVICENOW_PASSWORD
+      example: your-password
+  env:
+    - name: SERVICENOW_INSTANCE_URL
+      example: https://dev123456.service-now.com
+      value: "{{happy-platform-mcp.instance_url}}"
+    - name: SERVICENOW_USERNAME
+      example: admin
+      value: "{{happy-platform-mcp.username}}"
+    - name: SERVICENOW_AUTH_TYPE
+      example: basic
+      value: "{{happy-platform-mcp.auth_type}}"
+  parameters:
+    type: object
+    properties:
+      instance_url:
+        type: string
+        description: ServiceNow instance URL.
+      username:
+        type: string
+        description: ServiceNow username for basic auth or OAuth password grant.
+      auth_type:
+        type: string
+        description: Authentication type, usually basic or oauth.
+        default: basic
+    required:
+      - instance_url
+      - username
+      - auth_type
+run:
+  command:
+    - node
+    - src/stdio-server.js
