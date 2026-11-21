@@ -1,0 +1,77 @@
+name: iris-agentic-dev
+image: ghcr.io/intersystems-community/iris-agentic-dev:1.4.2
+type: server
+meta:
+  category: database
+  tags:
+    - intersystems
+    - iris
+    - objectscript
+    - sql
+about:
+  title: InterSystems IRIS Agentic Dev
+  description: MCP tools for InterSystems IRIS - SQL queries, ObjectScript execution and compilation, class/routine/global introspection, interoperability production management, and namespace/database administration over the Atelier REST API.
+  icon: https://avatars.githubusercontent.com/u/6015182?s=200&v=4
+source:
+  project: https://github.com/intersystems-community/iris-agentic-dev
+  commit: b20bae161c002b95272699a869457d41eb2fd139
+run:
+  command:
+    - mcp
+config:
+  description: Configure the connection to your InterSystems IRIS instance
+  secrets:
+    - name: iris-agentic-dev.password
+      env: IRIS_PASSWORD
+      example: YOUR_IRIS_PASSWORD
+  env:
+    - name: IRIS_HOST
+      example: host.docker.internal
+      value: "{{iris-agentic-dev.host}}"
+    - name: IRIS_WEB_PORT
+      example: "52773"
+      value: "{{iris-agentic-dev.web-port}}"
+    - name: IRIS_SCHEME
+      example: http
+      value: "{{iris-agentic-dev.scheme}}"
+    - name: IRIS_NAMESPACE
+      example: USER
+      value: "{{iris-agentic-dev.namespace}}"
+    - name: IRIS_USERNAME
+      example: _SYSTEM
+      value: "{{iris-agentic-dev.username}}"
+    - name: IRIS_WRITE_TOOLS_ENABLED
+      example: "0"
+      value: "{{iris-agentic-dev.write-tools-enabled}}"
+    - name: IRIS_DESTRUCTIVE_TOOLS_ENABLED
+      example: "0"
+      value: "{{iris-agentic-dev.destructive-tools-enabled}}"
+  parameters:
+    type: object
+    properties:
+      host:
+        type: string
+        description: IRIS host reachable from the container, e.g. host.docker.internal
+      web-port:
+        type: string
+        description: IRIS web (Atelier REST API) port, e.g. 52773
+      scheme:
+        type: string
+        description: http or https
+      namespace:
+        type: string
+        description: IRIS namespace to connect to, e.g. USER
+      username:
+        type: string
+        description: IRIS username, e.g. _SYSTEM
+      write-tools-enabled:
+        type: string
+        description: Set to 0 to disable write tools (recommended default; leaving this unset lets iris-agentic-dev infer it from the namespace name)
+      destructive-tools-enabled:
+        type: string
+        description: Set to 0 to disable destructive tools (recommended default)
+    required:
+      - host
+      - web-port
+      - write-tools-enabled
+      - destructive-tools-enabled
