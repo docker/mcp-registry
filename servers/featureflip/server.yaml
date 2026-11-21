@@ -1,0 +1,52 @@
+name: featureflip
+image: mcp/featureflip
+type: server
+meta:
+  category: devops
+  tags:
+    - featureflip
+    - feature-flags
+    - feature-management
+    - devops
+about:
+  title: Featureflip
+  description: >-
+    Manage Featureflip feature flags from an agent or editor: inspect flag state
+    across environments, create and toggle flags, edit targeting rules and
+    percentage rollouts, surface stale flags for cleanup, and generate the SDK
+    snippet to wrap a new feature. Flag evaluation stays in the application's own
+    SDK; every mutation here is audit-logged and attributed to the token.
+  icon: https://featureflip.io/favicon.svg
+source:
+  project: https://github.com/canopy-labs/featureflip-mcp
+  branch: master
+  commit: c3b30af13bb2d4225a6ea1caa200115f938f6b71
+config:
+  description: Configure the connection to Featureflip
+  secrets:
+    - name: featureflip.token
+      env: FEATUREFLIP_TOKEN
+      description: >-
+        Featureflip API token. Create one in the Featureflip dashboard under
+        Settings -> API Tokens for a personal token (ffp_), which acts as you,
+        or Organization Settings -> Service Tokens for a scoped machine
+        identity (ffs_) suited to CI and agents.
+  env:
+    - name: FEATUREFLIP_API_URL
+      example: https://api.featureflip.io
+      value: "{{featureflip.api_url}}"
+    - name: FEATUREFLIP_ORG
+      example: acme-corp
+      value: "{{featureflip.org}}"
+  parameters:
+    type: object
+    properties:
+      api_url:
+        type: string
+        description: Featureflip API base URL. Leave as the default unless self-hosting.
+        default: https://api.featureflip.io
+      org:
+        type: string
+        description: >-
+          Organization slug. Only needed when a personal token can see more than
+          one organization; otherwise it is detected automatically.
