@@ -1,0 +1,42 @@
+name: loki-mcp-server
+image: mcp/loki-mcp-server
+type: server
+meta:
+  category: monitoring
+  tags:
+    - loki
+    - grafana
+    - logs
+    - logql
+    - observability
+    - monitoring
+about:
+  title: Loki (read-only)
+  description: |
+    Read Grafana Loki from an AI agent with five text tools: list configured stands with their
+    limits, discover labels, values and stream label sets, read bounded pages of a LogQL log query,
+    count matching lines by label or time bucket, and export matching lines to a local file. Loki
+    is only read; one server can serve several Loki stands (Loki 2.6.1 and 3.x), and URLs and
+    credentials never appear in tool responses.
+  icon: https://www.google.com/s2/favicons?domain=grafana.com&sz=64
+source:
+  project: https://github.com/igorolv/loki-mcp-server
+  commit: 45690d6922dfc0e6beb0953c7667ea67850e2568
+run:
+  volumes:
+    - "{{loki-mcp-server.data_dir}}:/data"
+config:
+  description: >-
+    Point the server at a host directory containing connections.json, which names the Loki stands
+    to read (URL, authentication, tenant, time zone, limits). The server also writes its logs and
+    default exports there. See
+    https://github.com/igorolv/loki-mcp-server/blob/main/docs/connections.md for the file format.
+  parameters:
+    type: object
+    properties:
+      data_dir:
+        type: string
+        description: Host directory that holds connections.json (for example /Users/me/.loki-mcp-server)
+        default: /Users/local-test/.loki-mcp-server
+    required:
+      - data_dir
