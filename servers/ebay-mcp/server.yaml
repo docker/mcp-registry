@@ -1,0 +1,64 @@
+name: ebay-mcp
+image: mcp/ebay-mcp
+type: server
+meta:
+  category: productivity
+  tags:
+    - ebay
+    - ecommerce
+    - marketplace
+    - seller
+about:
+  title: Marketplace Seller Tools
+  description: Community-maintained server for the eBay Sell, Buy, Commerce and Developer APIs. Manage inventory, listings, orders, fulfillment, returns, marketing campaigns and analytics. Not published by or affiliated with eBay.
+  icon: https://avatars.githubusercontent.com/u/182288589?s=200&v=4
+source:
+  project: https://github.com/YosefHayim/ebay-mcp
+  commit: 7561e5608caecb5a5808a4467758eeadb54c2f48
+run:
+  command:
+    - node
+    - build/index.js
+  allowHosts:
+    - api.ebay.com:443
+    - apiz.ebay.com:443
+    - apim.ebay.com:443
+    - auth.ebay.com:443
+    - api.sandbox.ebay.com:443
+    - apiz.sandbox.ebay.com:443
+    - apim.sandbox.ebay.com:443
+    - auth.sandbox.ebay.com:443
+config:
+  description: Configure your eBay Developer app keys. Create them at https://developer.ebay.com. Start with the sandbox environment.
+  secrets:
+    - name: ebay-mcp.client_id
+      env: EBAY_CLIENT_ID
+      example: YOUR_EBAY_CLIENT_ID
+    - name: ebay-mcp.client_secret
+      env: EBAY_CLIENT_SECRET
+      example: YOUR_EBAY_CLIENT_SECRET
+    - name: ebay-mcp.user_refresh_token
+      env: EBAY_USER_REFRESH_TOKEN
+      example: YOUR_EBAY_USER_REFRESH_TOKEN
+  env:
+    - name: EBAY_ENVIRONMENT
+      example: sandbox
+      value: "{{ebay-mcp.environment}}"
+    - name: EBAY_REDIRECT_URI
+      example: YOUR_EBAY_RUNAME
+      value: "{{ebay-mcp.redirect_uri}}"
+  parameters:
+    type: object
+    properties:
+      environment:
+        type: string
+        description: eBay API environment (sandbox or production)
+        enum:
+          - sandbox
+          - production
+        default: sandbox
+      redirect_uri:
+        type: string
+        description: Redirect URI name (RuName) from the eBay Developer Portal
+    required:
+      - environment
