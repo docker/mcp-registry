@@ -1,0 +1,238 @@
+[
+  {
+    "name": "start_lsp_server",
+    "description": "Start TINAA's Playwright Language Server Protocol (LSP) server for IDE integration. Launches a Playwright LSP server that provides intelligent code completion, diagnostics, and hover information for Playwright test code directly in your IDE.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "tcp": {
+          "type": "boolean",
+          "description": "Whether to use TCP mode (true) instead of stdio mode (false). TCP mode is recommended for MCP integration.",
+          "default": false
+        },
+        "port": {
+          "type": "integer",
+          "description": "Port number for TCP mode server",
+          "default": 8765
+        }
+      }
+    }
+  },
+  {
+    "name": "check_browser_connectivity",
+    "description": "Check TINAA's browser automation capabilities by visiting a URL and capturing basic information. Verifies that Playwright browser automation is working correctly by navigating to a URL, capturing the page title, taking a screenshot, and reporting the results.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "The URL to visit for testing browser connectivity",
+          "default": "https://example.com"
+        }
+      }
+    }
+  },
+  {
+    "name": "analyze_script",
+    "description": "Analyze a Playwright test script for common issues, errors, and improvement opportunities. Performs static analysis on your Playwright test code to identify missing await statements, syntax issues, and potential improvements using TINAA's built-in diagnostics engine.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "script_path": {
+          "type": "string",
+          "description": "Absolute path to the Playwright test script file to analyze (e.g., '/path/to/test.spec.ts')"
+        }
+      },
+      "required": ["script_path"]
+    }
+  },
+  {
+    "name": "navigate_to_url",
+    "description": "Navigate to a specific URL in the browser. Opens the specified URL and waits for the page to load.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "The URL to navigate to (e.g., 'https://example.com')"
+        }
+      },
+      "required": ["url"]
+    }
+  },
+  {
+    "name": "take_page_screenshot",
+    "description": "Take a screenshot of the current page. Captures either the visible viewport or the entire scrollable page.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "full_page": {
+          "type": "boolean",
+          "description": "Whether to take a full page screenshot (scrolls to capture entire page)",
+          "default": false
+        }
+      }
+    }
+  },
+  {
+    "name": "take_element_screenshot",
+    "description": "Take a screenshot of a specific element on the page. Captures only the specified element instead of the entire page.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "selector": {
+          "type": "string",
+          "description": "CSS selector for the element to screenshot (e.g., '#login-form', '.header')"
+        }
+      },
+      "required": ["selector"]
+    }
+  },
+  {
+    "name": "fill_login_form",
+    "description": "Fill and submit a login form. Automatically fills username and password fields, then clicks the submit button.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "username_selector": {
+          "type": "string",
+          "description": "CSS selector for the username field (e.g., '#username', 'input[name=\"email\"]')"
+        },
+        "password_selector": {
+          "type": "string",
+          "description": "CSS selector for the password field (e.g., '#password', 'input[type=\"password\"]')"
+        },
+        "submit_selector": {
+          "type": "string",
+          "description": "CSS selector for the submit button (e.g., 'button[type=\"submit\"]', '#login-btn')"
+        },
+        "username": {
+          "type": "string",
+          "description": "Username value to enter"
+        },
+        "password": {
+          "type": "string",
+          "description": "Password value to enter"
+        }
+      },
+      "required": ["username_selector", "password_selector", "submit_selector", "username", "password"]
+    }
+  },
+  {
+    "name": "detect_form_fields",
+    "description": "Detect form fields on the current page. Automatically discovers all input fields, textareas, and selects within a form or on the entire page.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "form_selector": {
+          "type": "string",
+          "description": "Optional CSS selector for a specific form to analyze. If not provided, analyzes all forms on the page."
+        }
+      }
+    }
+  },
+  {
+    "name": "fill_form_fields",
+    "description": "Fill form fields on the current page. Fills multiple form fields with specified values and optionally submits the form.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "fields": {
+          "type": "object",
+          "description": "Dictionary mapping CSS selectors to values (e.g., {'#name': 'John Doe', '#email': 'john@example.com'})",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "submit_selector": {
+          "type": "string",
+          "description": "Optional CSS selector for submit button to click after filling fields"
+        }
+      },
+      "required": ["fields"]
+    }
+  },
+  {
+    "name": "run_accessibility_test",
+    "description": "Run accessibility tests on the current page. Checks for common accessibility issues including missing alt text, improper heading structure, color contrast problems, and ARIA attribute issues.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "run_responsive_test",
+    "description": "Run responsive design tests on the current page. Tests the page at multiple viewport sizes (mobile, tablet, desktop) to identify layout issues, overflow problems, and responsive design failures.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "run_security_test",
+    "description": "Run basic security tests on the current page. Checks for security issues including mixed content, exposed sensitive data, insecure forms, missing security headers, and potential XSS vulnerabilities.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "generate_test_report",
+    "description": "Generate a comprehensive test report. Creates a formatted report summarizing test results, issues found, recommendations, and next steps.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "test_type": {
+          "type": "string",
+          "description": "Type of test report to generate (e.g., 'exploratory', 'accessibility', 'responsive', 'security')"
+        },
+        "url": {
+          "type": "string",
+          "description": "URL that was tested"
+        }
+      },
+      "required": ["test_type", "url"]
+    }
+  },
+  {
+    "name": "prompt_for_credentials",
+    "description": "Prompt the user for credentials. Generates a credential request prompt for sites requiring authentication, specifying which fields need to be filled.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "site": {
+          "type": "string",
+          "description": "Site requiring authentication (e.g., 'GitHub', 'example.com')"
+        },
+        "username_field": {
+          "type": "string",
+          "description": "Optional selector for username field"
+        },
+        "password_field": {
+          "type": "string",
+          "description": "Optional selector for password field"
+        }
+      },
+      "required": ["site"]
+    }
+  },
+  {
+    "name": "run_exploratory_test",
+    "description": "Run an exploratory test on a website. Navigates to the URL, captures initial screenshots, and provides testing strategies and heuristics for manual exploration. Useful for discovering issues through guided exploration.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "URL to test"
+        },
+        "focus_area": {
+          "type": "string",
+          "description": "Area to focus exploration on (e.g., 'general', 'forms', 'navigation', 'performance')",
+          "default": "general"
+        }
+      },
+      "required": ["url"]
+    }
+  }
+]
