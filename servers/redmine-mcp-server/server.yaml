@@ -1,0 +1,47 @@
+name: redmine-mcp-server
+image: mcp/redmine-mcp-server
+type: server
+meta:
+  category: productivity
+  tags:
+    - redmine
+    - project-management
+    - issue-tracker
+    - productivity
+about:
+  title: Redmine
+  description: |
+    Work with a Redmine instance from an AI agent: search and read issues, projects, members,
+    versions, wiki pages, time entries and reference data; extract text from attachments (PDF, DOCX,
+    XLSX, ZIP); and run analytics such as release risks, blocker chains and stale issues. Read-only
+    by default; set REDMINE_MCP_WRITE_ENABLED=true to add tools that create and update issues,
+    notes, attachments, time entries and wiki pages.
+  icon: https://www.google.com/s2/favicons?domain=redmine.org&sz=64
+source:
+  project: https://github.com/igorolv/redmine-mcp-server
+  commit: 0fa1e7f72f5773baa0f5200e6d2a5f11cfade221
+config:
+  description: Configure the connection to Redmine
+  secrets:
+    - name: redmine-mcp-server.api_key
+      env: REDMINE_API_KEY
+      example: <REDMINE_API_KEY>
+  env:
+    - name: REDMINE_URL
+      example: https://redmine.example.com
+      value: '{{redmine-mcp-server.url}}'
+    - name: REDMINE_MCP_WRITE_ENABLED
+      example: "false"
+      value: '{{redmine-mcp-server.write_enabled}}'
+  parameters:
+    type: object
+    properties:
+      url:
+        type: string
+        description: Base URL of the Redmine instance, e.g. https://redmine.example.com
+      write_enabled:
+        type: string
+        description: Set to "true" to also expose the write tools (create/update issues, notes, attachments, time entries, wiki pages)
+        default: "false"
+    required:
+      - url
