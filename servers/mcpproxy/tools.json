@@ -1,0 +1,128 @@
+[
+  {
+    "name": "retrieve_tools",
+    "description": "BM25 keyword search across all upstream MCP server tools. Returns the most relevant tools with annotations and recommended tool variant. Saves ~99% of tokens compared to listing all tools.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Keyword query to search for relevant tools (e.g. 'create pull request', 'read file')"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of tools to return (default: 10)"
+      },
+      {
+        "name": "include_disabled",
+        "type": "boolean",
+        "desc": "When true, also returns disabled/locked tools with remediation hints"
+      }
+    ]
+  },
+  {
+    "name": "call_tool_read",
+    "description": "Proxy a read-only tool call to an upstream MCP server. Use for tools that only read or query data without making changes.",
+    "arguments": [
+      {
+        "name": "server",
+        "type": "string",
+        "desc": "Name of the upstream MCP server (e.g. 'github')"
+      },
+      {
+        "name": "tool",
+        "type": "string",
+        "desc": "Name of the tool to call on the upstream server"
+      },
+      {
+        "name": "arguments",
+        "type": "object",
+        "desc": "Tool arguments as a JSON object passed to the upstream tool"
+      }
+    ]
+  },
+  {
+    "name": "call_tool_write",
+    "description": "Proxy a write tool call to an upstream MCP server. Use for tools that create or modify data.",
+    "arguments": [
+      {
+        "name": "server",
+        "type": "string",
+        "desc": "Name of the upstream MCP server (e.g. 'github')"
+      },
+      {
+        "name": "tool",
+        "type": "string",
+        "desc": "Name of the tool to call on the upstream server"
+      },
+      {
+        "name": "arguments",
+        "type": "object",
+        "desc": "Tool arguments as a JSON object passed to the upstream tool"
+      }
+    ]
+  },
+  {
+    "name": "call_tool_destructive",
+    "description": "Proxy a destructive tool call to an upstream MCP server. Use for tools that delete or irreversibly modify data.",
+    "arguments": [
+      {
+        "name": "server",
+        "type": "string",
+        "desc": "Name of the upstream MCP server (e.g. 'github')"
+      },
+      {
+        "name": "tool",
+        "type": "string",
+        "desc": "Name of the tool to call on the upstream server"
+      },
+      {
+        "name": "arguments",
+        "type": "object",
+        "desc": "Tool arguments as a JSON object passed to the upstream tool"
+      }
+    ]
+  },
+  {
+    "name": "upstream_servers",
+    "description": "CRUD operations for managing upstream MCP server connections. List, add, update, or remove upstream servers.",
+    "arguments": [
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "Action to perform: list, get, add, update, delete, enable, disable"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Name of the upstream server (required for get, add, update, delete, enable, disable)"
+      },
+      {
+        "name": "config",
+        "type": "object",
+        "desc": "Server configuration object for add/update actions (url, command, args, protocol, etc.)"
+      }
+    ]
+  },
+  {
+    "name": "quarantine_security",
+    "description": "Security quarantine management. List quarantined servers, inspect pending or changed tools, approve individual tools or all tools for a server.",
+    "arguments": [
+      {
+        "name": "action",
+        "type": "string",
+        "desc": "Action to perform: list, inspect, approve, approve-all"
+      },
+      {
+        "name": "server",
+        "type": "string",
+        "desc": "Name of the upstream server to inspect or approve"
+      },
+      {
+        "name": "tool",
+        "type": "string",
+        "desc": "Name of the specific tool to approve (for approve action)"
+      }
+    ]
+  }
+]
