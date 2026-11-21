@@ -1,0 +1,32 @@
+name: decionis
+image: decionis/mcp
+type: server
+meta:
+  category: security
+  tags:
+    - security
+    - policy
+    - guardrails
+    - ai-agents
+    - governance
+about:
+  title: Decionis
+  description: Policy gate for AI agents. Evaluate a candidate action against the repository's DECIONIS_POLICY.md and get a verdict before anything commits, deploys, or migrates — the real Decionis protocol evaluator runs in-process, with zero network, zero credentials, and nothing recorded.
+  icon: https://decionis.com/favicon.ico
+source:
+  project: https://github.com/decionis/docker
+  commit: 02f68c0f03daf44da59757385c9531ba411582bc
+run:
+  volumes:
+    - "{{decionis.policy_path}}:/work/DECIONIS_POLICY.md:ro"
+  disableNetwork: true
+config:
+  description: Point Decionis at the repository's DECIONIS_POLICY.md to evaluate against.
+  parameters:
+    type: object
+    properties:
+      policy_path:
+        type: string
+        description: Absolute host path to the repository's DECIONIS_POLICY.md policy file.
+    required:
+      - policy_path
