@@ -1,0 +1,307 @@
+[
+  {
+    "name": "calculix_solve_buckling",
+    "description": "Linear buckling (*BUCKLE) analysis on a STEP file: mesh with Gmsh, solve with CalculiX, return critical load factors. Two-step solve: step 1 (*STATIC) builds the geometric stiffness matrix under the applied loads; step 2 (*BUCKLE) finds eigenvalues \u03bb such that the structure buckles at P_crit = \u03bb \u00d7 a",
+    "arguments": [
+      {
+        "name": "step_path",
+        "type": "string",
+        "desc": "Absolute path to the STEP file to analyse"
+      },
+      {
+        "name": "expected_step_sha256",
+        "type": "string",
+        "desc": "Optional SHA-256 expected for the STEP bytes. Verified against the private snapshot before meshing starts."
+      },
+      {
+        "name": "mesh_size_mm",
+        "type": "number",
+        "desc": "Target element size in mm. Explicit \u2014 pick relative to the smallest feature."
+      },
+      {
+        "name": "element_order",
+        "type": "number",
+        "desc": "1 = linear tets (fast), 2 = quadratic (better accuracy, default)"
+      },
+      {
+        "name": "material",
+        "type": "object",
+        "desc": "Material constants \u2014 explicit values, never a material name"
+      },
+      {
+        "name": "selections",
+        "type": "array",
+        "desc": "Named face selections by bounding box"
+      },
+      {
+        "name": "fixed",
+        "type": "array",
+        "desc": "Selection names whose nodes are fully fixed (all translations)"
+      },
+      {
+        "name": "loads",
+        "type": "array",
+        "desc": "Reference loads for the static preload step. The critical load for mode i = load_factor_i \u00d7 these loads."
+      },
+      {
+        "name": "n_modes",
+        "type": "integer",
+        "desc": "Number of buckling modes to compute (default 2). Mode 1 is the lowest critical load factor."
+      },
+      {
+        "name": "timeout_ms",
+        "type": "number",
+        "desc": "Time limit per external run (mesh, solve) in ms, default 120000."
+      }
+    ]
+  },
+  {
+    "name": "calculix_solve_coupled_thermal",
+    "description": "Steady-state coupled temperature-displacement analysis on a STEP file: mesh with Gmsh, solve with CalculiX *COUPLED TEMPERATURE-DISPLACEMENT, return max temperature, max displacement, and max von Mises stress from the combined thermo-mechanical field. Thermal BCs are applied by named face selections",
+    "arguments": [
+      {
+        "name": "step_path",
+        "type": "string",
+        "desc": "Absolute path to the STEP file to analyse"
+      },
+      {
+        "name": "expected_step_sha256",
+        "type": "string",
+        "desc": "Optional SHA-256 expected for the STEP bytes. Verified against the private snapshot before meshing starts."
+      },
+      {
+        "name": "mesh_size_mm",
+        "type": "number",
+        "desc": "Target element size in mm. Explicit \u2014 pick relative to the smallest feature."
+      },
+      {
+        "name": "element_order",
+        "type": "number",
+        "desc": "1 = linear tets (fast), 2 = quadratic (better accuracy, default)"
+      },
+      {
+        "name": "material",
+        "type": "object",
+        "desc": "Elastic material constants \u2014 explicit values, never a material name"
+      },
+      {
+        "name": "conductivity_w_mk",
+        "type": "number",
+        "desc": "Thermal conductivity in W/(m\u00b7K). Unit identity: 1 W/(m\u00b7K) = 1 mW/(mm\u00b7K) exactly (1000 factors cancel). The value is written directly into *CONDUCTIVITY. Al 6061: 167, steel: 50, stainless steel: 16."
+      },
+      {
+        "name": "expansion_per_k",
+        "type": "number",
+        "desc": "Linear thermal expansion coefficient in 1/K (isotropic). Al 6061: 23.6e-6, steel: 12e-6."
+      },
+      {
+        "name": "reference_temperature_c",
+        "type": "number",
+        "desc": "Reference temperature in \u00b0C for zero thermal strain. Applied as *INITIAL CONDITIONS, TYPE=TEMPERATURE \u2014 required by ccx. Typically the ambient or pre-heating temperature."
+      },
+      {
+        "name": "selections",
+        "type": "array",
+        "desc": "Named face selections by bounding box"
+      },
+      {
+        "name": "fixed",
+        "type": "array",
+        "desc": "Selection names whose nodes are fully fixed (all translations). A selection may be in both fixed and thermal_bcs \u2014 mechanical and thermal DOFs are independent."
+      },
+      {
+        "name": "thermal_bcs",
+        "type": "array",
+        "desc": "Temperature boundary conditions by named selection. At least two are typically needed to drive a heat flux. Each selection may carry only one temperature BC (duplicate selections are rejected)."
+      },
+      {
+        "name": "loads",
+        "type": "array",
+        "desc": "Optional mechanical loads (superimposed on thermal expansion)"
+      },
+      {
+        "name": "timeout_ms",
+        "type": "number",
+        "desc": "Time limit per external run (mesh, solve) in ms, default 120000."
+      }
+    ]
+  },
+  {
+    "name": "calculix_solve_creep",
+    "description": "Creep (*VISCO) analysis on a STEP file using the Norton power law: mesh with Gmsh, apply constant loads, hold for duration_s seconds, return displacement and von Mises stress AT THE END of the creep duration (final converged increment). Norton law: strain_rate = norton_a \u00d7 stress^norton_n. UNIT WARN",
+    "arguments": [
+      {
+        "name": "step_path",
+        "type": "string",
+        "desc": "Absolute path to the STEP file to analyse"
+      },
+      {
+        "name": "expected_step_sha256",
+        "type": "string",
+        "desc": "Optional SHA-256 expected for the STEP bytes. Verified against the private snapshot before meshing starts."
+      },
+      {
+        "name": "mesh_size_mm",
+        "type": "number",
+        "desc": "Target element size in mm. Explicit \u2014 pick relative to the smallest feature."
+      },
+      {
+        "name": "element_order",
+        "type": "number",
+        "desc": "1 = linear tets (fast), 2 = quadratic (better accuracy, default)"
+      },
+      {
+        "name": "material",
+        "type": "object",
+        "desc": "Elastic material constants \u2014 explicit values, never a material name"
+      },
+      {
+        "name": "norton_a",
+        "type": "number",
+        "desc": "Norton law coefficient A in MPa^(-norton_n) s^(-1). UNIT WARNING: this is NOT SI Pa units. For n=3, converting a SI value requires multiplying by 10^18. The physical material parameters belong to the "
+      },
+      {
+        "name": "norton_n",
+        "type": "number",
+        "desc": "Norton law exponent n (dimensionless, typically 2\u20138). Creep strain rate = norton_a \u00d7 stress^norton_n."
+      },
+      {
+        "name": "duration_s",
+        "type": "number",
+        "desc": "Total creep duration in seconds. Results at the end of this interval are reported (final converged increment)."
+      },
+      {
+        "name": "initial_time_increment_s",
+        "type": "number",
+        "desc": "Initial time increment in seconds. CalculiX may reduce it if the creep strain tolerance (CETOL=1e-4 internally) is exceeded. A reasonable choice is duration_s / 10. Must be \u2264 duration_s."
+      },
+      {
+        "name": "selections",
+        "type": "array",
+        "desc": "Named face selections by bounding box"
+      },
+      {
+        "name": "fixed",
+        "type": "array",
+        "desc": "Selection names whose nodes are fully fixed (all translations)"
+      },
+      {
+        "name": "loads",
+        "type": "array",
+        "desc": "Constant nodal loads applied throughout the creep duration"
+      },
+      {
+        "name": "timeout_ms",
+        "type": "number",
+        "desc": "Time limit per external run (mesh, solve) in ms, default 120000. Creep solves with many increments or fine meshes may need more."
+      }
+    ]
+  },
+  {
+    "name": "calculix_solve_modal",
+    "description": "Eigenfrequency (*FREQUENCY) analysis on a STEP file: mesh with Gmsh, solve with CalculiX, return natural frequencies in Hz. Faces are designated by named axis-aligned bounding boxes in mm \u2014 same convention as calculix_solve_static. density_kg_m3 is REQUIRED: there is no inertia without mass density ",
+    "arguments": [
+      {
+        "name": "step_path",
+        "type": "string",
+        "desc": "Absolute path to the STEP file to analyse"
+      },
+      {
+        "name": "expected_step_sha256",
+        "type": "string",
+        "desc": "Optional SHA-256 expected for the STEP bytes. Verified against the private snapshot before meshing starts."
+      },
+      {
+        "name": "mesh_size_mm",
+        "type": "number",
+        "desc": "Target element size in mm. Explicit \u2014 pick relative to the smallest feature."
+      },
+      {
+        "name": "element_order",
+        "type": "number",
+        "desc": "1 = linear tets (fast, stiffer frequencies), 2 = quadratic (better accuracy, default)"
+      },
+      {
+        "name": "material",
+        "type": "object",
+        "desc": "Material constants \u2014 explicit values, never a material name"
+      },
+      {
+        "name": "density_kg_m3",
+        "type": "number",
+        "desc": "Mass density in kg/m\u00b3 \u2014 REQUIRED for frequency analysis. Al 6061: 2700, steel: 7850. Converted internally to t/mm\u00b3 by factor 1e-12 (exact). No default \u2014 density that looks like a value is not one."
+      },
+      {
+        "name": "selections",
+        "type": "array",
+        "desc": "Named face selections by bounding box"
+      },
+      {
+        "name": "fixed",
+        "type": "array",
+        "desc": "Selection names whose nodes are fully fixed (all translations). At least one fixed selection avoids rigid-body modes."
+      },
+      {
+        "name": "n_modes",
+        "type": "integer",
+        "desc": "Number of eigenfrequencies to compute (default 6). Must not exceed the unconstrained DOF count of the mesh (= 3 \u00d7 unconstrained nodes); requesting more modes than DOF causes ccx to return fewer withou"
+      },
+      {
+        "name": "timeout_ms",
+        "type": "number",
+        "desc": "Time limit per external run (mesh, solve) in ms, default 120000. Eigenvalue solves on fine meshes scale super-linearly with DOF count."
+      }
+    ]
+  },
+  {
+    "name": "calculix_solve_static",
+    "description": "Linear static FEA on a STEP file (e.g. from build123d_export): mesh with Gmsh, solve with CalculiX, return max displacement and max von Mises stress. Faces are designated by named axis-aligned bounding boxes in mm \u2014 every surface enclosed in a box joins that named set; get the part's bounding box fr",
+    "arguments": [
+      {
+        "name": "step_path",
+        "type": "string",
+        "desc": "Absolute path to the STEP file to analyse"
+      },
+      {
+        "name": "expected_step_sha256",
+        "type": "string",
+        "desc": "Optional SHA-256 expected for the STEP bytes. CalculiX copies the source into a private snapshot, hashes that copy, and rejects a mismatch before starting Gmsh or ccx."
+      },
+      {
+        "name": "mesh_size_mm",
+        "type": "number",
+        "desc": "Target element size in mm. Explicit \u2014 pick relative to the smallest feature (e.g. 3 for a 60 mm bracket with 5 mm walls)."
+      },
+      {
+        "name": "element_order",
+        "type": "number",
+        "desc": "1 = linear tets (fast, stiff), 2 = quadratic (better stresses, default)"
+      },
+      {
+        "name": "material",
+        "type": "object",
+        "desc": "Material constants \u2014 explicit values, never a material name"
+      },
+      {
+        "name": "selections",
+        "type": "array",
+        "desc": "Named face selections by bounding box"
+      },
+      {
+        "name": "fixed",
+        "type": "array",
+        "desc": "Selection names whose nodes are fully fixed (all translations)"
+      },
+      {
+        "name": "loads",
+        "type": "array",
+        "desc": "Nodal loads (total force per selection)"
+      },
+      {
+        "name": "timeout_ms",
+        "type": "number",
+        "desc": "Time limit per external run (mesh, solve) in ms, default 120000"
+      }
+    ]
+  }
+]
