@@ -1,0 +1,514 @@
+[
+  {
+    "name": "itglue_list_organizations",
+    "description": "Search and list IT Glue organizations. Use this first to find the organization ID required by document and flexible-asset tools. Filters use exact matching except filter_name, which matches partially. Results are paginated.",
+    "arguments": [
+      {
+        "name": "filter_name",
+        "type": "string",
+        "desc": "Filter by organization name (partial match)"
+      },
+      {
+        "name": "filter_id",
+        "type": "integer",
+        "desc": "Filter by organization ID"
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "desc": "Sort field, prefix with \"-\" for descending (e.g. \"name\", \"-updated_at\")"
+      },
+      {
+        "name": "page_number",
+        "type": "integer",
+        "desc": "Page number (default 1)"
+      },
+      {
+        "name": "page_size",
+        "type": "integer",
+        "desc": "Results per page (default 50, max 1000)"
+      },
+      {
+        "name": "response_format",
+        "type": "string",
+        "desc": "Output format: human-readable markdown (default) or structured JSON"
+      }
+    ]
+  },
+  {
+    "name": "itglue_get_organization",
+    "description": "Get a single IT Glue organization by ID.",
+    "arguments": [
+      {
+        "name": "organization_id",
+        "type": "integer",
+        "desc": "The organization ID"
+      },
+      {
+        "name": "response_format",
+        "type": "string",
+        "desc": "Output format: human-readable markdown (default) or structured JSON"
+      }
+    ]
+  },
+  {
+    "name": "itglue_list_documents",
+    "description": "List documents in an organization, including documents nested in folders. Returns metadata only — use itglue_get_document for content. The endpoint returns root-level documents by default, so this tool issues a second query for folder-nested documents and merges the results (up to 2x page_size items).",
+    "arguments": [
+      {
+        "name": "organization_id",
+        "type": "integer",
+        "desc": "Organization ID to list documents for"
+      },
+      {
+        "name": "filter_name",
+        "type": "string",
+        "desc": "Filter by document name (partial match)"
+      },
+      {
+        "name": "filter_id",
+        "type": "integer",
+        "desc": "Filter by document ID"
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "desc": "Sort field (e.g. \"name\", \"-updated_at\")"
+      },
+      {
+        "name": "page_number",
+        "type": "integer",
+        "desc": "Page number (default 1)"
+      },
+      {
+        "name": "page_size",
+        "type": "integer",
+        "desc": "Results per page (default 50, max 1000)"
+      },
+      {
+        "name": "response_format",
+        "type": "string",
+        "desc": "Output format: human-readable markdown (default) or structured JSON"
+      }
+    ]
+  },
+  {
+    "name": "itglue_get_document",
+    "description": "Get a document by ID with all of its sections and their content. Section content is stored as HTML; markdown output converts it to plain text. If the response is truncated, fetch individual sections with itglue_get_document_section.",
+    "arguments": [
+      {
+        "name": "document_id",
+        "type": "integer",
+        "desc": "The document ID"
+      },
+      {
+        "name": "response_format",
+        "type": "string",
+        "desc": "Output format: human-readable markdown (default) or structured JSON"
+      }
+    ]
+  },
+  {
+    "name": "itglue_create_document",
+    "description": "Create a new document as a DRAFT in an organization. Add content with itglue_create_document_section, then make it visible with itglue_publish_document.",
+    "arguments": [
+      {
+        "name": "organization_id",
+        "type": "integer",
+        "desc": "Organization to create the document in"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Document name/title"
+      },
+      {
+        "name": "response_format",
+        "type": "string",
+        "desc": "Output format: human-readable markdown (default) or structured JSON"
+      }
+    ]
+  },
+  {
+    "name": "itglue_update_document",
+    "description": "Rename a document (metadata only). To change content, use itglue_update_document_section.",
+    "arguments": [
+      {
+        "name": "document_id",
+        "type": "integer",
+        "desc": "The document ID to update"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "New document name"
+      },
+      {
+        "name": "response_format",
+        "type": "string",
+        "desc": "Output format: human-readable markdown (default) or structured JSON"
+      }
+    ]
+  },
+  {
+    "name": "itglue_publish_document",
+    "description": "Publish a draft document, making it visible to users with access.",
+    "arguments": [
+      {
+        "name": "document_id",
+        "type": "integer",
+        "desc": "The document ID to publish"
+      }
+    ]
+  },
+  {
+    "name": "itglue_delete_documents",
+    "description": "PERMANENTLY delete one or more documents, including all their sections. This cannot be undone.",
+    "arguments": [
+      {
+        "name": "document_ids",
+        "type": "array",
+        "desc": "IDs of the documents to delete"
+      }
+    ]
+  },
+  {
+    "name": "itglue_list_document_sections",
+    "description": "List the sections of a document in position order, with content previews and section IDs (needed for update/delete operations).",
+    "arguments": [
+      {
+        "name": "document_id",
+        "type": "integer",
+        "desc": "The parent document ID"
+      },
+      {
+        "name": "page_number",
+        "type": "integer",
+        "desc": "Page number (default 1)"
+      },
+      {
+        "name": "page_size",
+        "type": "integer",
+        "desc": "Results per page (default 50, max 1000)"
+      },
+      {
+        "name": "response_format",
+        "type": "string",
+        "desc": "Output format: human-readable markdown (default) or structured JSON"
+      }
+    ]
+  },
+  {
+    "name": "itglue_get_document_section",
+    "description": "Get one document section with its full content (HTML on the wire; markdown output converts to plain text).",
+    "arguments": [
+      {
+        "name": "document_id",
+        "type": "integer",
+        "desc": "The parent document ID"
+      },
+      {
+        "name": "section_id",
+        "type": "integer",
+        "desc": "The section ID"
+      },
+      {
+        "name": "response_format",
+        "type": "string",
+        "desc": "Output format: human-readable markdown (default) or structured JSON"
+      }
+    ]
+  },
+  {
+    "name": "itglue_create_document_section",
+    "description": "Add a section to a document. Types: Text (HTML content), Heading (content = heading text, level 1-6 required), Gallery (no content), Step (HTML content, optional duration in minutes).",
+    "arguments": [
+      {
+        "name": "document_id",
+        "type": "integer",
+        "desc": "The parent document ID"
+      },
+      {
+        "name": "section_type",
+        "type": "string",
+        "desc": "Section type"
+      },
+      {
+        "name": "content",
+        "type": "string",
+        "desc": "HTML content (Text/Step) or heading text (Heading)"
+      },
+      {
+        "name": "level",
+        "type": "integer",
+        "desc": "Heading level 1-6 (required for Heading)"
+      },
+      {
+        "name": "duration",
+        "type": "integer",
+        "desc": "Duration in minutes (Step only)"
+      },
+      {
+        "name": "sort",
+        "type": "integer",
+        "desc": "Position within the document (0-based)"
+      },
+      {
+        "name": "response_format",
+        "type": "string",
+        "desc": "Output format: human-readable markdown (default) or structured JSON"
+      }
+    ]
+  },
+  {
+    "name": "itglue_update_document_section",
+    "description": "Update a section's content, heading level, duration, or position. Only provided fields change; the section type cannot be changed.",
+    "arguments": [
+      {
+        "name": "document_id",
+        "type": "integer",
+        "desc": "The parent document ID"
+      },
+      {
+        "name": "section_id",
+        "type": "integer",
+        "desc": "The section ID to update"
+      },
+      {
+        "name": "content",
+        "type": "string",
+        "desc": "New HTML content (or heading text)"
+      },
+      {
+        "name": "level",
+        "type": "integer",
+        "desc": "New heading level (Heading only)"
+      },
+      {
+        "name": "duration",
+        "type": "integer",
+        "desc": "New duration in minutes (Step only)"
+      },
+      {
+        "name": "sort",
+        "type": "integer",
+        "desc": "New position within the document"
+      },
+      {
+        "name": "response_format",
+        "type": "string",
+        "desc": "Output format: human-readable markdown (default) or structured JSON"
+      }
+    ]
+  },
+  {
+    "name": "itglue_delete_document_section",
+    "description": "PERMANENTLY delete one section from a document. This cannot be undone. Useful for restructuring a document's layout.",
+    "arguments": [
+      {
+        "name": "document_id",
+        "type": "integer",
+        "desc": "The parent document ID"
+      },
+      {
+        "name": "section_id",
+        "type": "integer",
+        "desc": "The section ID to delete"
+      }
+    ]
+  },
+  {
+    "name": "itglue_list_flexible_asset_types",
+    "description": "List flexible asset types (the schemas MSPs define in IT Glue, e.g. 'Wireless', 'Applications'). Use this to find the type ID required by itglue_list_flexible_assets.",
+    "arguments": [
+      {
+        "name": "filter_name",
+        "type": "string",
+        "desc": "Filter by type name"
+      },
+      {
+        "name": "page_number",
+        "type": "integer",
+        "desc": "Page number (default 1)"
+      },
+      {
+        "name": "page_size",
+        "type": "integer",
+        "desc": "Results per page (default 50, max 1000)"
+      },
+      {
+        "name": "response_format",
+        "type": "string",
+        "desc": "Output format: human-readable markdown (default) or structured JSON"
+      }
+    ]
+  },
+  {
+    "name": "itglue_get_flexible_asset_type",
+    "description": "Get a flexible asset type by ID, including its field definitions (name, kind, required) — the trait keys needed to create or update assets of this type.",
+    "arguments": [
+      {
+        "name": "flexible_asset_type_id",
+        "type": "integer",
+        "desc": "The flexible asset type ID"
+      },
+      {
+        "name": "response_format",
+        "type": "string",
+        "desc": "Output format: human-readable markdown (default) or structured JSON"
+      }
+    ]
+  },
+  {
+    "name": "itglue_list_flexible_assets",
+    "description": "List flexible assets of a given type, optionally restricted to one organization. The type ID is required by the IT Glue API — find it with itglue_list_flexible_asset_types.",
+    "arguments": [
+      {
+        "name": "flexible_asset_type_id",
+        "type": "integer",
+        "desc": "Flexible asset type ID (required)"
+      },
+      {
+        "name": "organization_id",
+        "type": "integer",
+        "desc": "Restrict to one organization"
+      },
+      {
+        "name": "page_number",
+        "type": "integer",
+        "desc": "Page number (default 1)"
+      },
+      {
+        "name": "page_size",
+        "type": "integer",
+        "desc": "Results per page (default 50, max 1000)"
+      },
+      {
+        "name": "response_format",
+        "type": "string",
+        "desc": "Output format: human-readable markdown (default) or structured JSON"
+      }
+    ]
+  },
+  {
+    "name": "itglue_get_flexible_asset",
+    "description": "Get one flexible asset by ID, including all of its traits.",
+    "arguments": [
+      {
+        "name": "flexible_asset_id",
+        "type": "integer",
+        "desc": "The flexible asset ID"
+      },
+      {
+        "name": "response_format",
+        "type": "string",
+        "desc": "Output format: human-readable markdown (default) or structured JSON"
+      }
+    ]
+  },
+  {
+    "name": "itglue_create_flexible_asset",
+    "description": "Create a flexible asset. Traits are the type's fields keyed by their lowercased, hyphenated names (inspect them with itglue_get_flexible_asset_type). All required traits must be provided.",
+    "arguments": [
+      {
+        "name": "organization_id",
+        "type": "integer",
+        "desc": "Organization to create the asset in"
+      },
+      {
+        "name": "flexible_asset_type_id",
+        "type": "integer",
+        "desc": "Flexible asset type ID"
+      },
+      {
+        "name": "traits",
+        "type": "object",
+        "desc": "Field values keyed by trait name, e.g. {\"ssid-name\": \"Corp\", \"vlan\": 12}"
+      },
+      {
+        "name": "response_format",
+        "type": "string",
+        "desc": "Output format: human-readable markdown (default) or structured JSON"
+      }
+    ]
+  },
+  {
+    "name": "itglue_update_flexible_asset",
+    "description": "Update a flexible asset's traits. IMPORTANT: IT Glue replaces the traits object wholesale — fetch the asset first and send back ALL traits, not just the changed ones, or omitted traits are cleared.",
+    "arguments": [
+      {
+        "name": "flexible_asset_id",
+        "type": "integer",
+        "desc": "The flexible asset ID to update"
+      },
+      {
+        "name": "traits",
+        "type": "object",
+        "desc": "The COMPLETE set of trait values (omitted traits are cleared)"
+      },
+      {
+        "name": "response_format",
+        "type": "string",
+        "desc": "Output format: human-readable markdown (default) or structured JSON"
+      }
+    ]
+  },
+  {
+    "name": "itglue_delete_flexible_asset",
+    "description": "PERMANENTLY delete a flexible asset. This cannot be undone.",
+    "arguments": [
+      {
+        "name": "flexible_asset_id",
+        "type": "integer",
+        "desc": "The flexible asset ID to delete"
+      }
+    ]
+  },
+  {
+    "name": "itglue_build_vector_index",
+    "description": "Crawl every document in an organization, embed the content, and persist it to the local vector index used by itglue_vector_search. Re-running replaces the organization's existing index entries. Can take a while for large organizations.",
+    "arguments": [
+      {
+        "name": "organization_id",
+        "type": "integer",
+        "desc": "Organization to index"
+      },
+      {
+        "name": "page_size",
+        "type": "integer",
+        "desc": "Documents fetched per API page while crawling"
+      }
+    ]
+  },
+  {
+    "name": "itglue_vector_search",
+    "description": "Search indexed IT Glue documents by MEANING, not exact words — 'remove backup agent' matches a Veeam decommissioning runbook. Requires itglue_build_vector_index to have been run for the target organization(s); check with itglue_vector_index_status.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Natural-language question or keywords"
+      },
+      {
+        "name": "organization_id",
+        "type": "integer",
+        "desc": "Restrict results to one organization"
+      },
+      {
+        "name": "top_k",
+        "type": "integer",
+        "desc": "Number of results"
+      },
+      {
+        "name": "threshold",
+        "type": "number",
+        "desc": "Minimum similarity score (0-1)"
+      }
+    ]
+  },
+  {
+    "name": "itglue_vector_index_status",
+    "description": "Show what is in the local vector index: total documents and a per-organization breakdown. Use this to decide whether itglue_build_vector_index needs to run.",
+    "arguments": []
+  }
+]
