@@ -1,0 +1,38 @@
+name: promoshot
+image: mcp/promoshot
+type: server
+meta:
+  category: video
+  tags:
+    - video
+    - promo
+    - rendering
+    - ffmpeg
+    - rust
+    - mcp
+    - keyframe
+    - slideshow
+about:
+  title: PromoShot
+  description: |
+    Headless MCP server for authoring and rendering PromoShot .promo video projects.
+    Agents can init projects, upsert layers/keyframes, caption, and render stills, GIFs, or video
+    with the same Rust wgpu+ffmpeg compositor the Mac/iOS apps ship — runs on Linux with no GPU.
+  icon: https://www.google.com/s2/favicons?domain=promoshot.app&sz=64
+source:
+  project: https://github.com/GarAlex/promoshot
+  commit: ba07aa04b300ddc0662c8d96807f549087ee10f7
+run:
+  volumes:
+    - "{{promoshot.projects|volume-target}}:/projects"
+config:
+  description: Mount a folder of .promo projects the assistant may read and write
+  parameters:
+    type: object
+    properties:
+      projects:
+        type: string
+        description: Host directory of .promo project folders (mapped to /projects in the container)
+        default: /Users/demo/promoshot-projects
+    required:
+      - projects
