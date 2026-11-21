@@ -1,0 +1,120 @@
+[
+  {
+    "name": "dfm_check_envelope",
+    "description": "DFM check: bounding box of a STEP file against a declared printer build volume. Tessellates the STEP with Gmsh (-2 surface mesh), computes the axis-aligned bounding box from vertex extrema, and reports which axes exceed the declared build volume. Optionally reports mass when density_kg_m3 is supplie",
+    "arguments": [
+      {
+        "name": "step_path",
+        "type": "string",
+        "desc": "Absolute path to the STEP file to analyse."
+      },
+      {
+        "name": "expected_step_sha256",
+        "type": "string",
+        "desc": "Optional SHA-256 expected for the STEP bytes. The tool copies the source into a private snapshot, hashes that copy, and rejects a mismatch."
+      },
+      {
+        "name": "build_volume_mm",
+        "type": "object",
+        "desc": "Declared printer build volume in mm. Explicit \u2014 no default."
+      },
+      {
+        "name": "density_kg_m3",
+        "type": "number",
+        "desc": "Material density in kg/m\u00b3 (e.g. 2700 for Al 6061, 7850 for steel). Required to compute mass_kg. Omit to skip mass reporting."
+      },
+      {
+        "name": "mesh_size_mm",
+        "type": "number",
+        "desc": "Gmsh surface element size in mm. Coarser is faster for envelope checks (the bounding box is insensitive to tessellation fineness). Pick relative to the smallest feature (e.g. 5 for a 50 mm part)."
+      },
+      {
+        "name": "timeout_ms",
+        "type": "number",
+        "desc": "Time limit for the Gmsh subprocess in ms (default 60000)."
+      }
+    ]
+  },
+  {
+    "name": "dfm_check_min_thickness",
+    "description": "DFM check: minimum wall thickness by bidirectional ray casting. Tessellates the STEP with Gmsh (surface STL), then invokes a Python subprocess using M\u00f6ller-Trumbore ray-triangle intersection in numpy (no trimesh). For each sampled triangle centre, shoots a ray along the inward normal and records the",
+    "arguments": [
+      {
+        "name": "step_path",
+        "type": "string",
+        "desc": "Absolute path to the STEP file."
+      },
+      {
+        "name": "expected_step_sha256",
+        "type": "string",
+        "desc": "Optional SHA-256 expected for the STEP bytes. Mismatch aborts before Gmsh."
+      },
+      {
+        "name": "min_thickness_mm",
+        "type": "number",
+        "desc": "Violation threshold declared by the caller in mm. Only this declared value determines violations \u2014 the tool does not apply any process-specific default."
+      },
+      {
+        "name": "mesh_size_mm",
+        "type": "number",
+        "desc": "Gmsh surface element size in mm. Smaller = finer mesh = more accurate but slower. Set to \u2264 min_thickness_mm / 2 to reliably detect the thinnest wall."
+      },
+      {
+        "name": "sample_count",
+        "type": "number",
+        "desc": "Number of triangle centres to sample for ray casting (default 500). Higher values improve coverage at the cost of runtime."
+      },
+      {
+        "name": "cluster_radius_mm",
+        "type": "number",
+        "desc": "Spatial radius for merging adjacent violation points into one zone (default: 3\u00d7 mesh_size_mm)."
+      },
+      {
+        "name": "timeout_ms",
+        "type": "number",
+        "desc": "Total time limit in ms covering both Gmsh and Python subprocess (default 120000)."
+      }
+    ]
+  },
+  {
+    "name": "dfm_check_overhangs",
+    "description": "DFM check: surface overhang detection. Tessellates the STEP with Gmsh, then computes the angle between each triangle's outward normal and the declared build_direction. Triangles whose angle from the downward direction (-build_direction) is below max_overhang_deg are violation zones requiring support",
+    "arguments": [
+      {
+        "name": "step_path",
+        "type": "string",
+        "desc": "Absolute path to the STEP file."
+      },
+      {
+        "name": "expected_step_sha256",
+        "type": "string",
+        "desc": "Optional SHA-256 expected for the STEP bytes. Mismatch aborts before Gmsh."
+      },
+      {
+        "name": "build_direction",
+        "type": "array",
+        "desc": "Unit vector of the build direction (printing upward). [0, 0, 1] = +Z upward. Explicit \u2014 no default. The downward direction (-build_direction) is used to detect faces that require supports."
+      },
+      {
+        "name": "max_overhang_deg",
+        "type": "number",
+        "desc": "Overhang threshold in degrees from the downward direction. Faces within this angle from downward (-build_direction) are violations. Typical values: 45 (FDM), 30 (SLA/SLS). Explicit \u2014 no default."
+      },
+      {
+        "name": "mesh_size_mm",
+        "type": "number",
+        "desc": "Gmsh surface element size in mm. Finer mesh = more accurate overhang area; tighten to 1 mm for small features, use 5\u201310 mm for large parts."
+      },
+      {
+        "name": "cluster_radius_mm",
+        "type": "number",
+        "desc": "Spatial radius for merging adjacent violation triangles into one zone (default: 3\u00d7 mesh_size_mm). Larger values produce fewer, coarser zones."
+      },
+      {
+        "name": "timeout_ms",
+        "type": "number",
+        "desc": "Time limit for the Gmsh subprocess in ms (default 60000)."
+      }
+    ]
+  }
+]
