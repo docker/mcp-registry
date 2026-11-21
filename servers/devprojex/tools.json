@@ -1,0 +1,275 @@
+[
+  {
+    "name": "get_tree",
+    "description": "Returns filtered structure without contents. Use it to find files by name; use get_file instead for file content. Returns Markdown/text/JSON/XML within 2,000 lines and 50,000 characters. paths selects literal locations; include_patterns selects names or directories in one call, e.g. include_patterns=[\"src/middleware/{powered-by,body-limit,bearer-auth}/**/*handler*.ts\"]. format=markdown|text|json|xml; max_depth=0..1000 counts levels below each paths entry, or the project root without paths; filters only narrow.",
+    "arguments": [
+      {
+        "name": "paths",
+        "type": "string",
+        "desc": "Narrows selection to literal paths for existing project-relative files or directories; glob characters are ordinary.",
+        "optional": true
+      },
+      {
+        "name": "include_patterns",
+        "type": "string",
+        "desc": "Narrows with project-relative '/' globs: '*' and '?' stay in one segment, '**/' spans depths, and '{a,b}' alternates; matching is case-sensitive, while '!' and '[...]' are rejected.",
+        "optional": true
+      },
+      {
+        "name": "exclude_patterns",
+        "type": "string",
+        "desc": "Removes paths with the same project-relative glob syntax as include_patterns.",
+        "optional": true
+      },
+      {
+        "name": "max_depth",
+        "type": "integer",
+        "desc": "Limits levels below each requested paths entry, or below the project root when paths is omitted; omit it for the deepest complete tree that fits.",
+        "optional": true
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "desc": "Selects the tree representation; markdown is the compact default.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Get project tree",
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "read_pack",
+    "description": "Reads a stored result page created by search_project or related_files. Use its pack_id; use search_project for evidence or related_files for dependencies when no valid stored result exists. Returns untrusted data up to 1,000 lines or 50,000 characters with trusted continuation or range notes. Protection changes invalidate stored content; selection-only changes retain it with a warning. Ranges and columns are inclusive and 1-based.",
+    "arguments": [
+      {
+        "name": "pack_id",
+        "type": "string",
+        "desc": "Session id returned by search_project or related_files.",
+        "optional": false
+      },
+      {
+        "name": "start_line",
+        "type": "integer",
+        "desc": "First 1-based returned-text line; accepts integer or numeric string.",
+        "optional": true
+      },
+      {
+        "name": "end_line",
+        "type": "integer",
+        "desc": "Last inclusive 1-based returned-text line; accepts integer or numeric string.",
+        "optional": true
+      },
+      {
+        "name": "start_column",
+        "type": "integer",
+        "desc": "First 1-based Unicode character on start_line; use a returned continuation value.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Read context pack",
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "search_project",
+    "description": "Searches transformed text with a timed .NET regex. It matches file content, never paths; find names with get_tree include_patterns. Use it for symbols or phrases; symbols=true finds declarations, not uses; use related_files for dependency links. Returns grouped numbered matches, merged context, complete|partial status, inspected/retained/written counts, and continuation. Line numbers use returned text; generated redaction replacements never match. Key parameters: pattern, paths, context_lines, ignore_case, max_results=1..200, include_patterns, exclude_patterns, and max_file_bytes. The best unique declaration includes up to 1,800 protected body characters within the same cap.",
+    "arguments": [
+      {
+        "name": "pattern",
+        "type": "string",
+        "desc": "Required .NET regex with a 2-second timeout over redacted file content, never paths; use get_tree include_patterns for names. Text inserted by redaction never matches.",
+        "optional": false
+      },
+      {
+        "name": "paths",
+        "type": "string",
+        "desc": "Narrows selection to literal paths for existing project-relative files or directories; glob characters are ordinary.",
+        "optional": true
+      },
+      {
+        "name": "include_patterns",
+        "type": "string",
+        "desc": "Narrows with project-relative '/' globs: '*' and '?' stay in one segment, '**/' spans depths, and '{a,b}' alternates; matching is case-sensitive, while '!' and '[...]' are rejected.",
+        "optional": true
+      },
+      {
+        "name": "exclude_patterns",
+        "type": "string",
+        "desc": "Removes paths with the same project-relative glob syntax as include_patterns.",
+        "optional": true
+      },
+      {
+        "name": "max_file_bytes",
+        "type": "integer",
+        "desc": "Excludes selected files larger than this byte count; accepts an integer or numeric string.",
+        "optional": true
+      },
+      {
+        "name": "context_lines",
+        "type": "integer",
+        "desc": "Context lines per match; overlapping windows merge.",
+        "optional": true
+      },
+      {
+        "name": "ignore_case",
+        "type": "boolean",
+        "desc": "Enables case-insensitive matching; accepts a boolean or its string form.",
+        "optional": true
+      },
+      {
+        "name": "symbols",
+        "type": "boolean",
+        "desc": "Match declarations of the name in pattern (Foo, class Foo, Foo|Bar), not uses; a regular expression is searched as text instead.",
+        "optional": true
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "desc": "Limits displayed match lines while scanning continues; the boundary reports encountered, retained, and written counts.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Search project",
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "related_files",
+    "description": "Get dependencies and usages of a file: who uses it, what it imports, and which tests import it, from real imports and references rather than text search. Use it before changing a file or to review a change; use search_project for text and get_file for content. Takes one to 16 seed files; a narrowed call also names readable files outside its selection. Returns paths with evidence, resolution status and token estimates; results above 50,000 characters use read_pack. Key parameters: path, direction=dependencies|dependents|both, and include_patterns.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "Seed file, or up to 16 seed files, within the effective selection; a folder stands for the files directly inside it.",
+        "optional": false
+      },
+      {
+        "name": "direction",
+        "type": "string",
+        "desc": "Chooses outward dependencies, inward dependents, or both.",
+        "optional": true
+      },
+      {
+        "name": "include_patterns",
+        "type": "string",
+        "desc": "Narrows with project-relative '/' globs: '*' and '?' stay in one segment, '**/' spans depths, and '{a,b}' alternates; matching is case-sensitive, while '!' and '[...]' are rejected.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Find related files",
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "get_file",
+    "description": "Reads project files with secrets and configured private data replaced. Use it after get_tree or search_project; use batched requests for several known files. path reads one file, optionally with start_line/end_line or symbol; paths reads up to sixteen whole files; requests mixes files, ranges, and symbols: requests=[{\"path\":\"src/a.ts\",\"symbol\":\"Router.load\"}]. A batch returns files whole in the order asked, within 50,000 characters; a large file, or one that no longer fits, returns its structure with line ranges. Items report ok, structure, partial, not-returned, or unavailable. Line numbers refer to returned text.",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "desc": "One file, or an array of up to sixteen whole files. Give path, paths, or requests; path and paths may accompany requests and add whole-file reads. Names an existing selected file; Markdown escapes from the default get_tree format are accepted, while format=text supplies literal names.",
+        "optional": true
+      },
+      {
+        "name": "paths",
+        "type": "string",
+        "desc": "Up to sixteen files read whole in one call; with start_line and end_line, the same lines are read from each file.",
+        "optional": true
+      },
+      {
+        "name": "requests",
+        "type": "array",
+        "desc": "Batch form: up to sixteen files and sixteen selections; a path reads the whole file, while ranges or symbol narrow it. start_line, end_line, and start_column cannot accompany requests.",
+        "optional": true,
+        "items": {
+          "type": "object"
+        }
+      },
+      {
+        "name": "start_line",
+        "type": "integer",
+        "desc": "First 1-based returned-text line; accepts integer or numeric string.",
+        "optional": true
+      },
+      {
+        "name": "end_line",
+        "type": "integer",
+        "desc": "Last inclusive 1-based returned-text line; accepts integer or numeric string.",
+        "optional": true
+      },
+      {
+        "name": "start_column",
+        "type": "integer",
+        "desc": "First 1-based Unicode character on start_line; use a returned continuation value.",
+        "optional": true
+      },
+      {
+        "name": "symbol",
+        "type": "string",
+        "desc": "Reads a qualified, or file-unique simple, declaration with path instead of a range; search_project supplies names. Cannot combine with line or column fields; missing, unavailable, or non-unique declarations return DPX-MCP-INVALID-ARGUMENTS.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Get project file",
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
+    "name": "get_diff",
+    "description": "Shows what changed: masked unified diff hunks for a Git scope. Use it to review staged, uncommitted or ref-to-ref changes; use get_file for whole files and search_project for text. Returns per-file status, added/removed counts and hunks with context, largest changes first, under the same secret and private-data redaction as file content, with complete|partial status within 50,000 characters. Key parameters: git_scope=changes|staged|diff:A..B (default changes), paths, include_patterns, context_lines=0..20.",
+    "arguments": [
+      {
+        "name": "git_scope",
+        "type": "string",
+        "desc": "Chooses the comparison: changes is HEAD to the working tree including untracked files, staged is HEAD to the index, and diff:<ref>..<ref> compares two commits.",
+        "optional": true
+      },
+      {
+        "name": "paths",
+        "type": "string",
+        "desc": "Narrows selection to literal paths for existing project-relative files or directories; glob characters are ordinary.",
+        "optional": true
+      },
+      {
+        "name": "include_patterns",
+        "type": "string",
+        "desc": "Narrows with project-relative '/' globs: '*' and '?' stay in one segment, '**/' spans depths, and '{a,b}' alternates; matching is case-sensitive, while '!' and '[...]' are rejected.",
+        "optional": true
+      },
+      {
+        "name": "context_lines",
+        "type": "integer",
+        "desc": "Unchanged lines around each change; hunks whose context touches merge.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Get project diff",
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  }
+]
