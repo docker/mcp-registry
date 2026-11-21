@@ -38,7 +38,7 @@
   },
   {
     "name": "plan_reference_remake",
-    "description": "Compile a reference remake into a workflow plan from an analysis_id of analyze_reference and the user's script; free, starts no run. audience: whom the viewer trusts and where (maker, seller, expert at home, user), argued from the analysis and shown to the user; actor, setting and script match it. warnings name what it does not reproduce. Missing media: make it with generate_image or generate_video and compile again. plan_id, base_version and review_notes save the next revision; a note changes nothing by itself: a shot goes in assets[].anchor or line_edits, pauses in pause_trim, the product in hand and its demo in product. Only an approved revision runs.",
+    "description": "Compile a reference remake into a workflow plan from an analysis_id of analyze_reference and the user's script; free, starts no run. audience: whom the viewer trusts and where (maker, seller, expert at home, user), argued from the analysis and shown to the user; actor, setting and script match it. warnings name what it does not reproduce. Missing media: generate it and compile again. plan_id, base_version and review_notes save the next revision; a note changes nothing by itself: a shot goes in assets[].anchor or line_edits, pauses in pause_trim, the product in hand and its demo in product. Only an approved revision runs.",
     "arguments": [
       {
         "name": "plan_id",
@@ -248,7 +248,7 @@
   },
   {
     "name": "make_ugc",
-    "description": "Input: the same fields as quote_ugc, plus attempt. Start a lip-synced UGC video; the actor is actor_id, image or the default. Format and resolution follow the request and the source, defaulting to 720x1280. Captions are OPT-IN: ask the user first. A field marked NOT HONORED YET does not reach the renderer. Poll get_run with its poll.arguments; a failed run whose video is still being made can return to queued, named in warnings[]. attempt=2,3,… starts a NEW run. A video like a reference reel: plan_reference_remake with its analysis_id instead. Price: HeyGen presenter: presenter, HeyGen Avatar IV 9 credits per second the presenter is in the video, covered or not; OmniHuman presenter: presenter, OmniHuman 2.0 22 credits per second the presenter is in the video, covered or not; each plus production (voice and render) 1 credits per second of video plus live avatar on a call 400 credits per call still in the video, at least 50. Quote first with quote_ugc.",
+    "description": "Input: the same fields as quote_ugc, plus attempt. Start a lip-synced UGC video; the actor is actor_id, image or the default. Format and resolution follow the request and the source, defaulting to 720x1280. Captions are OPT-IN: ask the user first. A field marked NOT HONORED YET does not reach the renderer. Poll get_run with its poll.arguments; a failed run whose video is still being made can return to queued, named in warnings[]. attempt=2,3,… starts a NEW run. A video like a reference reel: plan_reference_remake with its analysis_id instead. Price: HeyGen presenter: presenter, HeyGen Avatar IV 10 credits per second the presenter is in the video, covered or not; OmniHuman presenter: presenter, OmniHuman 2.0 22 credits per second the presenter is in the video, covered or not; each plus production (voice and render) 1 credits per second of video plus live avatar on a call 400 credits per call still in the video, at least 50. Quote first with quote_ugc.",
     "arguments": [
       {
         "name": "script",
@@ -446,6 +446,11 @@
         "desc": ""
       },
       {
+        "name": "presenter_engine",
+        "type": "string",
+        "desc": ""
+      },
+      {
         "name": "voice",
         "type": "string",
         "desc": ""
@@ -463,6 +468,11 @@
       {
         "name": "voice_pace",
         "type": "number",
+        "desc": ""
+      },
+      {
+        "name": "voice_run_id",
+        "type": "string",
         "desc": ""
       },
       {
@@ -526,7 +536,7 @@
   },
   {
     "name": "delete_run_media",
-    "description": "Delete a finished run's files at once; storage erases them after 7 days. The charge stays; nothing is refunded. Refused with run_not_finished, run_media_in_use (another unfinished run uses them) or deletion_held (ask support). An analyze_reference run loses its analysis too: a new one is paid. Free.",
+    "description": "Delete a finished run's files at once; storage erases them after 7 days. The charge stays; nothing is refunded. Refused with run_not_finished, run_media_in_use or deletion_held. An analyze_reference run loses its analysis too: a new one is paid. Free.",
     "arguments": [
       {
         "name": "run_id",
@@ -558,7 +568,7 @@
   },
   {
     "name": "revise_run",
-    "description": "Input: the same fields as quote_revision, plus max_credits, attempt. A NEW run rendering a make_faceless video again with changes or document (exactly one). Repeating an identical request returns the run it started, starting nothing new; pass attempt 2 for another one. A revision that delivers is charged its quoted total; one that fails is charged nothing. Limits on revisions running and failed, and a close some days after the original, are named by the refusal. While paid edits are closed it answers editing_disabled and charges nothing. Poll get_run. Price: each shot generated anew: picture 7, clip 49, clip with a new picture 56; plus 13 to render. A revision that generates nothing: 13. A kept candidate adds nothing. Quote first with quote_revision.",
+    "description": "Input: the same fields as quote_revision, plus max_credits, attempt. A NEW run rendering a make_faceless video again with changes or document (exactly one). Repeating an identical request returns the run it started, starting nothing new; pass attempt 2 for another one. A revision that delivers is charged its quoted total; one that fails is charged nothing. A refusal names its limit. While paid edits are closed it answers editing_disabled and charges nothing. Poll get_run. Price: each shot generated anew: picture 7, clip 49, clip with a new picture 56; plus 13 to render. A revision that generates nothing: 13. A kept candidate adds nothing. Quote first with quote_revision.",
     "arguments": [
       {
         "name": "run_id",
@@ -615,7 +625,7 @@
   },
   {
     "name": "create_candidate",
-    "description": "Input: the same fields as quote_candidate, plus max_credits. A NEW edit_shot run making one picture or clip for one shot of a make_faceless run, to keep or discard in a revision. A delivered candidate is charged its one unit whether it is kept or discarded; one that fails is charged nothing. Repeating an identical request returns the run it started, starting nothing new; pass take 2 for another one. Limits on candidates running and failed are named by the refusal. While shot candidates are closed it answers editing_disabled and charges nothing. Poll get_run. Price: picture: 7 credits per image; clip: 49 credits per clip; clip with a new picture: 56 credits per clip. Quote first with quote_candidate.",
+    "description": "Input: the same fields as quote_candidate, plus max_credits. A NEW edit_shot run making one picture or clip for one shot of a make_faceless run, to keep or discard in a revision. A delivered candidate is charged its one unit whether it is kept or discarded; one that fails is charged nothing. Repeating an identical request returns the run it started, starting nothing new; pass take 2 for another one. A refusal names its limit. While shot candidates are closed it answers editing_disabled and charges nothing. Poll get_run. Price: picture: 7 credits per image; clip: 49 credits per clip; clip with a new picture: 56 credits per clip. Quote first with quote_candidate.",
     "arguments": [
       {
         "name": "run_id",
@@ -884,6 +894,43 @@
     ]
   },
   {
+    "name": "quote_upscale",
+    "description": "Price an upscale WITHOUT spending credits: a draft clip to 720p, a picture doubled. A failed one costs nothing.",
+    "arguments": [
+      {
+        "name": "source",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "max_credits",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "upscale",
+    "description": "Input: the same fields as quote_upscale, plus attempt. Upscale a delivered clip (a 480p draft) or picture: a NEW run, charged once delivered; a failed one costs nothing. An identical request returns its run; attempt 2 starts another. Price: clip: 2 credits per second of clip; picture: 4 credits per image. Quote first with quote_upscale.",
+    "arguments": [
+      {
+        "name": "source",
+        "type": "object",
+        "desc": ""
+      },
+      {
+        "name": "max_credits",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "attempt",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
     "name": "quote_ugc",
     "description": "Estimate the credit cost of a make_ugc call WITHOUT spending credits; show the user the price before make_ugc.",
     "arguments": [
@@ -1083,6 +1130,11 @@
         "desc": ""
       },
       {
+        "name": "presenter_engine",
+        "type": "string",
+        "desc": ""
+      },
+      {
         "name": "voice",
         "type": "string",
         "desc": "A list_voices name (presets sarah | george | eric | daria_ru_female); another is refused before any charge. Omitted: the actor's gender default."
@@ -1100,6 +1152,11 @@
       {
         "name": "voice_pace",
         "type": "number",
+        "desc": ""
+      },
+      {
+        "name": "voice_run_id",
+        "type": "string",
         "desc": ""
       },
       {
@@ -1545,7 +1602,7 @@
   },
   {
     "name": "list_voices",
-    "description": "Voices for voice of make_ugc, or with skill=make_faceless of make_faceless; the other skill refuses a voice before any charge. Filter by language, gender, age, use_case and model; an unknown value is refused with the allowed ones. Play preview_url before a paid render; it expires. Free.",
+    "description": "Voices for make_ugc, or with skill=make_faceless for make_faceless; the other skill refuses the voice before any charge. Filter by language, gender, age, use_case and model; an unknown value is refused with the allowed ones. Play preview_url before a paid render; it expires. Free.",
     "arguments": [
       {
         "name": "language",
@@ -1878,7 +1935,7 @@
   },
   {
     "name": "make_faceless",
-    "description": "Input: the same fields as quote_faceless, plus attempt. Start a faceless video from a script or brief: an opening clip and image scenes. You select 30–90 seconds; it ends with its narration, at least 25 seconds (an explainer, as long as its narration) and at most a quarter past the selection, never beyond 90. Captions are on unless turned off. Poll get_run. attempt=2,3,… starts a NEW run. Price: generated picture 7 credits per image plus opening clip 49 credits per clip plus production (story, voice and render) 1 credits per second of video, at least 50. Quote first with quote_faceless.",
+    "description": "Input: the same fields as quote_faceless, plus attempt. Start a faceless video from a script or brief: an opening clip and image scenes. You select 30–90 seconds; it ends with its narration, at least 25 seconds and at most a quarter past the selection, never beyond 90. Captions are on unless turned off. Poll get_run. attempt=2,3,… starts a NEW run. Price: generated picture 7 credits per image plus opening clip 49 credits per clip plus production (story, voice and render) 1 credits per second of video, at least 50. Quote first with quote_faceless.",
     "arguments": [
       {
         "name": "input_mode",
@@ -2134,7 +2191,7 @@
       {
         "name": "voice",
         "type": "string",
-        "desc": "A list_voices name with skill=make_faceless; omitted, narrator_en_wise_lady, or the fastest voice for an English explainer. An unknown or make_ugc voice is refused before any charge."
+        "desc": "A list_voices name with skill=make_faceless; omitted, narrator_en_wise_lady. An unknown or make_ugc voice is refused before any charge."
       },
       {
         "name": "resolution",
