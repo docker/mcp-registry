@@ -8,29 +8,77 @@ meta:
     - devops
 about:
   title: API Gateway
-  description: A universal MCP (Model Context Protocol) server to integrate any API with Claude Desktop using only Docker configurations.
+  description: A universal MCP (Model Context Protocol) server to integrate any API with Claude Desktop using only Docker configurations. Point it at any Swagger/OpenAPI spec and it automatically generates tools that Claude can use. Supports grouped tools, compact schemas, path filtering, cookie-based auth, retry with backoff, and multi-API configurations.
   icon: https://avatars.githubusercontent.com/u/182288589?s=200&v=4
 source:
   project: https://github.com/rflpazini/mcp-api-gateway
-  commit: f197f8db4f4990d76148342e27f005d9022df417
+  commit: d22011aa22ab3bb6141fca42fe9090da46f5eb9e
 config:
-  description: Configure the connection to mcp-api-gateway
+  description: Configure the API connection. Only NAME and SWAGGER_URL are required. Use TOOL_MODE=grouped for large APIs (50+ endpoints) to reduce payload by 92%.
   env:
     - name: API_1_NAME
-      example: name
+      example: my-api
       value: "{{mcp-api-gateway.api_1_name}}"
     - name: API_1_SWAGGER_URL
-      example: https://api.github.com/swagger.json
+      example: https://api.example.com/swagger.json
       value: "{{mcp-api-gateway.api_1_swagger_url}}"
+    - name: API_1_BASE_URL
+      example: https://api.example.com/v1
+      value: "{{mcp-api-gateway.api_1_base_url}}"
     - name: API_1_HEADER_AUTHORIZATION
-      example: token
+      example: Bearer YOUR_TOKEN
       value: "{{mcp-api-gateway.api_1_header_authorization}}"
+    - name: API_1_TOOL_MODE
+      example: grouped
+      value: "{{mcp-api-gateway.api_1_tool_mode}}"
+    - name: API_1_SCHEMA_MODE
+      example: compact
+      value: "{{mcp-api-gateway.api_1_schema_mode}}"
+    - name: API_1_PATH_PREFIX
+      example: /api/v3/users,/api/v3/orders
+      value: "{{mcp-api-gateway.api_1_path_prefix}}"
+    - name: API_1_TAGS
+      example: Users,Orders
+      value: "{{mcp-api-gateway.api_1_tags}}"
+    - name: API_1_TIMEOUT
+      example: "30000"
+      value: "{{mcp-api-gateway.api_1_timeout}}"
+    - name: API_1_MAX_RETRIES
+      example: "3"
+      value: "{{mcp-api-gateway.api_1_max_retries}}"
   parameters:
     type: object
     properties:
       api_1_name:
         type: string
+        description: Unique API name
       api_1_swagger_url:
         type: string
+        description: Swagger/OpenAPI spec URL
+      api_1_base_url:
+        type: string
+        description: API base URL (overrides spec)
       api_1_header_authorization:
         type: string
+        description: Authorization header value (e.g. Bearer token)
+      api_1_tool_mode:
+        type: string
+        description: "Tool generation mode: 'individual' (one per endpoint) or 'grouped' (by resource/tag)"
+      api_1_schema_mode:
+        type: string
+        description: "Schema detail level: 'full' (complete schemas) or 'compact' (strips large enums)"
+      api_1_path_prefix:
+        type: string
+        description: Comma-separated path prefixes to include
+      api_1_tags:
+        type: string
+        description: Comma-separated OpenAPI tags to include
+      api_1_timeout:
+        type: string
+        description: Request timeout in milliseconds
+      api_1_max_retries:
+        type: string
+        description: Max retry attempts for 429/5xx errors
+    required:
+      - api_1_name
+      - api_1_swagger_url
