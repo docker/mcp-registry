@@ -1,0 +1,36 @@
+name: asdecided
+image: mcp/asdecided
+type: server
+meta:
+  category: development
+  tags:
+    - decisions
+    - documentation
+    - local
+    - read-only
+about:
+  title: AsDecided
+  description: Read-only access to deterministic engineering decisions stored in a local repository.
+  icon: https://avatars.githubusercontent.com/u/293429901?v=4
+source:
+  project: https://github.com/asdecided/core
+  commit: dbd2d02e525e277c6928cd3f5a63dba9d126db7f
+  buildTarget: asdecided-mcp
+run:
+  command:
+    - --root
+    - /work
+  volumes:
+    - "{{asdecided.repository|volume-target}}:/work"
+  disableNetwork: true
+config:
+  description: Select the local repository whose AsDecided corpus the server may read
+  parameters:
+    type: object
+    properties:
+      repository:
+        type: string
+        description: Local repository containing the decisions corpus
+        default: /Users/local-test
+    required:
+      - repository
