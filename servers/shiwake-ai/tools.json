@@ -1,0 +1,454 @@
+[
+  {
+    "name": "nencho_kanpu_shisan",
+    "description": "年末調整の還付額・追加徴収額の試算（令和8年分）",
+    "arguments": [
+      {
+        "name": "year",
+        "type": "string",
+        "desc": "年分（西暦）"
+      },
+      {
+        "name": "salary",
+        "type": "integer",
+        "desc": "給与等の収入金額（1年間の支払金額の合計。前職分を含み、非課税の通勤手当を除く）",
+        "required": true
+      },
+      {
+        "name": "social_insurance",
+        "type": "integer",
+        "desc": "社会保険料控除の額（給与から引かれた健康保険・厚生年金・雇用保険の本人負担と、申告した国民年金などの合計）"
+      },
+      {
+        "name": "withheld_tax",
+        "type": "integer",
+        "desc": "源泉徴収済みの所得税額（1年間に給与・賞与から引かれた所得税の合計。前職分を含む）"
+      },
+      {
+        "name": "small_business_mutual_aid",
+        "type": "integer",
+        "desc": "小規模企業共済等掛金控除の額（iDeCo・小規模企業共済の掛金）"
+      },
+      {
+        "name": "life_insurance_deduction",
+        "type": "integer",
+        "desc": "生命保険料控除の額（保険料ではなく控除額。上限12万円）"
+      },
+      {
+        "name": "earthquake_insurance_deduction",
+        "type": "integer",
+        "desc": "地震保険料控除の額（控除額。上限5万円）"
+      },
+      {
+        "name": "spouse",
+        "type": "object",
+        "desc": "配偶者（配偶者控除・配偶者特別控除の判定に使う）"
+      },
+      {
+        "name": "dependents",
+        "type": "object",
+        "desc": "控除対象扶養親族の人数（16歳未満は含めない）"
+      },
+      {
+        "name": "disabled",
+        "type": "object",
+        "desc": "障害者控除の対象人数（本人・同一生計配偶者・扶養親族の合計）"
+      },
+      {
+        "name": "widow",
+        "type": "string",
+        "desc": "寡婦（widow・27万円）／ひとり親（single_parent・35万円）"
+      },
+      {
+        "name": "working_student",
+        "type": "boolean",
+        "desc": "本人が勤労学生なら true"
+      },
+      {
+        "name": "housing_loan_credit",
+        "type": "integer",
+        "desc": "住宅借入金等特別控除額（年末調整で控除する額。2年目以降）"
+      },
+      {
+        "name": "specific_relatives",
+        "type": "array",
+        "desc": "特定親族特別控除の対象（19歳以上23歳未満で、合計所得金額が扶養の所得要件を超え123万円以下の親族）",
+        "items": {
+          "type": "object"
+        }
+      },
+      {
+        "name": "income_adjustment",
+        "type": "boolean",
+        "desc": "所得金額調整控除の要件（23歳未満の扶養親族がいる、または本人・同一生計配偶者・扶養親族が特別障害者）に当たるなら true"
+      }
+    ]
+  },
+  {
+    "name": "kanjo_kamoku_kensaku",
+    "description": "勘定科目・仕訳例の検索",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "取引の内容を短い言葉で（例: タクシー、ChatGPT、パソコン 15万円、接待、家賃）",
+        "required": true
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "カテゴリで絞り込む（省略可）"
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "返す件数（既定 3）"
+      }
+    ]
+  },
+  {
+    "name": "invoice_toroku_bango_check",
+    "description": "インボイス登録番号（T番号）のチェック",
+    "arguments": [
+      {
+        "name": "numbers",
+        "type": "array",
+        "desc": "登録番号（1〜50件）",
+        "items": {
+          "type": "string"
+        },
+        "required": true
+      },
+      {
+        "name": "lookup",
+        "type": "boolean",
+        "desc": "公表データと照らして登録の有無・名称・取消／失効を返す（false なら形式と検算だけ）"
+      }
+    ]
+  },
+  {
+    "name": "shohizei_hoshiki_hikaku",
+    "description": "消費税の納付税額の比較（一般課税・簡易課税・2割特例・3割特例）",
+    "arguments": [
+      {
+        "name": "taxpayer",
+        "type": "string",
+        "desc": "kojin = 個人事業者、hojin = 法人"
+      },
+      {
+        "name": "period_start",
+        "type": "string",
+        "desc": "課税期間の初日（YYYY-MM-DD）"
+      },
+      {
+        "name": "period_end",
+        "type": "string",
+        "desc": "課税期間の末日（YYYY-MM-DD）"
+      },
+      {
+        "name": "sales_10",
+        "type": "integer",
+        "desc": "標準税率10%の課税売上（税込・返品値引き後の純額）"
+      },
+      {
+        "name": "sales_8",
+        "type": "integer",
+        "desc": "軽減税率8%の課税売上（税込）"
+      },
+      {
+        "name": "simplified_category",
+        "type": "integer",
+        "desc": "簡易課税の事業区分（事業が1つのとき）: 1 = 第1種 90%（卸売業）、2 = 第2種 80%（小売業、農業・林業・漁業（飲食料品の譲渡））、3 = 第3種 70%（製造業・建設業・農林漁業（飲食料品以外）・鉱業・電気ガス等）、4 = 第4種 60%（飲食店業・その他の事業）、5 = 第5種 50%（運輸通信業・金融保険業・サービス業）、6 = 第6種 40%（不動産業）"
+      },
+      {
+        "name": "categories",
+        "type": "array",
+        "desc": "簡易課税の事業区分が2つ以上あるとき、区分ごとの売上",
+        "items": {
+          "type": "object"
+        }
+      },
+      {
+        "name": "purchase_tax",
+        "type": "integer",
+        "desc": "【積上げ計算】課税仕入れ等の消費税額（国税＋地方消費税。インボイスの税額の合計。経過措置の控除割合・課税売上割合を反映した控除できる額）"
+      },
+      {
+        "name": "purchase_gross_10",
+        "type": "integer",
+        "desc": "【割戻し計算】10%の課税仕入（税込）"
+      },
+      {
+        "name": "purchase_gross_8",
+        "type": "integer",
+        "desc": "【割戻し計算】8%の課税仕入（税込）"
+      },
+      {
+        "name": "base_period_sales",
+        "type": "integer",
+        "desc": "基準期間（個人は前々年、法人は前々事業年度）の課税売上高"
+      },
+      {
+        "name": "exempt_without_invoice",
+        "type": "string",
+        "desc": "インボイスの登録がなければ免税事業者か（yes = 登録で課税事業者になった。2割特例・3割特例の要件）"
+      },
+      {
+        "name": "simplified_notification",
+        "type": "string",
+        "desc": "消費税簡易課税制度選択届出書を提出済みか"
+      }
+    ]
+  },
+  {
+    "name": "gensen_kyuyo_zeigaku",
+    "description": "給与の源泉徴収税額（月額表 甲欄・乙欄）",
+    "arguments": [
+      {
+        "name": "amount_after_social_insurance",
+        "type": "integer",
+        "desc": "その月の社会保険料等控除後の給与等の金額（総支給額 − 非課税の通勤手当 − 健康保険・厚生年金・雇用保険の本人負担）",
+        "required": true
+      },
+      {
+        "name": "dependents",
+        "type": "integer",
+        "desc": "扶養親族等の数（源泉控除対象配偶者＋控除対象扶養親族。障害者等は1人として加算）"
+      },
+      {
+        "name": "column",
+        "type": "string",
+        "desc": "kou = 甲欄（扶養控除等申告書の提出あり）、otsu = 乙欄（提出なし・従たる給与）"
+      },
+      {
+        "name": "method",
+        "type": "string",
+        "desc": "甲欄の計算方法: table = 月額表、computer = 電算機計算の特例（給与計算ソフトの方法）"
+      },
+      {
+        "name": "pay_date",
+        "type": "string",
+        "desc": "給与の支給日（YYYY-MM-DD）"
+      }
+    ]
+  },
+  {
+    "name": "furusato_nozei_jogen",
+    "description": "ふるさと納税の控除上限額の目安",
+    "arguments": [
+      {
+        "name": "salary",
+        "type": "integer",
+        "desc": "給与の収入金額（年収。源泉徴収票の「支払金額」）"
+      },
+      {
+        "name": "other_income",
+        "type": "integer",
+        "desc": "給与以外の所得の金額（事業所得・不動産所得・雑所得など。収入 − 経費 − 青色申告特別控除）"
+      },
+      {
+        "name": "social_insurance",
+        "type": "integer",
+        "desc": "社会保険料の年額（源泉徴収票の「社会保険料等の金額」）"
+      },
+      {
+        "name": "spouse",
+        "type": "object",
+        "desc": "配偶者控除・配偶者特別控除の対象になる配偶者"
+      },
+      {
+        "name": "dependents",
+        "type": "object",
+        "desc": "扶養親族（年間の合計所得62万円以下）の人数"
+      },
+      {
+        "name": "small_business_mutual_aid",
+        "type": "integer",
+        "desc": "iDeCo・小規模企業共済の掛金（年額）"
+      },
+      {
+        "name": "medical_deduction",
+        "type": "integer",
+        "desc": "医療費控除の額（医療費 − 保険金 − 10万円）"
+      },
+      {
+        "name": "life_insurance_premiums",
+        "type": "object",
+        "desc": "生命保険料（新契約・平成24年以後）の年間の支払額（控除額ではなく保険料）"
+      },
+      {
+        "name": "earthquake_premium",
+        "type": "integer",
+        "desc": "地震保険料の年間の支払額"
+      },
+      {
+        "name": "widow",
+        "type": "string",
+        "desc": "寡婦・ひとり親（本人の合計所得500万円以下）"
+      },
+      {
+        "name": "working_student",
+        "type": "boolean",
+        "desc": "本人が勤労学生なら true"
+      },
+      {
+        "name": "income_adjustment",
+        "type": "boolean",
+        "desc": "23歳未満の扶養親族（16歳未満の子を含む）か特別障害者がいるなら true（給与収入850万円超のときの所得金額調整控除）"
+      }
+    ]
+  },
+  {
+    "name": "entaizei_keisan",
+    "description": "延滞税の計算（国税）",
+    "arguments": [
+      {
+        "name": "tax",
+        "type": "integer",
+        "desc": "本税の額（延滞税の計算の基礎になる、納付すべき税額）",
+        "required": true
+      },
+      {
+        "name": "legal_due_date",
+        "type": "string",
+        "desc": "法定納期限（本来納付すべき期限。YYYY-MM-DD。休日なら翌日）",
+        "required": true
+      },
+      {
+        "name": "paid_date",
+        "type": "string",
+        "desc": "完納の日（残りを全部納めた日。YYYY-MM-DD）",
+        "required": true
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": "kigennai = 期限内申告の納付遅れ、kigengo = 期限後申告、shusei = 修正申告、kosei = 更正・決定"
+      },
+      {
+        "name": "filed_date",
+        "type": "string",
+        "desc": "期限後申告書・修正申告書を提出した日、または更正通知書・決定通知書を発した日（kind が kigennai 以外のとき必須）"
+      },
+      {
+        "name": "original",
+        "type": "object",
+        "desc": "修正申告・更正のときの、もとの申告（省略すると期限内申告）"
+      },
+      {
+        "name": "fraud",
+        "type": "boolean",
+        "desc": "偽りその他不正の行為がある（除算期間の特例がない）なら true"
+      },
+      {
+        "name": "partial_payments",
+        "type": "array",
+        "desc": "完納の前に一部を納付した場合（最大3回）",
+        "items": {
+          "type": "object"
+        }
+      }
+    ]
+  },
+  {
+    "name": "genka_shokyaku_keisan",
+    "description": "減価償却費の計算（定額法・200%定率法）",
+    "arguments": [
+      {
+        "name": "cost",
+        "type": "integer",
+        "desc": "取得価額（円）",
+        "required": true
+      },
+      {
+        "name": "useful_life",
+        "type": "integer",
+        "desc": "耐用年数（年）",
+        "required": true
+      },
+      {
+        "name": "method",
+        "type": "string",
+        "desc": "straight = 定額法、declining = 200%定率法（法人の器具備品・車両などの法定の方法。耐用年数2〜50年）"
+      },
+      {
+        "name": "in_service_date",
+        "type": "string",
+        "desc": "事業の用に供した日（YYYY-MM-DD）",
+        "required": true
+      },
+      {
+        "name": "closing_month",
+        "type": "integer",
+        "desc": "決算月（1〜12）"
+      },
+      {
+        "name": "sme_blue_return",
+        "type": "boolean",
+        "desc": "青色申告をする中小企業者等（少額減価償却資産の特例を使える法人）なら true"
+      }
+    ]
+  },
+  {
+    "name": "kyuyo_tedori_keisan",
+    "description": "給与の手取り額と社会保険料（協会けんぽ）",
+    "arguments": [
+      {
+        "name": "monthly_pay",
+        "type": "integer",
+        "desc": "月の総支給額（基本給＋諸手当。通勤手当を除く）",
+        "required": true
+      },
+      {
+        "name": "commute_allowance",
+        "type": "integer",
+        "desc": "通勤手当（月額）"
+      },
+      {
+        "name": "age",
+        "type": "integer",
+        "desc": "年齢（40〜64歳は介護保険料、70歳以上は厚生年金なし、75歳以上は健康保険なし）"
+      },
+      {
+        "name": "prefecture",
+        "type": "string",
+        "desc": "協会けんぽの都道府県（勤め先の事業所の所在地）"
+      },
+      {
+        "name": "dependents",
+        "type": "integer",
+        "desc": "扶養親族等の数（源泉所得税の甲欄）"
+      },
+      {
+        "name": "column",
+        "type": "string",
+        "desc": "源泉所得税: kou = 甲欄（扶養控除等申告書の提出あり）、otsu = 乙欄"
+      },
+      {
+        "name": "resident_tax",
+        "type": "integer",
+        "desc": "住民税（特別徴収）の月額"
+      },
+      {
+        "name": "pay_date",
+        "type": "string",
+        "desc": "給与の支給日（YYYY-MM-DD）"
+      },
+      {
+        "name": "premium_timing",
+        "type": "string",
+        "desc": "社会保険料の徴収: next = 翌月徴収（支給月の前月分を控除。一般的）、same = 当月徴収"
+      },
+      {
+        "name": "employment_insurance",
+        "type": "boolean",
+        "desc": "雇用保険に加入しているなら true（役員は false）"
+      },
+      {
+        "name": "standard_remuneration",
+        "type": "integer",
+        "desc": "決定済みの標準報酬月額（算定基礎届・月額変更届で決まった額）"
+      }
+    ]
+  }
+]
