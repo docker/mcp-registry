@@ -1,1 +1,1 @@
-Docs: https://www.blitzreels.com/mcp
+Docs: https://blitzreels.com/mcp
