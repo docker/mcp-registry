@@ -1,0 +1,82 @@
+name: apple-ads-mcp
+image: ghcr.io/zelentsov-dev/apple-ads-mcp:v0.3.5
+type: server
+meta:
+  category: marketing
+  tags:
+    - apple-ads
+    - advertising
+    - app-store
+    - marketing
+    - analytics
+about:
+  title: Apple Ads
+  description: Local-first Apple Ads Platform API v1 tools for account health, app eligibility, campaign inventory, research, reports, and receipt-gated campaign operations. Read-only by default; credentials stay on the user's machine.
+  icon: https://github.com/zelentsov-dev.png?size=400
+source:
+  project: https://github.com/zelentsov-dev/apple-ads-mcp
+  commit: 8a5690b182cc68d77554e44763b0fd47398f5706
+run:
+  volumes:
+    - "{{apple-ads-mcp.private_key_path}}:/run/keys/apple-ads-private-key.pem:ro"
+  user: "{{apple-ads-mcp.container_user}}"
+config:
+  description: Configure a read-only Apple Ads API profile. The private key is mounted from the host and is never copied into the image. Write and delete gates remain disabled.
+  env:
+    - name: APPLE_ADS_PROFILE
+      example: docker-read-only
+      value: "{{apple-ads-mcp.profile}}"
+    - name: APPLE_ADS_CLIENT_ID
+      example: SEARCHADS.example-client
+      value: "{{apple-ads-mcp.client_id}}"
+    - name: APPLE_ADS_TEAM_ID
+      example: SEARCHADS.example-team
+      value: "{{apple-ads-mcp.team_id}}"
+    - name: APPLE_ADS_KEY_ID
+      example: example-key-id
+      value: "{{apple-ads-mcp.key_id}}"
+    - name: APPLE_ADS_PRIVATE_KEY_PATH
+      example: /run/keys/apple-ads-private-key.pem
+      value: /run/keys/apple-ads-private-key.pem
+    - name: APPLE_ADS_AD_ACCOUNT_ID
+      example: "1234560"
+      value: "{{apple-ads-mcp.ad_account_id}}"
+    - name: APPLE_ADS_ALLOW_WRITES
+      example: "false"
+      value: "false"
+    - name: APPLE_ADS_ALLOW_DELETES
+      example: "false"
+      value: "false"
+  parameters:
+    type: object
+    properties:
+      profile:
+        type: string
+        description: Local profile name used by Apple Ads MCP.
+        default: docker-read-only
+      client_id:
+        type: string
+        description: OAuth client ID created in Apple Ads Advanced settings.
+      team_id:
+        type: string
+        description: OAuth team ID created in Apple Ads Advanced settings.
+      key_id:
+        type: string
+        description: OAuth key ID created in Apple Ads Advanced settings.
+      private_key_path:
+        type: string
+        description: Absolute host path to the Apple Ads private key PEM file. The file is mounted read-only and is not sent to the image registry.
+      ad_account_id:
+        type: string
+        description: Optional default Apple Ads ad account ID.
+      container_user:
+        type: string
+        description: Container user able to read the mounted private key. Use a numeric UID:GID matching the host file owner when available; root is the compatibility default for a mode-0600 key.
+        default: "0:0"
+    required:
+      - profile
+      - client_id
+      - team_id
+      - key_id
+      - private_key_path
+      - container_user
