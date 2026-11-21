@@ -1,0 +1,43 @@
+name: arra-oracle-v3
+image: mcp/arra-oracle-v3
+type: server
+meta:
+  category: knowledge
+  tags:
+    - memory
+    - semantic-search
+    - sqlite
+    - lancedb
+    - oracle
+about:
+  title: Arra Oracle
+  description: Personal MCP memory server with semantic search over an Oracle vault. Stores knowledge in SQLite FTS5 + LanceDB and exposes oracle_* tools for search, learnings, handoffs, traces, and verification.
+  icon: https://avatars.githubusercontent.com/u/214694947?s=200&v=4
+source:
+  project: https://github.com/Soul-Brews-Studio/arra-oracle-v3
+  commit: 274216f78740b5230916ef75fd8b91f7bf78c560
+  buildTarget: mcp-stdio
+run:
+  env:
+    ORACLE_API: embedded
+  volumes:
+    - arra-oracle-data:/data
+config:
+  description: Optional semantic embedding backend and HTTP-writer routing. Arra works without configuration via SQLite FTS5 in the persistent /data volume.
+  env:
+    - name: OLLAMA_BASE_URL
+      example: http://host.docker.internal:11434
+      value: "{{arra-oracle-v3.ollama_base_url}}"
+    - name: ORACLE_API
+      example: embedded
+      value: "{{arra-oracle-v3.oracle_api}}"
+  parameters:
+    type: object
+    properties:
+      ollama_base_url:
+        type: string
+        description: Optional Ollama endpoint for semantic vector embeddings. Leave blank for FTS5-only search.
+      oracle_api:
+        type: string
+        description: Use embedded for standalone Docker MCP usage, or http://host.docker.internal:47778 to proxy through a long-running Arra HTTP writer.
+        default: embedded
