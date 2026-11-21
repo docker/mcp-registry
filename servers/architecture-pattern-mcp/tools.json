@@ -1,0 +1,186 @@
+[
+  {
+    "name": "design_architecture",
+    "description": "Default tool for creating an architecture design. Runs the full pipeline (analyze \u2192 generate \u2192 evaluate \u2192 refine, up to 3 attempts) and returns the complete design, evaluation, and quality scores in a single response. Takes 5-10 minutes; emits progress notifications every 30 s so clients stay connected. Use this whenever the user wants an architecture design, including when they explicitly request design_architecture. Do NOT use submit_architecture_design_job for ordinary design requests \u2014 that tool is only for clients with short request timeouts (Cursor, Claude Desktop) and returns only a job_id.",
+    "arguments": [
+      {
+        "name": "requirements",
+        "type": "string",
+        "desc": "Architecture requirements description (1-100000 chars, must contain visible text)"
+      },
+      {
+        "name": "domain",
+        "type": "string",
+        "desc": "Target architecture domain (1-200 chars, must contain visible text)"
+      },
+      {
+        "name": "override_style",
+        "type": "string",
+        "desc": "Override the derived architecture style",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "analyze_architecture",
+    "description": "Analyze requirements and derive architecture recommendations using pattern matching and domain similarity.",
+    "arguments": [
+      {
+        "name": "requirements",
+        "type": "string",
+        "desc": "Architecture requirements description (1-100000 chars, must contain visible text)"
+      },
+      {
+        "name": "domain",
+        "type": "string",
+        "desc": "Target architecture domain (1-200 chars, must contain visible text)"
+      }
+    ]
+  },
+  {
+    "name": "generate_architecture",
+    "description": "Generate an architecture design from requirements, style, domain, and selected patterns.",
+    "arguments": [
+      {
+        "name": "requirements",
+        "type": "string",
+        "desc": "Architecture requirements description (1-100000 chars, must contain visible text)"
+      },
+      {
+        "name": "style",
+        "type": "string",
+        "desc": "Architecture style to use (1-100000 chars, must contain visible text)"
+      },
+      {
+        "name": "domain",
+        "type": "string",
+        "desc": "Target architecture domain (1-200 chars, must contain visible text)"
+      },
+      {
+        "name": "selected_patterns",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Pattern names to incorporate in the architecture",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "evaluate_architecture",
+    "description": "Evaluate an architecture design against specified criteria and domain using pattern benchmarking.",
+    "arguments": [
+      {
+        "name": "architecture",
+        "type": "object",
+        "desc": "Architecture design as dictionary"
+      },
+      {
+        "name": "criteria",
+        "type": "string",
+        "desc": "Evaluation criteria description (1-100000 chars, must contain visible text)"
+      },
+      {
+        "name": "domain",
+        "type": "string",
+        "desc": "Target architecture domain (1-200 chars, must contain visible text)"
+      }
+    ]
+  },
+  {
+    "name": "list_architecture_patterns",
+    "description": "List all available architecture patterns known to the server. Returns a minimal view with 'name' and 'description' for each pattern. Optional filters: 'category' (one of: messaging, structural, cloud, data, ai_cognitive, specialized, api_gateway, coordination, dataflow, presentation) and 'domain' (matches against pattern.suitable_domains).",
+    "arguments": [
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Optional category filter. Valid values: messaging, structural, cloud, data, ai_cognitive, specialized, api_gateway, coordination, dataflow, presentation. Unknown values return an empty list.",
+        "optional": true
+      },
+      {
+        "name": "domain",
+        "type": "string",
+        "desc": "Optional domain filter. Matches against pattern.suitable_domains.",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "get_architecture_pattern",
+    "description": "Get the full JSON of a single architecture pattern by its name (e.g. 'microservices', 'pipe-and-filter', 'hexagonal'). Returns the complete pattern object including context, benefits, tradeoffs, quality_attributes, suitable_domains, component_types, technology_stack, and best_practices. Raises an error if not found.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "Pattern name, e.g. 'microservices', 'pipe-and-filter'"
+      }
+    ]
+  },
+  {
+    "name": "submit_architecture_design_job",
+    "description": "Start a background design job and return a job_id immediately (returns in <100 ms; the job itself takes minutes). ONLY use this when the calling client cannot wait for a long response \u2014 e.g. Cursor, Claude Desktop, or any client with a 60-120 s request timeout. Do NOT use when the user wants the design itself or explicitly names a design tool \u2014 the blocking design_architecture tool returns the full design directly. After starting, poll get_architecture_design_status(job_id) every 10-30 s until status is 'completed', 'failed', or 'cancelled'.",
+    "arguments": [
+      {
+        "name": "requirements",
+        "type": "string",
+        "desc": "Architecture requirements description (1-100000 chars, must contain visible text)"
+      },
+      {
+        "name": "domain",
+        "type": "string",
+        "desc": "Target architecture domain (1-200 chars, must contain visible text)"
+      },
+      {
+        "name": "override_style",
+        "type": "string",
+        "desc": "Override the derived architecture style",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "get_architecture_design_status",
+    "description": "Poll the status of a submit_architecture_design_job background job. Call repeatedly (every 10-30 s) until status is 'completed', 'failed', or 'cancelled'; when completed, the result field contains the full design output. Only use this with a job_id previously returned by submit_architecture_design_job \u2014 do not use it to request a new design.",
+    "arguments": [
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "Job ID returned by submit_architecture_design_job"
+      }
+    ]
+  },
+  {
+    "name": "cancel_architecture_design",
+    "description": "Cancel a running background design job started via submit_architecture_design_job. The background task checks the cancellation flag between pipeline stages and exits at the next stage boundary. Cancellation is best-effort and may take up to one LLM call to take effect. Only use with a job_id from submit_architecture_design_job; jobs already completed, failed, or cancelled cannot be cancelled again.",
+    "arguments": [
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "Job ID returned by submit_architecture_design_job"
+      }
+    ]
+  },
+  {
+    "name": "list_prompts",
+    "description": "List all available prompts.\n\nReturns JSON with prompt metadata including name, description,\nand optional arguments.",
+    "arguments": []
+  },
+  {
+    "name": "get_prompt",
+    "description": "Get a prompt by name with optional arguments.\n\nReturns the rendered prompt as JSON with a messages array.\nArguments should be provided as a dict mapping argument names\nto values.",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "desc": "The name of the prompt to get"
+      },
+      {
+        "name": "arguments",
+        "type": "object",
+        "desc": "Optional arguments for the prompt",
+        "optional": true
+      }
+    ]
+  }
+]
