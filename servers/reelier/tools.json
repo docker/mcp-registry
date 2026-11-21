@@ -1,0 +1,132 @@
+[
+  {
+    "name": "reelier_scan",
+    "description": "Discover replayable workflows in an agent's session history (defaults to ~/.claude/projects). Returns each session's transcript path — feed one to reelier_from_session. Only MCP/HTTP tool-call sequences are replayable; native file/shell actions are reported as skipped, never fabricated into a fake result.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "dir": {
+          "type": "string",
+          "description": "Directory to scan for agent session transcripts (default: ~/.claude/projects)."
+        }
+      }
+    }
+  },
+  {
+    "name": "reelier_from_session",
+    "description": "Compile a SKILL.md from a session transcript. Use when the work already happened (this session or by hand) — recording can't be retroactive. Get the transcriptPath from reelier_scan first. Returns the written skill's path, stats, and open questions — or, honestly, that nothing in the transcript was replayable.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "transcriptPath": {
+          "type": "string",
+          "description": "Path to a session transcript (.jsonl) to compile."
+        },
+        "name": {
+          "type": "string",
+          "description": "Skill name (also the default output filename stem)."
+        },
+        "out": {
+          "type": "string",
+          "description": "Output path for the compiled SKILL.md (default: <cwd>/<name>.skill.md)."
+        },
+        "force": {
+          "type": "boolean",
+          "description": "Overwrite an existing file at the output path."
+        }
+      },
+      "required": ["transcriptPath"]
+    }
+  },
+  {
+    "name": "reelier_replay",
+    "description": "Run a skill file at Level 0 (deterministic replay, zero LLM calls) and return the real run record: per-step outcomes, timing, totals, and — when a step drifted — why (the failing assertion). Reproduces the recorded tool calls (MCP/HTTP) only. Read-only by default: 'idempotent-write' steps are held back unless allowWrites is passed.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "skillPath": {
+          "type": "string",
+          "description": "Path to a .skill.md file to run."
+        },
+        "vars": {
+          "type": "object",
+          "description": "Template variable bindings ({{name}} -> value) — e.g. a computed date window so a relative-date skill replays against the current period."
+        },
+        "wrap": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Downstream MCP server command line(s) to connect for MCP-tool steps."
+        },
+        "cwd": {
+          "type": "string",
+          "description": "Working directory the run record is written under (default: process cwd)."
+        },
+        "allowWrites": {
+          "type": "boolean",
+          "description": "Allow 'idempotent-write' steps to execute. Default false — replay is read-only."
+        },
+        "allowDestructive": {
+          "type": "boolean",
+          "description": "Allow steps whose effect is 'destructive' to run."
+        }
+      },
+      "required": ["skillPath"]
+    }
+  },
+  {
+    "name": "reelier_diff",
+    "description": "Compare two runs of the same skill and report SAME or DRIFTED — the drift-detector for a recorded baseline replayed on a schedule. Compares per-step outcomes, structure, and heal-level from .reelier/runs/<skill>.jsonl (defaults to the last two runs); data values that legitimately change run-to-run are not drift. Drifted steps carry why (the failing assertion).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "skill": {
+          "type": "string",
+          "description": "Skill name (the .reelier/runs/<skill>.jsonl stem) whose runs to compare."
+        },
+        "baselineIndex": {
+          "type": "number",
+          "description": "0-based index of the baseline run (default: second-to-last)."
+        },
+        "candidateIndex": {
+          "type": "number",
+          "description": "0-based index of the candidate run (default: the last run)."
+        },
+        "cwd": {
+          "type": "string",
+          "description": "Working directory where .reelier/ lives (default: process cwd)."
+        }
+      },
+      "required": ["skill"]
+    }
+  },
+  {
+    "name": "reelier_push",
+    "description": "Push a skill's local run records (and, on first push, the skill file) to Reelier Cloud, where each receipt gets a shareable permalink + verified-replay badge. Requires REELIER_CLOUD_URL/REELIER_CLOUD_KEY in env — reports skipped-no-key honestly when they're absent.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "skillPath": {
+          "type": "string",
+          "description": "Path to a .skill.md file whose run records should be pushed."
+        },
+        "cwd": {
+          "type": "string",
+          "description": "Working directory to resolve .reelier/ state under (default: process cwd)."
+        },
+        "dryRun": {
+          "type": "boolean",
+          "description": "Report what would push; make no network calls, touch no state."
+        },
+        "all": {
+          "type": "boolean",
+          "description": "Ignore/reset the cursor — reconsider every record from the start."
+        },
+        "withSkill": {
+          "type": "boolean",
+          "description": "Upload the skill file even if it was already uploaded before."
+        }
+      },
+      "required": ["skillPath"]
+    }
+  }
+]
