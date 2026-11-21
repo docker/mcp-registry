@@ -1,0 +1,454 @@
+[
+  {
+    "name": "get_forms",
+    "description": "Get a list of all available forms with their descriptions. Use this tool when a user expresses intent to add, create, submit, fill out, register for something (e.g., \"I want to add a new Contact\", \"I need to submit a User Registration\", \"I met a contact who was the CMO\", \"What was the email of the contact\"). This tool can also be used when they ask what forms are available.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {}
+    },
+    "annotations": {
+      "title": "Get available forms",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "get_form_fields",
+    "description": "Get high level overview of the fields that are present in a form, and to understand the \"rules\" on how the data for each field type should be collected. The purpose of this tool is to determine what fields the user is requesting (and to understand how to format that values for that data), and use that to create a list of field data_path's that the user is providing context for. This list can then be provided to the `get_field_info` tool to determine the specific field level information for those fields (validation, required, collection rules, etc). PREREQUISITE: You must call the `get_forms` tool first to understand what forms are available to submit and the permissions associated with those forms.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "form_name": {
+          "type": "string",
+          "enum": [],
+          "description": "The name of the form being filled out"
+        },
+        "criteria": {
+          "default": "required",
+          "description": "Returns only the fields of the specified criteria. \"all\" returns all fields, \"required\" returns only the required fields, and \"optional\" returns only optional fields. To start a new form collection flow, you typically want to get only the \"required\" fields first.",
+          "type": "string",
+          "enum": [
+            "all",
+            "required",
+            "optional"
+          ]
+        },
+        "parent_path": {
+          "description": "The `data_path` of the parent component that contains nested components. Use this parameter if collecting data for fields within a specific nested component within a form. To find the `parent_path`, you can use the `get_field_info` tool, and use the `data_path` of any component that ****Has Nested Components**** = ✅ Yes. If not provided, the tool assumes data is being collected for the root form.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "form_name"
+      ]
+    },
+    "annotations": {
+      "title": "Get form fields",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "get_field_info",
+    "description": "Get detailed information about a specific field(s) that have been provided from the user. It is used to understand the properties, validation rules, and options of the specific field(s) the user has provided values for. This purpose of this tool is to provide detailed information for any field(s) (provided using the `field_paths` parameter) to help understand the structure and requirements of a form. PREREQUISITE: This tool should be called after the `get_form_fields` tool has been called AND once the user has provided some values for the provided fields.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "form_name": {
+          "type": "string",
+          "enum": [],
+          "description": "The name of the form being filled out"
+        },
+        "field_paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "The `data_path` (or \"full path\") to a component's instance value within a form submission (e.g., \"customer.firstName\"). Use `get_form_fields` to find the `data_path` of this component."
+          },
+          "description": "An array of `data_path`(s) to get detailed information for specific fields."
+        },
+        "parent_path": {
+          "description": "The `data_path` of the parent component that contains nested components. Use this parameter if collecting data for fields within a specific nested component within a form. To find the `parent_path`, you can use the `get_field_info` tool, and use the `data_path` of any component that ****Has Nested Components**** = ✅ Yes. If not provided, the tool assumes data is being collected for the root form.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "form_name",
+        "field_paths"
+      ]
+    },
+    "annotations": {
+      "title": "Get field details",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "collect_field_data",
+    "description": "Collect data for a form, or a specific field with nested components. Identify the component by its path, validate the provided value, and update the form_data object. After updating, determine the next required field to collect or indicate if all required fields are complete. PREREQUISITE: This tool should only be called after the `get_form_fields` tool AND subsequentially the `get_field_info` tool have been called to understand the structure and validation rules of the fields.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "form_name": {
+          "type": "string",
+          "enum": [],
+          "description": "The name of the form being filled out"
+        },
+        "form_data": {
+          "default": {},
+          "description": "The current data collected so far for the whole form without any updates applied. Include ALL previously collected field data to maintain session state.",
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "description": "The `data_path` (or \"full path\") to a component's instance value within a form submission (e.g., \"customer.firstName\"). Use `get_form_fields` to find the `data_path` of this component."
+          },
+          "additionalProperties": {
+            "description": "The value collected for the field. The rules for the value is determined using the `get_form_fields` tool within the **Field Rules** section for this component type, and formatted according the the **Format** section of that component (if applicable). If a value already exists, and it is a string, then you can append/prepend to it to the existing value in the proper order (append/prepend) determined by the user response. If the value is not a string, then replace the value entirely."
+          }
+        },
+        "parent_path": {
+          "description": "The `data_path` of the parent component that contains nested components. Use this parameter if collecting data for fields within a specific nested component within a form. To find the `parent_path`, you can use the `get_field_info` tool, and use the `data_path` of any component that ****Has Nested Components**** = ✅ Yes. If not provided, the tool assumes data is being collected for the root form.",
+          "type": "string"
+        },
+        "as_json": {
+          "default": false,
+          "description": "If true, the submission data will be returned as a JSON object result instead of formatted text. Any errors will also be returned as a structured JSON array. Set this property to `true` ONLY if the prompt indicates that JSON output of the submission data is required.",
+          "type": "boolean"
+        },
+        "updates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "data_path": {
+                "type": "string",
+                "description": "The `data_path` (or \"full path\") to a component's instance value within a form submission (e.g., \"customer.firstName\"). Use `get_form_fields` to find the `data_path` of this component."
+              },
+              "new_value": {
+                "description": "The complete new value for the field. The rules for the value is determined using the `get_form_fields` tool within the **Field Rules** section for this component type, and formatted according the the **Format** section of that component (if applicable). If a value already exists, and it is a string, then you can append/prepend to it to the existing value in the proper order (append/prepend) determined by the user response. If the value is not a string, then replace the value entirely."
+              }
+            },
+            "required": [
+              "data_path",
+              "new_value"
+            ],
+            "description": "A single field update including the `data_path` and new value."
+          },
+          "description": "An array of field updates to apply to the `form_data`. Each update specifies the `data_path` and the complete new value."
+        }
+      },
+      "required": [
+        "form_name",
+        "updates"
+      ]
+    },
+    "annotations": {
+      "title": "Collect field data",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "confirm_form_submission",
+    "description": "Show a summary of the collected form data if the user wishes to see a summary of the collected data",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "form_name": {
+          "type": "string",
+          "enum": [],
+          "description": "The name of the form being filled out"
+        },
+        "form_data": {
+          "default": {},
+          "description": "The current data collected so far for the whole form without any updates applied. Include ALL previously collected field data to maintain session state.",
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "description": "The `data_path` (or \"full path\") to a component's instance value within a form submission (e.g., \"customer.firstName\"). Use `get_form_fields` to find the `data_path` of this component."
+          },
+          "additionalProperties": {
+            "description": "The value collected for the field. The rules for the value is determined using the `get_form_fields` tool within the **Field Rules** section for this component type, and formatted according the the **Format** section of that component (if applicable). If a value already exists, and it is a string, then you can append/prepend to it to the existing value in the proper order (append/prepend) determined by the user response. If the value is not a string, then replace the value entirely."
+          }
+        }
+      },
+      "required": [
+        "form_name"
+      ]
+    },
+    "annotations": {
+      "title": "Summarise before submitting",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "submit_completed_form",
+    "description": "Submit the completed form data. Should only be used once all the required fields have been collected, and the user has explicitly confirmed submission (e.g. has said \"submit\", \"send\", \"done\", etc)",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "form_name": {
+          "type": "string",
+          "enum": [],
+          "description": "The name of the form being filled out"
+        },
+        "form_data": {
+          "default": {},
+          "description": "The current data collected so far for the whole form without any updates applied. Include ALL previously collected field data to maintain session state.",
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "description": "The `data_path` (or \"full path\") to a component's instance value within a form submission (e.g., \"customer.firstName\"). Use `get_form_fields` to find the `data_path` of this component."
+          },
+          "additionalProperties": {
+            "description": "The value collected for the field. The rules for the value is determined using the `get_form_fields` tool within the **Field Rules** section for this component type, and formatted according the the **Format** section of that component (if applicable). If a value already exists, and it is a string, then you can append/prepend to it to the existing value in the proper order (append/prepend) determined by the user response. If the value is not a string, then replace the value entirely."
+          }
+        }
+      },
+      "required": [
+        "form_name"
+      ]
+    },
+    "annotations": {
+      "title": "Submit a completed form",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "find_submissions",
+    "description": "Find existing form submissions based on field values (search query). Use this to search for people, records, or data by name, email, phone, position, company, or other field values. Examples: find a contact by name, find someone who works at a company, find records with specific criteria. To retrieve the total count of records within a form, use this tool without providing a `search_query`.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "form_name": {
+          "type": "string",
+          "enum": [],
+          "description": "The name of the form being filled out"
+        },
+        "search_query": {
+          "description": "Array of search criteria to find matching submissions. All criteria must match (AND logic). Do not provide this parameter to get the total count of submissions without retrieving the submission details.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "data_path": {
+                "type": "string",
+                "description": "The `data_path` (or \"full path\") to a component's instance value within a form submission (e.g., \"customer.firstName\"). Use `get_form_fields` to find the `data_path` of this component."
+              },
+              "operator": {
+                "default": "contains",
+                "description": "The operator to use for matching. \"equals\" for exact match, \"contains\" for substring match, \"starts_with\" or \"ends_with\" for prefix/suffix match, \"regex\" for regular expression match, \"greater_than\" or \"less_than\" only for numeric values, \"in\" if searching for multiple values as comma-separated values, \"nin\" if excluding multiple values as comma-separated values.",
+                "type": "string",
+                "enum": [
+                  "equals",
+                  "not_equals",
+                  "contains",
+                  "starts_with",
+                  "ends_with",
+                  "regex",
+                  "in",
+                  "nin",
+                  "greater_than",
+                  "greater_than_equal",
+                  "less_than",
+                  "less_than_equal"
+                ]
+              },
+              "search_value": {
+                "type": "string",
+                "description": "The value of the field to use when searching."
+              }
+            },
+            "required": [
+              "data_path",
+              "search_value"
+            ],
+            "description": "Object containing the `data_path` and search value. Use `get_form_fields` to get all the field information to populate this search query object."
+          }
+        },
+        "fields_requested": {
+          "description": "An array of `data_path`(s) for values you wish to include in the result. If not provided, only submission IDs and timestamps are returned. (e.g., [\"employee.email\"] - \"What is the email address for the employee Joe Smith?\")",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "The `data_path` (or \"full path\") to a component's instance value within a form submission (e.g., \"customer.firstName\"). Use `get_form_fields` to find the `data_path` of this component."
+          }
+        },
+        "limit": {
+          "default": 5,
+          "description": "The maximum number of results to return. Defaults to 5.",
+          "type": "number"
+        },
+        "submission_id": {
+          "description": "The full ID of the submission to retrieve details for. This value is provided using the `find_submissions` tool.",
+          "type": "string"
+        },
+        "submission_id_partial": {
+          "description": "Last 4 characters of a specific submission ID. Should ONLY be used when multiple matches are found from a previous query and the user provides the last 4 characters of the Submission ID to disambiguate.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "form_name"
+      ]
+    },
+    "annotations": {
+      "title": "Find submissions",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "submission_update",
+    "description": "Apply multiple planned field updates to a selected submission after the user confirmed they wish to update the record.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "form_name": {
+          "type": "string",
+          "enum": [],
+          "description": "The name of the form being filled out"
+        },
+        "submission_id": {
+          "description": "The full ID of the submission to retrieve details for. This value is provided using the `find_submissions` tool.",
+          "type": "string"
+        },
+        "updates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "data_path": {
+                "type": "string",
+                "description": "The `data_path` (or \"full path\") to a component's instance value within a form submission (e.g., \"customer.firstName\"). Use `get_form_fields` to find the `data_path` of this component."
+              },
+              "new_value": {
+                "description": "The complete new value for the field. The rules for the value is determined using the `get_form_fields` tool within the **Field Rules** section for this component type, and formatted according the the **Format** section of that component (if applicable). If a value already exists, and it is a string, then you can append/prepend to it to the existing value in the proper order (append/prepend) determined by the user response. If the value is not a string, then replace the value entirely."
+              }
+            },
+            "required": [
+              "data_path",
+              "new_value"
+            ],
+            "description": "A single field update including the `data_path` and new value."
+          },
+          "description": "An array of field updates to apply to the `form_data`. Each update specifies the `data_path` and the complete new value."
+        }
+      },
+      "required": [
+        "form_name",
+        "updates"
+      ]
+    },
+    "annotations": {
+      "title": "Update a submission",
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "agent_provide_data",
+    "description": "Provides a mechanism for agents to process existing submission data, understand it, and then to provide additional data values provided a criteria and form context.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "form_name": {
+          "type": "string",
+          "enum": [],
+          "description": "The name of the form being filled out"
+        },
+        "submission_id": {
+          "description": "The full ID of the submission to retrieve details for. This value is provided using the `find_submissions` tool.",
+          "type": "string"
+        },
+        "persona": {
+          "description": "The agent persona \"type\" to use when processing the existing submission data. The persona provides context to the agent on how to interpret and understand the data within the form submission. If not provided, the default persona defined within the form's UAG settings will be used.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "form_name"
+      ]
+    },
+    "annotations": {
+      "title": "Process submission data",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "fetch_external_data",
+    "description": "Fetch external data for a component that loads data from an external URL, a Form.io Resource, or a DataSource. Use this tool when `get_form_fields` indicates that a field requires calling `fetch_external_data` to retrieve its data. For select components, this returns the available options. For datasource components, this returns the fetched data. You can optionally provide a `search_value` to filter results server-side. If the component's URL or headers contain interpolation tokens (e.g. `{{ data.someField }}`), you MUST provide `form_data` with the current collected data so the tokens can be resolved.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "form_name": {
+          "type": "string",
+          "enum": [],
+          "description": "The name of the form being filled out"
+        },
+        "data_path": {
+          "type": "string",
+          "description": "The `data_path` (or \"full path\") to a component's instance value within a form submission (e.g., \"customer.firstName\"). Use `get_form_fields` to find the `data_path` of this component."
+        },
+        "form_data": {
+          "default": {},
+          "description": "The current data collected so far for the whole form without any updates applied. Include ALL previously collected field data to maintain session state.",
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "description": "The `data_path` (or \"full path\") to a component's instance value within a form submission (e.g., \"customer.firstName\"). Use `get_form_fields` to find the `data_path` of this component."
+          },
+          "additionalProperties": {
+            "description": "The value collected for the field. The rules for the value is determined using the `get_form_fields` tool within the **Field Rules** section for this component type, and formatted according the the **Format** section of that component (if applicable). If a value already exists, and it is a string, then you can append/prepend to it to the existing value in the proper order (append/prepend) determined by the user response. If the value is not a string, then replace the value entirely."
+          }
+        },
+        "search_value": {
+          "description": "An optional search string to filter the select options server-side. The component must have a `searchField` configured for this to take effect.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "form_name",
+        "data_path"
+      ]
+    },
+    "annotations": {
+      "title": "Fetch external field data",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  }
+]
