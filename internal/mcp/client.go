@@ -25,6 +25,7 @@ package mcp
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"time"
 
@@ -60,7 +61,9 @@ func (cl *client) Start(ctx context.Context, debug bool) error {
 	}
 
 	if cl.pull {
-		output, err := exec.CommandContext(ctx, "docker", "pull", cl.image).CombinedOutput()
+		cmd := exec.CommandContext(ctx, "docker", "pull", cl.image)
+		cmd.Env = append(os.Environ())
+		output, err := cmd.CombinedOutput()
 		if err != nil {
 			return fmt.Errorf("pulling image %s: %w (%s)", cl.image, err, string(output))
 		}

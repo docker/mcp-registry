@@ -154,6 +154,7 @@ func buildMcpImage(ctx context.Context, server servers.Server) error {
 
 func pullCommunityImage(ctx context.Context, server servers.Server) error {
 	cmd := exec.CommandContext(ctx, "docker", "pull", server.Image)
+	cmd.Env = buildDockerEnv()
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
