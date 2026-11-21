@@ -24,7 +24,9 @@ assess whether an outing is safe.
 
 ## More Information
 
-- Documentation: https://peskio.com/agents.md
+- Guide (tools, coverage, fair use): https://peskio.com/en/mcp
+- Set-up per assistant: https://peskio.com/en/ai-assistants
+- Documentation for agents: https://peskio.com/agents.md
 - Website: https://peskio.com
 - Privacy: https://peskio.com/en/privacy · Terms: https://peskio.com/en/terms
 - Support and security contact: info@lemurventures.xyz
