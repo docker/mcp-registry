@@ -1,0 +1,48 @@
+[
+  {
+    "name": "prusaslicer_estimate_fff",
+    "description": "Slice an STL with a caller-supplied PrusaSlicer INI profile and return estimated print time and material consumption from the real G-code stats. The tool measures \u2014 it does not price. Pricing (filament cost, machine time) is handled downstream by erpnext. The profile_ini_path is the sole authority o",
+    "arguments": [
+      {
+        "name": "stl_path",
+        "type": "string",
+        "desc": "Absolute path to the STL file to slice. The file must be accessible on the server filesystem."
+      },
+      {
+        "name": "stl_sha256",
+        "type": "string",
+        "desc": "Optional SHA-256 hex digest of the STL file. When provided, the server verifies the file content before slicing \u2014 ensures the exact committed geometry was consumed."
+      },
+      {
+        "name": "profile_ini_path",
+        "type": "string",
+        "desc": "Absolute path to a PrusaSlicer INI profile file. The server reads this file and passes it to prusa-slicer via --load. The profile is the caller's authority on all print parameters (speeds, temperature"
+      },
+      {
+        "name": "profile_sha256",
+        "type": "string",
+        "desc": "Optional SHA-256 hex digest of the profile file. When provided, the server verifies the profile content before slicing."
+      },
+      {
+        "name": "layer_height_mm",
+        "type": "number",
+        "desc": "Override the layer height from the profile. Forwarded as --layer-height N to prusa-slicer (mm, positive)."
+      },
+      {
+        "name": "infill_percent",
+        "type": "number",
+        "desc": "Override the infill density from the profile (integer 0-100). Forwarded as --fill-density N% to prusa-slicer."
+      },
+      {
+        "name": "filament_density_g_cm3",
+        "type": "number",
+        "desc": "Override the filament density (g/cm\u00b3, positive). Forwarded as --filament-density N. When provided, filament_mass_g is always present in the output."
+      },
+      {
+        "name": "timeout_ms",
+        "type": "number",
+        "desc": "Maximum time in milliseconds to wait for prusa-slicer before aborting. Default: 120000 (2 minutes). Complex models may need more."
+      }
+    ]
+  }
+]
