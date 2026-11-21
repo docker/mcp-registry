@@ -1,0 +1,33 @@
+name: cert-review
+image: mcp/cert-review
+type: server
+meta:
+  category: security
+  tags:
+    - security
+    - code-analysis
+    - static-analysis
+    - c
+    - cpp
+about:
+  title: CERT C/C++ Review
+  description: SEI CERT C and C++ code review. Look up any CERT rule, run clang-tidy, the Clang Static Analyzer and cppcheck with findings mapped to CERT rule IDs, limit findings to changed lines of a diff, and validate review findings against the rule text. Read-only; nothing is posted anywhere.
+  icon: https://avatars.githubusercontent.com/u/950935?v=4
+source:
+  project: https://github.com/RaminNietzsche/cert-review-mcp
+  commit: 86387084a1f8c8e1187926b6bb710cb769794f05
+  dockerfile: Dockerfile.mcp
+run:
+  volumes:
+    - "{{cert-review.project_dir|volume}}:ro"
+  disableNetwork: true
+config:
+  description: The C/C++ project to review. It is mounted read-only at the same absolute path, so paths passed to the tools resolve inside the container.
+  parameters:
+    type: object
+    properties:
+      project_dir:
+        type: string
+        default: /Users/local-test
+    required:
+      - project_dir
