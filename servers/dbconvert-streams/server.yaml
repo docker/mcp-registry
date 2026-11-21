@@ -1,0 +1,61 @@
+name: dbconvert-streams
+image: slotix/stream-mcp
+type: server
+meta:
+  category: database
+  tags:
+    - database
+    - postgresql
+    - mysql
+    - s3
+    - parquet
+    - sql
+about:
+  title: DBConvert Streams (Federated SQL)
+  description: Read-only SQL across your PostgreSQL, MySQL, S3 buckets and local data files, in one query.
+  icon: https://streams.dbconvert.com/favicons/android-chrome-192x192.png
+source:
+  project: https://github.com/slotix/dbconvert-streams-public
+  commit: 9822abe550f544c58139110b51cc8006dcb97f40
+run:
+  command:
+    - "{{dbconvert-streams.connections|into}}"
+    - "{{dbconvert-streams.paths|volume-target|into}}"
+  volumes:
+    - "{{dbconvert-streams.paths|volume|into}}"
+config:
+  description: The databases, buckets and folders this server may read. Give either, or both — one query can join across all of them.
+  secrets:
+    - name: dbconvert-streams.aws_secret_access_key
+      env: AWS_SECRET_ACCESS_KEY
+      example: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+      description: Needed only for an s3:// source on storage that is not AWS itself (MinIO, Cloudflare R2, DigitalOcean Spaces).
+  env:
+    - name: AWS_ACCESS_KEY_ID
+      example: AKIAIOSFODNN7EXAMPLE
+      value: "{{dbconvert-streams.aws_access_key_id}}"
+  parameters:
+    type: object
+    properties:
+      connections:
+        type: array
+        items:
+          type: string
+        description: >-
+          Connection strings, one per entry: postgres://user:password@host:5432/db,
+          mysql://user:password@host:3306/db, or s3://bucket/prefix?region=us-east-1.
+          Prefix with name= to choose what the source is called in chat, e.g.
+          shop=postgres://… — without a name it takes the name of the database or bucket.
+          A database on this machine is reached at host.docker.internal, not localhost.
+      paths:
+        type: array
+        items:
+          type: string
+        description: >-
+          Folders of Parquet, CSV or JSON files to read. Every file inside becomes
+          queryable and can be joined against the databases and buckets above.
+      aws_access_key_id:
+        type: string
+        description: Needed only for an s3:// source on storage that is not AWS itself.
+    required:
+      - connections
