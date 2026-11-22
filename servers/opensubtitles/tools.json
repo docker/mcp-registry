@@ -1,0 +1,276 @@
+[
+  {
+    "name": "search_subtitles",
+    "description": "Find subtitles for a movie or TV episode and get file_ids to download",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Title to search for, e.g. \"The Matrix\". Not needed when an id, moviehash or filename is given.",
+        "required": false
+      },
+      {
+        "name": "filename",
+        "type": "string",
+        "desc": "Video filename, e.g. \"Chicago.Fire.S14E01.1080p.WEB.h264-ETHEL.mkv\". Parsed with guessit-js into title/year/season/episode; its release name ranks matching subtitles first.",
+        "required": false
+      },
+      {
+        "name": "imdb_id",
+        "type": "integer",
+        "desc": "IMDb id (tt0133093 or 133093). With season_number/episode_number it is the show's id.",
+        "required": false
+      },
+      {
+        "name": "tmdb_id",
+        "type": "integer",
+        "desc": "TMDB id. With season_number/episode_number it is the show's id.",
+        "required": false
+      },
+      {
+        "name": "feature_id",
+        "type": "integer",
+        "desc": "OpenSubtitles feature id from search_features. With season_number/episode_number it is the show's id.",
+        "required": false
+      },
+      {
+        "name": "season_number",
+        "type": "integer",
+        "desc": "season_number",
+        "required": false
+      },
+      {
+        "name": "episode_number",
+        "type": "integer",
+        "desc": "episode_number",
+        "required": false
+      },
+      {
+        "name": "year",
+        "type": "integer",
+        "desc": "year",
+        "required": false
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "Restrict to movies or TV episodes",
+        "required": false
+      },
+      {
+        "name": "languages",
+        "type": "array",
+        "desc": "Subtitle languages in order of preference, e.g. [\"en\", \"pt-BR\"]. Omit for all languages.",
+        "required": false
+      },
+      {
+        "name": "moviehash",
+        "type": "string",
+        "desc": "OpenSubtitles hash of the video file (calculate_file_hash in local mode). Exact file matches are flagged moviehash_match and ranked first.",
+        "required": false
+      },
+      {
+        "name": "hearing_impaired",
+        "type": "string",
+        "desc": "Subtitles for the deaf and hard of hearing (SDH)",
+        "required": false
+      },
+      {
+        "name": "foreign_parts_only",
+        "type": "string",
+        "desc": "Subtitles that only cover foreign-language dialogue",
+        "required": false
+      },
+      {
+        "name": "include_ai_translated",
+        "type": "boolean",
+        "desc": "Include AI-translated subtitles",
+        "required": false
+      },
+      {
+        "name": "include_machine_translated",
+        "type": "boolean",
+        "desc": "Include machine-translated subtitles (usually low quality)",
+        "required": false
+      },
+      {
+        "name": "trusted_only",
+        "type": "boolean",
+        "desc": "Only subtitles from trusted uploaders",
+        "required": false
+      },
+      {
+        "name": "order_by",
+        "type": "string",
+        "desc": "relevance = exact title/episode and release-name matches first, then popularity",
+        "required": false
+      },
+      {
+        "name": "exact_title",
+        "type": "boolean",
+        "desc": "When searching by title, first resolve it to the exact movie/show (so \"The Matrix\" does not return \"The Matrix Revisited\"). Set false for a fuzzy text search.",
+        "required": false
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "desc": "page",
+        "required": false
+      },
+      {
+        "name": "per_page",
+        "type": "integer",
+        "desc": "per_page",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "get_subtitle_details",
+    "description": "Full metadata for one subtitle from a search result: all files (multi-CD), uploader, comments, links, and related subtitles for the same title and language",
+    "arguments": [
+      {
+        "name": "subtitle_id",
+        "type": "string",
+        "desc": "subtitle_id from search_subtitles",
+        "required": true
+      },
+      {
+        "name": "feature_id",
+        "type": "integer",
+        "desc": "feature.feature_id of the same search result",
+        "required": true
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": "The subtitle's language (speeds up the lookup)",
+        "required": false
+      },
+      {
+        "name": "related_limit",
+        "type": "integer",
+        "desc": "related_limit",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "download_subtitle",
+    "description": "Download one subtitle file by file_id and return its text (or a temporary link), with optional format conversion, FPS conversion or time shift",
+    "arguments": [
+      {
+        "name": "file_id",
+        "type": "integer",
+        "desc": "file_id from search_subtitles or get_subtitle_details",
+        "required": true
+      },
+      {
+        "name": "sub_format",
+        "type": "string",
+        "desc": "Convert to this format. Omit to keep the original (usually srt).",
+        "required": false
+      },
+      {
+        "name": "in_fps",
+        "type": "number",
+        "desc": "Frame rate the subtitle was timed for (use with out_fps)",
+        "required": false
+      },
+      {
+        "name": "out_fps",
+        "type": "number",
+        "desc": "Frame rate of your video (use with in_fps)",
+        "required": false
+      },
+      {
+        "name": "timeshift",
+        "type": "number",
+        "desc": "Shift all cues by this many seconds, e.g. 2.5 or -1",
+        "required": false
+      },
+      {
+        "name": "delivery",
+        "type": "string",
+        "desc": "content = return the subtitle text; link = return only a temporary download URL (for large files or saving to disk)",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "search_features",
+    "description": "Look up movies, TV shows and episodes on OpenSubtitles (title, year, IMDb/TMDB/feature ids, seasons and episode counts, subtitle counts per language)",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Title, e.g. \"Chicago Fire\"",
+        "required": false
+      },
+      {
+        "name": "imdb_id",
+        "type": "integer",
+        "desc": "imdb_id",
+        "required": false
+      },
+      {
+        "name": "tmdb_id",
+        "type": "integer",
+        "desc": "tmdb_id",
+        "required": false
+      },
+      {
+        "name": "feature_id",
+        "type": "integer",
+        "desc": "feature_id",
+        "required": false
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "desc": "type",
+        "required": false
+      },
+      {
+        "name": "year",
+        "type": "integer",
+        "desc": "year",
+        "required": false
+      },
+      {
+        "name": "include_episodes",
+        "type": "boolean",
+        "desc": "List every episode (title, feature_id, IMDb id) per season for TV shows",
+        "required": false
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "limit",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "list_languages",
+    "description": "The subtitle language codes OpenSubtitles supports (e.g. en, pt-BR, zh-CN) with their names",
+    "arguments": []
+  },
+  {
+    "name": "guess_filename",
+    "description": "Parse a movie or episode filename with guessit-js (title, year, season, episode, release group, resolution, source, codec)",
+    "arguments": [
+      {
+        "name": "filename",
+        "type": "string",
+        "desc": "e.g. \"The.Matrix.1999.1080p.BluRay.x264-GROUP.mkv\"",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "get_user_info",
+    "description": "The logged-in OpenSubtitles user's level, VIP status, daily download allowance and downloads remaining, so you can plan downloads",
+    "arguments": []
+  }
+]
