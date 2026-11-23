@@ -1,0 +1,1 @@
+Connect to GoVisit's hosted MCP server for read-only travel search and published travel content. Setup instructions and the complete tool reference are at https://govisit.ai/en/docs/developers/mcp/overview.
