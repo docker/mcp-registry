@@ -1,0 +1,56 @@
+name: wa-mcp
+image: ghcr.io/tsahospital-beep/wa-mcp-server:0.1.0
+type: server
+meta:
+  category: communication
+  tags:
+    - communication
+    - whatsapp
+about:
+  title: WA MCP (WhatsApp)
+  description: Search synced WhatsApp chats and access live tools through a separately linked WA MCP bridge.
+  icon: https://raw.githubusercontent.com/tsahospital-beep/wa-mcp/v0.1.0/assets/brand/logo.svg
+source:
+  project: https://github.com/tsahospital-beep/wa-mcp
+  commit: 34a9b8fc9f68ad13180e5e36ffa4d06186a6d481
+  dockerfile: deploy/docker/Dockerfile.server
+run:
+  command:
+    - --log-level
+    - WARNING
+  volumes:
+    - "{{wa-mcp.data_volume}}:/data"
+    - "{{wa-mcp.key_file}}:/run/secrets/wa_mcp_key:ro"
+config:
+  description: Use a linked bridge with keyfile encryption, a separate session volume and a private API address reachable from the server container.
+  env:
+    - name: WA_MCP_API_LISTEN
+      example: 172.17.0.2:8080
+      value: "{{wa-mcp.bridge_address}}"
+    - name: WA_MCP_ENCRYPTION_MODE
+      example: keyfile
+      value: keyfile
+    - name: WA_MCP_KEY_FILE
+      example: /run/secrets/wa_mcp_key
+      value: /run/secrets/wa_mcp_key
+  secrets:
+    - name: wa-mcp.api_token
+      env: WA_MCP_API_TOKEN
+      description: Set this only if the bridge uses an explicit API token. Otherwise the server reads the token from the shared data volume.
+      required: false
+  parameters:
+    type: object
+    properties:
+      data_volume:
+        type: string
+        description: Existing Docker volume holding the bridge's store, downloads and exports. For the upstream Compose deployment use wa-mcp_wa-data.
+      key_file:
+        type: string
+        description: Absolute host path to the bridge key file, readable by container user 65532. Allow its parent directory in the gateway bind mount settings.
+      bridge_address:
+        type: string
+        description: Private numeric IP and port of the bridge API, reachable from the catalog container and matching the bridge listener.
+    required:
+      - data_volume
+      - key_file
+      - bridge_address
