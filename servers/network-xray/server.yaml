@@ -1,0 +1,36 @@
+name: network-xray
+image: ghcr.io/rclab-dev/network-xray:1.6.0
+type: server
+meta:
+  category: devops
+  tags:
+    - networking
+    - bgp
+    - ospf
+    - containerlab
+    - netlab
+    - cml
+about:
+  title: network-xray
+  description: Read-only BGP / OSPF state of a containerlab, netlab or Cisco CML lab (FRR, SR Linux, Cisco IOL), from the state files network-xray's collector writes. Lets an AI agent list routers, neighbors and routes, and ask why a route won or why an OSPF adjacency is not Full. 13 tools; no router is contacted.
+  icon: https://avatars.githubusercontent.com/u/86867650?s=200&v=4
+source:
+  project: https://github.com/rclab-dev/network-xray
+  commit: 0044669dab5fd7846befb646af74b8c382f987d0
+run:
+  command:
+    - mcp
+    - --path
+    - /lab
+  volumes:
+    - "{{network-xray.lab_state_dir}}:/lab:ro"
+config:
+  description: The folder with your lab's collected state (for example the lab folder that holds xray-states.js). It is mounted read-only.
+  parameters:
+    type: object
+    properties:
+      lab_state_dir:
+        type: string
+        default: /Users/local-test
+    required:
+      - lab_state_dir
