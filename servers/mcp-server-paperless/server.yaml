@@ -1,0 +1,61 @@
+name: mcp-server-paperless
+image: mcp/mcp-server-paperless
+type: server
+meta:
+  category: productivity
+  tags:
+    - productivity
+    - paperless-ngx
+    - documents
+about:
+  title: Paperless-ngx
+  description: Search, read, file, tag and upload documents in paperless-ngx 3.x. Tools take names instead of IDs and ask for confirmation before anything final.
+  icon: https://raw.githubusercontent.com/gardenbaum/mcp-server-paperless/main/assets/icon-400.png
+source:
+  project: https://github.com/gardenbaum/mcp-server-paperless
+  commit: 5d2d2701fddb6fa554d459299523668c3ae887d5
+  buildTarget: stdio
+config:
+  description: Configure the connection to your paperless-ngx 3.x instance
+  secrets:
+    - name: mcp-server-paperless.token
+      env: PAPERLESS_TOKEN
+      example: <PAPERLESS_TOKEN>
+      description: Paperless API token (My Profile, API auth token); the server acts as this user
+      required: true
+  env:
+    - name: PAPERLESS_URL
+      example: https://paperless.example.org
+      value: "{{mcp-server-paperless.url}}"
+    - name: PAPERLESS_PUBLIC_URL
+      example: https://paperless.example.org
+      value: "{{mcp-server-paperless.public_url}}"
+    - name: PAPERLESS_MCP_TOOLSETS
+      example: core,ai
+      value: "{{mcp-server-paperless.toolsets}}"
+    - name: PAPERLESS_MCP_READ_ONLY
+      example: "false"
+      value: "{{mcp-server-paperless.read_only}}"
+    - name: PAPERLESS_MCP_DISABLED_TOOLS
+      example: empty_trash
+      value: "{{mcp-server-paperless.disabled_tools}}"
+  parameters:
+    type: object
+    properties:
+      url:
+        type: string
+        description: Base URL of the paperless-ngx instance, reachable from the container (localhost is the container itself)
+      public_url:
+        type: string
+        description: Base URL for links shown to you, if it differs from the first one
+      toolsets:
+        type: string
+        description: Toolsets to offer, comma-separated, or all (default core,ai)
+      read_only:
+        type: boolean
+        description: Offer only tools that change nothing (default false)
+      disabled_tools:
+        type: string
+        description: Tools never offered, comma-separated
+    required:
+      - url
