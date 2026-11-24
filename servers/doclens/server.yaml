@@ -1,0 +1,46 @@
+# Docker MCP Registry 条目。
+#
+# 走 Option A（Docker 侧构建镜像）的路子：image 写成 mcp/doclens 占位，
+# 由 Docker 从 source.project 的 Dockerfile 构建并签名，进 mcp 命名空间。
+#
+# 这个服务只读用户指定的文件，不需要网络、不需要密钥，所以
+# disableNetwork 设为 true——对目录站的安全审查是加分项。
+
+name: doclens
+image: mcp/doclens
+type: server
+meta:
+  category: productivity
+  tags:
+    - document
+    - pdf
+    - excel
+    - spreadsheet
+    - tables
+    - office
+about:
+  title: DocLens
+  description: >-
+    Reads PDF, Excel, Word and CSV for AI agents while keeping table rows and
+    columns aligned, exact numeric precision (no float round-trip), and Excel
+    formulas. Reports every lossy parse instead of hiding it.
+  icon: https://avatars.githubusercontent.com/u/246256683?v=4
+source:
+  project: https://github.com/fendoushaonian/doclens
+  branch: main
+run:
+  disableNetwork: true
+  volumes:
+    - "{{doclens.documents|volume-target}}:/documents"
+config:
+  description: >-
+    The directory DocLens is allowed to read documents from.
+    Files outside this directory are not accessible.
+  parameters:
+    type: object
+    properties:
+      documents:
+        type: string
+        default: /Users/demo/Documents
+    required:
+      - documents
