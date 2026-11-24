@@ -1,0 +1,146 @@
+[
+  {
+    "name": "lookup_license",
+    "description": "What a software, model or data license allows and requires: OSI and FSF status, patent grant, copyleft scope, obligations, facts, CounselMode's editorial view and provenance.",
+    "arguments": [
+      {
+        "name": "license",
+        "type": "string",
+        "desc": "An SPDX ID (\"Apache-2.0\"), a name, or an alias (\"ALv2\", \"GPLv3\").",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "model_license",
+    "description": "The license an AI model is released under, keyed by exact model and version (licenses differ between versions of the same family).",
+    "arguments": [
+      {
+        "name": "model",
+        "type": "string",
+        "desc": "The exact model and version, e.g. \"Gemma 4\", \"Llama 3.1\", \"DeepSeek-R1\".",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "project_license",
+    "description": "The license a well-known software project is released under, keyed by version: projects change licenses (Redis, Elasticsearch, Terraform), so the answer depends on the release.",
+    "arguments": [
+      {
+        "name": "project",
+        "type": "string",
+        "desc": "The software project, e.g. \"Redis\", \"Terraform\", \"Linux kernel\", \"Next.js\".",
+        "required": true
+      },
+      {
+        "name": "version",
+        "type": "string",
+        "desc": "The version in use, e.g. \"7.4\" or \"1.5.7\". Omit to get every license era.",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "check_compatibility",
+    "description": "Whether code under `inbound` can go into a work under `outbound`, for a distributed combined work and for SaaS.",
+    "arguments": [
+      {
+        "name": "inbound",
+        "type": "string",
+        "desc": "The license of the code or component you want to use.",
+        "required": true
+      },
+      {
+        "name": "outbound",
+        "type": "string",
+        "desc": "The license of your project, or 'proprietary'.",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "license_obligations",
+    "description": "What a license requires for one use (internal, SaaS, distribution or a device), with CounselMode's rating: LOW, MEDIUM, HIGH, BLOCK or REVIEW (depends on facts the data cannot know), and `because`, the reason.",
+    "arguments": [
+      {
+        "name": "license",
+        "type": "string",
+        "desc": "An SPDX ID, name or alias.",
+        "required": true
+      },
+      {
+        "name": "scenario",
+        "type": "string",
+        "desc": "How the software is used.",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "triage_dependencies",
+    "description": "A first pass over a dependency list: each component's license resolved and rated for the scenario (SPDX expressions: OR takes the least risky choice, AND the most).",
+    "arguments": [
+      {
+        "name": "components",
+        "type": "string",
+        "desc": "One license or SPDX expression per line, or CSV/TSV text with a license column (and optionally name or component). At most 500 rows.",
+        "required": true
+      },
+      {
+        "name": "scenario",
+        "type": "string",
+        "desc": "How the product is used.",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "choose_license",
+    "description": "Which license to release your own software, model weights or dataset under, for a stated goal.",
+    "arguments": [
+      {
+        "name": "goal",
+        "type": "string",
+        "desc": "What the user wants from their license. Ask them; do not infer it.",
+        "required": true
+      },
+      {
+        "name": "must_be_open_source",
+        "type": "boolean",
+        "desc": "False only if the user accepts source-available or use-restricted licenses.",
+        "required": false
+      },
+      {
+        "name": "includes",
+        "type": "array",
+        "desc": "Licenses of code the project includes or combines with (SPDX IDs or names).",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "search",
+    "description": "Search license and AI model records.",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Words to search license and model records for.",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "fetch",
+    "description": "The full text of one license or model record, with its source URL and verification status.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": "An id returned by `search`.",
+        "required": true
+      }
+    ]
+  }
+]
