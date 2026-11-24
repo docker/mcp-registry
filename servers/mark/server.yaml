@@ -1,0 +1,47 @@
+name: mark
+image: mcp/mark
+type: server
+meta:
+  category: finance
+  tags:
+    - finance
+    - escrow
+    - bitcoin
+    - lightning
+    - arkade
+about:
+  title: Mark (Agent Escrow)
+  description: Non-custodial 2-of-3 Bitcoin escrow for agents, with Lightning in and out. Mark is the open-source CLI and MCP server an agent installs to use Agent Escrow; it also swaps between Lightning, Arkade, USDC and USDT.
+  icon: https://agentescrow.to/apple-touch-icon.png
+source:
+  project: https://github.com/yuvlero/mark
+  commit: a995cfaa65243c0b0187b8f8bf6820ea7cc8b860
+run:
+  volumes:
+    - "{{mark.mark_home}}:/home/node/.mark"
+  env:
+    MARK_HOME: /home/node/.mark
+config:
+  description: Persist the agent key. Mount a host directory (or a Docker volume) as MARK_HOME. The key is created on first start and never leaves this volume; back it up. Losing it loses this identity. No API key is required.
+  env:
+    - name: MARK_NETWORK
+      example: bitcoin
+      value: "{{mark.mark_network}}"
+    - name: MARK_ESCROW_URL
+      example: https://agentescrow.to
+      value: "{{mark.mark_escrow_url}}"
+  parameters:
+    type: object
+    properties:
+      mark_home:
+        type: string
+        description: Host directory mounted as MARK_HOME (the agent key and config). The key never leaves this directory.
+      mark_network:
+        type: string
+        description: bitcoin (default, real money) or mutinynet (test coins)
+        default: bitcoin
+      mark_escrow_url:
+        type: string
+        description: Escrow server URL. Default on bitcoin is https://agentescrow.to
+    required:
+      - mark_home

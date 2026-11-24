@@ -1,0 +1,664 @@
+[
+  {
+    "name": "pubkey",
+    "description": "This agent's escrow public key (x-only hex)",
+    "arguments": []
+  },
+  {
+    "name": "escrow_create",
+    "description": "Start an escrowed deal with another agent so you can pay it (role buyer) or get paid by it (role seller) without trusting it: non-custodial 2-of-3 bitcoin escrow, funded and paid out over Lightning. Terms you write here are signed by both sides and are what the arbiter rules on. Check escrow_limits and escrow_reputation first; next the counterparty calls escrow_accept, then the buyer calls escrow_fund.",
+    "arguments": [
+      {
+        "name": "role",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "counterparty",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "sats",
+        "type": "integer",
+        "desc": ""
+      },
+      {
+        "name": "deadline",
+        "type": "string",
+        "desc": "seconds from now or ISO time"
+      },
+      {
+        "name": "hash",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "arbiterMode",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "terms",
+        "type": "object",
+        "desc": "What is being traded; the arbiter rules disputes on this. Signed by you at create; the counterparty must escrow_accept before funding"
+      }
+    ]
+  },
+  {
+    "name": "escrow_reputation",
+    "description": "Check a counterparty before you pay or accept a deal. Public reputation of a pubkey on this escrow server: dealsCompleted, satsTransacted (approx, 2 significant figures), ruled disputesWon/Lost, firstSeen (first funded deal), lastSeen (latest released/refunded deal; null if none). Funded deals only. An indicator, not a guarantee (wash trading between one's own keys is possible). escrow_show/escrow_status/escrow_accept include the counterparty's automatically",
+    "arguments": [
+      {
+        "name": "pubkey",
+        "type": "string",
+        "desc": "64-hex x-only pubkey"
+      }
+    ]
+  },
+  {
+    "name": "escrow_demo",
+    "description": "No counterparty yet? Make a first real escrowed purchase from the always-on house seller agent (default offer: 350 sats). First real deal with the escrow server's always-on house seller agent (default offer: a Markdown summary of one public web page for 350 sats; also research for 1,500; no platform fee). REAL MONEY on mainnet, and not instant: the seller checks every few minutes and delivers within the offer's turnaround. Without confirm=true it only previews (offer, cost, inputs, exact terms) and creates nothing. Inputs become the deal description's Key: value lines (url, words,...; validated locally). With confirm=true it creates the deal as buyer, waits for the seller's accept and returns the Lightning funding invoice; after paying, call escrow_fund with wait=true (that claims the payment into the escrow; funding stays pending until then). The seller delivers in the deal thread (escrow_messages); then release with escrow_approve. Call again to see where the demo deal stands (it resumes; fresh=true starts a new one)",
+    "arguments": [
+      {
+        "name": "offer",
+        "type": "string",
+        "desc": "offer id from GET /demo (default: the server's default, summary)"
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "desc": "summary: public https:// page to summarize"
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": "summary: pasted text instead of url"
+      },
+      {
+        "name": "words",
+        "type": "integer",
+        "desc": "summary 50-400 (default 200); research 300-1200"
+      },
+      {
+        "name": "focus",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "language",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "question",
+        "type": "string",
+        "desc": "research: the question"
+      },
+      {
+        "name": "scope",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "topic",
+        "type": "string",
+        "desc": "title topic (default: from url/question)"
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "must be true to create the real deal; omit to preview"
+      },
+      {
+        "name": "expectSats",
+        "type": "integer",
+        "desc": "the amount you previewed; refuses if the offer changed"
+      },
+      {
+        "name": "wait",
+        "type": "boolean",
+        "desc": "after payment: claim the funding and wait for the delivery"
+      },
+      {
+        "name": "fresh",
+        "type": "boolean",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "escrow_show",
+    "description": "Deal terms (what it is for), who accepted (signatures verified locally), evidence, awaiting / action_required_for / arbiterPolicy, and deadlineCountdown: the auto-refund deadline, disputeBy and secondsLeft with a note for your role (a seller who delivered to a silent buyer must dispute before disputeBy)",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "escrow_accept",
+    "description": "Accept the deal terms: verifies termsHash, the escrow address and the arbiter key locally, then signs termsHash with this agent's key (terms v2: the signature also covers the release rule, arbiter mode and deadline). Required from both parties before funding. A buyer is refused (UNSAFE_RULE) when the seller chose an automatic release rule (hash lock / webhook); pass allowCounterpartyRule=true only after the user explicitly agrees",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "allowCounterpartyRule",
+        "type": "boolean",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "escrow_evidence",
+    "description": "Add a signed, timestamped evidence note to a deal (seller: post the deliverable sha256 after delivering off-band; for the arbiter in a dispute)",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "desc": "alias of text"
+      },
+      {
+        "name": "sha256",
+        "type": "string",
+        "desc": "sha256 hex of a file/log"
+      },
+      {
+        "name": "file",
+        "type": "string",
+        "desc": "local file path: hashed locally (never uploaded); the sha256 is signed into the evidence and checked against the terms deliverableSha256"
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "escrow_messages",
+    "description": "Read a deal's support thread with the operator (signatures verified: operator against the deal's arbiter key). since = cursor from the last read",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "since",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "escrow_message",
+    "description": "Post a signed message to a deal's thread (ask the operator a question, explain a dispute, point to evidence). A dispute message does NOT open a dispute: use escrow_dispute for that",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "replyTo",
+        "type": "string",
+        "desc": "message id being answered"
+      }
+    ]
+  },
+  {
+    "name": "escrow_invites",
+    "description": "Deals created for this agent's key that wait for its accept (no id needed). all=true lists every deal this key is in; needs filters accept|fund|sign|any; state filters by deal state. Each item has awaiting, action_required_for and nextStep (newer servers also send deadlineCountdown for your role)",
+    "arguments": [
+      {
+        "name": "all",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
+        "name": "needs",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "state",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "escrow_inbox",
+    "description": "Unread messages across this agent's deals (operator replies, system notices)",
+    "arguments": []
+  },
+  {
+    "name": "escrow_status",
+    "description": "Escrow state, proposals, events, and deadlineCountdown (auto-refund deadline, disputeBy, secondsLeft, a note for your role)",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "escrow_fund",
+    "description": "Buyer: get the Lightning invoice that funds the escrow; after paying, call again with wait=true to lock the funds. Or rail=ark: direct Ark payment with no swap fee: returns the escrow address, the exact sats and the Arkade server (url + key); pay it in ONE payment from an Arkade wallet on that server (Bark / Second cannot pay it: use Lightning), then call with rail=ark, wait=true; smaller payments are not added up (status shows underpaid), a larger one is held whole. Switching rails after one was started needs switchRail=true (only if nothing was paid on the other rail). Refuses (DEADLINE_TOO_CLOSE) when the deal expires (deadline + 1 h grace) within an invoice lifetime for Lightning, or within 10 minutes for rail=ark; an expired deal reports state expired. Refuses (UNSAFE_RULE) a deal whose auto-release rule the seller chose (a hash lock it created, or a webhook rule): the seller could be paid without you. Pass allowCounterpartyRule=true only after the user explicitly agrees. A later call shows the same invoice again while it is unpaid, and says paymentReceived (do NOT pay again) once it is paid. If a claim fails (claimFailed, note) or times out at swap status serverfunded/clientredeeming, call again with resumeClaim=true: it finishes or retries the claim of the paid swap into the escrow and never creates an invoice.",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "rail",
+        "type": "string",
+        "desc": "lightning (default, Satora swap) or ark (direct payment from an Arkade wallet on this escrow's Arkade server)"
+      },
+      {
+        "name": "wait",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
+        "name": "allowCounterpartyRule",
+        "type": "boolean",
+        "desc": ""
+      },
+      {
+        "name": "switchRail",
+        "type": "boolean",
+        "desc": "confirm switching from the other rail: nothing was paid there"
+      },
+      {
+        "name": "resumeClaim",
+        "type": "boolean",
+        "desc": "lightning only: finish/retry the Arkade claim of the already paid funding swap; no new invoice"
+      }
+    ]
+  },
+  {
+    "name": "escrow_quote",
+    "description": "Payout quote: exact payout sats, recommendedInvoiceSats (create the BOLT11 for this) and the accepted min/maxInvoiceSats range",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "dest",
+        "type": "string",
+        "desc": "payee lightning address or any BOLT11 from the payee wallet, for the exact route-specific amount"
+      }
+    ]
+  },
+  {
+    "name": "escrow_limits",
+    "description": "Server limits: arkade (the Arkade server URL and key this escrow runs on; Ark addresses must come from an Arkade wallet there, not Bark/Second), minimum deal size for Lightning and Ark payouts, platform fee schedule (free up to 33000 sats, then 1% of the whole amount; ruled dispute +max(5%,330) from 3300), free tier, Satora min/max, Ark dust. With sats: upfront fee preview (platform fee, possible dispute fee, estimated swap cost, min/max deal)",
+    "arguments": [
+      {
+        "name": "sats",
+        "type": "integer",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "escrow_pending",
+    "description": "Pending payout proposals and their payout details (read-only). Without id: across all this agent's deals, with what each awaits and the co-sign command",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "escrow_approve",
+    "description": "Sign a pending proposal, or (as payee) propose with a payout: payoutInvoice (fresh BOLT11 for the quote's recommendedInvoiceSats). A co-signer passes no payout, payoutLnaddr, or payoutArk",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "with",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "preimage",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "payoutInvoice",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "payoutLnaddr",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "payoutArk",
+        "type": "string",
+        "desc": "Ark address from an Arkade wallet on this escrow's Arkade server (escrow_limits arkade.url; mainnet https://arkade.computer). Bark / Second Ark addresses will NOT work: use payoutInvoice or payoutLnaddr instead. Checked before anything is signed"
+      }
+    ]
+  },
+  {
+    "name": "escrow_dispute",
+    "description": "Open a dispute (arbiter auto-signing stops; admin rules)",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "escrow_refund",
+    "description": "Buyer: propose refund with a fresh payout (arbiter co-signs after deadline)",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "payoutInvoice",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "payoutLnaddr",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "payoutArk",
+        "type": "string",
+        "desc": "Ark address from an Arkade wallet on this escrow's Arkade server (escrow_limits arkade.url; mainnet https://arkade.computer). Bark / Second Ark addresses will NOT work: use payoutInvoice or payoutLnaddr instead. Checked before anything is signed"
+      }
+    ]
+  },
+  {
+    "name": "escrow_refund_payout",
+    "description": "Refund a failed Lightning payout swap to an Ark address (from an Arkade wallet on this escrow's Arkade server)",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "Ark address from an Arkade wallet on this escrow's Arkade server (escrow_limits arkade.url; mainnet https://arkade.computer). Bark / Second Ark addresses will NOT work: use payoutInvoice or payoutLnaddr instead. Checked before anything is signed"
+      }
+    ]
+  },
+  {
+    "name": "swap_quote",
+    "description": "Quote a swap of BTC through Satora: Lightning or Arkade into USDC or USDT, or Lightning ↔ Arkade. Fees depend on the route and are shown on the live quote (Fees depend on the route and are shown on the live quote. Lightning or Arkade to USDC or USDT (and back) is about 1% total (Satora ~0.5% + Agent Escrow 0.5%) plus network fee. Lightning to Arkade is about 0.65% total (Satora ~0.15% + Agent Escrow 0.5%) plus network fee. Arkade to Lightning is about 0.80% total (Satora ~0.30% + Agent Escrow 0.5%) plus network fee). Nothing is created",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "where the BTC comes from (default lightning)"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "stablecoin (default usdc), or lightning/arkade for a Lightning ↔ Arkade swap"
+      },
+      {
+        "name": "sats",
+        "type": "integer",
+        "desc": "sats to send (required for BTC → stablecoin and Lightning → Arkade; omit when an invoice pins an Arkade → Lightning payout)"
+      },
+      {
+        "name": "invoice",
+        "type": "string",
+        "desc": "from arkade to lightning: a BOLT11 invoice with an amount"
+      },
+      {
+        "name": "address",
+        "type": "string",
+        "desc": "payout destination: 0x address (to a stablecoin) or an Ark address on https://arkade.computer (to arkade)"
+      }
+    ]
+  },
+  {
+    "name": "swap_routes",
+    "description": "Every swap route Mark supports (BTC from Lightning or Arkade into USDC or USDT and back, plus Lightning ↔ Arkade) with Satora's live min/max sats. Fees depend on the route and are shown on the live quote. Lightning or Arkade to USDC or USDT (and back) is about 1% total (Satora ~0.5% + Agent Escrow 0.5%) plus network fee. Lightning to Arkade is about 0.65% total (Satora ~0.15% + Agent Escrow 0.5%) plus network fee. Arkade to Lightning is about 0.80% total (Satora ~0.30% + Agent Escrow 0.5%) plus network fee. When Satora can be reached each route also shows the live pair rate. Read-only: nothing is created. Limits are \"unavailable\" if Satora cannot be reached",
+    "arguments": []
+  },
+  {
+    "name": "swap_create",
+    "description": "Swap BTC through Satora: Lightning or Arkade into USDC or USDT, or Lightning ↔ Arkade. Fees are shown in the quote (Fees depend on the route and are shown on the live quote. Lightning or Arkade to USDC or USDT (and back) is about 1% total (Satora ~0.5% + Agent Escrow 0.5%) plus network fee. Lightning to Arkade is about 0.65% total (Satora ~0.15% + Agent Escrow 0.5%) plus network fee. Arkade to Lightning is about 0.80% total (Satora ~0.30% + Agent Escrow 0.5%) plus network fee). REAL MONEY on mainnet. Without confirm: preview only. With confirm: creates the swap and returns what to pay once (a Lightning invoice, an Ark address + exact sats, or both for the rail). After paying a Lightning- or Arkade-to-stablecoin swap, or a Lightning-to-Arkade swap, call swap_claim with wait=true. After paying an Arkade-to-Lightning swap, call swap_status (or swap_claim with wait=true) to wait for Satora to pay the invoice; there is nothing for you to claim. Non-custodial: the claim key stays in this Mark home",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "where the BTC comes from (default lightning)"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "stablecoin (default usdc), or lightning/arkade for a Lightning ↔ Arkade swap"
+      },
+      {
+        "name": "sats",
+        "type": "integer",
+        "desc": "sats to send (required for BTC → stablecoin and Lightning → Arkade; omit when an invoice pins an Arkade → Lightning payout)"
+      },
+      {
+        "name": "invoice",
+        "type": "string",
+        "desc": "from arkade to lightning: a BOLT11 invoice with an amount"
+      },
+      {
+        "name": "address",
+        "type": "string",
+        "desc": "payout destination: 0x address (to a stablecoin) or an Ark address on https://arkade.computer (to arkade)"
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "must be true to create the real swap; omit to preview"
+      }
+    ]
+  },
+  {
+    "name": "swap_to_btc_quote",
+    "description": "Quote a swap of USDC or USDT into BTC over Lightning or to an Ark address (Satora): what you send, the sats you receive, and the fees (about 1% total (Satora ~0.5% + Agent Escrow 0.5%) plus network fee; live rates are in the quote). Nothing is created",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "the stablecoin you send (USDC or USDT)"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "how the BTC is paid out (default lightning)"
+      },
+      {
+        "name": "amount",
+        "type": "string",
+        "desc": "to=arkade (or a Lightning quote without an invoice): token amount to send, like \"1.5\" (fees come out of it)"
+      },
+      {
+        "name": "invoice",
+        "type": "string",
+        "desc": "to=lightning: a BOLT11 invoice with an amount; Satora pays exactly it (required to create; no amount)"
+      },
+      {
+        "name": "address",
+        "type": "string",
+        "desc": "to=arkade: an Ark address from an Arkade wallet on https://arkade.computer (with amount). Lightning addresses are not supported"
+      }
+    ]
+  },
+  {
+    "name": "swap_to_btc_create",
+    "description": "Swap USDC or USDT into BTC over Lightning or to an Ark address (Satora; about 1% total (Satora ~0.5% + Agent Escrow 0.5%) plus network fee, shown in the quote). REAL MONEY. Gasless: no wallet or ETH needed. Without confirm: preview only. With confirm: creates the swap, checks it, and returns deposit.address, the exact amount and the token: send that once (one token transfer), then call swap_fund with wait=true. Never send twice",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "desc": "the stablecoin you send (USDC or USDT)"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "how the BTC is paid out (default lightning)"
+      },
+      {
+        "name": "amount",
+        "type": "string",
+        "desc": "to=arkade (or a Lightning quote without an invoice): token amount to send, like \"1.5\" (fees come out of it)"
+      },
+      {
+        "name": "invoice",
+        "type": "string",
+        "desc": "to=lightning: a BOLT11 invoice with an amount; Satora pays exactly it (required to create; no amount)"
+      },
+      {
+        "name": "address",
+        "type": "string",
+        "desc": "to=arkade: an Ark address from an Arkade wallet on https://arkade.computer (with amount). Lightning addresses are not supported"
+      },
+      {
+        "name": "confirm",
+        "type": "boolean",
+        "desc": "must be true to create the real swap; omit to preview"
+      }
+    ]
+  },
+  {
+    "name": "swap_fund",
+    "description": "Swap from a stablecoin: once the deposit is at its deposit address, sign the permits so Satora's relay locks it into the swap (gasless; at most once). wait=true: wait (up to 30 min) for the deposit, fund, then wait for the payout. Never asks for a second deposit",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "wait",
+        "type": "boolean",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "swap_status",
+    "description": "Status of a swap_create or swap_to_btc_create swap (read-only): the payout tx once claimed; for a swap from a stablecoin, the deposit seen so far and what to do next",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "swap_claim",
+    "description": "Claim a paid swap's stablecoins to the address set at create and return payoutTx, or a swap from a stablecoin's Ark payout (safe to repeat; never pays anything). wait=true: first wait (up to 15 min) until Satora funds its side. Never funds a swap from a stablecoin: use swap_fund for that",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "wait",
+        "type": "boolean",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "swap_refund",
+    "description": "Refund a swap that did not pay out. Arkade-funded: after its timelock, to `to`, an Ark address from an Arkade wallet on https://arkade.computer (Lightning swaps need no refund). From a stablecoin: omit `to`; the locked deposit goes back to the deposit address (gasless), then use swap_recover",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": ""
+      }
+    ]
+  },
+  {
+    "name": "swap_recover",
+    "description": "Swap from a stablecoin: send the stablecoins sitting at its deposit address (unfunded, failed or refunded swap) to your own 0x address. Needs a little ETH at the deposit address for gas (it says how much)",
+    "arguments": [
+      {
+        "name": "id",
+        "type": "string",
+        "desc": ""
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "desc": "your 0x address"
+      }
+    ]
+  }
+]
