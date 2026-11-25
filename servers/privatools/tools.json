@@ -1,0 +1,163 @@
+[
+  {
+    "name": "privatools_list_tools",
+    "description": "Search and filter PrivaTools file processing operations by keyword, category, or execution mode (sync/async). Progressive discovery step 1 before calling privatools_describe_tool. Full OpenAPI documentation: https://api.privatools.me/api/v1/openapi.json",
+    "arguments": [
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Optional keyword search across operation slugs, aliases, summaries, and categories (e.g. 'compress', 'merge', 'ocr', 'watermark')."
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Optional case-insensitive category filter (e.g. 'PDF processing', 'Image', 'Audio and video', 'Accessibility')."
+      },
+      {
+        "name": "mode",
+        "type": "string",
+        "desc": "Execution mode filter: 'all' (default), 'sync', or 'async'."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum number of operations to return (1-250, default 50)."
+      },
+      {
+        "name": "offset",
+        "type": "integer",
+        "desc": "Pagination offset (default 0)."
+      }
+    ]
+  },
+  {
+    "name": "privatools_describe_tool",
+    "description": "Inspect the exact HTTP method, upload fields, form/query parameters, constraints, cost, async support, input limits, and response media types for a PrivaTools operation slug or alias. Progressive discovery step 2 before calling privatools_run_tool. Full OpenAPI documentation: https://api.privatools.me/api/v1/openapi.json",
+    "arguments": [
+      {
+        "name": "operation",
+        "type": "string",
+        "desc": "Operation slug, path, or alias (e.g. 'compress', 'compress-pdf', 'merge', 'pdf-to-text', 'accessibility-check')."
+      }
+    ]
+  },
+  {
+    "name": "privatools_run_tool",
+    "description": "Execute any synchronous PrivaTools operation (PDF, image, office, audio/video, QR, OCR, accessibility, etc.). Supply file inputs via public https:// URLs (up to 500 MiB matching the website MAX_UPLOAD_MB; max 2 concurrent fetches per IP, 30s idle timeout, 180s total deadline) or inline base64 (up to 25 MiB decoded — JSON-RPC payload limit). JSON-returning operations return data inline; binary outputs (up to 500 MiB) return a short-lived download URL (15-minute TTL) and a resource_link block. Works anonymously without an account; optional X-API-Key header uses /api/v1 quota. Call privatools_describe_tool first for parameter details. Full OpenAPI documentation: https://api.privatools.me/api/v1/openapi.json",
+    "arguments": [
+      {
+        "name": "operation",
+        "type": "string",
+        "desc": "Operation slug, path, or alias (e.g. 'compress', 'merge', 'rotate', 'pdf-to-text', 'accessibility-check')."
+      },
+      {
+        "name": "file_url",
+        "type": "string",
+        "desc": "Single input file as a public https:// URL (SSRF-protected; up to 500 MiB, matching the website upload cap)."
+      },
+      {
+        "name": "file_urls",
+        "type": "array",
+        "desc": "Multiple input files as public https:// URLs, in order (up to 500 MiB each)."
+      },
+      {
+        "name": "file_base64",
+        "type": "string",
+        "desc": "Single input file encoded as inline base64 (max 25 MiB decoded JSON-RPC cap; use file_url for larger files up to 500 MiB)."
+      },
+      {
+        "name": "filename",
+        "type": "string",
+        "desc": "Optional filename with extension for file_base64 or file_url (e.g. 'report.pdf')."
+      },
+      {
+        "name": "files",
+        "type": "array",
+        "desc": "Multiple input files (url or base64) with optional per-file filename and multipart field name."
+      },
+      {
+        "name": "file_field",
+        "type": "string",
+        "desc": "Optional multipart upload field name override (auto-detected from schema when omitted)."
+      },
+      {
+        "name": "params",
+        "type": "object",
+        "desc": "Optional operation parameters (form fields, JSON body fields, or query params)."
+      }
+    ]
+  },
+  {
+    "name": "privatools_submit_job",
+    "description": "Submit an asynchronous background job (POST /api/v1/jobs) for supported heavy operations ('merge', 'compress', 'grayscale', 'pdf-to-text'). Requires an X-API-Key or Authorization: Bearer header. Accepts https:// URLs or base64 PDF inputs. Poll progress with privatools_job_status and clean up with privatools_delete_job. Full OpenAPI documentation: https://api.privatools.me/api/v1/openapi.json",
+    "arguments": [
+      {
+        "name": "operation",
+        "type": "string",
+        "desc": "Async operation slug (e.g. 'merge', 'compress', 'grayscale', 'pdf-to-text')."
+      },
+      {
+        "name": "file_url",
+        "type": "string",
+        "desc": "Single PDF input file as a public https:// URL."
+      },
+      {
+        "name": "file_urls",
+        "type": "array",
+        "desc": "Multiple PDF input files as public https:// URLs, in order."
+      },
+      {
+        "name": "file_base64",
+        "type": "string",
+        "desc": "Single PDF input file encoded as base64 (max 25 MiB decoded)."
+      },
+      {
+        "name": "filename",
+        "type": "string",
+        "desc": "Optional PDF filename (e.g. 'input.pdf')."
+      },
+      {
+        "name": "files",
+        "type": "array",
+        "desc": "Multiple PDF input files (url or base64) in order."
+      },
+      {
+        "name": "options",
+        "type": "object",
+        "desc": "Optional operation-specific options object (e.g. {'level': 'recommended'} for compress)."
+      },
+      {
+        "name": "idempotency_key",
+        "type": "string",
+        "desc": "Optional Idempotency-Key (1-128 visible ASCII chars) for safe retries. Auto-generated when omitted."
+      }
+    ]
+  },
+  {
+    "name": "privatools_job_status",
+    "description": "Read-only: poll an asynchronous job's status (GET /api/v1/jobs/{job_id}) and optionally retrieve a short-lived download link or JSON result once succeeded (include_result: true). Requires the submitting X-API-Key. Never deletes or cancels the job; use privatools_delete_job for deletion. Full OpenAPI documentation: https://api.privatools.me/api/v1/openapi.json",
+    "arguments": [
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "Job ID returned by privatools_submit_job."
+      },
+      {
+        "name": "include_result",
+        "type": "boolean",
+        "desc": "When true and the job has succeeded, also return a short-lived download_url + resource_link (or inline JSON for pdf-to-text)."
+      }
+    ]
+  },
+  {
+    "name": "privatools_delete_job",
+    "description": "Permanently delete a completed async job's server-side artifacts or cancel a queued/running job (DELETE /api/v1/jobs/{job_id}). Requires the submitting X-API-Key. Repeated deletion is idempotent. Full OpenAPI documentation: https://api.privatools.me/api/v1/openapi.json",
+    "arguments": [
+      {
+        "name": "job_id",
+        "type": "string",
+        "desc": "Job ID returned by privatools_submit_job."
+      }
+    ]
+  }
+]
