@@ -1,0 +1,160 @@
+[
+  {
+    "name": "analyze_db_health",
+    "description": "Analyzes database health. health_type is one check, a comma-separated list of them, or all (the default):\n- index - invalid, duplicate, bloated and rarely used indexes\n- connection - connection count and utilization\n- vacuum - transaction id wraparound and dead rows\n- sequence - sequences near their maximum value\n- replication - lag and slots\n- buffer - cache hit rates for indexes and tables\n- constraint - invalid constraints",
+    "arguments": [
+      {
+        "name": "health_type",
+        "type": "string",
+        "desc": "all, buffer, connection, constraint, index, replication, sequence, vacuum, or several separated by commas."
+      }
+    ]
+  },
+  {
+    "name": "analyze_locks",
+    "description": "Reports the lock waits in progress: which sessions are blocked, which sessions block them, through how many hops, on which lock and for how long. Read-only diagnosis of a single snapshot: it never cancels or terminates anything.",
+    "arguments": []
+  },
+  {
+    "name": "analyze_query_indexes",
+    "description": "Analyze a list of (up to 10) SQL queries and recommend optimal indexes",
+    "arguments": [
+      {
+        "name": "max_index_size_mb",
+        "type": "integer",
+        "desc": "Max index size in MB"
+      },
+      {
+        "name": "method",
+        "type": "string",
+        "desc": "Method to use for analysis"
+      },
+      {
+        "name": "queries",
+        "type": "array",
+        "desc": "List of Query strings to analyze"
+      }
+    ]
+  },
+  {
+    "name": "analyze_workload_indexes",
+    "description": "Analyze frequently executed queries in the database and recommend optimal indexes",
+    "arguments": [
+      {
+        "name": "max_index_size_mb",
+        "type": "integer",
+        "desc": "Max index size in MB"
+      },
+      {
+        "name": "method",
+        "type": "string",
+        "desc": "Method to use for analysis"
+      }
+    ]
+  },
+  {
+    "name": "execute_sql",
+    "description": "Execute a read-only SQL query. Long cells are shortened; pass max_cell to read more. The result is also capped at 32768 bytes, whatever max_rows says; the footer says so when it is cut.",
+    "arguments": [
+      {
+        "name": "sql",
+        "type": "string",
+        "desc": "SQL to run"
+      },
+      {
+        "name": "max_rows",
+        "type": "integer",
+        "desc": "Maximum rows to return (default 100, at most 1000)"
+      },
+      {
+        "name": "max_cell",
+        "type": "integer",
+        "desc": "Maximum characters per cell before it is shortened (default 200, at most 10000)"
+      }
+    ]
+  },
+  {
+    "name": "explain_query",
+    "description": "Explains the execution plan for a SQL query, showing how the database will execute it and provides detailed cost estimates. Queries with $n parameters get a generic plan.",
+    "arguments": [
+      {
+        "name": "analyze",
+        "type": "boolean",
+        "desc": "Runs the query and reports its real statistics instead of estimates. Slower."
+      },
+      {
+        "name": "hypothetical_indexes",
+        "type": "array",
+        "desc": "Indexes to simulate without creating them, e.g. [{\"table\":\"orders\",\"columns\":[\"user_id\",\"created_at\"]}]. using is the index method, btree by default."
+      },
+      {
+        "name": "sql",
+        "type": "string",
+        "desc": "SQL query to explain"
+      },
+      {
+        "name": "verbose",
+        "type": "boolean",
+        "desc": "When true, returns the full PostgreSQL text plan instead of the summary."
+      }
+    ]
+  },
+  {
+    "name": "get_object_details",
+    "description": "Show detailed information about a database object",
+    "arguments": [
+      {
+        "name": "schema_name",
+        "type": "string",
+        "desc": "Schema name"
+      },
+      {
+        "name": "object_name",
+        "type": "string",
+        "desc": "Object name"
+      },
+      {
+        "name": "object_type",
+        "type": "string",
+        "desc": "Object type"
+      }
+    ]
+  },
+  {
+    "name": "get_top_queries",
+    "description": "Reports the slowest or most resource-intensive queries using data from the 'pg_stat_statements' extension. Only statements of the current database are reported.",
+    "arguments": [
+      {
+        "name": "sort_by",
+        "type": "string",
+        "desc": "resources: statements over 5% of time, I/O or WAL, by total time. total_time: total execution time. mean_time: mean time per call."
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Number of queries to return"
+      }
+    ]
+  },
+  {
+    "name": "list_objects",
+    "description": "List objects in a schema",
+    "arguments": [
+      {
+        "name": "schema_name",
+        "type": "string",
+        "desc": "Schema name"
+      },
+      {
+        "name": "object_type",
+        "type": "string",
+        "desc": "Object type"
+      }
+    ]
+  },
+  {
+    "name": "list_schemas",
+    "description": "List all schemas in the database",
+    "arguments": []
+  }
+]
