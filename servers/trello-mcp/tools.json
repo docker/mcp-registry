@@ -418,7 +418,7 @@
   },
   {
     "name": "card_attachment_delete",
-    "description": "Use when removing a specific attachment from a card by attachment id.",
+    "description": "Permanently delete an attachment from a card, including Trello's stored file for uploads. This cannot be undone; use card_cover_set to clear a cover without deleting its attachment.",
     "arguments": [
       {
         "name": "attachmentId",
@@ -518,7 +518,7 @@
   },
   {
     "name": "card_checklist_delete",
-    "description": "Use when deleting an entire checklist from a Trello card.",
+    "description": "Permanently delete a checklist and all its items from a card. This cannot be undone; use card_checklist_item_delete to remove only one item.",
     "arguments": [
       {
         "name": "cardId",
@@ -580,7 +580,7 @@
   },
   {
     "name": "card_checklist_item_delete",
-    "description": "Use when deleting a checklist item from a Trello card checklist.",
+    "description": "Permanently delete one checklist item. This cannot be undone; use card_checklist_item_set_checked to mark completion while keeping the item.",
     "arguments": [
       {
         "name": "cardId",
@@ -759,7 +759,7 @@
   },
   {
     "name": "card_comment_add",
-    "description": "Use when adding a new comment to a Trello card; returns the created comment action.",
+    "description": "Add a new comment to a Trello card and return its comment action. Repeating the call creates another comment; use card_comment_update to edit an existing comment.",
     "arguments": [
       {
         "name": "cardId",
@@ -775,7 +775,7 @@
   },
   {
     "name": "card_comment_delete",
-    "description": "Use when deleting an existing Trello card comment by its comment action id.",
+    "description": "Permanently delete a card comment by its action id. This cannot be undone; use card_comment_update to edit the text instead.",
     "arguments": [
       {
         "name": "actionId",
@@ -882,7 +882,7 @@
   },
   {
     "name": "card_custom_field_clear",
-    "description": "Use when clearing one Trello card custom field value; Trello clears custom field items with an empty PUT body shape rather than DELETE.",
+    "description": "Clear one card's custom field value without deleting the board's field definition. Restoring it requires setting the previous value with card_custom_field_set.",
     "arguments": [
       {
         "name": "cardId",
@@ -909,7 +909,7 @@
   },
   {
     "name": "card_custom_field_set",
-    "description": "Use when setting or updating one Trello card custom field value. Use type-specific inputs: text, number string, ISO date, checkbox boolean, or list optionId.",
+    "description": "Set or replace one card custom field value, using the existing definition's type from custom_field_get. Use custom_field_options to find list option ids and card_custom_field_clear to remove a value.",
     "arguments": [
       {
         "name": "cardId",
@@ -924,7 +924,7 @@
       {
         "name": "type",
         "type": "string",
-        "desc": "Custom field type for the value being set."
+        "desc": "Match the existing field type. Requires text for text, number for number, date for date, checked for checkbox, or optionId for list; other value inputs are ignored."
       },
       {
         "name": "checked",
@@ -994,7 +994,7 @@
   },
   {
     "name": "card_get",
-    "description": "Use when you need the current details of one Trello card by id, short id, or URL before editing or summarizing it.",
+    "description": "Use when you need the current details of one Trello card by id, short link, or URL before editing or summarizing it.",
     "arguments": [
       {
         "name": "cardId",
@@ -1027,7 +1027,7 @@
   },
   {
     "name": "card_label_create_and_add",
-    "description": "Use when creating a new label on the card's board and applying it to the card in one Trello operation.",
+    "description": "Create a new board label and apply it to this card. Use card_label_add for an existing label; repeating this creation can create duplicates.",
     "arguments": [
       {
         "name": "cardId",
@@ -1270,7 +1270,7 @@
   },
   {
     "name": "label_delete",
-    "description": "Use only when the user explicitly asks to permanently delete a board label from Trello.",
+    "description": "Use only when explicitly asked to permanently delete a board label, removing it from every card using it. Use card_label_remove to unassign it from just one card while preserving the label.",
     "arguments": [
       {
         "name": "labelId",
@@ -1501,7 +1501,7 @@
   },
   {
     "name": "list_move_to_board",
-    "description": "Use when moving an existing Trello list to another board.",
+    "description": "Move an existing list and its cards to another board, changing who can access them. Use list_update to reorder within the current board.",
     "arguments": [
       {
         "name": "boardId",
@@ -1680,12 +1680,12 @@
   },
   {
     "name": "search",
-    "description": "Use when you need to find Trello cards, boards, members, or workspaces by natural language search terms.",
+    "description": "Search Trello and return grouped cards, boards, members, and workspaces visible to the token. Defaults to cards and boards; scope and limit results, and use cardsPage for card pagination. Use search_members for a focused member lookup.",
     "arguments": [
       {
         "name": "query",
         "type": "string",
-        "desc": "Natural language Trello search query."
+        "desc": "Trello search text, trimmed and sent directly to Trello. For search, use Trello operators such as is:open; for search_members, use a member name or username."
       },
       {
         "name": "boardFields",
@@ -1813,7 +1813,7 @@
       {
         "name": "query",
         "type": "string",
-        "desc": "Natural language Trello search query."
+        "desc": "Trello search text, trimmed and sent directly to Trello. For search, use Trello operators such as is:open; for search_members, use a member name or username."
       },
       {
         "name": "boardId",
