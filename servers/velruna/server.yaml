@@ -1,0 +1,54 @@
+name: velruna
+image: mcp/velruna
+type: server
+meta:
+  category: memory
+  tags:
+    - memory
+    - knowledge-base
+    - opensearch
+    - provenance
+about:
+  title: Velruna
+  description: Verified-fact memory for AI agents - facts with source, date, author and edit history, stored in OpenSearch.
+  icon: https://avatars.githubusercontent.com/u/5944801?v=4
+source:
+  project: https://github.com/NemoNobody/velruna
+  branch: v0.9.6
+  commit: 6cd53436411ae69b88d78418d29548a6aa88eb6c
+run:
+  command:
+    - mcp
+config:
+  description: Connect velruna to an OpenSearch store (velruna does not embed one)
+  secrets:
+    - name: velruna.opensearch_password
+      env: OPENSEARCH_PASSWORD
+      example: your-opensearch-password
+  env:
+    - name: OPENSEARCH_URL
+      example: http://host.docker.internal:9200
+      value: "{{velruna.opensearch_url}}"
+    - name: OPENSEARCH_USER
+      example: admin
+      value: "{{velruna.opensearch_user}}"
+    - name: OPENSEARCH_INSECURE_SKIP_VERIFY
+      example: "false"
+      value: "{{velruna.insecure_skip_verify}}"
+  parameters:
+    type: object
+    properties:
+      opensearch_url:
+        type: string
+      opensearch_user:
+        type: string
+        default: admin
+      insecure_skip_verify:
+        type: string
+        enum:
+          - "false"
+          - "true"
+        default: "false"
+    required:
+      - opensearch_url
+      - opensearch_user
