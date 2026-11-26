@@ -1,0 +1,40 @@
+name: overleaf
+image: mcp/overleaf
+type: server
+meta:
+  category: productivity
+  tags:
+    - overleaf
+    - latex
+    - research
+about:
+  title: Overleaf
+  description: Read, edit, and compile shared LaTeX projects locally. Git publishing checks for co-author conflicts. An optional session cookie enables tracked changes and review comments.
+  icon: https://raw.githubusercontent.com/yangzichao/mcp-server-overleaf/c1dd1e0f4c2f13f8a55423de89dfaad0e0a44fd2/plugins/overleaf/assets/icon.png
+source:
+  project: https://github.com/yangzichao/mcp-server-overleaf
+  commit: c1dd1e0f4c2f13f8a55423de89dfaad0e0a44fd2
+run:
+  volumes:
+    - mcp-overleaf-workspace:/home/node/.overleaf-mcp/projects
+config:
+  description: Configure one Overleaf project. Use a Git token for Git integration or a session cookie for editor and review tools.
+  secrets:
+    - name: overleaf.git_token
+      env: OVERLEAF_GIT_TOKEN
+      example: <OVERLEAF_GIT_TOKEN>
+    - name: overleaf.session_cookie
+      env: OVERLEAF_SESSION_COOKIE
+      example: <OVERLEAF_SESSION_COOKIE>
+  env:
+    - name: OVERLEAF_PROJECT_ID
+      example: https://www.overleaf.com/project/000000000000000000000000
+      value: "{{overleaf.project}}"
+  parameters:
+    type: object
+    properties:
+      project:
+        type: string
+        description: Overleaf project URL or 24-character project ID.
+    required:
+      - project
