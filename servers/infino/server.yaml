@@ -1,0 +1,88 @@
+name: infino
+image: mcp/infino
+type: server
+meta:
+  category: database
+  tags:
+    - database
+    - search
+    - vector
+    - hybrid-search
+    - rag
+    - agent-memory
+about:
+  title: Infino
+  description: Keyword, semantic, hybrid, and SQL retrieval for AI agents over plain Parquet, on a local volume, your own S3 or Azure bucket, or Infino Cloud. Local embeddings, no API key.
+  icon: https://avatars.githubusercontent.com/u/284537177?s=200&v=4
+source:
+  project: https://github.com/infino-ai/infino-mcp
+  commit: 48a0009d13ad0fce7f2770fe962deb4c175d30be
+run:
+  volumes:
+    - infino-data:/home/node/.infino
+config:
+  description: Choose where Infino keeps its tables. The default keeps them in a Docker volume that persists across sessions. For a bucket, set the URI to s3://... or az://... and add that store's credentials. For Infino Cloud, set it to https://<host>/<database> and add your API key.
+  secrets:
+    - name: infino.api_key
+      env: INFINO_API_KEY
+      example: inf_...
+      description: Infino Cloud API key. Needed only when the data URI is an https:// endpoint.
+      required: false
+    - name: infino.aws_secret_access_key
+      env: AWS_SECRET_ACCESS_KEY
+      example: YOUR_SECRET_ACCESS_KEY
+      description: Secret key for an s3:// bucket (AWS S3, Cloudflare R2, MinIO, Backblaze B2).
+      required: false
+    - name: infino.azure_storage_key
+      env: AZURE_STORAGE_KEY
+      example: YOUR_STORAGE_ACCOUNT_KEY
+      description: Account key for an az:// container.
+      required: false
+    - name: infino.embed_api_key
+      env: INFINO_MCP_EMBED_API_KEY
+      example: YOUR_EMBEDDINGS_API_KEY
+      description: Key for an OpenAI-compatible embeddings endpoint. Leave unset to embed locally.
+      required: false
+  env:
+    - name: INFINO_MCP_URI
+      example: /home/node/.infino/mcp
+      value: "{{infino.uri}}"
+    - name: AWS_ACCESS_KEY_ID
+      example: YOUR_ACCESS_KEY_ID
+      value: "{{infino.aws_access_key_id}}"
+    - name: AWS_REGION
+      example: us-east-1
+      value: "{{infino.aws_region}}"
+    - name: AWS_ENDPOINT_URL
+      example: https://<account>.r2.cloudflarestorage.com
+      value: "{{infino.aws_endpoint_url}}"
+    - name: AZURE_STORAGE_ACCOUNT
+      example: mystorageaccount
+      value: "{{infino.azure_storage_account}}"
+    - name: INFINO_MCP_EMBED_BASE_URL
+      example: https://api.openai.com/v1
+      value: "{{infino.embed_base_url}}"
+  parameters:
+    type: object
+    properties:
+      uri:
+        type: string
+        description: Data to serve. A path inside the container (the default is on the persistent volume), an s3:// or az:// bucket URI, or an Infino Cloud https://<host>/<database> endpoint.
+        default: /home/node/.infino/mcp
+      aws_access_key_id:
+        type: string
+        description: Access key ID for an s3:// bucket.
+      aws_region:
+        type: string
+        description: Region of the s3:// bucket.
+      aws_endpoint_url:
+        type: string
+        description: Endpoint for an S3-compatible store (R2, MinIO, B2). Leave unset for AWS S3.
+      azure_storage_account:
+        type: string
+        description: Storage account name for an az:// container.
+      embed_base_url:
+        type: string
+        description: Base URL of an OpenAI-compatible embeddings API, for tables embedded with a hosted model. Leave unset to embed locally.
+    required:
+      - uri
