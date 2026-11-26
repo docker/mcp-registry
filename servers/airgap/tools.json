@@ -1,0 +1,218 @@
+[
+  {
+    "name": "airgap_verify_pr",
+    "description": "Verify a GitHub pull request with prompt injection scanning, manifest supply-chain audit, SHA-pinned clone, build, and tests in a single microVM call",
+    "arguments": [
+      {
+        "name": "pr_url",
+        "type": "string",
+        "desc": "Full GitHub pull request URL",
+        "required": false
+      },
+      {
+        "name": "repo",
+        "type": "string",
+        "desc": "Repository as owner/repo",
+        "required": false
+      },
+      {
+        "name": "pr_number",
+        "type": "number",
+        "desc": "Pull request number",
+        "required": false
+      },
+      {
+        "name": "test_command",
+        "type": "string",
+        "desc": "Command to run in the checked-out PR",
+        "required": false
+      },
+      {
+        "name": "build_command",
+        "type": "string",
+        "desc": "Build command run before test_command",
+        "required": false
+      },
+      {
+        "name": "build_first",
+        "type": "boolean",
+        "desc": "Force the build script before tests",
+        "required": false
+      },
+      {
+        "name": "image",
+        "type": "string",
+        "desc": "Docker image for sandbox execution",
+        "required": false
+      },
+      {
+        "name": "timeout_secs",
+        "type": "number",
+        "desc": "Execution timeout in seconds",
+        "required": false
+      },
+      {
+        "name": "fail_on_supply_risk",
+        "type": "boolean",
+        "desc": "Block execution when the manifest audit flags high-risk changes",
+        "required": false
+      },
+      {
+        "name": "allow_install_scripts",
+        "type": "boolean",
+        "desc": "Allow package-manager lifecycle scripts inside the sandbox",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "airgap_verify_patch",
+    "description": "Test a local uncommitted patch against clean base files inside an isolated microVM sandbox",
+    "arguments": [
+      {
+        "name": "diff",
+        "type": "string",
+        "desc": "Unified diff to apply",
+        "required": true
+      },
+      {
+        "name": "test_command",
+        "type": "string",
+        "desc": "Command that runs the tests",
+        "required": true
+      },
+      {
+        "name": "files",
+        "type": "object",
+        "desc": "Clean base files snapshot as a path-to-content map",
+        "required": true
+      },
+      {
+        "name": "image",
+        "type": "string",
+        "desc": "Docker image for sandbox execution",
+        "required": false
+      },
+      {
+        "name": "timeout_secs",
+        "type": "number",
+        "desc": "Execution timeout in seconds",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "airgap_sandbox_run",
+    "description": "Execute arbitrary commands and tests inside a disposable Linux microVM sandbox with secret redaction",
+    "arguments": [
+      {
+        "name": "command",
+        "type": "string",
+        "desc": "Shell command to run in workspace",
+        "required": true
+      },
+      {
+        "name": "files",
+        "type": "object",
+        "desc": "Optional files to populate before command execution",
+        "required": false
+      },
+      {
+        "name": "image",
+        "type": "string",
+        "desc": "Docker image for sandbox execution",
+        "required": false
+      },
+      {
+        "name": "timeout_secs",
+        "type": "number",
+        "desc": "Execution timeout in seconds",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "airgap_scan_injection",
+    "description": "Scan untrusted external issue or pull request text for prompt injection attempts via GMI MaaS",
+    "arguments": [
+      {
+        "name": "text_content",
+        "type": "string",
+        "desc": "The untrusted text to classify for prompt injection",
+        "required": true
+      },
+      {
+        "name": "source_label",
+        "type": "string",
+        "desc": "Context label indicating where the text originated",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "airgap_redact_secrets",
+    "description": "Perform high-speed local regex and entropy scrubbing to redact credentials and tokens from text",
+    "arguments": [
+      {
+        "name": "raw_text",
+        "type": "string",
+        "desc": "Raw text, logs, diffs, or env dumps to redact locally",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "airgap_audit_supply",
+    "description": "Audit dependency manifests for lifecycle install hooks, malicious scripts, and unpinned sources",
+    "arguments": [
+      {
+        "name": "manifest_type",
+        "type": "string",
+        "desc": "Manifest ecosystem type: npm, python, or cargo",
+        "required": true
+      },
+      {
+        "name": "manifest_content",
+        "type": "string",
+        "desc": "Raw text content of the dependency manifest file",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "airgap_audit_repo",
+    "description": "Perform a multi-phase defensive security review of a repository snapshot",
+    "arguments": [
+      {
+        "name": "files",
+        "type": "object",
+        "desc": "Repository snapshot as a path-to-content map",
+        "required": true
+      },
+      {
+        "name": "image",
+        "type": "string",
+        "desc": "Optional base Docker image",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "airgap_configure",
+    "description": "Configure execution runtime defaults such as model and timeout",
+    "arguments": [
+      {
+        "name": "model",
+        "type": "string",
+        "desc": "Default GMI MaaS classification model",
+        "required": false
+      },
+      {
+        "name": "timeout_seconds",
+        "type": "number",
+        "desc": "Default execution timeout in seconds",
+        "required": false
+      }
+    ]
+  }
+]
