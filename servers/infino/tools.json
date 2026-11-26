@@ -1,0 +1,137 @@
+[
+  {
+    "name": "infino_list_tables",
+    "description": "List the tables in the connected catalog. Call this first to discover what is available to search or query."
+  },
+  {
+    "name": "infino_describe_table",
+    "description": "Return a table's column names and types, so you know which column to target and what fields each result row carries.",
+    "arguments": [
+      { "name": "table", "type": "string", "desc": "Table name (from infino_list_tables)." }
+    ]
+  },
+  {
+    "name": "infino_create_database",
+    "description": "Provision the database named in the connection. On Infino Cloud this registers the database; on a local path or bucket it is a no-op success. Idempotent."
+  },
+  {
+    "name": "infino_create_table",
+    "description": "Create a table from a {column: type} descriptor, with full-text (BM25) indexes and, with vector: true, an embedding column sized to the server's embedder and a cosine vector index.",
+    "arguments": [
+      { "name": "table", "type": "string", "desc": "Table name." },
+      { "name": "columns", "type": "object", "desc": "Columns as {name: type}: utf8, large_utf8, bool, int32, int64, float32, float64. large_utf8 for text to search; utf8 for a key, ids, and short labels." },
+      { "name": "fts", "type": "array", "items": { "type": "string" }, "desc": "Columns to full-text index. Default: every large_utf8 column.", "optional": true },
+      { "name": "vector", "type": "boolean", "desc": "Add an 'embedding' vector column sized to the server's embedder, with a cosine index. Default false.", "optional": true }
+    ]
+  },
+  {
+    "name": "infino_drop_table",
+    "description": "Drop a table from the catalog and, by default, delete its storage objects too. Irreversible.",
+    "arguments": [
+      { "name": "table", "type": "string", "desc": "Table to drop." },
+      { "name": "purge", "type": "boolean", "desc": "Also delete the table's storage objects. Default true; false only unregisters the name.", "optional": true }
+    ]
+  },
+  {
+    "name": "infino_semantic_search",
+    "description": "Find rows by meaning: embeds the query with a local model (no API key) and ranks the table's embedding column by vector similarity. The score is a distance (lower is closer). An optional keyword pre-filter restricts the ranking.",
+    "arguments": [
+      { "name": "table", "type": "string", "desc": "Table to search." },
+      { "name": "query", "type": "string", "desc": "Query text; embedded and matched by vector similarity." },
+      { "name": "k", "type": "integer", "desc": "Maximum results (default 10, at most 100).", "optional": true },
+      { "name": "column", "type": "string", "desc": "Text column to return with each hit; inferred if omitted.", "optional": true },
+      { "name": "vectorColumn", "type": "string", "desc": "Vector column to search; inferred if omitted.", "optional": true },
+      { "name": "columns", "type": "array", "items": { "type": "string" }, "desc": "Columns each hit returns, with full values. Defaults to the text column; _id and score are always included.", "optional": true },
+      { "name": "filter", "type": "object", "desc": "Pre-filter {column, query, mode?}: rank only among rows whose full-text column matches the query.", "optional": true }
+    ]
+  },
+  {
+    "name": "infino_keyword_search",
+    "description": "BM25 full-text search for literal terms: identifiers, error codes, product names, exact phrases. The score is a relevance (higher is better).",
+    "arguments": [
+      { "name": "table", "type": "string", "desc": "Table to search." },
+      { "name": "query", "type": "string", "desc": "Query terms, matched as literal tokens." },
+      { "name": "k", "type": "integer", "desc": "Maximum results to return (default 10, at most 100).", "optional": true },
+      { "name": "column", "type": "string", "desc": "Text column to search; inferred from the table schema when omitted.", "optional": true },
+      { "name": "mode", "type": "string", "desc": "Match any query token ('or', the default) or require every token ('and').", "optional": true },
+      { "name": "columns", "type": "array", "items": { "type": "string" }, "desc": "Columns each hit returns, with full values. Defaults to the searched column; _id and score are always included.", "optional": true }
+    ]
+  },
+  {
+    "name": "infino_hybrid_search",
+    "description": "Fused keyword and semantic search in one ranking pass: BM25 over a text column combined with vector similarity, so rows matching the literal terms and the meaning rank highest.",
+    "arguments": [
+      { "name": "table", "type": "string", "desc": "Table to search." },
+      { "name": "query", "type": "string", "desc": "Query text; matched as keyword terms and embedded for vector similarity." },
+      { "name": "k", "type": "integer", "desc": "Maximum results (default 10, at most 100).", "optional": true },
+      { "name": "column", "type": "string", "desc": "Text column for the keyword half; inferred if omitted.", "optional": true },
+      { "name": "vectorColumn", "type": "string", "desc": "Vector column for the semantic half; inferred if omitted.", "optional": true },
+      { "name": "mode", "type": "string", "desc": "Keyword half: match any query token ('or', the default) or require every token ('and').", "optional": true },
+      { "name": "columns", "type": "array", "items": { "type": "string" }, "desc": "Columns each hit returns, with full values. Defaults to the text column; _id and score are always included.", "optional": true }
+    ]
+  },
+  {
+    "name": "infino_token_match",
+    "description": "Unranked keyword filter: the set of rows whose text column contains the token(s).",
+    "arguments": [
+      { "name": "table", "type": "string", "desc": "Table to search." },
+      { "name": "query", "type": "string", "desc": "Token(s) to match." },
+      { "name": "column", "type": "string", "desc": "Text column to match; inferred if omitted.", "optional": true },
+      { "name": "mode", "type": "string", "desc": "Match any token ('or', the default) or every token ('and').", "optional": true },
+      { "name": "limit", "type": "integer", "desc": "Max rows to return (default 100, at most 1000).", "optional": true }
+    ]
+  },
+  {
+    "name": "infino_exact_match",
+    "description": "Unranked exact-equality filter over an indexed column: fetch rows whose column equals a tag, status, or id string.",
+    "arguments": [
+      { "name": "table", "type": "string", "desc": "Table to search." },
+      { "name": "value", "type": "string", "desc": "The exact value the column must equal." },
+      { "name": "column", "type": "string", "desc": "Column to match; inferred (first text column) if omitted.", "optional": true },
+      { "name": "limit", "type": "integer", "desc": "Max rows to return (default 100, at most 1000).", "optional": true }
+    ]
+  },
+  {
+    "name": "infino_count",
+    "description": "Count how many rows match a keyword query, without fetching or ranking them.",
+    "arguments": [
+      { "name": "table", "type": "string", "desc": "Table to search." },
+      { "name": "query", "type": "string", "desc": "Query terms, matched as literal tokens." },
+      { "name": "column", "type": "string", "desc": "Text column to search; inferred from the table schema when omitted.", "optional": true },
+      { "name": "mode", "type": "string", "desc": "Match any token ('or', the default) or every token ('and').", "optional": true }
+    ]
+  },
+  {
+    "name": "infino_sql",
+    "description": "SQL for counts, filters, joins, and aggregates. The engine's search functions (bm25_search, vector_search, hybrid_search, token_match, exact_match) are callable as table-valued relations, so one query can rank and aggregate. Any single statement, DDL and DML included.",
+    "arguments": [
+      { "name": "query", "type": "string", "desc": "A single SQL statement. May use search table functions and {{name}} vector placeholders." },
+      { "name": "embed", "type": "object", "desc": "Map of placeholder name to query text; each text is embedded and its vector substituted for {{name}} in the query.", "optional": true }
+    ]
+  },
+  {
+    "name": "infino_add_documents",
+    "description": "Append rows (JSON objects keyed by column name) to a table in one commit. Rows without a vector are embedded from the text column.",
+    "arguments": [
+      { "name": "table", "type": "string", "desc": "Table to append to." },
+      { "name": "documents", "type": "array", "items": { "type": "object" }, "desc": "Rows to append, as JSON objects keyed by column name." }
+    ]
+  },
+  {
+    "name": "infino_update_documents",
+    "description": "Replace the rows matching a SQL predicate with new documents, 1:1. Missing vectors are embedded. Requires durable storage.",
+    "arguments": [
+      { "name": "table", "type": "string", "desc": "Table to update." },
+      { "name": "predicate", "type": "string", "desc": "SQL predicate selecting the rows to replace, e.g. \"key = 'doc-1'\"." },
+      { "name": "documents", "type": "array", "items": { "type": "object" }, "desc": "Replacement rows; their count must equal the number of matched rows." }
+    ]
+  },
+  {
+    "name": "infino_delete_documents",
+    "description": "Delete the rows matching a SQL predicate. Requires durable storage.",
+    "arguments": [
+      { "name": "table", "type": "string", "desc": "Table to delete from." },
+      { "name": "predicate", "type": "string", "desc": "SQL predicate selecting the rows to delete, e.g. \"status = 'spam'\"." }
+    ]
+  }
+]
