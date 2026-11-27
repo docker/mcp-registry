@@ -9,14 +9,29 @@ meta:
     - localization
 about:
   title: Weydub Pro Subtitle Removal
-  description: Remove burned-in subtitles from a video with full-frame Pro processing and download a cleaned MP4. Preview settings locally before spending Weydub credits.
+  description: Remove burned-in subtitles using full-frame Pro. Try a short local MP4 without a key, or use your Weydub credits for a video URL.
   icon: https://raw.githubusercontent.com/JollyToday/GhostCut-auto_video_translation/df95675962fd34f5a76c44eb0397bcf688c66b4b/integrations/pro-removal-mcp/weydub-400.png
 source:
   project: https://github.com/JollyToday/GhostCut-auto_video_translation
-  commit: df95675962fd34f5a76c44eb0397bcf688c66b4b
+  commit: 56ba3bb797e7cb6cb6528ad835e9fd8a3b652370
   directory: integrations/pro-removal-mcp
+run:
+  command:
+    - "{{weydub-pro-removal.paths|volume-target|into}}"
+  volumes:
+    - "{{weydub-pro-removal.paths|volume|into}}"
 config:
-  description: Preview without credentials. For submission and result retrieval, use your own Weydub API account.
+  description: For a sponsored trial, select one dedicated writable clip folder containing input.mp4. Leave it empty for URL-based tools. Credentials are optional and used only for account-based jobs.
+  parameters:
+    type: object
+    properties:
+      paths:
+        type: array
+        description: One dedicated folder for input.mp4, the private receipt and cleaned.mp4.
+        items:
+          type: string
+        maxItems: 1
+        default: []
   secrets:
     - name: weydub-pro-removal.app_key
       env: WEYDUB_APP_KEY
