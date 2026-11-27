@@ -1,1 +1,1 @@
-Docs: https://hubris.pw/docs/integrations/mcp
+Docs: https://hubris.pro/docs/integrations/mcp
