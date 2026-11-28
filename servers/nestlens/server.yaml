@@ -1,0 +1,47 @@
+name: nestlens
+image: mcp/nestlens
+type: server
+meta:
+  category: monitoring
+  tags:
+    - nestjs
+    - nodejs
+    - typescript
+    - debugging
+    - monitoring
+    - observability
+about:
+  title: NestLens
+  description: Lets an AI agent read what NestLens recorded in a running NestJS application (requests, exceptions, logs, database queries, jobs, cache, GraphQL operations and more) through the tools that NestLens itself offers. Read-only by default; the tools that clear, prune, pause or tag data need write access to be turned on.
+  icon: https://nestlens-docs.vercel.app/img/nestlens-logo-400.png
+source:
+  project: https://github.com/mogretici/nestlens
+  commit: 00ae724155a32925ea0cd87e8419dd620b022961
+config:
+  description: Connect to the NestLens dashboard of a running NestJS application. The server runs in a container, where localhost is the container itself; to reach an application on your machine, use host.docker.internal.
+  secrets:
+    - name: nestlens.headers
+      env: NESTLENS_HEADERS
+      example: '{"Authorization":"Bearer <token>"}'
+      description: Extra HTTP headers sent with every request to NestLens, as a JSON object, for a dashboard behind authentication. Leave empty if NestLens needs none.
+      required: false
+  env:
+    - name: NESTLENS_URL
+      example: http://host.docker.internal:3000/nestlens
+      value: "{{nestlens.url}}"
+    - name: NESTLENS_MCP_ALLOW_WRITE
+      example: "false"
+      value: "{{nestlens.allow_write}}"
+  parameters:
+    type: object
+    properties:
+      url:
+        type: string
+        description: Where NestLens is mounted, including the dashboard path. For an application running on your machine, use http://host.docker.internal:<port>/nestlens.
+        default: http://host.docker.internal:3000/nestlens
+      allow_write:
+        type: boolean
+        description: Enable the tools that change data (clear, prune, pause, resolve, tags). Off by default.
+        default: false
+    required:
+      - url
