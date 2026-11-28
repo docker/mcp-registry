@@ -1,0 +1,2093 @@
+[
+  {
+    "name": "get_distribution_moat_score",
+    "description": "Rule-based 1 to 5 score of distribution defensibility, using only the acquisition channels you list and whether you have proprietary data or network effects. business_model is echoed back and does not change the score. It is a discussion aid built from Mode VC's published thesis, not a valuation, not an investment decision and not a prediction.",
+    "arguments": [
+      {
+        "name": "acquisition_channels",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Key distribution channels. Channels containing hardware_bundle, network_lockin, viral_loop, system_default or native_integration raise the score."
+      },
+      {
+        "name": "business_model",
+        "type": "string",
+        "desc": "Primary business model (echoed, not scored)"
+      },
+      {
+        "name": "product_name",
+        "type": "string",
+        "desc": "Name of the startup or product"
+      },
+      {
+        "name": "has_proprietary_data_or_network",
+        "type": "boolean",
+        "desc": "Does user activity generate compounding data or network lock-in?",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Distribution Moat Score",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_venture_chart_of_the_day",
+    "description": "Returns the most recent charts from Mode VC's Chart of the Day archive (one new chart per day, mostly AI model, adoption, developer-package and pricing data), newest first, each with its claim, takeaway, URL and cited sources.",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Number of recent charts. Default 3.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Latest Charts from the Mode VC Chart of the Day",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "search_charts",
+    "description": "Searches every chart in the Mode VC Chart of the Day archive by keyword over title, claim, takeaway and keywords. Returns claims, takeaways, canonical URLs, markdown endpoints and cited sources. The archive grows by one chart a day; the response states its current size.",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum charts to return. Default 10.",
+        "optional": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Search term, e.g. \"pricing\", \"claude\", \"inference\", \"sdk\"",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Search the Chart of the Day Archive",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_chart_data",
+    "description": "Returns one chart from the Chart of the Day archive: the data table behind it (rows as published), claim, takeaway, note and the sources it cites. Look up by slug or title. Data is as published on the chart page; follow source_urls for the original data.",
+    "arguments": [
+      {
+        "name": "slug",
+        "type": "string",
+        "desc": "Chart slug or title, e.g. \"pre-seed-valuation-dispersion\", \"ai-inference-cost-comparison\""
+      }
+    ],
+    "annotations": {
+      "title": "Get the Data Table and Sources for One Chart",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "search_investors",
+    "description": "Searches the Mode VC Investor Atlas, a directory of venture capital firms and their partners compiled from public information (counts are in the response). Filter by firm or partner name, sector, entry stage, and headquarters or location. Stage and check size are as reported by each firm where available; it does not hold portfolio companies or fund performance.",
+    "arguments": [
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum firms to return. Default 10.",
+        "optional": true
+      },
+      {
+        "name": "location",
+        "type": "string",
+        "desc": "Geographic hub, e.g. \"california\", \"new-york\", \"massachusetts\", \"toronto\", \"united-states\"",
+        "optional": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Firm or partner name, e.g. \"a16z\", \"Benchmark\", \"Marc Andreessen\", \"Khosla\"",
+        "optional": true
+      },
+      {
+        "name": "sector",
+        "type": "string",
+        "desc": "Sector slug, e.g. \"ai-and-data\", \"dev-tools-and-infra\", \"enterprise-software\", \"fintech\", \"crypto\", \"healthtech\", \"climate\", \"consumer\"",
+        "optional": true
+      },
+      {
+        "name": "stage",
+        "type": "string",
+        "desc": "Entry stage the firm reports investing at",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Search the Mode VC Investor Atlas",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_investor_details",
+    "description": "Returns one firm from the Investor Atlas: headquarters and locations, website and social links, latest fund as listed, reported entry stages, check size bands (lowest and highest the firm reports) and lead preference where known, sectors, up to 12 partner names (total partner count included), verified public pitch intake_form (when indexed), and a prefilled common_app_url. It does not include portfolio companies or investment theses.",
+    "arguments": [
+      {
+        "name": "slug_or_name",
+        "type": "string",
+        "desc": "Firm slug or name, e.g. \"andreessen-horowitz\", \"sequoia-capital\", \"accel\", \"406-ventures\""
+      }
+    ],
+    "annotations": {
+      "title": "Get One Firm Profile from the Investor Atlas",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_mode_vc_thesis_and_criteria",
+    "description": "Returns Mode VC's published investment parameters as stated on https://modevc.com/thesis: ticket size, geography focus, stage, core conviction and how to pitch.",
+    "annotations": {
+      "title": "Mode VC Investment Thesis and Criteria",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "calc_safe_dilution",
+    "description": "Models how stacked SAFEs convert at a priced round and what the founders keep, including the option pool top-up (pool in the pre-money or post-money). Same math as https://modevc.com/tools/safe-calculator. Illustrative model, not legal or tax advice.",
+    "arguments": [
+      {
+        "name": "existing_pool_pct",
+        "type": "number",
+        "desc": "Option pool already inside the initial shares, in percent. Web default 5.",
+        "optional": true
+      },
+      {
+        "name": "founder_split_pct",
+        "type": "number",
+        "desc": "Your share of the founder block, in percent. Web default 50.",
+        "optional": true
+      },
+      {
+        "name": "initial_shares",
+        "type": "number",
+        "desc": "Fully diluted shares before the SAFEs convert. Web default 10,000,000.",
+        "optional": true
+      },
+      {
+        "name": "pool_mode",
+        "type": "string",
+        "desc": "pre_money: the pool top-up dilutes founders and SAFEs only. post_money: everyone is diluted. Web default pre_money.",
+        "optional": true
+      },
+      {
+        "name": "priced_investment",
+        "type": "number",
+        "desc": "New money in the priced round in USD. Web default 4,000,000.",
+        "optional": true
+      },
+      {
+        "name": "priced_pre_money",
+        "type": "number",
+        "desc": "Priced round pre-money valuation in USD. Web default 16,000,000.",
+        "optional": true
+      },
+      {
+        "name": "safes",
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "desc": "The SAFEs to convert. Omit to use the web calculator example of two SAFEs.",
+        "optional": true
+      },
+      {
+        "name": "target_pool_pct",
+        "type": "number",
+        "desc": "Option pool size after the round, in percent. Web default 10.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "SAFE Conversion and Dilution Calculator",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "calc_83b_qsbs_delaware",
+    "description": "Computes the 83(b) filing deadline and tax on the grant, the federal tax saved by a QSBS (Section 1202) exclusion at a given sale price, and Delaware franchise tax under both methods. Federal tax only, top federal rates assumed, no state tax or AMT. Same math as https://modevc.com/tools/83b-qsbs-calculator. Illustrative model, not tax advice.",
+    "arguments": [
+      {
+        "name": "as_of_date",
+        "type": "string",
+        "desc": "Date used for the days-to-deadline count. Defaults to today (UTC).",
+        "optional": true
+      },
+      {
+        "name": "de_authorized_shares",
+        "type": "number",
+        "desc": "Delaware authorized shares. Web default 10,000,000.",
+        "optional": true
+      },
+      {
+        "name": "de_gross_assets",
+        "type": "number",
+        "desc": "Gross assets in USD for the assumed par value capital method. Web default 750,000.",
+        "optional": true
+      },
+      {
+        "name": "de_issued_shares",
+        "type": "number",
+        "desc": "Delaware issued shares. Web default 8,000,000.",
+        "optional": true
+      },
+      {
+        "name": "de_par_value",
+        "type": "number",
+        "desc": "Par value per share in USD. Web default 0.0001.",
+        "optional": true
+      },
+      {
+        "name": "exit_stake_value",
+        "type": "number",
+        "desc": "Sale value of your stake in USD for the QSBS comparison. Web default 15,000,000.",
+        "optional": true
+      },
+      {
+        "name": "fmv_per_share",
+        "type": "number",
+        "desc": "Fair market value per share at grant in USD. Web default 0.0001.",
+        "optional": true
+      },
+      {
+        "name": "future_fmv_per_share",
+        "type": "number",
+        "desc": "Assumed later fair market value per share, used for the tax a missed 83(b) would cost. Web default 2.50.",
+        "optional": true
+      },
+      {
+        "name": "grant_date",
+        "type": "string",
+        "desc": "Date the shares were transferred, YYYY-MM-DD. Defaults to today.",
+        "optional": true
+      },
+      {
+        "name": "hold_years",
+        "type": "number",
+        "desc": "Years the stock is held at sale. Web default 5.",
+        "optional": true
+      },
+      {
+        "name": "issue_date",
+        "type": "string",
+        "desc": "QSBS stock issue date, YYYY-MM-DD. Defaults to the grant date. Stock issued after 2025-07-04 gets the 50/75/100 percent steps at 3/4/5 years.",
+        "optional": true
+      },
+      {
+        "name": "price_paid_per_share",
+        "type": "number",
+        "desc": "Price paid per share in USD. Web default 0.0001.",
+        "optional": true
+      },
+      {
+        "name": "shares_granted",
+        "type": "number",
+        "desc": "Web default 4,000,000.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "83(b) Election, QSBS and Delaware Franchise Tax Calculator",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "calc_term_sheet_waterfall",
+    "description": "Splits the sale proceeds between one preferred class and common holders for a liquidation multiple and participation clause (non-participating, participating uncapped, participating capped at 3x). Returns the conversion point, a sensitivity table and the three standard structures side by side. Same math as https://modevc.com/tools/term-sheet-waterfall. Illustrative model: one preferred class, no seniority stack, no debt or fees.",
+    "arguments": [
+      {
+        "name": "exit_valuation",
+        "type": "number",
+        "desc": "Sale price in USD. Web default 45,000,000.",
+        "optional": true
+      },
+      {
+        "name": "liquidation_multiple",
+        "type": "number",
+        "desc": "Liquidation preference multiple. Web default 1.",
+        "optional": true
+      },
+      {
+        "name": "participation",
+        "type": "string",
+        "desc": "Participation clause. Web default non_participating.",
+        "optional": true
+      },
+      {
+        "name": "preferred_invested",
+        "type": "number",
+        "desc": "Total invested by the preferred class in USD. Web default 12,000,000.",
+        "optional": true
+      },
+      {
+        "name": "preferred_ownership_pct",
+        "type": "number",
+        "desc": "As-converted ownership of the preferred class, in percent (1 to 95). Web default 30.",
+        "optional": true
+      },
+      {
+        "name": "pro_rata_current_pct",
+        "type": "number",
+        "desc": "Your current ownership for the pro-rata check, in percent. Web default 10.",
+        "optional": true
+      },
+      {
+        "name": "pro_rata_next_round_size",
+        "type": "number",
+        "desc": "Next round size in USD for the pro-rata check. Web default 15,000,000.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Term Sheet Exit Waterfall Calculator",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "calc_burn_multiple_runway",
+    "description": "Projects cash month by month from current cash, revenue growth and expense growth: net burn, runway, the month cash hits zero, break-even month, default alive or dead, burn multiple, and the same with an expense cut. Same math as https://modevc.com/tools/burn-multiple-runway. Month 1 is the current month; the search runs 120 months.",
+    "arguments": [
+      {
+        "name": "as_of_date",
+        "type": "string",
+        "desc": "Date that month 1 falls in, YYYY-MM-DD. Defaults to today. Only used for calendar month labels.",
+        "optional": true
+      },
+      {
+        "name": "cash",
+        "type": "number",
+        "desc": "Cash in the bank in USD. Web default 2,400,000.",
+        "optional": true
+      },
+      {
+        "name": "expense_cut_pct",
+        "type": "number",
+        "desc": "Expense cut scenario in percent. Web default 15.",
+        "optional": true
+      },
+      {
+        "name": "expense_growth_pct",
+        "type": "number",
+        "desc": "Monthly expense growth in percent. Web default 2.",
+        "optional": true
+      },
+      {
+        "name": "monthly_expenses",
+        "type": "number",
+        "desc": "Current monthly expenses in USD. Web default 210,000.",
+        "optional": true
+      },
+      {
+        "name": "monthly_revenue",
+        "type": "number",
+        "desc": "Current monthly revenue (MRR) in USD. Web default 60,000.",
+        "optional": true
+      },
+      {
+        "name": "net_new_arr_override",
+        "type": "number",
+        "desc": "Net new ARR over the quarter in USD. Omit to compute it from revenue growth, as the web calculator does.",
+        "optional": true
+      },
+      {
+        "name": "quarterly_net_burn_override",
+        "type": "number",
+        "desc": "Net burn over the quarter in USD. Omit to use 3 times this month's net burn.",
+        "optional": true
+      },
+      {
+        "name": "revenue_growth_pct",
+        "type": "number",
+        "desc": "Monthly revenue growth in percent. Web default 8.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Burn Multiple and Runway Calculator",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "calc_saas_metrics",
+    "description": "Computes Rule of 40, net and gross revenue retention, SaaS magic number, CAC payback and spend per new customer from the numbers you give, with the public benchmark each is judged against. Leave a group of inputs out to get n/a for the metrics that need it. Same math as https://modevc.com/tools/saas-metrics-calculator.",
+    "arguments": [
+      {
+        "name": "arr_12_months_ago",
+        "type": "number",
+        "desc": "ARR 12 months ago in USD. Needed for growth and Rule of 40.",
+        "optional": true
+      },
+      {
+        "name": "arr_now",
+        "type": "number",
+        "desc": "ARR now in USD.",
+        "optional": true
+      },
+      {
+        "name": "cohort_churn",
+        "type": "number",
+        "desc": "Churned ARR from that group in USD.",
+        "optional": true
+      },
+      {
+        "name": "cohort_contraction",
+        "type": "number",
+        "desc": "Contraction (downgrades) ARR from that group in USD.",
+        "optional": true
+      },
+      {
+        "name": "cohort_expansion",
+        "type": "number",
+        "desc": "Expansion ARR from that group in USD.",
+        "optional": true
+      },
+      {
+        "name": "cohort_start_arr",
+        "type": "number",
+        "desc": "Starting ARR of one customer group 12 months ago, in USD. Needed for NRR and GRR.",
+        "optional": true
+      },
+      {
+        "name": "gross_margin_pct",
+        "type": "number",
+        "desc": "Gross margin in percent. For CAC payback.",
+        "optional": true
+      },
+      {
+        "name": "margin_kind",
+        "type": "string",
+        "desc": "Which margin margin_pct is. Web default FCF margin.",
+        "optional": true
+      },
+      {
+        "name": "margin_pct",
+        "type": "number",
+        "desc": "Profit margin in percent for the Rule of 40. Can be negative.",
+        "optional": true
+      },
+      {
+        "name": "new_customers",
+        "type": "number",
+        "desc": "New customers won. For spend per new customer.",
+        "optional": true
+      },
+      {
+        "name": "new_mrr",
+        "type": "number",
+        "desc": "New MRR added in USD. For CAC payback.",
+        "optional": true
+      },
+      {
+        "name": "revenue_last_quarter",
+        "type": "number",
+        "desc": "Revenue in the last quarter in USD. For the magic number.",
+        "optional": true
+      },
+      {
+        "name": "revenue_prior_quarter",
+        "type": "number",
+        "desc": "Revenue in the prior quarter in USD.",
+        "optional": true
+      },
+      {
+        "name": "sales_marketing_spend",
+        "type": "number",
+        "desc": "Sales and marketing spend in USD. Prior quarter for the magic number; the same figure drives CAC payback and spend per customer, as on the web calculator.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "SaaS Metrics Calculator (Rule of 40, NRR, GRR, Magic Number, CAC Payback)",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "calc_llm_inference_cost",
+    "description": "Estimates monthly LLM spend, cost per user and per request, prompt-cache savings, savings from routing a share of requests to a cheaper model, and gross margin against a target, for an AI product on any current Claude, GPT, Gemini, DeepSeek or Grok model at list price. Compares 9 common models. Same math and the same dated price file as https://modevc.com/tools/llm-inference-calculator.",
+    "arguments": [
+      {
+        "name": "cache_hit_pct",
+        "type": "number",
+        "desc": "Share of input tokens served from the prompt cache, in percent. Web default 40.",
+        "optional": true
+      },
+      {
+        "name": "input_tokens_per_request",
+        "type": "number",
+        "desc": "Web default 1,200.",
+        "optional": true
+      },
+      {
+        "name": "model",
+        "type": "string",
+        "desc": "Main model. Web default claude-sonnet-5-5.",
+        "optional": true
+      },
+      {
+        "name": "monthly_active_users",
+        "type": "number",
+        "desc": "Web default 5,000.",
+        "optional": true
+      },
+      {
+        "name": "output_tokens_per_request",
+        "type": "number",
+        "desc": "Include thinking tokens. Web default 400.",
+        "optional": true
+      },
+      {
+        "name": "price_per_user_usd",
+        "type": "number",
+        "desc": "Monthly revenue per user in USD. Web default 20.",
+        "optional": true
+      },
+      {
+        "name": "requests_per_user",
+        "type": "number",
+        "desc": "Requests per user per month. Web default 40.",
+        "optional": true
+      },
+      {
+        "name": "route_model",
+        "type": "string",
+        "desc": "Cheaper model for routed requests. Web default claude-haiku-5-5.",
+        "optional": true
+      },
+      {
+        "name": "route_share_pct",
+        "type": "number",
+        "desc": "Share of requests sent to the cheaper model, in percent. Web default 0.",
+        "optional": true
+      },
+      {
+        "name": "target_margin_pct",
+        "type": "number",
+        "desc": "Target gross margin after model costs, in percent. Web default 80.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "LLM Inference Cost and Gross Margin Calculator",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "calc_fundraising_readiness",
+    "description": "Scores diligence readiness from a weighted 12-item data room checklist (overall, Corporate and Legal, and each pillar), and computes runway and burn multiple from cash, burn and ARR growth. Same scoring as https://modevc.com/tools/fundraising-readiness. The investor-update email draft on that page is not included.",
+    "arguments": [
+      {
+        "name": "arr",
+        "type": "number",
+        "desc": "ARR in USD. Web default 780,000.",
+        "optional": true
+      },
+      {
+        "name": "cash",
+        "type": "number",
+        "desc": "Cash in the bank in USD. Web default 1,450,000.",
+        "optional": true
+      },
+      {
+        "name": "documents_ready",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "desc": "Checklist items that are ready. Omit to use the web calculator example (all except valuation_409a, retention_cohorts, architecture_and_security). Pass [] for none.",
+        "optional": true
+      },
+      {
+        "name": "mom_growth_pct",
+        "type": "number",
+        "desc": "Month over month ARR growth in percent. Web default 18.",
+        "optional": true
+      },
+      {
+        "name": "monthly_net_burn",
+        "type": "number",
+        "desc": "Monthly net burn in USD. Web default 65,000.",
+        "optional": true
+      },
+      {
+        "name": "raise_target",
+        "type": "number",
+        "desc": "Raise target in USD (echoed, not used in the score). Web default 3,500,000.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Fundraising Readiness: Data Room Score, Runway and Burn Multiple",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "calc_cofounder_equity",
+    "description": "Splits founder equity from weighted contribution scores (product and IP 40%, distribution 35%, commitment 25%) after the option pool and Founder Institute FAST advisor grants, and applies a heuristic SaaS and AI-native ARR multiple. Same math as https://modevc.com/tools/cofounder-equity-valuation. The multiple is a rule of thumb from the web page, not a market valuation. Illustrative, not legal advice.",
+    "arguments": [
+      {
+        "name": "arr",
+        "type": "number",
+        "desc": "ARR in USD. Web default 1,200,000.",
+        "optional": true
+      },
+      {
+        "name": "cofounders",
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "desc": "Each founder scored 0 to 100 on three axes. Omit to use the web calculator example of two founders.",
+        "optional": true
+      },
+      {
+        "name": "fast_stage",
+        "type": "string",
+        "desc": "Company stage for the FAST grant. Web default startup.",
+        "optional": true
+      },
+      {
+        "name": "fast_tier",
+        "type": "string",
+        "desc": "Advisor tier. Web default strategic.",
+        "optional": true
+      },
+      {
+        "name": "gross_margin_pct",
+        "type": "number",
+        "desc": "Gross margin in percent. Web default 76.",
+        "optional": true
+      },
+      {
+        "name": "growth_pct",
+        "type": "number",
+        "desc": "Year over year growth in percent. Web default 140.",
+        "optional": true
+      },
+      {
+        "name": "ndr_pct",
+        "type": "number",
+        "desc": "Net dollar retention in percent. Web default 122.",
+        "optional": true
+      },
+      {
+        "name": "num_advisors",
+        "type": "number",
+        "desc": "Number of FAST advisors. Web default 2.",
+        "optional": true
+      },
+      {
+        "name": "option_pool_pct",
+        "type": "number",
+        "desc": "Employee option pool reserve, in percent. Web default 10.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Cofounder Equity Split and ARR Multiple Calculator",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "calc_shopify_fundraising",
+    "description": "Compares Shopify Capital / revenue-based financing (factor fee, daily sales remittance rate, payback months, and effective annualized APR) against a Post-Money SAFE equity round for Shopify and commerce-tech founders, and returns matching venture capital criteria including Mode VC ($1M to $5M initial checks). Same math as https://modevc.com/tools/shopify-fundraising-calculator.",
+    "arguments": [
+      {
+        "name": "capital_needed_usd",
+        "type": "number",
+        "desc": "Target capital raise or advance amount in USD. Default 500,000.",
+        "optional": true
+      },
+      {
+        "name": "gross_margin_pct",
+        "type": "number",
+        "desc": "Gross margin percentage after COGS and fulfillment. Default 62.",
+        "optional": true
+      },
+      {
+        "name": "monthly_gmv_usd",
+        "type": "number",
+        "desc": "Current monthly Gross Merchandise Value (GMV) in USD. Default 180,000.",
+        "optional": true
+      },
+      {
+        "name": "rbf_factor_fee_pct",
+        "type": "number",
+        "desc": "Shopify Capital / RBF flat factor fee percentage (e.g. 11 for an 11% fixed fee). Default 11.",
+        "optional": true
+      },
+      {
+        "name": "rbf_remittance_pct",
+        "type": "number",
+        "desc": "Percentage of daily gross sales remitted until paid back. Default 15.",
+        "optional": true
+      },
+      {
+        "name": "safe_valuation_cap_usd",
+        "type": "number",
+        "desc": "Post-Money SAFE valuation cap in USD for equity comparison. Default 8,000,000.",
+        "optional": true
+      },
+      {
+        "name": "yoy_growth_pct",
+        "type": "number",
+        "desc": "Year-over-year revenue/GMV growth in percent. Default 120.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Shopify Merchant Fundraising: Shopify Capital RBF vs Seed SAFE Equity Calculator",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "calc_yc_safe_pro_rata",
+    "description": "Models YC post-money SAFE dilution, 1x or 2x pro rata side letter reserves in Series A, and MFN cap repricing risk. Same math as https://modevc.com/tools/yc-safe-pro-rata-side-letter-calculator.",
+    "arguments": [
+      {
+        "name": "later_lower_cap_usd",
+        "type": "number",
+        "desc": "Lowest subsequent SAFE cap in USD. Default 6000000.",
+        "optional": true
+      },
+      {
+        "name": "mfn_enabled",
+        "type": "boolean",
+        "desc": "True if MFN clause reprices to lower later cap. Default true.",
+        "optional": true
+      },
+      {
+        "name": "option_pool_pct",
+        "type": "number",
+        "desc": "Option pool refresh percent. Default 10.",
+        "optional": true
+      },
+      {
+        "name": "other_cap_usd",
+        "type": "number",
+        "desc": "Average cap of other SAFEs in USD. Default 8000000.",
+        "optional": true
+      },
+      {
+        "name": "other_safes_usd",
+        "type": "number",
+        "desc": "Other stacked SAFEs USD total. Default 400000.",
+        "optional": true
+      },
+      {
+        "name": "pro_rata_multiplier",
+        "type": "number",
+        "desc": "0 (none), 1 (standard 1x), or 2 (super pro rata). Default 1.",
+        "optional": true
+      },
+      {
+        "name": "safe_amount_usd",
+        "type": "number",
+        "desc": "This SAFE amount in USD. Default 100000.",
+        "optional": true
+      },
+      {
+        "name": "safe_cap_usd",
+        "type": "number",
+        "desc": "Post-money SAFE cap in USD. Default 8000000.",
+        "optional": true
+      },
+      {
+        "name": "series_a_pre_usd",
+        "type": "number",
+        "desc": "Series A pre-money in USD. Default 16000000.",
+        "optional": true
+      },
+      {
+        "name": "series_a_raise_usd",
+        "type": "number",
+        "desc": "Series A raise in USD. Default 4000000.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "YC SAFE Pro Rata & MFN Side Letter Dilution Calculator",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "calc_accelerator_deal_comparison",
+    "description": "Compares equity dilution, MFN uncapped SAFE mechanics, and cash runway across Y Combinator ($500K), Techstars ($220K), Speedrun, and Mode VC ($1M to $5M). Same math as https://modevc.com/tools/yc-accelerator-deal-comparator.",
+    "arguments": [
+      {
+        "name": "mode_check_usd",
+        "type": "number",
+        "desc": "Mode VC / angel check USD. Default 100000.",
+        "optional": true
+      },
+      {
+        "name": "monthly_burn_usd",
+        "type": "number",
+        "desc": "Monthly net burn USD. Default 35000.",
+        "optional": true
+      },
+      {
+        "name": "next_cap_usd",
+        "type": "number",
+        "desc": "Next Seed/SAFE cap USD driving MFN conversion. Default 10000000.",
+        "optional": true
+      },
+      {
+        "name": "seed_raise_usd",
+        "type": "number",
+        "desc": "Planned Seed equity round USD. Default 2000000.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "YC vs Techstars vs Speedrun vs Mode VC Deal Comparator",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "calc_delaware_incorporation_cost",
+    "description": "Compares Year-1 and 3-year Delaware C-Corp incorporation, registered agent, foreign qualification, and DE Assumed Par Value tax across Clerky, Stripe Atlas, Firstbase, and venture counsel. Same math as https://modevc.com/tools/delaware-c-corp-incorporation-cost-calculator.",
+    "arguments": [
+      {
+        "name": "foreign_qual",
+        "type": "string",
+        "desc": "Operating state foreign qualification. Default ca_ny.",
+        "optional": true
+      },
+      {
+        "name": "provider",
+        "type": "string",
+        "desc": "Formation provider. Default clerky_lifetime.",
+        "optional": true
+      },
+      {
+        "name": "seed_raise_usd",
+        "type": "number",
+        "desc": "Pre-seed raise USD for budget ratio. Default 100000.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Delaware C-Corp Incorporation & Legal Startup Cost Calculator",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "calc_founder_vesting_acceleration",
+    "description": "Models 4-year founder vesting, 1-year cliff forfeiture, and single- vs double-trigger M&A exit acceleration. Same math as https://modevc.com/tools/founder-vesting-acceleration-calculator.",
+    "arguments": [
+      {
+        "name": "cliff_months",
+        "type": "number",
+        "desc": "Cliff months. Default 12.",
+        "optional": true
+      },
+      {
+        "name": "exit_valuation_usd",
+        "type": "number",
+        "desc": "Hypothetical exit USD. Default 25000000.",
+        "optional": true
+      },
+      {
+        "name": "founder_shares",
+        "type": "integer",
+        "desc": "Founder stock grant. Default 4000000.",
+        "optional": true
+      },
+      {
+        "name": "months_served",
+        "type": "number",
+        "desc": "Months served before event. Default 18.",
+        "optional": true
+      },
+      {
+        "name": "total_company_shares",
+        "type": "integer",
+        "desc": "Fully diluted shares. Default 10000000.",
+        "optional": true
+      },
+      {
+        "name": "trigger_type",
+        "type": "string",
+        "desc": "Acceleration type. Default double_100.",
+        "optional": true
+      },
+      {
+        "name": "vest_months",
+        "type": "number",
+        "desc": "Total schedule months. Default 48.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Founder Vesting, Cliff & Acceleration Calculator",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "calc_startup_legal_diligence",
+    "description": "Audits C-Corp filings, 83(b) timeliness, PIIA IP assignments, cleanroom code provenance, cap table cleanliness, and OSS licensing before pitching VCs. Same math as https://modevc.com/tools/startup-legal-diligence-ip-calculator.",
+    "arguments": [
+      {
+        "name": "cap_table_clean",
+        "type": "boolean",
+        "desc": "No unrecorded side letters. Default true.",
+        "optional": true
+      },
+      {
+        "name": "cleanroom_ip",
+        "type": "boolean",
+        "desc": "Built off employer hours/equipment. Default true.",
+        "optional": true
+      },
+      {
+        "name": "entity_formed",
+        "type": "boolean",
+        "desc": "Delaware C-Corp formed with consents. Default true.",
+        "optional": true
+      },
+      {
+        "name": "no_gpl_conflict",
+        "type": "boolean",
+        "desc": "No copyleft GPL risk. Default true.",
+        "optional": true
+      },
+      {
+        "name": "piia_signed",
+        "type": "string",
+        "desc": "PIIA IP assignment coverage. Default all_signed.",
+        "optional": true
+      },
+      {
+        "name": "section_83b",
+        "type": "string",
+        "desc": "83(b) filing status. Default filed_all.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Startup Legal & IP Assignment Diligence Scorer",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "calc_ai_agent_pricing_margin",
+    "description": "Models AI agent revenue vs multi-turn LLM token spend, prompt caching, tool API fees, and Stripe fees across live GPT, Claude, Gemini, DeepSeek and Grok prices. Same math as https://modevc.com/tools/ai-agent-pricing-gross-margin-calculator.",
+    "arguments": [
+      {
+        "name": "active_customers",
+        "type": "integer",
+        "desc": "Paying customer accounts. Default 120.",
+        "optional": true
+      },
+      {
+        "name": "cache_hit_pct",
+        "type": "number",
+        "desc": "Prompt cache hit rate percent. Default 60.",
+        "optional": true
+      },
+      {
+        "name": "input_tokens_per_step",
+        "type": "number",
+        "desc": "Input tokens per step. Default 3500.",
+        "optional": true
+      },
+      {
+        "name": "model",
+        "type": "string",
+        "desc": "Model ID. Default claude-sonnet-5-5.",
+        "optional": true
+      },
+      {
+        "name": "output_tokens_per_step",
+        "type": "number",
+        "desc": "Output tokens per step. Default 450.",
+        "optional": true
+      },
+      {
+        "name": "price_per_task_usd",
+        "type": "number",
+        "desc": "Price per resolved task USD. Default 0.75.",
+        "optional": true
+      },
+      {
+        "name": "pricing_model",
+        "type": "string",
+        "desc": "Pricing model. Default outcome.",
+        "optional": true
+      },
+      {
+        "name": "steps_per_task",
+        "type": "integer",
+        "desc": "Average LLM reasoning turns per task. Default 6.",
+        "optional": true
+      },
+      {
+        "name": "tasks_per_customer_month",
+        "type": "number",
+        "desc": "Completed tasks per customer/month. Default 400.",
+        "optional": true
+      },
+      {
+        "name": "tool_cost_per_task_usd",
+        "type": "number",
+        "desc": "External browser/tool API cost per task USD. Default 0.02.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "AI Agent Outcome Pricing & Gross Margin Calculator",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "calc_claude_vs_chatgpt_cost",
+    "description": "Compares monthly team seats vs direct API spend across Anthropic Claude (Pro, Max, Team, Claude API) and OpenAI ChatGPT (Go, Plus, Pro, Business, GPT API) with prompt caching and 50% batch discount. Same math as https://modevc.com/tools/claude-vs-chatgpt-pricing-calculator.",
+    "arguments": [
+      {
+        "name": "batch_api",
+        "type": "boolean",
+        "desc": "Apply 50% async Batch API discount. Default false.",
+        "optional": true
+      },
+      {
+        "name": "billing_cycle",
+        "type": "string",
+        "desc": "Subscription billing cycle. Default annual.",
+        "optional": true
+      },
+      {
+        "name": "cache_hit_pct",
+        "type": "number",
+        "desc": "Prompt cache hit rate percent. Default 50.",
+        "optional": true
+      },
+      {
+        "name": "chatgpt_plan",
+        "type": "string",
+        "desc": "ChatGPT workspace plan. Default biz_std.",
+        "optional": true
+      },
+      {
+        "name": "claude_model",
+        "type": "string",
+        "desc": "Claude API model. Default claude-sonnet-5-5.",
+        "optional": true
+      },
+      {
+        "name": "claude_plan",
+        "type": "string",
+        "desc": "Claude workspace plan. Default team_std.",
+        "optional": true
+      },
+      {
+        "name": "input_tokens",
+        "type": "number",
+        "desc": "Average input tokens per request. Default 4000.",
+        "optional": true
+      },
+      {
+        "name": "openai_model",
+        "type": "string",
+        "desc": "OpenAI API model. Default gpt-6.1-sol.",
+        "optional": true
+      },
+      {
+        "name": "output_tokens",
+        "type": "number",
+        "desc": "Average output tokens per request. Default 800.",
+        "optional": true
+      },
+      {
+        "name": "requests_per_seat_day",
+        "type": "number",
+        "desc": "Prompts or API calls per user per workday (22 workdays/mo). Default 40.",
+        "optional": true
+      },
+      {
+        "name": "team_size",
+        "type": "integer",
+        "desc": "Active users or developers. Default 10.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Claude vs ChatGPT and OpenAI Pricing Calculator",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "calc_cagr_irr_xirr",
+    "description": "Computes Compound Annual Growth Rate (CAGR), timing-exact XIRR / IRR via Newton-Raphson across follow-on checks and interim distributions, Gross and Net MOIC, DPI, and Net LP XIRR after VC carry. Same math as https://modevc.com/tools/cagr-irr-xirr-calculator.",
+    "arguments": [
+      {
+        "name": "carry_pct",
+        "type": "number",
+        "desc": "Carried interest percent on positive net profit. Default 20.",
+        "optional": true
+      },
+      {
+        "name": "exit_value_usd",
+        "type": "number",
+        "desc": "Final exit proceeds or current NAV USD. Default 750000.",
+        "optional": true
+      },
+      {
+        "name": "follow_on_usd",
+        "type": "number",
+        "desc": "Optional follow-on investment USD. Default 50000.",
+        "optional": true
+      },
+      {
+        "name": "follow_on_year",
+        "type": "number",
+        "desc": "Years from start when follow-on occurs. Default 1.5.",
+        "optional": true
+      },
+      {
+        "name": "hold_years",
+        "type": "number",
+        "desc": "Total holding period in years. Default 5.",
+        "optional": true
+      },
+      {
+        "name": "initial_investment_usd",
+        "type": "number",
+        "desc": "Initial Year 0 investment USD. Default 100000.",
+        "optional": true
+      },
+      {
+        "name": "interim_distribution_usd",
+        "type": "number",
+        "desc": "Optional interim cash or secondary payout USD. Default 0.",
+        "optional": true
+      },
+      {
+        "name": "interim_year",
+        "type": "number",
+        "desc": "Years from start when interim distribution occurs. Default 3.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "CAGR, IRR and XIRR Investment Return Calculator",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "calc_paypal_stripe_fees",
+    "description": "Computes US PayPal Checkout (3.49% + $0.49), Card Fields (2.99% + $0.49), Pay Later, Micropayments, Invoicing Bank ACH (1% capped at $10), international +1.5% surcharges, reverse invoice gross-up, and Stripe comparison. Same math as https://modevc.com/tools/paypal-fee-calculator.",
+    "arguments": [
+      {
+        "name": "amount_usd",
+        "type": "number",
+        "desc": "Transaction or desired net amount USD. Default 1000.",
+        "optional": true
+      },
+      {
+        "name": "fx_spread_pct",
+        "type": "number",
+        "desc": "Currency conversion spread percent when international is true. Default 0.",
+        "optional": true
+      },
+      {
+        "name": "international",
+        "type": "boolean",
+        "desc": "True for cross-border international buyer (+1.50%). Default false.",
+        "optional": true
+      },
+      {
+        "name": "monthly_tx_count",
+        "type": "integer",
+        "desc": "Monthly transaction count for monthly/annual comparison vs Stripe. Default 50.",
+        "optional": true
+      },
+      {
+        "name": "payment_type",
+        "type": "string",
+        "desc": "PayPal payment rail. Default checkout.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "PayPal Fee Calculator and Invoice Gross-Up Estimator",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "calc_capital_gains_qsbs",
+    "description": "Computes 2026 IRS short-term and long-term federal capital gains tax brackets stacked over ordinary income, 3.8% NIIT surcharge, state capital gains tax, and Section 1202 QSBS exclusions. Same math as https://modevc.com/tools/capital-gains-and-qsbs-tax-calculator.",
+    "arguments": [
+      {
+        "name": "cost_basis_usd",
+        "type": "number",
+        "desc": "Original cost basis USD. Default 100000.",
+        "optional": true
+      },
+      {
+        "name": "filing_status",
+        "type": "string",
+        "desc": "IRS filing status (single or mfj). Default single.",
+        "optional": true
+      },
+      {
+        "name": "hold_years",
+        "type": "number",
+        "desc": "Asset holding period in years (>1 yr qualifies for LTCG). Default 3.",
+        "optional": true
+      },
+      {
+        "name": "ordinary_income_usd",
+        "type": "number",
+        "desc": "Taxable ordinary income USD. Default 180000.",
+        "optional": true
+      },
+      {
+        "name": "qsbs_regime",
+        "type": "string",
+        "desc": "Startup QSBS Section 1202 regime. Default none.",
+        "optional": true
+      },
+      {
+        "name": "sale_price_usd",
+        "type": "number",
+        "desc": "Total sale proceeds USD. Default 500000.",
+        "optional": true
+      },
+      {
+        "name": "state_tax_pct",
+        "type": "number",
+        "desc": "State capital gains tax rate percent. Default 5.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "2026 Capital Gains Tax and QSBS Calculator",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_new_raises",
+    "description": "Lists recent SEC Form D filings (private offerings notices, public EDGAR data) from venture funds and technology companies over the last few filing days, with issuer, amount sold, related persons and the EDGAR link for each filing. A Form D is a notice a company or fund files after it starts selling securities. It is not a funding announcement and the amounts are as self-reported. Returns \"dataset not available yet\" until Mode VC has loaded the data.",
+    "arguments": [
+      {
+        "name": "industry_group",
+        "type": "string",
+        "desc": "Industry group as filed, e.g. \"Pooled Investment Fund\", \"Other Technology\", \"Computers\".",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum filings to return. Default 25.",
+        "optional": true
+      },
+      {
+        "name": "min_amount_sold",
+        "type": "number",
+        "desc": "Only filings with at least this total amount sold, in USD.",
+        "optional": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Case-insensitive text to find in the issuer name or a related person name.",
+        "optional": true
+      },
+      {
+        "name": "state",
+        "type": "string",
+        "desc": "Two-letter issuer state, e.g. \"CA\".",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Recent SEC Form D Filings (Venture and Tech)",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_firm_filings",
+    "description": "For a firm in the Mode VC Investor Atlas, returns Form ADV adviser records matched to it, recent Form D filings that name its partners, and a recent-activity roll-up. Every match carries a tier: \"confirmed\" matches are the only verified links; \"probable\" and \"possible\" are weaker signals and are hidden unless include_weak_matches is true. Returns \"dataset not available yet\" until Mode VC has loaded the data.",
+    "arguments": [
+      {
+        "name": "firm",
+        "type": "string",
+        "desc": "Atlas firm slug or name, e.g. \"alumni-ventures\"."
+      },
+      {
+        "name": "include_weak_matches",
+        "type": "boolean",
+        "desc": "Also return probable and possible matches. Default false.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "SEC Filings Linked to a VC Firm",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_daily_ai_raises",
+    "description": "Mode VC's daily read on AI private markets: every new SEC Form D notice from one filing day that public evidence shows is an AI company, scored 1 to 5 with Mode VC's Distribution Moat rubric, with the evidence and reasoning behind each score (the company's own pricing, integrations, customers, docs and product pages when it links them), the status of each distribution lever, atlas partners named in the filing (confirmed and possible kept apart) and the firm's Form ADV private fund assets where that match is confirmed. Filings the evidence cannot settle are listed as unclear, not guessed. A Form D is a self-reported notice, not a closed round. Leave date empty for the latest day.",
+    "arguments": [
+      {
+        "name": "date",
+        "type": "string",
+        "desc": "Form D filing date, YYYY-MM-DD. Default: latest day available.",
+        "optional": true
+      },
+      {
+        "name": "include_unclear",
+        "type": "boolean",
+        "desc": "Also list filings the evidence could not settle. Default true.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum raises to return. Default 25.",
+        "optional": true
+      },
+      {
+        "name": "min_moat_score",
+        "type": "number",
+        "desc": "Only raises scoring at least this. Default 1 (all).",
+        "optional": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Filter raises by company name, issuer name, or reasoning keywords.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Daily AI Raises from SEC Form D, Scored for Distribution Moat",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_newly_closed_vc_funds",
+    "description": "Lists newly raised and closed venture capital funds verified from SEC EDGAR Form D Venture Capital Fund filings and primary firm announcements, matched against the Mode VC Investor Atlas. Read-only lookup returning fund name, firm slug, fund size USD, announced date, and source URLs.",
+    "arguments": [
+      {
+        "name": "atlas_only",
+        "type": "boolean",
+        "desc": "When true, return only funds matched to an Investor Atlas firm page.",
+        "optional": true
+      },
+      {
+        "name": "early_stage_only",
+        "type": "boolean",
+        "desc": "When true, filter to funds sized or focused on pre-seed, seed, or early-stage rounds.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum fund records to return (default 25).",
+        "optional": true
+      },
+      {
+        "name": "min_amount_usd",
+        "type": "number",
+        "desc": "Minimum reported fund close size in US dollars.",
+        "optional": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Case-insensitive text filter across firm name, fund name, or location.",
+        "optional": true
+      },
+      {
+        "name": "vintage",
+        "type": "integer",
+        "desc": "Alias for year (filter by vintage year, for example 2025 or 2026).",
+        "optional": true
+      },
+      {
+        "name": "year",
+        "type": "integer",
+        "desc": "Filter by closing or filing year (for example 2026).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Recently Closed Venture Capital Funds",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "match_vc_intake_forms",
+    "description": "Read-only Venture Common App previewer: searches verified HTTP-200 public VC pitch forms across the Investor Atlas, returns the top 5 preview matches (total_matches shows full count), and maps a structured founder pitch packet into tailored answers and prefill URLs. Does not submit or store PII. Call submit_and_match_common_app with consent=true after founder review to unlock all matched VC forms and save to Mode VC.",
+    "arguments": [
+      {
+        "name": "company",
+        "type": "string",
+        "desc": "Optional startup name.",
+        "optional": true
+      },
+      {
+        "name": "deck_url",
+        "type": "string",
+        "desc": "Optional deck link (http or https).",
+        "optional": true
+      },
+      {
+        "name": "distribution_moat",
+        "type": "string",
+        "desc": "Optional summary of distribution loop, channel advantage, or proprietary data.",
+        "optional": true
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "Optional founder contact email for prefilling matched forms.",
+        "optional": true
+      },
+      {
+        "name": "exclude_captcha",
+        "type": "boolean",
+        "desc": "When true, omit external forms that show a CAPTCHA widget.",
+        "optional": true
+      },
+      {
+        "name": "exclude_mode_vc",
+        "type": "boolean",
+        "desc": "When true, omit Mode VC from matched forms (useful after submitting directly to Mode VC).",
+        "optional": true
+      },
+      {
+        "name": "founder_linkedin",
+        "type": "string",
+        "desc": "Optional founder LinkedIn profile URL.",
+        "optional": true
+      },
+      {
+        "name": "founder_name",
+        "type": "string",
+        "desc": "Optional founder full name for prefilling matched forms.",
+        "optional": true
+      },
+      {
+        "name": "hq_location",
+        "type": "string",
+        "desc": "Optional startup headquarters city and country.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum matched VC forms to return (1 to 50, default 15).",
+        "optional": true
+      },
+      {
+        "name": "location",
+        "type": "string",
+        "desc": "Preferred investor location or HQ filter (for example california, new york, canada).",
+        "optional": true
+      },
+      {
+        "name": "mom_growth_pct",
+        "type": "number",
+        "desc": "Optional month-over-month growth rate percent.",
+        "optional": true
+      },
+      {
+        "name": "monthly_revenue_usd",
+        "type": "number",
+        "desc": "Optional current monthly revenue or GMV in US dollars.",
+        "optional": true
+      },
+      {
+        "name": "one_liner",
+        "type": "string",
+        "desc": "Optional concise description of product and customer (up to 300 characters).",
+        "optional": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Filter by specific VC firm name or slug.",
+        "optional": true
+      },
+      {
+        "name": "raising_usd",
+        "type": "number",
+        "desc": "Optional target round size in US dollars.",
+        "optional": true
+      },
+      {
+        "name": "sector",
+        "type": "string",
+        "desc": "Primary sector filter (for example ai, vertical ai, dev tools, enterprise software, fintech).",
+        "optional": true
+      },
+      {
+        "name": "stage",
+        "type": "string",
+        "desc": "Target fundraising stage filter.",
+        "optional": true
+      },
+      {
+        "name": "valuation_cap_usd",
+        "type": "number",
+        "desc": "Optional valuation cap or target pre-money valuation in US dollars.",
+        "optional": true
+      },
+      {
+        "name": "website_url",
+        "type": "string",
+        "desc": "Optional startup website URL (http or https).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Preview matched VC pitch forms and build a Common App packet",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "apply_to_mode_vc",
+    "description": "Sends a founder's structured Common App pitch packet to the Mode VC team (pre-seed and seed AI companies, checks of US$1M to $5M; see get_mode_vc_thesis_and_criteria). This tool shares data: the founder name, email, company, one-line pitch, stage, deck link and optional traction/raise metrics go to Mode VC. Show the founder exactly what will be sent and set consent to true only after they agree. When include_vc_matches is true (default), also returns matched public VC pitch forms from match_vc_intake_forms with prefill URLs so the founder can reuse the same packet elsewhere. Same intake as https://modevc.com/contact.",
+    "arguments": [
+      {
+        "name": "company",
+        "type": "string",
+        "desc": "Company name."
+      },
+      {
+        "name": "consent",
+        "type": "boolean",
+        "desc": "Must be true: the founder has seen these details and agreed to send them to Mode VC."
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "Email the founder wants Mode VC to reply to."
+      },
+      {
+        "name": "founder_name",
+        "type": "string",
+        "desc": "Founder's full name."
+      },
+      {
+        "name": "one_liner",
+        "type": "string",
+        "desc": "One sentence on what the company does and for whom (up to 300 characters)."
+      },
+      {
+        "name": "deck_url",
+        "type": "string",
+        "desc": "Optional link to the deck (http or https).",
+        "optional": true
+      },
+      {
+        "name": "distribution_moat",
+        "type": "string",
+        "desc": "Optional summary of distribution loop, channel advantage, or proprietary operational data.",
+        "optional": true
+      },
+      {
+        "name": "founder_linkedin",
+        "type": "string",
+        "desc": "Optional founder LinkedIn profile URL (http or https).",
+        "optional": true
+      },
+      {
+        "name": "hq_location",
+        "type": "string",
+        "desc": "Optional startup headquarters city and country.",
+        "optional": true
+      },
+      {
+        "name": "include_vc_matches",
+        "type": "boolean",
+        "desc": "Default true: return matched public VC pitch forms and Common App prefill answers alongside Mode VC confirmation.",
+        "optional": true
+      },
+      {
+        "name": "mom_growth_pct",
+        "type": "number",
+        "desc": "Optional month-over-month growth rate percent.",
+        "optional": true
+      },
+      {
+        "name": "monthly_revenue_usd",
+        "type": "number",
+        "desc": "Optional current monthly revenue or GMV in US dollars.",
+        "optional": true
+      },
+      {
+        "name": "office_hours",
+        "type": "boolean",
+        "desc": "True to ask for a 20-minute office hours call.",
+        "optional": true
+      },
+      {
+        "name": "raising_usd",
+        "type": "number",
+        "desc": "Optional target round size in US dollars.",
+        "optional": true
+      },
+      {
+        "name": "sector",
+        "type": "string",
+        "desc": "Optional primary sector (for example AI and data, Vertical AI, Dev tools, Enterprise software).",
+        "optional": true
+      },
+      {
+        "name": "stage",
+        "type": "string",
+        "desc": "Round being raised.",
+        "optional": true
+      },
+      {
+        "name": "valuation_cap_usd",
+        "type": "number",
+        "desc": "Optional valuation cap or target pre-money valuation in US dollars.",
+        "optional": true
+      },
+      {
+        "name": "website_url",
+        "type": "string",
+        "desc": "Optional company website URL (http or https).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Send a pitch to Mode VC",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "submit_and_match_common_app",
+    "description": "Saves the founder's structured Common App packet to Mode VC (pre-seed and seed AI startups, US$1M to $5M checks) and unlocks the full list of matched public VC pitch form URLs and prefill links (up to 50 forms, beyond the 5-form read-only preview). This tool shares founder contact and pitch details with Mode VC. Show the founder the payload and set consent to true only after they agree.",
+    "arguments": [
+      {
+        "name": "company",
+        "type": "string",
+        "desc": "Startup company name."
+      },
+      {
+        "name": "consent",
+        "type": "boolean",
+        "desc": "Must be true: founder reviewed the packet and agreed to submit it to Mode VC to unlock full VC matches."
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "desc": "Founder reply email address."
+      },
+      {
+        "name": "founder_name",
+        "type": "string",
+        "desc": "Founder full name."
+      },
+      {
+        "name": "one_liner",
+        "type": "string",
+        "desc": "One concise sentence describing product and customer (up to 300 characters)."
+      },
+      {
+        "name": "deck_url",
+        "type": "string",
+        "desc": "Optional deck URL (http or https).",
+        "optional": true
+      },
+      {
+        "name": "distribution_moat",
+        "type": "string",
+        "desc": "Optional summary of distribution loop, channel advantage, or proprietary data.",
+        "optional": true
+      },
+      {
+        "name": "founder_linkedin",
+        "type": "string",
+        "desc": "Optional founder LinkedIn URL (http or https).",
+        "optional": true
+      },
+      {
+        "name": "hq_location",
+        "type": "string",
+        "desc": "Optional startup headquarters city and country.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Maximum unlocked VC intake forms to return (default 50).",
+        "optional": true
+      },
+      {
+        "name": "mom_growth_pct",
+        "type": "number",
+        "desc": "Optional month-over-month growth rate percent.",
+        "optional": true
+      },
+      {
+        "name": "monthly_revenue_usd",
+        "type": "number",
+        "desc": "Optional current monthly revenue or GMV in US dollars.",
+        "optional": true
+      },
+      {
+        "name": "office_hours",
+        "type": "boolean",
+        "desc": "True to request a 20-minute office hours call with Mode VC.",
+        "optional": true
+      },
+      {
+        "name": "raising_usd",
+        "type": "number",
+        "desc": "Optional target round size in US dollars.",
+        "optional": true
+      },
+      {
+        "name": "sector",
+        "type": "string",
+        "desc": "Optional primary sector (for example AI and data, Vertical AI, Dev tools and infra, Fintech).",
+        "optional": true
+      },
+      {
+        "name": "stage",
+        "type": "string",
+        "desc": "Current fundraising stage.",
+        "optional": true
+      },
+      {
+        "name": "valuation_cap_usd",
+        "type": "number",
+        "desc": "Optional valuation cap or target pre-money valuation in US dollars.",
+        "optional": true
+      },
+      {
+        "name": "website_url",
+        "type": "string",
+        "desc": "Optional company website URL (http or https).",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Submit Venture Common App and Unlock All Matched VC Forms",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "search_vc_pass_reasons",
+    "description": "Search source-verified VC pass reasons, translations, fixes, and revisit days. Uncited rules stay hidden.",
+    "arguments": [
+      {
+        "name": "category",
+        "type": "string",
+        "desc": "Category.",
+        "optional": true
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "desc": "Max rules.",
+        "optional": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "desc": "Query.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Search Verified VC Pass Reasons",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "simulate_vc_response",
+    "description": "Deterministic application pre-flight simulator. Scores pass rules, checks Atlas stage/sector/geo fit for an optional firm, flags missing fields in needs_manual_check, and drafts a reply.",
+    "arguments": [
+      {
+        "name": "deck_url",
+        "type": "string",
+        "desc": "Deck URL.",
+        "optional": true
+      },
+      {
+        "name": "distribution_moat",
+        "type": "string",
+        "desc": "Distribution moat.",
+        "optional": true
+      },
+      {
+        "name": "firm",
+        "type": "string",
+        "desc": "Atlas firm slug.",
+        "optional": true
+      },
+      {
+        "name": "gross_margin_pct",
+        "type": "number",
+        "desc": "Gross margin %.",
+        "optional": true
+      },
+      {
+        "name": "has_technical_founder",
+        "type": "boolean",
+        "desc": "Tech cofounder.",
+        "optional": true
+      },
+      {
+        "name": "hq_location",
+        "type": "string",
+        "desc": "HQ location.",
+        "optional": true
+      },
+      {
+        "name": "mom_growth_pct",
+        "type": "number",
+        "desc": "MoM growth %.",
+        "optional": true
+      },
+      {
+        "name": "monthly_revenue_usd",
+        "type": "number",
+        "desc": "MRR USD alias.",
+        "optional": true
+      },
+      {
+        "name": "mrr_usd",
+        "type": "number",
+        "desc": "MRR USD.",
+        "optional": true
+      },
+      {
+        "name": "one_liner",
+        "type": "string",
+        "desc": "One-liner.",
+        "optional": true
+      },
+      {
+        "name": "raise_usd",
+        "type": "number",
+        "desc": "Raise USD.",
+        "optional": true
+      },
+      {
+        "name": "raising_usd",
+        "type": "number",
+        "desc": "Raise USD alias.",
+        "optional": true
+      },
+      {
+        "name": "sector",
+        "type": "string",
+        "desc": "Sector.",
+        "optional": true
+      },
+      {
+        "name": "stage",
+        "type": "string",
+        "desc": "Stage.",
+        "optional": true
+      },
+      {
+        "name": "team_size",
+        "type": "integer",
+        "desc": "Team size.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Simulate VC Response",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "handle_vc_rejection",
+    "description": "In-memory analyzer for VC pass notes. Maps phrasing to pass causes, reply advice, templates, revisit timing, and referral asks. Never stores text.",
+    "arguments": [
+      {
+        "name": "rejection_text",
+        "type": "string",
+        "desc": "Pass text (max 4000 chars; in memory)."
+      },
+      {
+        "name": "stage",
+        "type": "string",
+        "desc": "Stage.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Decode VC Rejection Email",
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "contribute_vc_rejection",
+    "description": "Consent-gated logging of anonymized VC pass stats (ts, firm, stage, sector, rejection_category, days_to_response, had_meeting). Never stores PII or raw text.",
+    "arguments": [
+      {
+        "name": "consent",
+        "type": "boolean",
+        "desc": "Requires true."
+      },
+      {
+        "name": "rejection_category",
+        "type": "string",
+        "desc": "Category."
+      },
+      {
+        "name": "stage",
+        "type": "string",
+        "desc": "Stage."
+      },
+      {
+        "name": "days_to_response",
+        "type": "integer",
+        "desc": "Days to reply.",
+        "optional": true
+      },
+      {
+        "name": "firm",
+        "type": "string",
+        "desc": "Firm slug.",
+        "optional": true
+      },
+      {
+        "name": "had_meeting",
+        "type": "boolean",
+        "desc": "Had meeting.",
+        "optional": true
+      },
+      {
+        "name": "sector",
+        "type": "string",
+        "desc": "Sector.",
+        "optional": true
+      }
+    ],
+    "annotations": {
+      "title": "Contribute Anonymous VC Pass Outcome",
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  }
+]
