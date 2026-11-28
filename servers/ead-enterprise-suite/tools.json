@@ -1,0 +1,392 @@
+{
+  "tools": [
+    {
+      "name": "evidence_create",
+      "description": "Registers a NEW evidence record in an evidence group. Requires: evidence_group_create → evidenceGroupId, case_file_create → caseFileId. Generate a UUID v4 for `id`; compute the file's SHA-256 hex hash BEFORE calling. INTERNAL (default custodyType): the response returns uploadFileUrl, a presigned S3 URL that expires. PUT the exact bytes to it with header x-amz-checksum-sha256 set to the raw SHA-256 digest in base64 (not the hex), verify with evidence_get/evidence_list, and ONLY THEN call evidence_seal. Or pass `fileUrl` (public HTTPS, no redirects, max 1 GiB) and this tool downloads and uploads the file for you. EXTERNAL registers the hash only; use it only on purpose. WARNING: {code:'EvidenceCreateError'} can come back even when the evidence WAS persisted: check evidence_list before retrying, and never reuse an id whose outcome is unknown."
+    },
+    {
+      "name": "evidence_list",
+      "description": "Lists all evidence records in a specific evidence group. Requires: caseFileId and evidenceGroupId. Returns paginated list with IDs, titles, status, and timestamps."
+    },
+    {
+      "name": "evidence_seal",
+      "description": "Seals (closes) an evidence group. Requires: caseFileId, evidenceGroupId, and every INTERNAL evidence in the group already uploaded and verified (evidence_get/evidence_list). Set evidencesCount to the number of evidences in the group. ASYNC: the group goes OPEN → CLOSING → CLOSED; poll evidence_group_list until CLOSED, then use dossier_group_certify or dossier_evidence_link."
+    },
+    {
+      "name": "evidence_get",
+      "description": "Retrieves a specific evidence record. Requires: evidence_create → evidenceId, evidence_group_create → evidenceGroupId, case_file_create → caseFileId. Returns status (COMPLETED, IN_PROCESS or ERROR), hash, and tspTimestamp when certified."
+    },
+    {
+      "name": "evidence_group_create",
+      "description": "Creates an evidence group inside a case file. Requires: case_file_create → caseFileId. Generate a UUID v4 for `id`. Set evidenceType to FILE, PHOTO, VIDEO, or WEB_PLUGIN. Returns evidenceGroupId. One group can contain multiple evidence records."
+    },
+    {
+      "name": "evidence_group_list",
+      "description": "Lists all evidence groups in a case file with their current status (OPEN, CLOSING, CLOSED). Use to find an existing group or check which groups are ready for sealing. Requires: caseFileId."
+    },
+    {
+      "name": "evidence_group_get",
+      "description": "Reads one evidence group: name, description, type, status (OPEN, CLOSING or CLOSED), evidenceStats and who created it. Requires: case_file_create → caseFileId and evidence_group_create → evidenceGroupId, passed as id. Use it to check whether a group is already sealed before linking it to a dossier or before trying evidence_group_delete."
+    },
+    {
+      "name": "evidence_group_update",
+      "description": "Renames an evidence group or changes its description. Requires: case_file_create → caseFileId, evidence_group_create → evidenceGroupId passed as id, and name (required even when unchanged); description is optional. Returns no body; confirm with evidence_group_get."
+    },
+    {
+      "name": "evidence_group_delete",
+      "description": "Deletes (discards) an evidence group. Irreversible. The platform refuses it when the group is CLOSING or already discarded, when the group is OPEN and any of its evidences is COMPLETED, and when the group is CLOSED (sealed) and holds no evidence at all or any evidence other than capture-metadata records: in practice neither a sealed group with real evidence nor an empty sealed group can be deleted. When it succeeds, the group's evidences go with it. Requires: case_file_create → caseFileId and evidence_group_create → evidenceGroupId, passed as id. Returns no body."
+    },
+    {
+      "name": "evidence_download_url",
+      "description": "Returns a download URL for the file of one evidence, in the field downloadFileUrl. Requires: case_file_create → caseFileId, evidence_group_create → evidenceGroupId, and evidence_create → evidenceId passed as id; the evidence must belong to that case file. Use it to hand the certified file back to your user."
+    },
+    {
+      "name": "evidence_update",
+      "description": "Changes the title of one evidence, or its relevant flag. Evidences are created relevant (true); set relevant=false to leave one out of dossier_group_certify called without evidenceIds, which certifies only the group's relevant evidences. Requires: case_file_create → caseFileId, evidence_group_create → evidenceGroupId, and evidence_create → evidenceId passed as id; title and relevant are both optional. Returns no body; confirm with evidence_get, which shows relevant."
+    },
+    {
+      "name": "evidence_delete",
+      "description": "Deletes one evidence (a logical delete). Irreversible from the MCP. The platform allows it only when the evidence is COMPLETED, is still waiting for its file (INTERNAL custody, bytes not uploaded yet), or a required timestamp ended in ERROR; it refuses while the evidence is being processed and when it is under, or entering, qualified archiving. Requires: case_file_create → caseFileId, evidence_group_create → evidenceGroupId, and evidence_create → evidenceId passed as id. Returns no body."
+    },
+    {
+      "name": "dossier_create",
+      "description": "Creates a DRAFT dossier, whose certificate (a PDF) covers the evidences you link to it. Requires: case_file_create → caseFileId. Generate a UUID v4 for `id`: the API returns no body, so that `id` IS the dossierId. Then link evidence with dossier_evidence_link (every linked evidence must be COMPLETED; the API does not require its group to be sealed, but sealing it first (evidence_seal) is advised) and certify with dossier_certify. For one evidence group, dossier_group_certify does all three in one call."
+    },
+    {
+      "name": "dossier_update",
+      "description": "Updates the metadata of an existing dossier. Requires: dossier_create → dossierId, caseFileId. Only available while dossier is in DRAFT status."
+    },
+    {
+      "name": "dossier_certify",
+      "description": "Certifies a DRAFT dossier, generating its certificate (403 if not DRAFT; also 403 if you are not the dossier's owner or lack the editor role on the case file). Requires: dossierId, caseFileId, and at least one evidence linked with dossier_evidence_link, all COMPLETED and no more than the platform's maximum, else 409. ASYNC: DRAFT → CERTIFYING → CERTIFIED, or back to DRAFT if certification fails (then call it again); poll dossier_get until CERTIFIED, then download with dossier_document_url. For one evidence group, dossier_group_certify creates and certifies in one call."
+    },
+    {
+      "name": "dossier_list",
+      "description": "Lists all dossiers in a case file. Requires: caseFileId. Returns paginated list with IDs, names, status, and creation dates. Use to monitor certification progress — poll until status: CERTIFIED."
+    },
+    {
+      "name": "dossier_list_by_user",
+      "description": "Lists every dossier belonging to a user, across all of their case files. Requires: userId (from session_login or session_info). Use this when you do not know which case file a dossier is in; use dossier_list when you already have a caseFileId. Supports filter, order and page. Returns { data, meta.totalElements }."
+    },
+    {
+      "name": "dossier_get",
+      "description": "Retrieves full details of a specific dossier including status, linked evidence, and download URLs. Requires: caseFileId and dossierId."
+    },
+    {
+      "name": "dossier_template_list",
+      "description": "Lists available dossier templates. No prerequisites. Returns template IDs and their translations per language. Use the returned id as dossierTemplateId in dossier_create."
+    },
+    {
+      "name": "dossier_preview",
+      "description": "Returns an HTML preview URL of a dossier before certification. Requires: caseFileId and dossierId."
+    },
+    {
+      "name": "dossier_document_url",
+      "description": "Returns the download URL for the certified dossier PDF. Requires: dossier_certify (CERTIFIED status), caseFileId, dossierId."
+    },
+    {
+      "name": "dossier_package_url",
+      "description": "Returns the download URL for the full dossier package (PDF + evidence files). Requires: dossier_certify (CERTIFIED status), caseFileId, dossierId."
+    },
+    {
+      "name": "dossier_visibility",
+      "description": "Updates the visibility (public/private) of a certified dossier. Requires: dossier_certify (CERTIFIED status), caseFileId, dossierId."
+    },
+    {
+      "name": "dossier_delete",
+      "description": "Deletes a dossier. Available in DRAFT status (to discard before certification) or in CERTIFIED status (to permanently remove the certified dossier). Irreversible. Requires: caseFileId and dossierId."
+    },
+    {
+      "name": "dossier_group_certify",
+      "description": "Creates AND certifies a dossier from ONE evidence group in one call (express path). Requires: case_file_create → caseFileId, evidence_group_create → evidenceGroupId. Generate a UUID v4 for `id`: the API returns no body, so that `id` IS the dossierId. Without evidenceIds it certifies the group's relevant evidences: evidences are created relevant, so all of them unless evidence_update set relevant=false. Only COMPLETED evidences are certified: any other (still processing, or an id not in the group) is left out without an error, and it answers 409 only if none remains, so wait until every evidence is COMPLETED. The API does not require the group to be sealed, but sealing it first (evidence_seal) is advised. The dossier is then CERTIFYING: poll dossier_get until CERTIFIED. On this deployment pass modelId, an editable template from dossier_template_list (403 without it), and the certificate embeds the evidence files as attachments. For several groups use dossier_create, dossier_evidence_link and dossier_certify."
+    },
+    {
+      "name": "dossier_evidence_link",
+      "description": "Links evidence to a DRAFT dossier. Requires: dossier_create → dossierId, caseFileId. caseFileToLinkId is the case file holding the evidence (often caseFileId); call once per such case file. Every id in `ids` must be evidence of that case file (else 403; also 403 if you are not the dossier's owner or lack the editor role on the case file); already-linked ids are skipped. Certifying needs every linked evidence COMPLETED: dossier_evidence_list_to_link lists those. The API does not require the evidence group to be sealed, but sealing it first (evidence_seal) is advised. Then call dossier_certify. For one evidence group, dossier_group_certify creates and certifies in one call."
+    },
+    {
+      "name": "dossier_evidence_list_to_link",
+      "description": "Lists the evidences that can be linked to a dossier: COMPLETED evidences of the case file (capture-metadata records excluded), whatever their group's status; already-linked ones come back flagged as linked. Requires: caseFileId and dossierId."
+    },
+    {
+      "name": "dossier_evidence_list",
+      "description": "Lists the evidence items linked to ONE evidence group of a dossier. Requires: caseFileId, dossierId AND dossierEvidenceGroupId — all three are mandatory. For every evidence item in the dossier regardless of group, use dossier_evidence_list_by_dossier instead. Supports filter, order and page."
+    },
+    {
+      "name": "dossier_evidence_list_by_dossier",
+      "description": "Lists every evidence item linked to a dossier, across all of its evidence groups. Requires: caseFileId and dossierId. This is the dossier-wide view; dossier_evidence_list is the narrower per-group one and additionally needs a dossierEvidenceGroupId. Supports filter, order and page. Returns { data, meta.totalElements }."
+    },
+    {
+      "name": "dossier_evidence_get",
+      "description": "Retrieves details of a specific evidence item linked to a dossier. Requires: caseFileId, dossierId, evidenceId."
+    },
+    {
+      "name": "dossier_evidence_delete",
+      "description": "Removes an evidence item from a dossier. Only available while dossier is in DRAFT status. Requires: caseFileId, dossierId, evidenceId."
+    },
+    {
+      "name": "notification_document_add",
+      "description": "Attaches a document to a notification. Two steps: this call registers the file and returns { url }, a presigned upload URL, and you then PUT the raw bytes to that URL with an x-amz-checksum-sha256 header. Generate a UUID v4 for `id`, and compute the file's SHA-256 hex hash BEFORE calling — it goes in `hash`. ORDER MATTERS AND GETTING IT WRONG FAILS THE SEND: add every document BEFORE adding recipients, and wait until each document reaches READY_TO_SEND (poll notification_document_list; roughly 8 seconds) before calling notification_request_send. Attaching after recipients, or sending while a document is still PENDING, returns 409/404 NOTIFICATION_NOT_FOUND. The maximum number of attachments is a per-subscription setting rather than a fixed API limit, so do not assume a number. Attachments can be bundled into the delivery certificate — see notification_certificate_package_url."
+    },
+    {
+      "name": "notification_request_create",
+      "description": "Creates a certified notification request. Requires: case_file_create → caseFileId. Generate a UUID v4 for `id`. Set language to en_GB or es_ES. Returns notificationRequestId. Add at least one receiver with notification_receiver_add before sending. IMPORTANT: The `content` field must be valid HTML — plain text without HTML tags will not render on the recipient landing page. Only the following HTML formats are supported: paragraphs (<p>), bold (<strong>), italic (<em>), unordered lists (<ul><li>), ordered lists (<ol><li>). Do not use other HTML tags or CSS. Avoid special typographic characters (em dashes, smart quotes) in `subject`; use standard ASCII equivalents (hyphen, straight quotes) instead."
+    },
+    {
+      "name": "notification_request_send",
+      "description": "Sends a DRAFT certified notification to its receivers. Requires: notification_request_create → notificationRequestId, caseFileId and at least one receiver (notification_receiver_add). 403 if it is not DRAFT; 409 if no receiver is READY_TO_SEND, any is INVALID (see notification_receiver_invalid_purge) or the plan's receiver or document cap is exceeded. ASYNC: the status becomes IN_PROCESS; poll notification_request_status until SENT or beyond before calling notification_certificate_get."
+    },
+    {
+      "name": "notification_request_status",
+      "description": "Checks the delivery status of a certified notification. Requires: notificationRequestId, caseFileId. Returns status (CREATING, DRAFT, IN_PROCESS, SENT, PARTIALLY_READ, FULLY_READ, PARTIALLY_ANSWERED, FULLY_ANSWERED). Poll until status is SENT or beyond. Do not call notification_certificate_get while status is CREATING, DRAFT, or IN_PROCESS."
+    },
+    {
+      "name": "notification_receiver_add",
+      "description": "Adds a recipient to a notification request. Requires: notification_request_create → notificationRequestId, case_file_create → caseFileId. The `id` can be a UUID v4 or custom string. Returns receiverId — save it for notification_certificate_get. Delivery is by email always; set sendWaUrl for a WhatsApp link, sendSmsUrl for an RCS/SMS link (the channel negotiates: RCS where the handset supports it, SMS otherwise), and otpRequired to challenge the recipient with a one-time code. Any of those three needs phonePrefix (with the +) and phoneNumber. Add all receivers before calling notification_request_send — but if the notification has attachments, add those FIRST (see notification_document_add)."
+    },
+    {
+      "name": "notification_certificate_get",
+      "description": "Creates or retrieves the delivery certificate for ONE receiver. Requires: notification_request_send, notification_receiver_add → receiverId, notificationRequestId, caseFileId. 403 while the notification is DRAFT or that receiver is still READY_TO_SEND (see notification_receiver_list). Generate a UUID v4 for `id` once and reuse it when polling: the tool returns the existing certificate with that id instead of creating a duplicate. CERTIFYING → CERTIFIED; poll until CERTIFIED, when documentUrl is included. partial: true means it was issued before the receiver READ (NO_RESPONSE type) or ANSWERED (other types); for the final one, call again with a new id once it has."
+    },
+    {
+      "name": "notification_request_list",
+      "description": "Lists the certified notifications visible to a user. Requires userId (from session_login, session_info or profile_get) — this listing is user-scoped, not case-file-scoped, so it spans every case file unless you filter. Use this to recover a notificationRequestId you no longer have; it is the only way to find one. Returns per notification: id, code, subject, status, type, sentAt, receiverStats and the owning caseFile. Filter by `status` or `statuses` (CREATING, DRAFT, IN_PROCESS, SENT, PARTIALLY_READ, FULLY_READ, PARTIALLY_ANSWERED, FULLY_ANSWERED), by `caseFileIds`, by `search` over the subject, or by `receiversSearch` to find the notification sent to a given recipient. Paginated."
+    },
+    {
+      "name": "notification_request_update",
+      "description": "Edits a notification that has not been sent: subject, content, type and language. Requires notificationRequestId and caseFileId. `content` must be valid HTML — plain text is accepted by the API but does NOT render on the recipient landing page. Supported tags only: <p>, <strong>, <em>, <ul><li>, <ol><li>; no other tags and no CSS. Keep `subject` to plain ASCII (no em dashes, no smart quotes), 100 characters maximum. TESTED: once the notification has been sent the API rejects this with 403 Forbidden, so editing only works before the send. To change which case file it belongs to use notification_request_case_file_move — this tool does not move it."
+    },
+    {
+      "name": "notification_request_delete",
+      "description": "Deletes a notification. Requires notificationRequestId and caseFileId. There is no undo. TESTED: once the notification has been sent the API rejects this with 403 Forbidden — a sent notification is delivery evidence and cannot be removed. If you only want it filed elsewhere, use notification_request_case_file_move instead."
+    },
+    {
+      "name": "notification_request_duplicate",
+      "description": "Creates a new DRAFT notification from an existing one, copying its content, its recipients and its attachments. Works whatever state the original is in, so this is how you resend to the same people or reuse a sent notification as a template. Generate a UUID v4 for `id` and supply a new `subject`; pass `caseFileId` in the body to place the copy in a different case file, or omit it to keep it alongside the original. THE COPY IS BUILT ASYNCHRONOUSLY: it starts in CREATING with zero recipients and zero documents, and fills in afterwards, so reading it immediately shows an empty notification that is not empty. Poll notification_request_status until the status is DRAFT before inspecting or sending it. Because recipients ARE copied, review them with notification_receiver_list before calling notification_request_send — otherwise you will send to the original list again."
+    },
+    {
+      "name": "notification_request_case_file_move",
+      "description": "Moves a notification to a different case file. Note the two caseFileId values: the one in the path is where the notification is NOW, and the one in the body is the destination. Notifications are grouped by case file, and this is the only way to change that grouping without duplicating."
+    },
+    {
+      "name": "notification_receiver_list",
+      "description": "Lists a notification's recipients with their individual delivery state. Returns per recipient: id, firstName, lastName, email, phonePrefix/phoneNumber, status (INVALID, READY_TO_SEND, SENT, READ, ANSWERED, ERROR), statusUpdatedAt, `answer` once they respond, emailBounced, and validationError (TAKEN, IS_DEFINED, IS_INVALID) for a rejected address. Worth calling before notification_request_send to see whether any address came back INVALID, and after sending to see who read or answered. Also the way to recover a receiverId for notification_certificate_get. Paginated; filterable by id."
+    },
+    {
+      "name": "notification_receiver_update",
+      "description": "Corrects a recipient's details: firstName, lastName, email, phonePrefix, phoneNumber. Requires receiverId, notificationRequestId and caseFileId. Use this to fix a mistyped address rather than deleting and re-adding, which would lose the receiverId. phonePrefix must include the + (for example +34). A phone number is required if the recipient is to receive the RCS/SMS link (sendSmsUrl), the WhatsApp link (sendWaUrl), or an OTP challenge (otpRequired)."
+    },
+    {
+      "name": "notification_receiver_delete",
+      "description": "Removes a recipient from a notification. Requires receiverId, notificationRequestId and caseFileId. To remove every address the platform rejected in one call, use notification_receiver_invalid_purge rather than deleting them one by one."
+    },
+    {
+      "name": "notification_receiver_add_bulk",
+      "description": "Adds several recipients in one call instead of one notification_receiver_add per person. Pass `receivers` as an array; each entry needs `id` (you generate it), firstName, lastName and email, and may carry phonePrefix (with the +) and phoneNumber. Note this bulk form does NOT accept the per-recipient otpRequired, sendWaUrl or sendSmsUrl flags that the single-recipient tool does — set the defaults on the request instead (otpByDefault, sendWaUrlByDefault, sendSmsUrlByDefault). The maximum number of recipients is a per-subscription setting, not a fixed API limit: it varies by tenant and platform, so do not assume a number — add them and read the error if the tenant's cap is exceeded. Add every recipient before calling notification_request_send, then check the result with notification_receiver_list, since a rejected address appears with status INVALID."
+    },
+    {
+      "name": "notification_receiver_invalid_purge",
+      "description": "Removes every recipient whose status is INVALID — addresses the platform rejected as malformed or duplicated — from a notification in a single call. Requires notificationRequestId and caseFileId. Recipients in any other status are left untouched. AN INVALID RECIPIENT BLOCKS THE SEND, so run this (or fix the addresses with notification_receiver_update) before notification_request_send, or the notification will not go out. Use notification_receiver_list first to see what will go."
+    },
+    {
+      "name": "notification_document_list",
+      "description": "Lists the documents attached to a notification with their processing status, and it is what you poll after notification_document_add: a newly registered document starts at PENDING and reaches READY_TO_SEND in roughly 8 seconds. Calling notification_request_send while any document is still PENDING fails with 409/404 NOTIFICATION_NOT_FOUND. Poll with a bounded retry — every few seconds, a dozen attempts at most. Requires notificationRequestId and caseFileId. Paginated."
+    },
+    {
+      "name": "notification_document_delete",
+      "description": "Removes an attachment from a notification. Requires documentId (from notification_document_list), notificationRequestId and caseFileId."
+    },
+    {
+      "name": "notification_document_download_url",
+      "description": "Returns { downloadUrl }, a temporary link to an attachment as it was sent. Requires documentId (from notification_document_list), notificationRequestId and caseFileId. Use it to retrieve a file you attached or to verify what a recipient received. The URL is presigned and expires — fetch it when you need it rather than storing it."
+    },
+    {
+      "name": "notification_certificate_list",
+      "description": "Lists the delivery certificates already generated for one recipient, so you can reuse one instead of generating a duplicate. Requires receiverId, notificationRequestId and caseFileId. Returns per certificate: id, status (DRAFT, CERTIFYING, CERTIFIED), language, createdAt, certifiedAt, `partial` — whether it is an intermediate certificate issued before the recipient finished responding — and `embeddedDocuments`. Do not read `embeddedDocuments` as \"the package contains the attachments\": in a tested run it was false on a notification that had an attachment, and notification_certificate_package_url still returned a ZIP carrying that attachment. Once a certificate is CERTIFIED, download it with notification_certificate_document_url (the certificate alone) or notification_certificate_package_url (a ZIP that also carries the attachments)."
+    },
+    {
+      "name": "notification_certificate_document_url",
+      "description": "Returns { documentUrl } for the certificate PDF on its own, WITHOUT the attachments. Requires certificateId, receiverId, notificationRequestId and caseFileId. Wait until the certificate is CERTIFIED: generation is asynchronous and the first call can 404 or come back empty while it is still CERTIFYING, so poll a few times with a bounded retry rather than hammering it. If you want the attachments bundled in, use notification_certificate_package_url instead."
+    },
+    {
+      "name": "notification_certificate_package_url",
+      "description": "Returns { packageUrl } for a ZIP containing the certificate AND the notification's attachments — the \"with annexes\" form. There is no separate preview flag anywhere in the API: the package carries the annexes, the document is the certificate alone. Requires certificateId, receiverId, notificationRequestId and caseFileId. Same preconditions as notification_certificate_document_url — wait for CERTIFIED, and expect the first call to fail while generation is still running."
+    },
+    {
+      "name": "case_file_create",
+      "description": "Creates a case file, the top-level container for evidence, signatures, notifications and dossiers. Generate a UUID v4 for `id`: the API returns no body, so that `id` IS the caseFileId later calls need. Take `useCaseId` from use_case_list (not the Personal use case: each account has one personal case file already, so it answers 422 personalCaseFileAlreadyExists); it must be enabled for your company."
+    },
+    {
+      "name": "case_file_list",
+      "description": "Lists all case files in your EAD Enterprise Suite account. Pass userId (from session_login or session_info) to scope results to your account. Returns paginated list with IDs, names, and status."
+    },
+    {
+      "name": "case_file_get",
+      "description": "Retrieves details of a specific case file. Requires: caseFileId. Use to verify a case file exists before creating evidence groups, dossiers, or signature requests."
+    },
+    {
+      "name": "case_file_update",
+      "description": "Renames a case file or changes its reference, description or status (OPEN or CLOSED). Every field is optional: send only what changes. A CLOSED case file refuses new evidence groups and evidences (evidence_group_create, evidence_create, evidence_upload) until it is set back to OPEN. Large evidence uploads are not checked against it. Needs the editor role or higher on the case file; the user's personal case file cannot be updated (403). Requires: case_file_create → caseFileId. Returns no body; confirm with case_file_get."
+    },
+    {
+      "name": "session_login",
+      "description": "Forces this MCP server to re-authenticate: it re-exchanges its configured user key (MCP_AUTH_USER_KEY) for a fresh session token and reports the userId and expiry. Takes no parameters or credentials. Auth is automatic: call this only to force a re-login or after a 401, never in a loop. If the server holds no credential of its own (none configured, or you sent your own Bearer token) it returns an error naming MCP_AUTH_USER_KEY."
+    },
+    {
+      "name": "session_info",
+      "description": "Returns who is authenticated: userId, email, companyId and defaultCaseFileId from GET /profile; `type`, how this MCP session authenticated (always 'UserKey', the server's only flow); and `accountLoginType`, a different fact: how the account itself signs in ('Password' or 'OpenId', from /profile, null if missing). Gives the userId that case_file_list and other user-scoped tools need; profile_get is its canonical source and returns the full profile. No parameters."
+    },
+    {
+      "name": "profile_get",
+      "description": "Returns the authenticated user's own profile. It identifies the caller from the session token alone — no email or any other input needed — so it works on every deployment, including a per-request Bearer one. Its `id` field IS your userId (UUID): the value required by case_file_list and every /users/{userId}/... operation. Prefer this over session_info when you need the userId: it is the canonical source. Also returns companyId (needed to subscribe to the notifications SSE stream) and defaultCaseFileId. Also returns `permit`, a set of booleans — { evidences, idVerifications, notifications, chats, signatures } — that says which tool families this account may use at all: a false entry means every tool in that family returns 403 regardless of inputs, and no retry or different argument will help. Read it before calling into a family for the first time. No parameters."
+    },
+    {
+      "name": "use_case_list",
+      "description": "Lists available use cases for the account. Use cases define the allowed signature workflows and document types. Returns useCaseId values needed for signature_request_create."
+    },
+    {
+      "name": "signature_group_create",
+      "description": "Creates a signing-order group for a CONFIGURABLE signature request in DRAFT (403 otherwise). type: Document (a round of documents; its id is the groupId for signature_request_add_document), Signatory (a round of signatories; the groupId for signature_participant_create) or DocumentSignatory (links one document to a round; needs documentId). Creating a CONFIGURABLE request pre-creates a Document and a Signatory group at index 1: use them for the first document and signatory (read their ids with signature_group_list) and create only the additional rounds (index 2, 3…). Add participants with linkToAllDocuments:true (signature_participant_create; the bulk call links them itself) so DocumentSignatory groups are generated at the right index; without it they stay unlinked to documents and signature_coordinate_set fails with 'Signatory not found'."
+    },
+    {
+      "name": "signature_group_list",
+      "description": "Lists all signing order groups of a CONFIGURABLE signature request (403 for any other sequence). Returns id, type (Document/Signatory/DocumentSignatory), index, and documentId for each group. On a CONFIGURABLE request, call it right after signature_request_create to retrieve the pre-created index:1 group IDs before adding documents or participants."
+    },
+    {
+      "name": "signature_request_create",
+      "description": "Creates a signature request in DRAFT status, step by step; signature_request_full does the whole flow (documents, signatories, positions, sending) in one call. Requires: case_file_create → caseFileId. YOU generate `id` (UUID v4): the call returns HTTP 201 with NO body, so that id is the requestId. name: up to 64 characters. deadline: ISO 8601 date-time, in the future and at most 31 days ahead. signatureType: INTERPOSITION (simple signature through a link), ADVANCED (the signer confirms with a one-time code sent to their mobile, so each signatory needs a phone) or WITH_CERTIFICATE (the signer's own digital certificate). sequence: PARALLEL (everyone signs at once) or CONFIGURABLE (signing rounds; see signature_group_list), only if your company's plan allows it (else 409 SignatureSequenceNotAllowed). closeCondition: ALL_REQUIRED (completes when everyone has signed) or PARTIAL_ALLOWED (completes once nothing is pending; a rejection does not block the others). dashboardUrl: ANONYMIZED (the default) or NONE, whether signers get a link to the co-signer dashboard. Then add documents with signature_request_add_document and participants with signature_participant_create, and send it with activate_signature_request."
+    },
+    {
+      "name": "signature_request_get",
+      "description": "Retrieves one signature request: its status (CREATING, DRAFT, ACTIVE, PARTIALLY_SIGNED, FULLY_SIGNED, COMPLETED, COMPLETED_MANUAL, CLOSING, REJECTED or CANCELLED), name, deadline, signature type, close condition and signatory/observer/validator counts. It does NOT include the documents or their processing status — use signature_document_list — nor the people — use signature_participant_list. Requires: signature_request_create → requestId, case_file_create → caseFileId."
+    },
+    {
+      "name": "signature_request_cancel",
+      "description": "Cancels a signature request that is ACTIVE, PARTIALLY_SIGNED or REJECTED (refused with 403 in any other status, DRAFT included): it becomes CANCELLED at once and the signing stops. Nothing can be downloaded afterwards: signed documents and certificates exist only for COMPLETED or COMPLETED_MANUAL requests. Irreversible: confirm with your user first. To end the signing early but keep what was already signed, use signature_request_close instead. Requires: case_file_create → caseFileId, signature_request_create → requestId. Returns no body."
+    },
+    {
+      "name": "signature_request_add_document",
+      "description": "Adds a document to a DRAFT signature request. Requires: signature_request_create → requestId, case_file_create → caseFileId. Give the document a new UUID as `id` (it is the documentId for coordinates and certificates) and the SHA-256 hex `hash` of its exact bytes. Without `fileUrl` it returns `url`, a presigned upload URL: PUT the exact bytes there with header x-amz-checksum-sha256 = base64 of the same SHA-256. With `fileUrl` (HTTPS) the tool downloads the file itself (size and private-network guards), refuses before registering anything if it does not match `hash` (telling you the right one), and uploads it. Processing is asynchronous: poll signature_document_list until the document is READY_TO_SIGN (ERROR: the bytes or the registration failed). A registered document that never receives its bytes stays PENDING and blocks activation. convertToPdf only for a file name ending in .docx. Not after activate_signature_request. For CONFIGURABLE sequence: `groupId` must reference a Document type group (not Signatory or DocumentSignatory) — a wrong group type returns 'Signature group not found'. To create, fill and send a request in one call, use signature_request_full."
+    },
+    {
+      "name": "signature_document_list",
+      "description": "Lists the documents of a signature request with a document-level status and per-document statistics. Requires: signature_request_create → requestId, case_file_create → caseFileId. Items are { id, requestId, groupId, status, title, fileName, fileSize, convertToPdf, participantStats, signatoryStatusStats, signatoryCoordinatesStats } — for example status PARTIALLY_SIGNED with signatoryStatusStats { pending: 0, readyToSign: 1, signed: 1, rejected: 0 } and signatoryCoordinatesStats { defined: 2, missing: 0 } (live-read on INT 2026-09-07). signatoryCoordinatesStats.missing === 0 is the direct check that every required signatory has coordinates before activate_signature_request. status is also the document's processing state: PENDING (including the conversion to PDF) until processed, then READY_TO_SIGN, or ERROR (the bytes did not match the hash, or the registration failed) — poll it before activate_signature_request; once sent, PARTIALLY_SIGNED, SIGNED, or REJECTED when a signatory declines. For the signatories of one document use signature_document_signatory_list."
+    },
+    {
+      "name": "signature_document_signatory_list",
+      "description": "Lists the SIGNATORIES of one document in a signature request, with each signatory's status on that document. Requires: signature_request_add_document → documentId, signature_request_create → requestId, case_file_create → caseFileId. Items are { id, groupId, email, firstName, lastName, status, coordinates, uniqueValidator, phonePrefix, phoneNumber, participantStats } and status is PENDING, READY_TO_SIGN, VALIDATING, SIGNED or REJECTED. Each `id` is the participant id — the one signature_coordinate_set takes. For the DOCUMENT's own processing status (READY_TO_SIGN before activation) use signature_document_list. Certificates are available once the whole request is COMPLETED (signature_request_get)."
+    },
+    {
+      "name": "signature_document_observer_list",
+      "description": "Lists the OBSERVERS of one document in a signature request — participants created with role OBSERVER, who receive a copy but never sign. Requires: signature_request_add_document → documentId, signature_request_create → requestId, case_file_create → caseFileId. Items carry only { id, email, firstName, lastName }: there is deliberately no status field, because an observer has nothing to complete. For the signers of the same document use signature_document_signatory_list."
+    },
+    {
+      "name": "signature_signatory_progress_list",
+      "description": "Lists the documents assigned to ONE signatory of a signature request, with that signatory's progress on each. Requires: caseFileId, requestId and signatoryId. The signatoryId is the `id` of a participant whose role is SIGNATORY — read it from signature_participant_list or signature_document_signatory_list. Passing a participant id whose role is not SIGNATORY returns 404 'Signatory not found' — observed on INT 2026-09-07 with a VALIDATOR id; it is one id space, but the signatory-scoped endpoints accept only the ids of SIGNATORY participants. Returns { data, meta.totalElements } with items { id, fileName, fileSize, status }, where status is PENDING, READY_TO_SIGN, SIGNED or REJECTED."
+    },
+    {
+      "name": "signature_participant_create",
+      "description": "Adds one participant to a DRAFT signature request. This is the ONLY participant create endpoint: `role` selects SIGNATORY (must sign), OBSERVER (receives a read-only copy) or VALIDATOR (must approve before its signatory can sign; only if your company's plan allows validators, else 409 SignatureValidatorsNotAllowed). Requires: signature_request_create → requestId, case_file_create → caseFileId, plus role, firstName, lastName and email. YOU generate `id` (UUID v4) and the call returns HTTP 201 with NO body, so nothing is handed back — the id you generated IS the participantId, and it is the signatoryId if you passed role SIGNATORY or the validatorId if you passed role VALIDATOR. Keep it. For ADVANCED signatures phonePrefix and phoneNumber are mandatory because the signer receives the OTP there, and WhatsApp delivery is NOT supported for ADVANCED; for INTERPOSITION and WITH_CERTIFICATE the phone is optional, and sendWaUrl (WhatsApp) or sendSmsUrl (SMS, where the platform enables it) also sends the link there. Add at least one SIGNATORY before activating. For role VALIDATOR do NOT include groupId or linkToAllDocuments — link it afterwards with assign_validator_to_signatory. Use signature_participant_add_bulk to add many at once, and signature_participant_list to re-read what exists."
+    },
+    {
+      "name": "signature_participant_add_bulk",
+      "description": "Adds many participants to a DRAFT signature request in one call. Requires: signature_request_create → requestId, case_file_create → caseFileId, and a `participants` array; each entry takes the `id` you mint, `role` (SIGNATORY, OBSERVER or VALIDATOR), firstName, lastName, email and a phone (phonePrefix with the +, phoneNumber), REQUIRED for every SIGNATORY of an ADVANCED request. The platform links every valid signatory and observer to all documents itself, so there is no groupId or linkToAllDocuments; in a CONFIGURABLE request all signatories go to round 1 (use signature_participant_create with groupId for later rounds), and validators are linked afterwards with assign_validator_to_signatory. A bad entry (for example an ADVANCED signatory without a phone) is NOT refused: the call still returns 201 with no body and stores it invalid and unlinked, which blocks activation, so re-read with signature_participant_list and remove invalid ones with signature_participant_invalid_purge. A SIGNATORY with a phone in an INTERPOSITION or WITH_CERTIFICATE request is ALSO invited by WhatsApp (and by SMS where the platform enables it): leave the phone out to invite by email only. One VALIDATOR on a plan without validators rejects the whole call (409 SignatureValidatorsNotAllowed)."
+    },
+    {
+      "name": "signature_participant_list",
+      "description": "Lists every participant of a signature request with the role each was created under — SIGNATORY, OBSERVER or VALIDATOR — plus contact details and validity. Requires: signature_request_create → requestId, case_file_create → caseFileId. Items are { id, requestId, groupId, role, firstName, lastName, email, phonePrefix, phoneNumber, createdAt, editable, emailBounced, valid, validationError, participantStats, documentStats }. This is the tool that resolves ids: an item's `id` is the participantId, and it is also the signatoryId when role is SIGNATORY and the validatorId when role is VALIDATOR. Supports filter, order and page."
+    },
+    {
+      "name": "signature_participant_update",
+      "description": "Corrects a participant's details before the signature request is activated. Requires: signature_participant_create → participantId, signature_request_create → requestId, case_file_create → caseFileId. Any of groupId, firstName, lastName, email, phonePrefix and phoneNumber may be sent. The role CANNOT be changed, so to turn a signatory into an observer, delete it and create it again. Use this to repair a bounced or mistyped email — signature_participant_list reports emailBounced and validationError. Returns no body; confirm with signature_participant_list."
+    },
+    {
+      "name": "signature_participant_delete",
+      "description": "Removes one participant from a signature request. Requires: signature_participant_create → participantId, signature_request_create → requestId, case_file_create → caseFileId. Use it to drop someone added by mistake, or to change a role (delete, then create again with the new role, since role is not updatable). Returns no body; confirm with signature_participant_list. To drop every invalid participant at once use signature_participant_invalid_purge instead."
+    },
+    {
+      "name": "signature_participant_invalid_purge",
+      "description": "Removes every participant of a signature request that the platform has marked invalid, in one call. Requires: signature_request_create → requestId, case_file_create → caseFileId. signature_participant_list identifies them via `valid: false` and `validationError` — typically an undeliverable email or a malformed phone number. Returns no body; confirm with signature_participant_list. Prefer signature_participant_update when the detail can be repaired rather than the person dropped."
+    },
+    {
+      "name": "assign_validator_to_signatory",
+      "description": "Assigns one or more validators to a specific signatory in a signature request. The validator must approve before the signatory can sign. Requires: signature_participant_create (validator) → validatorId in validatorIds array, signature_participant_create (signatory) → signatoryId, signature_request_create → requestId, case_file_create → caseFileId."
+    },
+    {
+      "name": "signature_validator_list",
+      "description": "Lists the validators currently linked to ONE signatory of a signature request. Requires: signature_participant_create (signatory) → signatoryId, signature_request_create → requestId, case_file_create → caseFileId. Items carry { id, email, firstName, lastName }, where each `id` is a validatorId. Note the two-step model: creating a participant with role VALIDATOR does not attach it to anyone, so a validator can exist on the request and not appear here until assign_validator_to_signatory links it — an empty list means nothing is linked yet, not that no validator exists."
+    },
+    {
+      "name": "signature_validator_unassign",
+      "description": "Unlinks one validator from one signatory, reversing assign_validator_to_signatory. Requires: signature_validator_list → validatorId, signature_participant_create (signatory) → signatoryId, signature_request_create → requestId, case_file_create → caseFileId. This removes the LINK only: the validator remains a participant of the request, so use signature_participant_delete to remove the person entirely. Returns no body; confirm with signature_validator_list."
+    },
+    {
+      "name": "activate_signature_request",
+      "description": "Sends a DRAFT signature request to its signers (DRAFT → ACTIVE): every signatory receives the invitation. IRREVERSIBLE — confirm with your user first; no documents or participants can be added afterwards. The platform checks: at least one SIGNATORY; every document READY_TO_SIGN (signature_document_list — a document still PENDING or in ERROR makes activation fail with an opaque 504); every PDF, and every .docx sent with convertToPdf, has a position for every signatory linked to it, whatever the signature type (else 409 SignatoriesWithoutCoordinates; signature_document_list's signatoryCoordinatesStats.missing shows it); no participant marked invalid (409 InvalidParticipants). INTERPOSITION may also send the link by WhatsApp/SMS; ADVANCED sends a one-time code to each signatory's mobile. Follow it with signature_signatory_progress_list or signature_document_signatory_list; once the request is COMPLETED, get each document's certificate with signature_certificate_get. Requires: signature_request_create → requestId, case_file_create → caseFileId. To create and send in one call, use signature_request_full."
+    },
+    {
+      "name": "signature_coordinate_set",
+      "description": "Sets where a signatory signs on one document: coordinates is an array of {page (from 1), x, y} — x/y in PDF points from the page's bottom-left corner, (x, y) being the bottom-left corner of the signature stamp, which occupies x+15..x+104 by y..y+66.5 (measured live 2026-11-26; see the signature guide). A page the PDF does not have is not refused: a blank page is appended and signed. Required at activation on every PDF, and every .docx sent with convertToPdf, for every signatory linked to it — whatever the signature type; other files need none. signatoryId is the participant id (the id you gave signature_participant_create); the call replaces that signatory's positions on that document, so it is safe to repeat, and works any time while the request is DRAFT once the signatory is linked to the document. Requires: signature_request_add_document → documentId, signature_request_create → requestId, case_file_create → caseFileId."
+    },
+    {
+      "name": "signature_certificate_get",
+      "description": "Retrieves the signature certificate of one document: documentUrl, a temporary link to the certificate PDF. Available only once the WHOLE request is COMPLETED (or COMPLETED_MANUAL) — check with signature_request_get; before that the platform refuses (403). Requires: signature_request_add_document → documentId, signature_request_create → requestId, case_file_create → caseFileId."
+    },
+    {
+      "name": "signature_request_list",
+      "description": "Lists the signature requests of one case file. Requires: case_file_create → caseFileId. Optional filters: filter.status (one status) or filter.statuses (several), each one of CREATING, DRAFT, ACTIVE, PARTIALLY_SIGNED, FULLY_SIGNED, CANCELLED, COMPLETED, REJECTED, CLOSING or COMPLETED_MANUAL; filter.createdFrom and filter.createdUntil (ISO 8601 date-time); filter.search (free text); filter.id. order.createdAt sorts ASC or DESC; page paginates. Returns { data, meta }; use an item's id as requestId in signature_request_get and the other signature tools."
+    },
+    {
+      "name": "signature_document_signed_url",
+      "description": "Returns the download URL of the SIGNED PDF of one document of a signature request, in the field signedDocumentUrl. Only works once the whole signature request is COMPLETED or COMPLETED_MANUAL: before that the API rejects the call, so check the status with signature_request_get first. Requires: case_file_create → caseFileId, signature_request_create → requestId, signature_document_list → documentId. For the completion certificate use signature_certificate_get; for the evidential package (a ZIP) use signature_certificate_package_url."
+    },
+    {
+      "name": "signature_certificate_package_url",
+      "description": "Returns the download URL of the evidential package (a ZIP) of one document of a signature request, in the field packageUrl. Only works once the whole signature request is COMPLETED or COMPLETED_MANUAL: before that the API rejects the call, so check the status with signature_request_get first. Requires: case_file_create → caseFileId, signature_request_create → requestId, signature_document_list → documentId. For the signed PDF alone use signature_document_signed_url; for the completion certificate use signature_certificate_get."
+    },
+    {
+      "name": "signature_request_resend",
+      "description": "Sends the signing invitation again to every signatory and validator of a signature request that is ACTIVE, PARTIALLY_SIGNED or REJECTED (observers are not messaged again) and clears their bounced-email flag. Use it after fixing a bounced or mistyped email with signature_participant_update, or when a signer lost the invitation. This messages real people: confirm with your user before calling it. Requires: case_file_create → caseFileId, signature_request_create → requestId. Returns no body."
+    },
+    {
+      "name": "signature_request_close",
+      "description": "Closes a signature request that is ACTIVE, PARTIALLY_SIGNED or REJECTED, ending the signing process before every signatory has signed. Irreversible: confirm with your user first. Asynchronous: the request moves to CLOSING and the platform finishes the close afterwards, so poll signature_request_get until the status is no longer CLOSING. Requires: case_file_create → caseFileId, signature_request_create → requestId. Returns no body."
+    },
+    {
+      "name": "large_evidence_upload_initiate",
+      "description": "Low-level first step of a large upload: registers a large evidence upload in an evidence group and returns NOTHING — no upload URLs, no chunk list. Fields: id (new UUID v4 for the upload), evidenceId (new UUID v4 for the evidence), totalSizeMB (the file size in MB, up to 6 decimals; refused above the deployment's maxLargeEvidenceSizeMB, 125 GB on EAD Enterprise Suite), title, fileName, capturedAt (ISO 8601). The chunks then go through pending-offset and upload-URL endpoints that are not exposed as tools, so this call alone cannot upload a file: to upload one, use large_evidence_upload, which runs the whole flow from a local path. large_evidence_upload can continue an upload registered here only if totalSizeMB was given as bytes ÷ 1,048,576 rounded up to 6 decimals (it checks the size). Check an upload with large_evidence_upload_get (evidenceId); cancel it with large_evidence_upload_cancel (id)."
+    },
+    {
+      "name": "large_evidence_upload_complete",
+      "description": "Files a request to CLOSE THE WHOLE EVIDENCE GROUP; it does not finish, upload or seal any single upload. Fields: id (new UUID v4 for the request), userAgent (optional). Returns nothing. The request stays pending until a large upload in the group ends — finishes, is cancelled, or has its evidence deleted — and the platform then closes the group as evidence_seal does, if the group holds at least one evidence. So call it only while another large upload in the group is still running; with none running, close the group with evidence_seal instead (a request filed then would close the group later, unasked, when the next large upload in it ends). Closing is irreversible: confirm with your user first. Requires: caseFileId and evidenceGroupId of a group you created."
+    },
+    {
+      "name": "large_evidence_upload_get",
+      "description": "Reports how much of a large evidence upload the platform has received. Requires: caseFileId, evidenceGroupId and, as id, the EVIDENCE id (large_evidence_upload → evidenceId). Returns id (the upload id), evidenceId, fileName, totalSizeMB, chunkSizeMB and biggestUploadedOffset (highest chunk index received, from 0; -1 = none yet). Answers 404 once the platform has finished the evidence (it then removes the upload record — check the evidence with evidence_get) or after the upload was cancelled. To continue an unfinished upload, call large_evidence_upload with this evidenceId and the same file."
+    },
+    {
+      "name": "large_evidence_upload_cancel",
+      "description": "Cancels a large evidence upload that has not finished: discards its pending chunks, aborts the file upload on the platform and removes the upload. IRREVERSIBLE. Takes, as id, the UPLOAD id (large_evidence_upload → uploadId, or the id you gave large_evidence_upload_initiate) — not the evidenceId. Requires: caseFileId and evidenceGroupId of a group you created. Refused with 409 if the evidence is already linked to a dossier; 404 once the platform has finished the evidence (the upload no longer exists). If this was the last large upload in the group and a close request is pending (large_evidence_upload_complete), the group is closed then. Returns no body (204)."
+    },
+    {
+      "name": "evidence_upload",
+      "description": "Uploads a local file as evidence in one step: computes its SHA-256, registers the evidence record (custodyType INTERNAL = EAD stores the file), and uploads the bytes to S3 — no manual hashing or PUT needed; returns uploaded:true. Requires: case_file_create → caseFileId, evidence_group_create → evidenceGroupId. Provide EXACTLY ONE of `filePath` (absolute local path, stdio/local mode only) or `contentBase64` (base64-encoded file content, ~10 MB max). Use evidence_upload when the file is on the local machine; use evidence_create when you already have the SHA-256 hash, need to inspect/use uploadFileUrl manually, or have a public fileUrl. After this tool succeeds, verify with evidence_get/evidence_list and only then call evidence_seal. If this tool fails before returning an evidence id, check evidence_list before retrying; if retrying manually, use evidence_create with a fresh UUID. Local files must be under 1 GiB."
+    },
+    {
+      "name": "notification_send",
+      "description": "Sends a certified notification to one or more recipients in a single call: creates the notification request, adds every recipient, and sends it. Generates every UUID itself — do not pass any id. Requires case_file_create → caseFileId. `content` MUST be HTML: plain text is accepted by the API and reports SENT but does not render on the recipient's landing page. Supported tags only: <p>, <strong>, <em>, <ul><li>, <ol><li> — no other tags, no CSS. Keep `subject` to plain ASCII, 100 characters maximum. Delivery is always by email; per recipient you can additionally set sendWaUrl (WhatsApp), sendSmsUrl (RCS or SMS depending on the handset) and otpRequired (one-time code), each of which needs phonePrefix with the + and phoneNumber. The recipient limit is a per-subscription setting, not enforced here; the API rejects an oversized batch. This tool does NOT attach files; use notification_send_with_attachments for that, because attachments must be registered before recipients are added. PARTIAL SUCCESS IS REPORTED, NOT THROWN: if the request was created but a recipient or the send failed, the result still carries notificationRequestId together with recipientsAdded, recipientsFailed and sent:false, so you can finish with notification_receiver_add and notification_request_send instead of abandoning a draft. An INVALID recipient blocks the send, so this tool checks for one before sending and reports invalidRecipients rather than attempting a send that cannot succeed. If the initial create fails the tool raises an error instead: common causes are a caseFileId that does not exist, a subject over 100 characters, and an exhausted contracted notification plan, which no retry will fix. If that error is a timeout rather than a rejection, check notification_request_list before retrying — the request may have been created anyway. Poll notification_request_status for delivery progress, then notification_certificate_get per recipient."
+    },
+    {
+      "name": "notification_send_with_attachments",
+      "description": "Sends a certified notification WITH one or more attached documents to one or more recipients, in a single call. Use notification_send instead when there are no attachments. It runs the order the API requires: create → register and upload each document → wait until every document is READY_TO_SEND → add recipients → send; any other order makes the send fail (409/404 NOTIFICATION_NOT_FOUND). Each attachment takes a local file path, base64 content or an HTTPS URL; the hash and the upload are handled internally. Generates every UUID itself — do not pass any id. Requires case_file_create → caseFileId. `content` MUST be HTML: plain text is accepted by the API and reports SENT but does not render on the recipient's landing page. Supported tags only: <p>, <strong>, <em>, <ul><li>, <ol><li>. Keep `subject` to plain ASCII, 100 characters maximum. Delivery is always by email; per recipient you can additionally set sendWaUrl (WhatsApp), sendSmsUrl (RCS or SMS depending on the handset) and otpRequired (one-time code), each of which needs phonePrefix with the + and phoneNumber. The maximum number of attachments and of recipients are per-subscription settings, not fixed limits, so neither is enforced here. If an attachment fails, the run stops before adding recipients, because the API accepts no more documents once recipients exist, and reports the draft's notificationRequestId so you can retry or delete it. An INVALID recipient blocks the send, so the tool checks for one before sending and reports invalidRecipients instead. If the initial create fails the tool raises an error: common causes are a caseFileId that does not exist, a subject over 100 characters, and an exhausted notification plan, which no retry will fix. If that error is a timeout rather than a rejection, check notification_request_list before retrying — the request may have been created anyway. Certificates can bundle the attachments — see notification_certificate_package_url."
+    },
+    {
+      "name": "signature_request_full",
+      "description": "Creates a signature request, adds its documents (uploading the bytes), adds the signatories one by one and any observers, places each signature, waits for the documents to be processed and SENDS it to the signers — in ONE call, instead of chaining signature_request_create, signature_request_add_document, signature_participant_create, signature_coordinate_set and activate_signature_request. Sending is irreversible: confirm with your user first, or pass activate: false for a draft. Requires case_file_create → caseFileId and a NEW requestId (UUID v4); reuse it with the same caseFileId to retry — an existing request is reported, never created twice. Every signatory signs every document. Plan limits on documents and participants per request apply. A PDF (or a .docx with convertToPdf) needs a position for every signatory: if one is missing the call is refused BEFORE anything is created — read the PDF to find the signature page and send coordinates, or pass activate: false. Returns requestId, document/signatory/observer ids and the status: ACTIVE once sent; DRAFT with activate: false or if the documents were still processing (then use activate_signature_request). If a later step fails, the error lists the ids created, the request's state and what to do."
+    },
+    {
+      "name": "large_evidence_upload",
+      "description": "Uploads a LARGE file (up to the deployment's maxLargeEvidenceSizeMB, 125000 on EAD Enterprise Suite) as one evidence, from a LOCAL PATH ONLY: the server streams the file from its own disk in chunks, so the file must be on the machine running this MCP server (stdio/local mode). Base64, n8n and URL sources are refused. Requires: case_file_create → caseFileId; an OPEN evidence group YOU created (evidence_group_create → evidenceGroupId) — the platform takes chunks only from the group's creator, so another user's group is refused before anything is created; a title for a new upload. The upload runs inside this server, chunk by chunk (chunk size from the deployment's settings, 1000 MB on Suite), and keeps running between calls. Each call waits up to timeBudgetSeconds (default 50) and returns status in_progress or complete, with evidenceId, uploadId and chunksDone/chunksTotal; a new upload's first call returns within 50 s, so you always get its evidenceId. To follow or resume, call again with evidenceId and the same file: chunks already uploaded are never sent again, and after a server restart the upload resumes from the platform's record. If your client times out, just call again with the evidenceId. When status is complete, the platform finishes the evidence asynchronously: wait until evidence_get(evidenceId) returns it before sealing. Then close the group with evidence_seal, or with large_evidence_upload_complete while other large uploads in it still run. Cancel an unfinished upload with large_evidence_upload_cancel (uploadId)."
+    }
+  ]
+}
