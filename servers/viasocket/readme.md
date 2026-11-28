@@ -9,9 +9,3 @@ Use this MCP server to discover available capabilities, explore documentation, A
 Build the product, not the infrastructure.
 
 For documentation, visit https://github.com/walkover-mcp/viasocket#readme
-
-
-
-
-
-
